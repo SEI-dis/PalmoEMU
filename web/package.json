@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "private": true,
   "scripts": {
     "dev": "node scripts/serve.cjs",
@@ -58,7 +58,8 @@
     "test:startup-input": "node tests/startup-input.cjs",
     "test:game-navigation": "node tests/game-navigation.cjs",
     "test:library": "node tests/library.cjs",
-    "test:library-bulk": "node tests/library-bulk.cjs"
+    "test:library-bulk": "node tests/library-bulk.cjs",
+    "test:player-selection": "node tests/player-selection.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

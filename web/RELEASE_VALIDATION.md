@@ -1,6 +1,6 @@
 # 公開前の検証記録
 
-確認日：2026-10-10。対象：PalmoEMU 0.3.9のWeb配布物と、このリポジトリの公開候補。
+確認日：2026-10-11。対象：PalmoEMU 0.3.10のWeb配布物と、このリポジトリの公開候補。
 以下の過去の全件検査と、末尾の各バージョンで再実行した検査は区別して記載しています。
 配布ファイルの正確な内容は RELEASE_CONTENT.json、レビュー対象のハッシュと根拠は
 RELEASE_REVIEW.json で特定します。
@@ -381,3 +381,12 @@ PC版WebKitの成功を実機検証の代用とはしない。ファイルには
 ここでのPC版WebKit確認はiPhone実機検証を意味しない。公開対象コミットのCI全件と配布検査の成功後に公開する。
 
 追加レビューで、開いたままのROMメニューから操作した際に別タブの分類解除を上書きする競合を再現した。名前・お気に入り・チート・プレイ履歴の保存を項目単位の同一トランザクション更新へ変更。`library.cjs` のメニュー競合ケース、`library-bulk.cjs` の並行更新ケースを追加した。初回プレイ時のカバー取得が総プレイ時間を過去値で上書きする不具合も修正した。`game-navigation.cjs` はプレイ時間保持を含めEdge・PC版WebKit成功、`native-menu.cjs` は追加分類行を含め両環境成功。オフライン一覧再読込・既存チート保持・64MiB ROM・未起動コアのオフライン起動を `features.cjs` でEdge確認した。
+
+## 0.3.10: ゲーム画面の長押し（2026-10-11）
+
+- 余白・保存状況・FPS表示を含む `#player` 全体へ、既存の文字選択・長押しメニュー・画像ドラッグ抑止を拡張。CSSの `user-select` / `-webkit-user-select` / `-webkit-touch-callout` と既存のイベント抑止を合わせた。
+- input・textarea・select・contenteditableは編集対象として除外。空のcontenteditable属性とplaintext-only、編集可能な子要素も含め、選択とコピー・切り取り・貼り付けのイベントを妨げない。ゲーム画面外の通常テキストは選択可能。
+- `player-selection.cjs`：修正前のPC版WebKitでプレイヤー領域が選択可能なことを再現。修正後はChromium（Edge）・PC版WebKitで、余白・保存状況・FPS・ボタンのCSSとイベント、入力欄の選択・文字置換・select操作、ゲームボタンの長押し・タッチ入力・中断時の解除を確認。Chromiumでは実タッチイベントの同時押しとキャンセルも確認。
+- 既存の `input-controls.cjs` と `skin-compatibility.cjs` も両エンジンで成功。キー割り当て・入力保持・解除と、取り込みスキンのタッチ領域・長押し倍速・操作の互換性を確認。
+- iPhone実機の拡大鏡・選択ハンドル・ネイティブメニューは未検証。PCの自動テストをiPhone実機検証とは扱わない。`-webkit-touch-callout` の計算値検査は、そのプロパティを実装するブラウザでのみ実施し、iOS用の宣言と編集欄の例外はソースで確認した。
+- 公開は同じmainコミットの `Validate Web release` 全件成功後に `Publish PalmoEMU` で行う。対応ソースZIP・オフライン一覧・配布内容とレビュー対象ハッシュを更新する。

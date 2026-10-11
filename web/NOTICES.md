@@ -469,3 +469,7 @@ browserLibraryOrganization in [SOURCES.json](SOURCES.json). Existing bundled
 Swift originals and their headers are retained unchanged. Newly reviewed Swift
 files are behavior references only, not copied into the runtime or distribution.
 No new third-party image, ROM, BIOS, core binary or native dependency is included.
+
+Modified 2026-10-11: expanded the existing selection/callout guards from the
+skin to the entire player, including padding and status/FPS text. Native text
+field editing is retained. No third-party dependency, artwork or core changes.

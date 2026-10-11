@@ -77,12 +77,12 @@ const inputControls=createInputControls({settings,keybits,pressed,updateKeys,
  ignoreEvent:event=>{if($('#sheet').open||event.target.closest?.('#link-panel'))return true;if(event.code==='Escape'&&linkPanel.visible){event.preventDefault();linkPanel.hide({focus:true});return true;}if(event.code==='Tab'&&linkPanel.visible)return true;return ['Enter','Space'].includes(event.code)&&!!event.target.closest?.('button,a');}
 });
 const showInputControls=createInputControlsView({controls:inputControls,sheet,onClose:cleanup=>{sheetCleanup=cleanup;},getSystem:()=>current?.system||settingsGame?.system||'gba',isPlaying:()=>!!engine});
-// Suppress browser callouts on controls, including dynamically rendered buttons.
+// Suppress callouts on the whole player, including status text and empty space.
 // Keep native selection, copy and paste in room numbers and other text fields.
 for(const type of ['contextmenu','selectstart','dragstart'])document.addEventListener(type,e=>{
  const target=e.target instanceof Element?e.target:e.target.parentElement;
- if(!target||target.closest('input,textarea,select,[contenteditable="true"]'))return;
- if(target.closest('button,[role="button"],a.row,a.primary,a.secondary,summary,#skin,.edit-preview'))e.preventDefault();
+ if(!target||target.closest('input,textarea,select')||target.isContentEditable)return;
+ if(target.closest('button,[role="button"],a.row,a.primary,a.secondary,summary,#player,.edit-preview'))e.preventDefault();
 },{capture:true});
 let saveImportTarget=null,playRunAt=0;
 let dpadViews=[];
