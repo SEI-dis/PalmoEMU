@@ -55,6 +55,8 @@ export function mountSkinInputs(host,rep,images,api){
   };
   show(latched);
   const command=keys.find(k=>!gameInputs.has(k)),holdAction=command&&/^fastForward(?:[234]x)?$/.test(command);
+  // Pointer-only controls do not need a compatibility click after touchend.
+  if(!command||holdAction)button.dataset.gameInput='';
   // Modal actions use click, after the pointer gesture is complete. Opening a
   // dialog on pointerdown lets the same tap activate its cancel/delete button.
   button.onclick=event=>{if(!command||holdAction||paused())return;event.preventDefault();event.stopPropagation();action(command);if(!item.selfRetracting&&button.isConnected){latched=api.selected?.(command)??!latched;show(latched);}};

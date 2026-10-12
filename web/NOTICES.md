@@ -494,3 +494,10 @@ new touch sequences, with owner checks for delayed capture-loss events. Native
 editing/scrolling is not canceled, and keyboard/gamepad state is independent.
 The new browser helper and regression test are AGPL-3.0-or-later. No third-party
 artwork, core binary, ROM or save handling changes.
+
+Modified 2026-10-12: strengthened player-only gesture handling. The player uses
+pan-y to keep communication-panel scrolling while excluding pinch zoom. An
+original AGPL-3.0-or-later helper suppresses Safari gesture defaults and touch
+move/end defaults on pointer-operated game controls and noninteractive areas.
+Native command clicks, editable fields and communication-panel events remain
+available. No added dependencies, third-party artwork, core or save changes.

@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.13",
+  "version": "0.3.14",
   "private": true,
   "scripts": {
     "dev": "node scripts/serve.cjs",
@@ -61,7 +61,8 @@
     "test:library-bulk": "node tests/library-bulk.cjs",
     "test:player-selection": "node tests/player-selection.cjs",
     "test:mgba-compatibility": "node tests/mgba-compatibility.cjs",
-    "test:touch-recovery": "node tests/touch-recovery.cjs"
+    "test:touch-recovery": "node tests/touch-recovery.cjs",
+    "test:player-gestures": "node tests/player-gestures.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

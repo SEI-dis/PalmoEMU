@@ -24,7 +24,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   });
   // Check the final cascade: panel styles must not re-enable double-tap zoom
   // on player padding/status, or disable native scrolling inside the panel.
-  assert.equal(await page.locator('#player').evaluate(el=>getComputedStyle(el).touchAction),'manipulation');
+  assert.equal(await page.locator('#player').evaluate(el=>getComputedStyle(el).touchAction),'pan-y');
   for(const selector of ['#skin','.skin-button[aria-label=A]'])assert.equal(await page.locator(selector).evaluate(el=>getComputedStyle(el).touchAction),'none');
   assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).touchAction),'auto','Ordinary pages keep browser gestures');
   assert.doesNotMatch(await page.locator('meta[name=viewport]').getAttribute('content'),/user-scalable\s*=\s*(?:no|0)|maximum-scale\s*=/i,'Do not disable zoom globally');

@@ -33,6 +33,7 @@ import {chooseRepresentation} from './skin-format.js';
 import {mountSkinScreens} from './skin-screens.js';
 import {mountSkinInputs} from './skin-inputs.js';
 import {createSkinPointers} from './skin-pointers.js';
+import {guardPlayerGestures} from './player-gestures.js';
 import {builtinLayout} from './skin-art.js';
 import {screenBounds} from './control-layout.js';
 import {ndsDisplayLayout} from './nds-skin.js';
@@ -85,6 +86,7 @@ for(const type of ['contextmenu','selectstart','dragstart'])document.addEventLis
  if(!target||target.closest('input,textarea,select')||target.isContentEditable)return;
  if(target.closest('button,[role="button"],a.row,a.primary,a.secondary,summary,#player,.edit-preview'))e.preventDefault();
 },{capture:true});
+guardPlayerGestures($('#player'));
 let saveImportTarget=null,playRunAt=0;
 let dpadViews=[];
 const linkPanel=floatingPanel($('#link-panel'),{handle:$('#link-panel-drag'),trigger:$('#player-link'),close:$('#link-panel-close'),onInteract:release});
@@ -276,7 +278,7 @@ function layoutSkin(force=true){if(!current||!skinPair||!engine)return;
  if(imported){dpadViews=[];skinInputs=mountSkinInputs($('#touch-controls'),rep,skinData.images,{keybits,pressed,updateKeys,action:skinAction,engine,ratio,swap:!!settings.ndsSwapScreens,selected:command=>({volume:settings.muted,reverseScreens:settings.ndsSwapScreens,toggleControlls:!settings.touchControls})[command],paused:()=>paused,haptic:()=>{tapHaptic(settings);}});return;}
  $('#touch-controls').innerHTML=rep.items.map((item,i)=>{const pad=!Array.isArray(item.inputs),inputs=pad?['dpad']:item.inputs;return `<button class="skin-button${pad?' dpad':''}" data-item="${i}" aria-label="${pad?'十字キー':esc(item.label||inputs.join('+').toUpperCase())}" style='${frameStyle(item.frame,map)}opacity:${item.opacity??1};background-image:url("${skinData.images[item.asset?.normal]||''}")'>${pad?['up','down','left','right'].map(d=>`<span class="dpad-direction${item.asset?.normal?'':' baked'}" data-direction="${d}" aria-hidden="true" hidden></span>`).join(''):''}</button>`;}).join('');
  dpadViews=$$('.dpad-direction').map(el=>{const inputs=rep.items[Number(el.parentElement.dataset.item)].inputs,key=keybits[inputs[el.dataset.direction]];return {el,mask:key===undefined?0:1<<key,on:false};});
- $$('#touch-controls .skin-button').forEach(btn=>{const item=rep.items[Number(btn.dataset.item)];function input(e){if(Array.isArray(item.inputs)){if(item.inputs.includes('menu'))return;pressed.set(e.pointerId,item.inputs.reduce((v,k)=>v|(keybits[k]===undefined?0:1<<keybits[k]),0));}else{const r=btn.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;let bits=0;for(const [d,on] of [['left',x<-.15],['right',x>.15],['up',y<-.15],['down',y>.15]])if(on&&keybits[item.inputs[d]]!==undefined)bits|=1<<keybits[item.inputs[d]];pressed.set(e.pointerId,bits);}btn.classList.add('pressed');updateKeys();}
+ $$('#touch-controls .skin-button').forEach(btn=>{const item=rep.items[Number(btn.dataset.item)];btn.dataset.gameInput='';function input(e){if(Array.isArray(item.inputs)){if(item.inputs.includes('menu'))return;pressed.set(e.pointerId,item.inputs.reduce((v,k)=>v|(keybits[k]===undefined?0:1<<keybits[k]),0));}else{const r=btn.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;let bits=0;for(const [d,on] of [['left',x<-.15],['right',x>.15],['up',y<-.15],['down',y>.15]])if(on&&keybits[item.inputs[d]]!==undefined)bits|=1<<keybits[item.inputs[d]];pressed.set(e.pointerId,bits);}btn.classList.add('pressed');updateKeys();}
  btn.onpointerdown=e=>{e.preventDefault();engine?.unlockAudio();if(item.inputs.includes?.('menu')){showGameMenu();return;}if(paused)return;if($('#link-panel').contains(document.activeElement))document.activeElement.blur();skinPointers.start(btn,e,{move:Array.isArray(item.inputs)?undefined:input,end:()=>{pressed.delete(e.pointerId);btn.classList.toggle('pressed',skinPointers.has(btn));updateKeys();}});tapHaptic(settings);input(e);};});}
 function updateKeys(time){let keys=0;for(const mask of pressed.values())keys|=mask;keys=inputControls.transform(keys,time);if(paused||rewindSession.busy)keys=0;engine?.setKeys(keys);for(const view of dpadViews){const on=!!(keys&view.mask);if(on!==view.on){view.on=on;view.el.hidden=!on;}}}
 function release(){skinPointers.release();inputControls.release();stopHaptics();skinInputs?.release();pressed.clear();updateKeys();$$('.pressed').forEach(b=>b.classList.remove('pressed'));}
