@@ -210,3 +210,15 @@ README、GB・GBC・GBA・NES・SNES・MD・DS標準スキンを確認しまし�
 一次資料：[採用版のLICENSE](https://github.com/Manic-EMU/ManicEMUSkins/blob/63c04f92febba461d10ea16ef00b0f76199a5b20/LICENSE)、
 [CC BY 4.0の条件](https://creativecommons.org/licenses/by/4.0/deed.ja)。
 配布元と素材の詳細は [素材の記録](sources/manic-skins/README.md) を参照してください。
+
+## 0.3.15: 上流更新の反映（2026-10-12）
+
+Celio-Serverの固定版8f509bdcのソース一式とGPL全文を検査し、テスト用ソースとして同梱します。
+サーバーコードやnpm依存物をWeb実行物へ組み込む変更ではありません。room-link.jsの既存の
+MPL-2.0通知、MPL 3.3によるAGPL-3.0-or-laterの提供、移植元ソースを維持し、変更日を追加しました。
+
+FCEUmmは既存のGPL-2.0-or-laterのCファイル1件へ上流Mapper 176修正をバックポート。
+元の権利通知は不変で、変更通知を追加しています。ステートの保存フィールド、依存関係、
+残りのソースは変更していません。修正を含む対応ソースから独立再ビルドし、JS/WASMが一致しました。
+修正版ソース・ビルド手順・ハッシュ・旧版との互換検査を同じ配布に揃えています。
+新しいユーザー素材・ROM・ゲーム画像・BIOSは配布しません。詳細はUPSTREAM_REVIEW.mdとNOTICES.mdを参照してください。

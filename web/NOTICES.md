@@ -150,8 +150,8 @@ the corresponding source provided with this Web distribution.
 
 - UI port: [Manic-EMU / ManicEMU](https://github.com/Manic-EMU/ManicEMU).
 - GBA/GB/GBC core: [mGBA / endrift and contributors](https://github.com/mgba-emu/mgba).
-- 64MiB fork: [onikoro334274-cell / mGBA_celio_edition](https://github.com/onikoro334274-cell/mGBA_celio_edition).
-- Web bridge: [liru55 / mgba-celio-web](https://github.com/liru55/mgba-celio-web).
+- 64MiB fork: [onikoro334274-cell / mGBA_celio_edition](https://github.com/pm-start/mGBA_celio_edition).
+- Web bridge: [liru55 / mgba-celio-web](https://github.com/pm-start/mgba-celio-web).
 - FC: [libretro / libretro-fceumm](https://github.com/libretro/libretro-fceumm); [adopted EmulatorJS fork](https://github.com/EmulatorJS/libretro-fceumm).
 - SFC: [libretro / Mesen-S](https://github.com/libretro/Mesen-S).
 - MD: [Clownacy / clownmdemu-libretro](https://github.com/Clownacy/clownmdemu-libretro).
@@ -501,3 +501,25 @@ original AGPL-3.0-or-later helper suppresses Safari gesture defaults and touch
 move/end defaults on pointer-operated game controls and noninteractive areas.
 Native command clicks, editable fields and communication-panel events remain
 available. No added dependencies, third-party artwork, core or save changes.
+
+Modified 2026-10-12 (0.3.15): room-link.js retains its MPL-2.0 / AGPL-3.0-or-later
+secondary-license offer and gains bounded batched data, command/session ACKs,
+duplicate suppression and outgoing retries. Both legacy and current Celio protocol
+sources are tested locally. Celio-Server 8f509bdcf2a8383b936e0f2f31b2f6553ae421ce
+is retained unmodified in sources/celio-server-modern-source.tar.gz with its GPLv3
+license and README. Its package.json says ISC while the root LICENSE.txt
+contains GPLv3; both upstream notices are retained unmodified, and this source
+distribution follows the root GPLv3 terms. It is test-only source, not a browser/server deployment.
+The original server reference and all original web transport notices remain.
+
+FCEUmm's GPL-2.0-or-later mapper-176 fix b6870c3e146105b646e5d3505fcddf34ebaa9603
+is backported to the pinned base. Only src/boards/fk23c.c changes; a dated notice
+precedes its unchanged copyright/license header. This combined build selects GPL-3.0.
+The complete modified preferred-form source is in sources/libretro-cores-source.tar.gz;
+the unchanged Web bridge and build instructions are in sources/libretro-web.
+JS/WASM rebuilt from that source match. No new mapper families, commercial ROMs,
+save files, firmware or artwork are included. Synthetic tests are AGPL-3.0-or-later.
+
+Current canonical repository links use pm-start/mGBA_celio_edition and
+pm-start/mgba-celio-web. The original contributors onikoro334274-cell, liru55
+and upstream authors remain credited; repository moves do not change authorship.

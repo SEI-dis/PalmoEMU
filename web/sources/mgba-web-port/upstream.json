@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "repository": "https://github.com/onikoro334274-cell/mGBA_celio_edition.git",
+  "repository": "https://github.com/pm-start/mGBA_celio_edition.git",
   "branch": "rom64",
   "emsdkRepository": "https://github.com/emscripten-core/emsdk.git",
   "emsdkCommit": "b44154299bdefe75ba287874bb63fc9806243771",

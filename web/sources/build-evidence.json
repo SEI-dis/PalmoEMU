@@ -4,7 +4,7 @@
   "emscriptenReleasesCommit": "b412b6307e541b93dd93f01b61181e15c17302ec",
   "cmake": "3.31.6",
   "ninja": "1.11.1",
-  "sourceSelection": "Compiler dependency closure, CMake inputs, required auxiliary source, and license/readme notices. No ROM/test fixtures, native GUI art or fonts. All core source file contents remain unchanged.",
+  "sourceSelection": "Compiler dependency closure, CMake inputs, required auxiliary source, and license/readme notices. No ROM/test fixtures, native GUI art or fonts. Upstream contents remain unchanged except the documented FCEUmm mapper-176 backport (2026-10-12).",
   "cores": {
     "nes": {
       "js": {
@@ -12,7 +12,7 @@
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "3fccda5b58befa4c6084a717bbdb8d316b50a107ec7b108bb5b8a9d45ea8e138",
+        "sha256": "568e594d65bc82cd153e176a399775fd4e088fabc11e0fd8f122784de4a43890",
         "rebuildMatches": true
       }
     },
@@ -48,9 +48,18 @@
     }
   },
   "archives": {
-    "libretro-cores-source.tar.gz": "d987a765bf09b4e7d6b5e0c856e1cc12bbbf4690ba142bf5eaf9827d53e915ed",
+    "libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
     "mgba-celio-rom64-source.tar.gz": "fcd90d33ad210288a7f67e16a81878d0233e0a23cb1af27fb9756f6e26a2c1b8"
   },
   "mgbaUpdatedOn": "2026-10-09",
-  "mgbaCommit": "0ba86121bd92aa570d38301086d8e8f584238d62"
+  "mgbaCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
+  "fceummUpdatedOn": "2026-10-12",
+  "fceummBackport": {
+    "repository": "https://github.com/EmulatorJS/libretro-fceumm",
+    "commit": "b6870c3e146105b646e5d3505fcddf34ebaa9603",
+    "sourceFile": "src/boards/fk23c.c",
+    "sourceSha256": "57f57e156d27d4f840d894d4f5839149224bf75843c90de487f0a19aae52795e",
+    "modifiedSha256": "e8d8f4817383d0196c3f1ff52a08a9d6c26baa66dafab2463c1b53176177432d"
+  },
+  "fceummSourceDifference": "Only libretro-cores/fceumm/src/boards/fk23c.c differs from the previous archive; all archive paths and other files match. Rebuilt independently from the repacked archive with Emscripten 4.0.15/CMake 3.31.6/Ninja 1.11.1; JS and WASM match."
 }

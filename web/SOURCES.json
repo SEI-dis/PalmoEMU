@@ -7,13 +7,13 @@
     "referenceSource": "sources/manicemu-ui"
   },
   "mgba": {
-    "repository": "https://github.com/onikoro334274-cell/mGBA_celio_edition",
+    "repository": "https://github.com/pm-start/mGBA_celio_edition",
     "sourceCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
-    "rom64Upstream": "https://github.com/onikoro334274-cell/mGBA_celio_edition/tree/rom64",
+    "rom64Upstream": "https://github.com/pm-start/mGBA_celio_edition/tree/rom64",
     "license": "MPL-2.0",
     "localSource": "sources/mgba-celio-rom64-source.tar.gz",
     "binaryOrigin": "Built locally from the pinned rom64 source and sources/mgba-web-port; Emscripten 4.0.15",
-    "webBridgeOrigin": "https://github.com/liru55/mgba-celio-web/tree/de2c446e7369610f3ab402dd775e81d6a1661608/web",
+    "webBridgeOrigin": "https://github.com/pm-start/mgba-celio-web/tree/de2c446e7369610f3ab402dd775e81d6a1661608/web",
     "localBridge": "sources/mgba-web-port",
     "sourceFiltering": "Web compiler dependency closure and build/license inputs; rebuild matched both JS/WASM. See sources/build-evidence.json.",
     "bridgeSourceFiltering": "Only original bridge, build recipe and root license/README retained from liru55; current full core source is the separate author rom64 archive."
@@ -26,7 +26,16 @@
       "fceumm": {
         "repository": "https://github.com/EmulatorJS/libretro-fceumm",
         "commit": "d9d7e141274d07186b6a871ca2919b6f13cfb2f9",
-        "license": "GPL-2.0-or-later, GPL-3.0 selected for this build"
+        "license": "GPL-2.0-or-later, GPL-3.0 selected for this build",
+        "backports": [
+          {
+            "repository": "https://github.com/EmulatorJS/libretro-fceumm",
+            "commit": "b6870c3e146105b646e5d3505fcddf34ebaa9603",
+            "sourceFile": "src/boards/fk23c.c",
+            "sourceSha256": "57f57e156d27d4f840d894d4f5839149224bf75843c90de487f0a19aae52795e",
+            "modifiedSha256": "e8d8f4817383d0196c3f1ff52a08a9d6c26baa66dafab2463c1b53176177432d"
+          }
+        ]
       },
       "mesen-s": {
         "repository": "https://github.com/libretro/Mesen-S",
@@ -75,9 +84,9 @@
       "license": "GPL-3.0",
       "localSource": "sources/celio-server-source.tar.gz"
     },
-    "changes": "JS device commands aligned with upstream Celio. Explicit-start room-based relay transport derived from liru55 link-session.js (MPL-2.0). Transport has no ROM/save/storage API. Pre-link durable snapshots and interrupted-session rollback remain in the AGPL app; device logic retains GPL-3.0-only. Legacy direct WebRTC module is not used by the UI.",
+    "changes": "JS device commands aligned with upstream Celio. Explicit-start room-based relay transport derived from liru55 link-session.js (MPL-2.0). Transport has no ROM/save/storage API. Pre-link durable snapshots and interrupted-session rollback remain in the AGPL app; device logic retains GPL-3.0-only. Legacy direct WebRTC module is not used by the UI. Modified 2026-10-12: new/legacy transport detection, batched packets, command/session ACKs, bounded duplicate-safe retries. No automatic reconnect; interrupted sessions roll back.",
     "webTransport": {
-      "repository": "https://github.com/liru55/mgba-celio-web",
+      "repository": "https://github.com/pm-start/mgba-celio-web",
       "commit": "58d463ebe2302e4fc70098760dcfc84ca69329db",
       "license": "MPL-2.0",
       "localSource": "sources/celio-web-transport",
@@ -86,6 +95,13 @@
         "src/direct-link.js",
         "src/celio-serial.js"
       ]
+    },
+    "modernSessionReference": {
+      "repository": "https://github.com/Celio-Link/Celio-Server",
+      "commit": "8f509bdcf2a8383b936e0f2f31b2f6553ae421ce",
+      "license": "GPL-3.0",
+      "localSource": "sources/celio-server-modern-source.tar.gz",
+      "use": "Unmodified test-only server source; backward-compatible browser protocol implementation in src/room-link.js. See UPSTREAM_REVIEW.md."
     }
   },
   "toolchain": {
@@ -109,7 +125,7 @@
     "cores/nds/core.js": "aaa6695c96d20f268d5a5cb7152f76ca793f48414c3d58127f79ac2dbeb6fe5c",
     "cores/nds/core.wasm": "ea0b03591bedbfd59645b63a74e4d2a87bbfcc93ea92e26307e235fac3845ba5",
     "cores/nes/core.js": "cd3799a369fa1b87d6fd085cd8eaecac8289dc4305ec259b21715a60c5f66f67",
-    "cores/nes/core.wasm": "3fccda5b58befa4c6084a717bbdb8d316b50a107ec7b108bb5b8a9d45ea8e138",
+    "cores/nes/core.wasm": "568e594d65bc82cd153e176a399775fd4e088fabc11e0fd8f122784de4a43890",
     "cores/snes/core.js": "1f127b5dd1995b8ed505607f98b0fbe3fc349628deff01bfee957be7b1efd814",
     "cores/snes/core.wasm": "454c0a6de528b76f5200e73585e27101173015b45b959843d52f5e6780769447",
     "cores/vba-next/core.js": "7236df7fcf0babc340d5883098513eafdf6f280d1e89710d2e717e8b465848f6",
@@ -152,7 +168,7 @@
     "sources/alternate-web/battery.cpp": "52f9f71d55b34510b9de832dc1c70ccdb471eb73c2077d3c435ef1ac3cdd5982",
     "sources/alternate-web/gba-bridge.c": "a848d45253a7125d6cb645951abde1bd3f91884ae2c8dc7a900182ab285ef785",
     "sources/alternate-web/nds-bridge.c": "407d4e60405aed164becd864d1ba737272d6fb2c6b3964c4c6870417fe5ba39a",
-    "sources/build-evidence.json": "0a0fdafb76b5fca1d09218d6717ed4c4896ec424c870206b16a36cf0d75cc030",
+    "sources/build-evidence.json": "ad7dc3b5dc4043546628060bbd435fbb0c21f675c7eb057c9769a7e53a62a2be",
     "sources/celio-device-source.tar.gz": "0c0a5e7e2b2ae0626fd011571e73cf4084f01172889e28a17b2f031ff3ded907",
     "sources/celio-server-source.tar.gz": "3297aebba1cce33c696f6e472fb41b437ae0181c329c9fe7f1f44ef9837278e6",
     "sources/celio-web-transport/celio-serial.js": "2562ad97ccde5abbb7a9562d2b62b6e6560ab49084fbe7a4061c0855a119c8ac",
@@ -160,8 +176,8 @@
     "sources/celio-web-transport/link-session.js": "063e1a11aeee3ed43e5a3178f206920e8388c8c3c6a22f024daddc7980ad3d65",
     "sources/desmume2015-source.tar.gz": "966f3f2aee97124699cd385a35ec75f86c8ed95c49eb950b9bc09ff1359bb696",
     "sources/jgenesis-web-source.tar.gz": "0255700d4b5c2f099481b7a5d11ae5276c569f81a1560d546afee9a722597746",
-    "sources/libretro-cores-source.tar.gz": "d987a765bf09b4e7d6b5e0c856e1cc12bbbf4690ba142bf5eaf9827d53e915ed",
-    "sources/libretro-web/BUILD.md": "f005ed306fc85d20dc24767427a5c02c15d7ff1639e038c157dc2b464988a4b0",
+    "sources/libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
+    "sources/libretro-web/BUILD.md": "a57ca4ed82f51fbe00e4efd6e579f9992f09cafabb8c95d22207d0db9fcad7b8",
     "sources/libretro-web/CMakeLists.txt": "709f75293f65d477cd19df9c633bb339167b34f6ed45f01b63cf3c2452f1e1e8",
     "sources/libretro-web/bridge.c": "ba747e845011559f03e6e84d52733bec533b63027a8afe5ad37cb0d9a84aba76",
     "sources/manicemu-ui/ASListItemView.swift": "4f437f81c7dd421876ce8b583d6d6717c01146f720025b09e1e05f6a68ab5fc9",
@@ -212,7 +228,8 @@
     "vendor/pdfjs/pdf.worker.mjs": "07ceb740d746e5d9012fcf9f27d5c7dea09f7d2f5e74f5c8109e5787551a2333",
     "BUNDLED_SKINS.json": "d7df7ff622187c11c438f7104f3dd2b1377a729faeda6176d1d61abc982ffb2d",
     "licenses/ManicEMUSkins-CC-BY-4.0.txt": "7e7170e3cebf88a9f60c7b8421418323c09304da1af4d5e90f4da1dc1c8a2661",
-    "sources/manic-skins/UPSTREAM-README.md": "91d97f509a353eb9d7dcacded92f8cf15dccef5fbe8c28e9317525850bfdb12e"
+    "sources/manic-skins/UPSTREAM-README.md": "91d97f509a353eb9d7dcacded92f8cf15dccef5fbe8c28e9317525850bfdb12e",
+    "sources/celio-server-modern-source.tar.gz": "681b54f885ec5a67225e71cb4f48767f00d9d1ced406b3a6415a519e68a22ec7"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",
@@ -557,5 +574,6 @@
       }
     ],
     "dataScope": "Classification/favorites stay in local library metadata and explicit local backups. Sort/group preferences stay in localStorage. No ROM/save upload, remote cover lookup, new native runtime, binary or third-party artwork."
-  }
+  },
+  "upstreamReview": "UPSTREAM_REVIEW.md"
 }

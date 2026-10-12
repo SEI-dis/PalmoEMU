@@ -15,7 +15,10 @@ cmake --build /path/to/build --parallel 6
 
 Copy nes.js/nes.wasm to cores/nes/core.js/core.wasm, and likewise snes and md.
 This is the complete custom bridge and build configuration. Upstream C/C++ files
-are unchanged. Only Web-required source/build inputs and notices are distributed;
+are unchanged except the documented Mapper 176 backport in fceumm/src/boards/fk23c.c
+from b6870c3e146105b646e5d3505fcddf34ebaa9603 (modified 2026-10-12).
+The original GPL-2.0-or-later notice is retained; GPL-3.0 is selected for this build.
+The serialized state fields and Web bridge are unchanged. Only Web-required source/build inputs and notices are distributed;
 unbuilt UI art, fonts and ROM fixtures are excluded. The selected subset rebuilt
 to identical JS/WASM SHA-256 values; ../build-evidence.json records these.
 Emscripten-generated runtime licenses, libc++/libc++abi/unwind, musl, LLVM and

@@ -2,16 +2,24 @@
 // CELIO_SERVER_ROOT: pinned Celio-Server with test-built client/session classes.
 // CELIO_REFERENCE_ROOT: unmodified published mgba.js, mgba.wasm, link-session.js.
 // Both are test-only fixtures, never shipped to the production browser.
-const assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs'),http=require('node:http'),{fork}=require('node:child_process');
+const assert=require('node:assert/strict'),path=require('node:path'),fs=require('node:fs'),http=require('node:http'),{fork,spawnSync}=require('node:child_process');
 const {cartridge}=require('./link.cjs'),{createStaticServer}=require('../scripts/serve.cjs');
 const relayURL='wss://celio-server.up.railway.app/socket.io/?EIO=4&transport=websocket';
 const reference=process.env.CELIO_REFERENCE_ROOT,serverRoot=process.env.CELIO_SERVER_ROOT;
 assert.ok(reference&&serverRoot,'Specify the pinned local compatibility fixtures');
+if(!process.env.CELIO_TEST_PROTOCOL){
+ for(const protocol of ['legacy','modern']){
+  const root=protocol==='legacy'?serverRoot:path.join(serverRoot,'../celio-server-modern/Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce');
+  const result=spawnSync(process.execPath,[__filename],{env:{...process.env,CELIO_TEST_PROTOCOL:protocol,CELIO_SERVER_ROOT:root},stdio:'inherit',windowsHide:true,timeout:140000});
+  if(result.error)throw result.error;if(result.status!==0)process.exit(result.status||1);
+ }process.exit(0);
+}
+const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
 (async()=>{
  const relay=fork(path.join(__dirname,'celio-server.cjs'),{stdio:['ignore','ignore','inherit','ipc']}),wire=[];
  relay.on('message',m=>{if(m.event)wire.push(m);});
  const port=await new Promise(resolve=>relay.on('message',m=>{if(m.port)resolve(m.port);}));
- console.log('Local Celio relay ready.');
+ console.log('Local Celio relay ready:',process.env.CELIO_TEST_PROTOCOL);
  const appHandler=createStaticServer().listeners('request')[0];
  const server=http.createServer((req,res)=>{
   if(req.url==='/__reference__/'){res.setHeader('Content-Type','text/html; charset=utf-8');return res.end('<!doctype html><html><meta charset="utf-8"><body><script src="mgba.js"></script><script src="link-session.js"></script></body></html>');}
@@ -20,7 +28,7 @@ assert.ok(reference&&serverRoot,'Specify the pinned local compatibility fixtures
  });await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const base='http://127.0.0.1:'+server.address().port+'/',browserName=process.env.BROWSER_ENGINE||'chromium';
  const browser=await require('./browser-runtime.cjs')[browserName].launch({headless:true,...(browserName==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})}),errors=[];
- console.log('Browser ready.');
+ console.log('Browser ready.');const dropped=new Set();
  async function context(){
   const c=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});c.setDefaultTimeout(15000);c.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
   await c.route('**/*',route=>{assert.equal(new URL(route.request().url()).origin,new URL(base).origin,'External HTTP in local test');return route.continue();});
@@ -29,9 +37,15 @@ assert.ok(reference&&serverRoot,'Specify the pinned local compatibility fixtures
    // Playwright connectToServer() cannot change the URL. Explicit Node loopback
    // forwarding keeps this fixture independent of the public relay.
    const WS=require(path.join(serverRoot,'node_modules/ws')),remote=new WS(`ws://127.0.0.1:${port}/socket.io/?EIO=4&transport=websocket`),queued=[];
-   ws.onMessage(message=>{if(remote.readyState===WS.OPEN)remote.send(message);else queued.push(message);});
+   const sentAcks=new Map(),receivedAcks=new Map();
+   function drop(message,pending,direction){
+    const ack=/^43(\d+)/.exec(message);if(!ack)return false;
+    const name=pending.get(ack[1]),key=direction+':'+name;
+    if(modern&&['deviceData','deviceStatus','deviceCommand','partnerJoined'].includes(name)&&!dropped.has(key)){dropped.add(key);return true;}return false;
+   }
+   ws.onMessage(message=>{if(drop(message,receivedAcks,'client'))return;const e=/^42(\d+)\["([^"]+)"/.exec(message);if(e)sentAcks.set(e[1],e[2]);if(remote.readyState===WS.OPEN)remote.send(message);else queued.push(message);});
    remote.on('open',()=>{for(const m of queued)remote.send(m);queued.length=0;});
-   remote.on('message',(data,isBinary)=>ws.send(isBinary?data:data.toString()));
+   remote.on('message',(data,isBinary)=>{const message=data.toString();if(drop(message,sentAcks,'server'))return;const e=/^42(\d+)\["([^"]+)"/.exec(message);if(e)receivedAcks.set(e[1],e[2]);ws.send(isBinary?data:message);});
    remote.on('close',()=>ws.close({code:1000}));remote.on('error',()=>ws.close({code:1011}));ws.onClose(()=>remote.close());
   });return c;
  }
@@ -49,10 +63,11 @@ assert.ok(reference&&serverRoot,'Specify the pinned local compatibility fixtures
    await test.session.onGame();const tick=t=>{test.session.tick(t,0);test.raf=requestAnimationFrame(tick);};test.raf=requestAnimationFrame(tick);
  },[...cartridge(own,wanted)]);}
  try{
+  if(modern){const c=await context(),p=await c.newPage();await p.goto(base);await require('./room-protocol.cjs')(p);await c.close();}
   // Exercise both roles at normal speed, plus deliberately uneven scheduling.
   // A successful recipient must keep sending until the other CPU also receives.
   // This test-only speed skew does not change the application's 1x link limit.
-  for(const {host,speed} of [{host:'ours',speed:1},{host:'theirs',speed:1},{host:'theirs',speed:5}]){
+  for(const {host,speed} of modern?[]:[{host:'ours',speed:1},{host:'theirs',speed:1},{host:'theirs',speed:5}]){
    const a=await context(),z=await context(),p=await a.newPage(),q=await z.newPage();console.log('Loading local core');await ours(p,31,992,speed);console.log('Loading reference core');await theirs(q,992,31);console.log('Connecting',host,'test speed',speed);
    let room;
    if(host==='ours'){await p.evaluate(()=>test.link.start());try{await p.waitForFunction(()=>test.link.joined,null,{timeout:10000});}catch(e){console.log(await p.evaluate(()=>({status:test.status,end:test.end,ready:test.link.socket.readyState})));throw e;}room=await p.evaluate(()=>test.link.room);await q.locator('#link-room').fill(room);await q.locator('#link-join').click();}
@@ -98,7 +113,8 @@ assert.ok(reference&&serverRoot,'Specify the pinned local compatibility fixtures
   for(const page of [x,y]){await page.waitForFunction(()=>test.end);assert.equal(await page.evaluate(()=>test.end.keep),true);await page.evaluate(()=>test.core.close());}
   await c.close();await d.close();console.log('PASS: Celio normal-close sequence commits only after game close and server sessionClose.');
   // Wire allow-list excludes ROM names, file blobs, saves, SDP, telemetry and HTTP upload.
-  assert.ok(wire.length>0);for(const {event,args} of wire){assert.ok(['sessionCreate','sessionJoin','sessionLeft','deviceStatus','deviceData'].includes(event));const s=JSON.stringify(args);assert.ok(!s.includes('LOCAL_PRIVATE_CANARY'));assert.ok(s.length<512);if(event==='deviceData')assert.equal(args[0].data.length,32);}
+  assert.ok(wire.length>0);for(const {event,args} of wire){assert.ok(['sessionCreate','sessionJoin','sessionLeft','deviceStatus','deviceData'].includes(event));const s=JSON.stringify(args);assert.ok(!s.includes('LOCAL_PRIVATE_CANARY'));assert.ok(s.length<(modern?8192:512));if(event==='deviceData'){const packets=modern?args[0]:[args[0]];assert.ok(Array.isArray(packets)&&packets.length>0&&packets.length<=32);for(const packet of packets)assert.equal(packet.data.length,32);}}
+  if(modern)assert.deepEqual([...dropped].sort(),['client:deviceCommand','client:deviceData','client:partnerJoined','server:deviceData','server:deviceStatus'],'Lost ACKs are retried in both directions');
   assert.deepEqual(errors,[]);console.log('PASS: relay receives only bounded Celio protocol messages, with no user file metadata.');
  }finally{console.log('Closing test fixtures.');relay.send('stop');await Promise.race([browser.close(),new Promise(r=>setTimeout(r,2500))]);server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 })().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});

@@ -46,3 +46,9 @@ python web/scripts/core-candidate.py --emsdk /path/to/emsdk --commit <40文字�
 rom64の `0ba86121bd92aa570d38301086d8e8f584238d62` を採用。6MiBの拡張セーブ、16MiBの追加RAM、フラッシュ書き込みの高速化に対応します。Web側のセーブ上限はRTC情報を含めて6MiB＋16バイト、ステート上限は32MiBに変更しました。ROM上限は64MiBのままです。
 
 CPUのオーバークロック設定は1倍に固定し、従来の速度を維持します。Qt版の自動バックアップはWeb用ビルドに含まれません。Web側では従来の端末内バックアップを継続します。対応ソースと128件のコンパイル対象の権利表記を照合し、配布ソースだけからの再ビルドでJS・WASMの一致を確認しました。
+
+## 0.3.15の確認
+
+全配布コアとUI・通信・スキン表示の参照元を再確認しました。[確認結果](UPSTREAM_REVIEW.md)
+Celio新通信形式とFCEUmmのMapper 176修正を採用。mGBA rom64の最新差分はWindows向けREADMEだけのため、
+コアは0ba86121bd92のままです。次回候補ビルドの取得先は現在のpm-start/mGBA_celio_editionへ更新しました。

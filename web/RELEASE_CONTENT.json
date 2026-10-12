@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "purpose": "Exact content inventory; does not certify copyright or license compliance.",
-  "archiveCount": 16,
+  "archiveCount": 17,
   "files": [
     {
       "path": ".gitignore",
@@ -23,8 +23,8 @@
     },
     {
       "path": "CORE_UPDATES.md",
-      "bytes": 4615,
-      "sha256": "ccc55f068780c6a2de81d049b52e92b4a7b3f8e97d2ec82d06ede7c35dc4221b",
+      "bytes": 5019,
+      "sha256": "8fae509216c99811dae2448b72ef555e6a02e17d6a5e95c09da8b62274513dc1",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -35,14 +35,14 @@
     },
     {
       "path": "LICENSE_AUDIT.md",
-      "bytes": 21396,
-      "sha256": "4b381f0d953c46551ace0a6fe3341c82221f37a68830dfd9a67927add9d6b34f",
+      "bytes": 22477,
+      "sha256": "1c6682169208d0c1fc4e973fe019002e31d8dce952e1f2a38085f287fd564622",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "LINK_COMPATIBILITY.md",
-      "bytes": 7692,
-      "sha256": "719639afc8ec26feca2a581f858837042e8116c021c99401553cc0f110809f81",
+      "bytes": 9948,
+      "sha256": "011d8d0cc89a792f55abb06ef6c70adf0b7b42c67e988a82d8848d87c0e16e40",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -53,8 +53,8 @@
     },
     {
       "path": "NOTICES.md",
-      "bytes": 33621,
-      "sha256": "ef4b9992a594f1705e3ccaab6d337e89d6aae0f987bc113dcd669947055977c7",
+      "bytes": 35187,
+      "sha256": "739eedb898810c94f2ad6932d15941e22acf2d071fe5cecc9c230e06b2314711",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -65,14 +65,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 54521,
-      "sha256": "6f0d5360bc652e7a9324d15e161d7707ab800d73f76db6db67293c5d7c6bd979",
+      "bytes": 55187,
+      "sha256": "f8fc26f6fabfa725244d24e2d6562cd0e8a300df30a7e3a432422bb383de158a",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 56392,
-      "sha256": "9099a136274c60d2288b5f89746491909e0dfbbe2af7c1bbca9b04780d438adc",
+      "bytes": 60248,
+      "sha256": "9d0d68969b4b2e33ba96410cb34fa731c9d105ff7ff404e41b500b07b852908d",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -83,8 +83,14 @@
     },
     {
       "path": "SOURCES.json",
-      "bytes": 36850,
-      "sha256": "37d95bc0d9510cddab78e07deddee0b2165add0782ff848e27104f7b24312c05",
+      "bytes": 38038,
+      "sha256": "c77447715a7bef1b915fe8c07fb4123c2f1a5489f1e57cdb2b94321f1d2cf87c",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "UPSTREAM_REVIEW.md",
+      "bytes": 7892,
+      "sha256": "4bf3611f4f2770786e5be3396ec80544f19cb5a6aa1d68bf90eb764fc8db2406",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -809,8 +815,8 @@
     },
     {
       "path": "cores/nes/core.wasm",
-      "bytes": 805611,
-      "sha256": "3fccda5b58befa4c6084a717bbdb8d316b50a107ec7b108bb5b8a9d45ea8e138",
+      "bytes": 806082,
+      "sha256": "568e594d65bc82cd153e176a399775fd4e088fabc11e0fd8f122784de4a43890",
       "component": "source-built-libretro-cores"
     },
     {
@@ -870,7 +876,7 @@
     {
       "path": "index.html",
       "bytes": 4966,
-      "sha256": "66f7ee38dfa9195cb70ceedb5a8fbd8b52524988bf2f3fddd947b4535eb6b01b",
+      "sha256": "9c08565956be3b011a6fbe63e6bc508f5bea6580113f059943063e4a09ed597a",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -887,8 +893,8 @@
     },
     {
       "path": "licenses.html",
-      "bytes": 15289,
-      "sha256": "ae518240e8f5d70986bb60c03f47c066299520df116dce5f301a83dbeeb1f832",
+      "bytes": 15828,
+      "sha256": "5b519951e156b5101ba744537a79be4062efee4d7d792c68f43af0e10118c41b",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1103,8 +1109,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 3375,
-      "sha256": "a05a63ab62409275ca918306c0ca8941d1abc0755457fc1d9d63dcfcfdfa2e11",
+      "bytes": 3434,
+      "sha256": "7676ab0e26a9b43d4a3d69ac2edbec25cdf92285736538621f9ba15006e3557f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1169,8 +1175,8 @@
     },
     {
       "path": "scripts/prepare-link-tests.py",
-      "bytes": 2167,
-      "sha256": "c3d12a29af9ab45ddb36ea5ec53207f1491c3fdddc1667ab282655b085e89f1b",
+      "bytes": 2705,
+      "sha256": "287b51a839ffd7243fbcbff69c04001b41a335b1e08c664ceaf4162d450aa27b",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1205,8 +1211,8 @@
     },
     {
       "path": "scripts/test-all.cjs",
-      "bytes": 5480,
-      "sha256": "4ae87375cd882f22e8a4bdf52f84bee7a54884c0d133ed0264b9e555c0ec794a",
+      "bytes": 5496,
+      "sha256": "db9218776955dc3365cdc10eb5324243cc7016bf04b41457d7d4b1bf44e206ac",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -2849,8 +2855,8 @@
     },
     {
       "path": "sources/build-evidence.json",
-      "bytes": 1987,
-      "sha256": "0a0fdafb76b5fca1d09218d6717ed4c4896ec424c870206b16a36cf0d75cc030",
+      "bytes": 2720,
+      "sha256": "ad7dc3b5dc4043546628060bbd435fbb0c21f675c7eb057c9769a7e53a62a2be",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -2953,6 +2959,126 @@
       "path": "sources/celio-device-source.tar.gz!websocket/tools.lua",
       "bytes": 2236,
       "sha256": "29e75b45f71ebbbd93c7818debb4e7452675f8727468178eeb376abfc9350b4b",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz",
+      "bytes": 37923,
+      "sha256": "681b54f885ec5a67225e71cb4f48767f00d9d1ced406b3a6415a519e68a22ec7",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/.github/actions/ci.yml",
+      "bytes": 769,
+      "sha256": "8658bf8cb0e44979e8faa3cf6e0246df74f2d08e78245af331c515e0fcf27428",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/.gitignore",
+      "bytes": 24,
+      "sha256": "3d13d36cb045d242dc82059b69ab4751172a44bbc54b2726142a9ad31bc5cb87",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/LICENSE.txt",
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/README.md",
+      "bytes": 1394,
+      "sha256": "ec427515e7a68013484d14d2496f4a758eda55fd43b4e2218ca4f28c0489beb2",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/dev.ts",
+      "bytes": 285,
+      "sha256": "16f1af968f76b163fa9456f457c6c07d73f1c3b876aa4bb5f75a54a645f05726",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/env.ts",
+      "bytes": 37,
+      "sha256": "3321fa340a70063164f4d1ce678eaf530b0bfaa7ab30a8bd3583e5b831196c69",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/package-lock.json",
+      "bytes": 68392,
+      "sha256": "d623cd5a24f459f4b63809dc9dd20814b7b73a2af3d4a5b261f79bb9ce11953c",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/package.json",
+      "bytes": 875,
+      "sha256": "0c2095372a89f4e56f07aae31a4b3fdf68bbf85bf3d826242c3c32d875331c89",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/src/client.ts",
+      "bytes": 6727,
+      "sha256": "7c53d318afaa7e479b2413a80ede3d55149885a9c87a0247d93ad287feb6b981",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/src/index.ts",
+      "bytes": 1219,
+      "sha256": "7f4efb35f4e238a118742e484c16d23ad243517630581bc035957586a03bb0da",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/src/messages/gameboy.ts",
+      "bytes": 399,
+      "sha256": "aa9a7795d6832821795b2137e7b02ebe443923e2023246b06acd478e97ac7a76",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/src/messages/session.ts",
+      "bytes": 206,
+      "sha256": "ad9cb255958494736cbb671a0efe68d2587e1ab19bc74723f478b6c7138b4eaf",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/src/messages/validation.ts",
+      "bytes": 2100,
+      "sha256": "a308f61e1b4bf684cbbca435e186f9656efe8b3781858bbaed188294c126370f",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/src/pipelinedSender.ts",
+      "bytes": 1314,
+      "sha256": "8f7023c1a73bdf8f6b754ca1586c203a1b39b87fb9d098823884e2b43b1745d9",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/src/session.ts",
+      "bytes": 13014,
+      "sha256": "05e62328ce201f8ee4ef2cbe399d0203f6dde0848a73cb02305af57963aca6ef",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/src/sessionManager.ts",
+      "bytes": 3337,
+      "sha256": "4b0a9f8b8c507719d47f85fd69a3f05334a759fb848315ce3319c15d7d7f97a9",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/test/client.test.ts",
+      "bytes": 1389,
+      "sha256": "fe2d3c2b477ce279307783c3c51cc07d51faf89572c4048bb634181f11f312a7",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/test/pipelinedSender.test.ts",
+      "bytes": 2039,
+      "sha256": "7d52266b439cf9a8e31db18cead6d5dbe565ab05eee591d1860f0a7c8fd0a4cf",
+      "component": "celio-gpl-source"
+    },
+    {
+      "path": "sources/celio-server-modern-source.tar.gz!Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/tsconfig.json",
+      "bytes": 196,
+      "sha256": "d63bfafa3093050c37f53d47cd577a2174531fc98b31e0d9179a5a3da524bd78",
       "component": "celio-gpl-source"
     },
     {
@@ -27617,8 +27743,8 @@
     },
     {
       "path": "sources/libretro-cores-source.tar.gz",
-      "bytes": 1866370,
-      "sha256": "d987a765bf09b4e7d6b5e0c856e1cc12bbbf4690ba142bf5eaf9827d53e915ed",
+      "bytes": 1866509,
+      "sha256": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
       "component": "source-built-libretro-cores"
     },
     {
@@ -30359,8 +30485,8 @@
     },
     {
       "path": "sources/libretro-cores-source.tar.gz!libretro-cores/fceumm/src/boards/fk23c.c",
-      "bytes": 19602,
-      "sha256": "f87d1d49219a3bc0c283a9f4fd55edea8540e2b6ea3e6215fa714f68354ea2c5",
+      "bytes": 19893,
+      "sha256": "e8d8f4817383d0196c3f1ff52a08a9d6c26baa66dafab2463c1b53176177432d",
       "component": "source-built-libretro-cores"
     },
     {
@@ -34013,8 +34139,8 @@
     },
     {
       "path": "sources/libretro-web/BUILD.md",
-      "bytes": 2043,
-      "sha256": "f005ed306fc85d20dc24767427a5c02c15d7ff1639e038c157dc2b464988a4b0",
+      "bytes": 2329,
+      "sha256": "a57ca4ed82f51fbe00e4efd6e579f9992f09cafabb8c95d22207d0db9fcad7b8",
       "component": "source-built-libretro-cores"
     },
     {
@@ -37475,8 +37601,8 @@
     },
     {
       "path": "sources/mgba-web-port/upstream.json",
-      "bytes": 535,
-      "sha256": "9855f90e6c0abf645b25a4a6b252aa3d8b11734852d7c00cbb5bdf5d49a6c951",
+      "bytes": 525,
+      "sha256": "db9d454c9837306956d68c2c5383832fb911bba4bbb5bee83b28a509eee1d50c",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -39701,8 +39827,8 @@
     },
     {
       "path": "src/room-link.js",
-      "bytes": 8049,
-      "sha256": "8d157997155b6c0866007d1a36fa1dd916ac4eb174b8febb37f25d8a997e716d",
+      "bytes": 11627,
+      "sha256": "fc93fb2eca5d69e5b055985b83dc134b7fb05a3da6acb9f78243c3fa180ba45d",
       "component": "celio-web-transport-mpl-2.0"
     },
     {
@@ -39976,6 +40102,12 @@
       "component": "web-port-code-and-documentation"
     },
     {
+      "path": "tests/fceumm-update.cjs",
+      "bytes": 5260,
+      "sha256": "8738deba008f29cd997ccff547a476c8eb378db6fee4981a00601bcab874afdb",
+      "component": "web-port-code-and-documentation"
+    },
+    {
       "path": "tests/features.cjs",
       "bytes": 5917,
       "sha256": "9649ba816fa4020abdd4f272e27d9c49c590d46b7614ea6eebd7487d7972c37f",
@@ -40133,8 +40265,14 @@
     },
     {
       "path": "tests/room-link.cjs",
-      "bytes": 13190,
-      "sha256": "74cc7c7c9bb373a7f9f7fa186e933a95ab53976442356256c606569f603aa0b1",
+      "bytes": 14976,
+      "sha256": "395acc9524294cc7511382e2a1e5cab4816a4cbff8b83016acce27de03e84b38",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/room-protocol.cjs",
+      "bytes": 5943,
+      "sha256": "67bddedfeb7bf1894050351beca7ec06b9c7369ff65c026126fcdee2879c508b",
       "component": "web-port-code-and-documentation"
     },
     {

@@ -7,6 +7,7 @@ import hashlib, os, subprocess, tarfile, urllib.request
 
 ROOT = Path(__file__).resolve().parents[2]
 SERVER = ROOT / 'work' / 'celio-server'
+MODERN = ROOT / 'work' / 'celio-server-modern'
 REFERENCE = ROOT / 'work' / 'celio-reference'
 REVISION = 'eb441dc2e4ddec951c70c413599ab2a0e77a739b'
 FILES = {
@@ -15,20 +16,25 @@ FILES = {
     'link-session.js': '063e1a11aeee3ed43e5a3178f206920e8388c8c3c6a22f024daddc7980ad3d65',
 }
 
-for target in [SERVER, REFERENCE]:
+for target in [SERVER, MODERN, REFERENCE]:
     if target.resolve() != target or not target.is_relative_to(ROOT / 'work'):
         raise ValueError('Fixture output must stay under workspace work/')
     target.mkdir(parents=True, exist_ok=True)
-with tarfile.open(ROOT / 'web/sources/celio-server-source.tar.gz') as archive:
-    archive.extractall(SERVER, filter='data')
 npm = ['node', os.environ['NPM_CLI']] if os.environ.get('NPM_CLI') else ['npm.cmd' if os.name == 'nt' else 'npm']
-subprocess.run([*npm, 'ci', '--ignore-scripts', '--no-audit', '--no-fund'], cwd=SERVER, check=True)
-subprocess.run(['node', '--input-type=module', '-e', "import {buildSync} from 'esbuild'; buildSync({entryPoints:['src/client.ts','src/sessionManager.ts'],bundle:true,packages:'external',format:'esm',platform:'node',outdir:'test-built'});"], cwd=SERVER, check=True)
+for target, name in [(SERVER, 'celio-server-source.tar.gz'), (MODERN, 'celio-server-modern-source.tar.gz')]:
+    archive_path = ROOT / 'web/sources' / name
+    if target == MODERN and hashlib.sha256(archive_path.read_bytes()).hexdigest() != '681b54f885ec5a67225e71cb4f48767f00d9d1ced406b3a6415a519e68a22ec7':
+        raise ValueError('Pinned modern relay source hash mismatch')
+    with tarfile.open(archive_path) as archive:
+        archive.extractall(target, filter='data')
+    build_root = target if target == SERVER else target / 'Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce'
+    subprocess.run([*npm, 'ci', '--ignore-scripts', '--no-audit', '--no-fund'], cwd=build_root, check=True)
+    subprocess.run(['node', '--input-type=module', '-e', "import {buildSync} from 'esbuild'; buildSync({entryPoints:['src/client.ts','src/sessionManager.ts'],bundle:true,packages:'external',format:'esm',platform:'node',outdir:'test-built'});"], cwd=build_root, check=True)
 for name, expected in FILES.items():
     target = REFERENCE / name
     if target.exists() and hashlib.sha256(target.read_bytes()).hexdigest() == expected:
         continue
-    url = f'https://raw.githubusercontent.com/liru55/mgba-celio-web/{REVISION}/{name}'
+    url = f'https://raw.githubusercontent.com/pm-start/mgba-celio-web/{REVISION}/{name}'
     with urllib.request.urlopen(url, timeout=60) as response:
         data = response.read(16 * 1024 * 1024)
     if hashlib.sha256(data).hexdigest() != expected:
