@@ -53,8 +53,8 @@
     },
     {
       "path": "NOTICES.md",
-      "bytes": 32038,
-      "sha256": "d91c26559f2ce4740f86859c158d775ba002a1ef33ba022acaaf53fb25990c0b",
+      "bytes": 32605,
+      "sha256": "19b86b86d24f988ac959229d3babb09fa519b1aec6fbec3a5dd31ea6b8d33dbf",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -65,14 +65,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 52694,
-      "sha256": "e068b3750b1ed9dfaa3851a12997dbd8b44cf2dda31fe0ddecf7e108357e91df",
+      "bytes": 54020,
+      "sha256": "7f905d9001e48a219749212225a211947c475156b96e12d7f00e1e9d063ae709",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 47646,
-      "sha256": "d498e027abfff984219bfc46b139d1e5c4717db9453b5f4e1742a2f71454fe2d",
+      "bytes": 50909,
+      "sha256": "8c237c5b91acfef58ae004392e1cd733e68564b95276e57e113a720c89f89910",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -870,7 +870,7 @@
     {
       "path": "index.html",
       "bytes": 4966,
-      "sha256": "d9dfa6e9bde4c62f5b0b8f79d52d8be246fd87f6ba25fe23babf100def059822",
+      "sha256": "0d579ab9d04a84415440d79eae1374a22f60691f77fe9821ae6f681247c35884",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1103,8 +1103,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 3182,
-      "sha256": "8ad3991eea32166afe8507ce9ec5a2f53f1f3b393421f206cd1a8806296c62c8",
+      "bytes": 3251,
+      "sha256": "c62cc78941796a9895d00f7c11a014cf0fdaefd348a70c0048d3a843eb2ea98c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1205,8 +1205,8 @@
     },
     {
       "path": "scripts/test-all.cjs",
-      "bytes": 5424,
-      "sha256": "aa4b13311d883a5c2a38fe3ce522fec498cf19989ecf8323be60a9fb24d18dcc",
+      "bytes": 5445,
+      "sha256": "a25710465d3a0255ff8b2805bc9d0cb5ac78c3ce81df037bed9d09b175aa5ae4",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -39628,9 +39628,15 @@
       "component": "web-port-code-and-documentation"
     },
     {
+      "path": "src/mgba-compatibility.js",
+      "bytes": 2112,
+      "sha256": "225fb6f640b05b0f2777e165841e65864555d750374dd8d41b58cc89c7d10fc7",
+      "component": "web-port-code-and-documentation"
+    },
+    {
       "path": "src/mgba.js",
-      "bytes": 7708,
-      "sha256": "b4f40fdfef6f8198160a456e42ecf2e29c89946c9dd41529c3238bc986e795ed",
+      "bytes": 7671,
+      "sha256": "d29a4aefa76b0ba1766af4ac11b06c62b1400e49be2c9289d31a0e3f37195e42",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40027,6 +40033,12 @@
       "path": "tests/link.cjs",
       "bytes": 5373,
       "sha256": "ae2e7d4d30985b18dbabc067b9e9f9c1c0c6b7892514133dc37bcc86e0002dfe",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/mgba-compatibility.cjs",
+      "bytes": 7481,
+      "sha256": "86fa2014ef4182933b78e1b899b9ca80987ef8e04ba6deb87b7908ebc251a134",
       "component": "web-port-code-and-documentation"
     },
     {

@@ -478,3 +478,11 @@ Modified 2026-10-12: disabled double-tap zoom across the player by using
 touch-action:manipulation and removing a conflicting panel stylesheet override.
 Native panel scrolling and editable fields remain available. No third-party
 dependency, artwork, core binary or user-data handling changes.
+
+Modified 2026-10-12: added an original AGPL-3.0-or-later runtime compatibility
+correction for PokemonStart v0.40.0's blank extended-flash detection. It is gated
+by the complete ROM SHA-256, expected instruction and the loaded core's 6MiB
+save capability. Only a temporary execution copy is changed; the stored original
+ROM and save identity are preserved. No ROM, game source, save, or game artwork
+is included in the distribution or CI. Existing core binaries and third-party
+licenses are unchanged. See src/mgba-compatibility.js and RELEASE_VALIDATION.md.

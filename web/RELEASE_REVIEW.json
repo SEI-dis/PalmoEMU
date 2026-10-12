@@ -3,8 +3,8 @@
   "status": "ready",
   "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices.",
   "openItems": [],
-  "note": "Engineering review of pinned dependencies, corresponding source, notices, distribution contents and runtime regression tests. Not a legal opinion or a grant of rights in user ROMs/artwork. iPhone hardware and commercial-game compatibility remain unverified; see RELEASE_VALIDATION.md. Any distribution/workflow change requires renewed review.",
-  "reviewedContentSha256": "8717822a80c172a3fc1c0100585d6e8e2984194a924a0456c507730888558c2e",
+  "note": "Engineering review of pinned dependencies, corresponding source, notices, distribution contents and runtime regression tests. Not a legal opinion or a grant of rights in user ROMs/artwork. iPhone hardware and broad commercial-game compatibility remain unverified; limited local compatibility checks are scoped in RELEASE_VALIDATION.md. Any distribution/workflow change requires renewed review.",
+  "reviewedContentSha256": "5ed65d22bf974419f59dd527580c6774313e7aee5cfe7f11e2bb0640176f0a22",
   "resolutions": [
     {
       "id": "corresponding-source",
@@ -24,7 +24,7 @@
     {
       "id": "asset-rights",
       "evidenceFile": "NOTICES.md",
-      "sha256": "d91c26559f2ce4740f86859c158d775ba002a1ef33ba022acaaf53fb25990c0b"
+      "sha256": "19b86b86d24f988ac959229d3babb09fa519b1aec6fbec3a5dd31ea6b8d33dbf"
     },
     {
       "id": "source-archive-materials",
@@ -39,7 +39,7 @@
     {
       "id": "runtime-validation",
       "evidenceFile": "RELEASE_VALIDATION.md",
-      "sha256": "d498e027abfff984219bfc46b139d1e5c4717db9453b5f4e1742a2f71454fe2d"
+      "sha256": "8c237c5b91acfef58ae004392e1cd733e68564b95276e57e113a720c89f89910"
     },
     {
       "id": "alternate-corresponding-source",
