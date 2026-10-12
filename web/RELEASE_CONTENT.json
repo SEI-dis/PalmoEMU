@@ -71,8 +71,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 53395,
-      "sha256": "f1762952197c0da9a47ec1e89d10246920b711cc52c57ca8dce1e1b0eee7eccd",
+      "bytes": 53518,
+      "sha256": "fb5bc6353eb05c2ad9fbcab40c4c0e2d59613ecb3357ab220b3619e30d46048b",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -870,7 +870,7 @@
     {
       "path": "index.html",
       "bytes": 4966,
-      "sha256": "39a500c59d9f81598e46118073553b7e0ac7a08bfa5fb218c65ddfe0c8aedec0",
+      "sha256": "51c2cd6bdb013d02197d5006c274151196b0dc65fe913b35fb6fdf3589fab266",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -39749,8 +39749,8 @@
     },
     {
       "path": "src/skin-pointers.js",
-      "bytes": 2288,
-      "sha256": "026318f027cf37211f82416297a48836b9924e18c8878efaeadce5f10aed968e",
+      "bytes": 2357,
+      "sha256": "b0335919264f373779b1d2a7aede6a1b6809659f9ebe9bf9f4c7ea1d2f04c991",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40205,8 +40205,8 @@
     },
     {
       "path": "tests/touch-recovery.cjs",
-      "bytes": 7958,
-      "sha256": "1e31ccb2b3b3ee4f7259394b0a5f33f4f8a361fa2fd33f3e4c9d21b991c4f1ce",
+      "bytes": 8099,
+      "sha256": "fbc9c17e89588de607a9c058b035cdd70763f87d450984167245bc5d359fa106",
       "component": "web-port-code-and-documentation"
     },
     {

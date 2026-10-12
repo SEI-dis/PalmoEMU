@@ -46,6 +46,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    await touchEnd(1);await keys(17); // Never cancel a genuine multi-touch hold.
    await pointer(pad,'pointerup',44);await keys(1);
    await pointer('body','pointercancel',45);await keys(0);
+   await pointer(pad,'pointerdown',48,.1,.5);await keys(32);
+   await pointer('body','pointerdown',49,.5,.5,{isPrimary:true});await keys(0);
    await page.keyboard.down('KeyZ');await keys(2);
    await pointer(pad,'pointerdown',46,.1,.5);await keys(34);await touchEnd(0);await keys(2);
    await page.keyboard.up('KeyZ');await keys(0);
