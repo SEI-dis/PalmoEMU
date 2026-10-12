@@ -2,8 +2,9 @@
 // Local controls for imported skins. Every pointer is released on pause/layout change.
 import {gameInputs} from './skin-format.js';
 import {screenTransform} from './skin-screens.js';
+import {createSkinPointers} from './skin-pointers.js';
 export function mountSkinInputs(host,rep,images,api){
- const {keybits,pressed,updateKeys,action,engine,paused,haptic}=api,held=new Map();
+ const {keybits,pressed,updateKeys,action,engine,paused,haptic}=api,held=new Map(),pointers=createSkinPointers();
  host.replaceChildren();
  const position=(el,f,map)=>{el.style.left=f.x/map.width*100+'%';el.style.top=f.y/map.height*100+'%';el.style.width=f.width/map.width*100+'%';el.style.height=f.height/map.height*100+'%';};
  const items=rep.items.map(item=>{
@@ -13,7 +14,7 @@ export function mountSkinInputs(host,rep,images,api){
   const screen=api.swap?rep.screens.find(s=>s.inputFrame&&s.inputFrame.y<192):match;
   return screen?{...item,frame:screen.outputFrame,touchScreen:screen}:item;
  });
- const views=items.map(item=>{
+ items.forEach(item=>{
   const pad=!Array.isArray(item.inputs)&&!item.touch,keys=Array.isArray(item.inputs)?item.inputs:[],button=document.createElement('button'),visual=document.createElement('span');
   button.className='skin-button imported-control'+(pad?' dpad':'')+(item.touch?' touch-region':'');button.setAttribute('aria-label',item.touch?'タッチスクリーン':pad?'十字キー':keys.join(' + '));
   const f=item.frame,e=item.extendedEdges||{},hit={x:f.x-(e.left||0),y:f.y-(e.top||0),width:Math.max(1,f.width+(e.left||0)+(e.right||0)),height:Math.max(1,f.height+(e.top||0)+(e.bottom||0))};
@@ -60,17 +61,13 @@ export function mountSkinInputs(host,rep,images,api){
   button.onkeydown=event=>{if(command&&['Enter','Space'].includes(event.code)){event.stopPropagation();if(event.repeat)event.preventDefault();}};
   button.onkeyup=event=>{if(command&&['Enter','Space'].includes(event.code))event.stopPropagation();};
   button.onpointerdown=event=>{
-   if(event.button>0||paused())return;if(!command||holdAction)event.preventDefault();engine.unlockAudio?.();button.setPointerCapture(event.pointerId);haptic();
+   if(event.button>0||paused())return;if(!command||holdAction)event.preventDefault();engine.unlockAudio?.();pointers.start(button,event,{move:pad||item.touch?input:undefined,end:()=>release(event.pointerId)});haptic();
    held.set(event.pointerId,{button});show(true);
    if(command&&holdAction){
     const end=action(command);const record=held.get(event.pointerId);if(record)record.end=end;else end?.();
     if(!item.selfRetracting)latched=!latched;
    }else if(!command)input(event);
   };
-  button.onpointermove=event=>{if(held.has(event.pointerId)&&(pad||item.touch))input(event);};
-  for(const type of ['pointerup','pointercancel','lostpointercapture'])button.addEventListener(type,event=>release(event.pointerId));
-  return{release};
  });
- const release=()=>{for(const id of [...held.keys()])for(const view of views)view.release(id);};
- return{release,destroy(){release();host.replaceChildren();}};
+ return{release:()=>pointers.release(),destroy(){pointers.destroy();host.replaceChildren();}};
 }

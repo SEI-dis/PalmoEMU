@@ -486,3 +486,11 @@ save capability. Only a temporary execution copy is changed; the stored original
 ROM and save identity are preserved. No ROM, game source, save, or game artwork
 is included in the distribution or CI. Existing core binaries and third-party
 licenses are unchanged. See src/mgba-compatibility.js and RELEASE_VALIDATION.md.
+
+Modified 2026-10-12: shared game-control pointer lifetime handling between built-in
+and imported skins, including the separately attributed bundled ManicEMU skins.
+Added release recovery for missing pointer notifications, capture failures and
+new touch sequences, with owner checks for delayed capture-loss events. Native
+editing/scrolling is not canceled, and keyboard/gamepad state is independent.
+The new browser helper and regression test are AGPL-3.0-or-later. No third-party
+artwork, core binary, ROM or save handling changes.
