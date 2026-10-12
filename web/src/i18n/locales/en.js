@@ -1035,5 +1035,6 @@ export default {
  "更新画面から操作してください。": "Use the app update page.",
  "この画面以外のアプリのタブを閉じてください。": "Close other tabs of this app.",
  "ダウンロードに失敗しました。接続を確認してください。": "Download failed. Check your connection.",
- "対応するセーブファイルを選択してください（⟪0⟫）。": "Choose a supported save file (⟪0⟫)."
+ "対応するセーブファイルを選択してください（⟪0⟫）。": "Choose a supported save file (⟪0⟫).",
+ "最新の更新": "Latest update"
 };

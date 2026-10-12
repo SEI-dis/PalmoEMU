@@ -12,8 +12,9 @@ function read(file){return new Promise((resolve,reject)=>{
  reader.onabort=()=>reject(new Error(tr('ファイルの読み込みが中断されました。')));
  reader.readAsArrayBuffer(file);
 });}
-self.onmessage=async({data:{file,system,language}})=>{setWorkerLanguage(language);
+self.onmessage=async({data:{file,system,language}})=>{
  try{
+  await setWorkerLanguage(language);
   progress('reading',0,file.size);
   const bytes=system==='3ds'?null:await read(file);
   progress('checking');

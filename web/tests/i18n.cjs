@@ -14,7 +14,7 @@ const japanese=/[ぁ-んァ-ヶ一-龯]/;
  try{
   const context=await browser.newContext({locale:'en-US',viewport:{width:390,height:844},serviceWorkers:'block'}),page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push([r.method(),r.url()]));
-  const clean=async label=>{const text=await page.locator('body').innerText();assert.ok(!japanese.test(text.replaceAll('日本語','').replaceAll('保存','')),label+': '+text);};
+  const clean=async label=>{const text=await page.locator('body').innerText();assert.ok(!japanese.test(text.replaceAll('日本語','').replaceAll('简体中文','').replaceAll('繁體中文','').replaceAll('保存','')),label+': '+text);};
   await page.goto(base+'index.html#settings');await page.locator('#app-language').waitFor();
   assert.equal(await page.locator('html').getAttribute('lang'),'en');assert.equal(await page.locator('#app-language').inputValue(),'auto');assert.equal(await page.locator('h1').textContent(),'Settings');
   const pictures=path.join(__dirname,'../test-results/i18n-'+kind);fs.mkdirSync(pictures,{recursive:true});
@@ -24,7 +24,7 @@ const japanese=/[ぁ-んァ-ヶ一-龯]/;
    return {auto:[resolveLanguage('auto',['ja-JP']),resolveLanguage('auto',['en-GB']),resolveLanguage('auto',['fr-FR']),resolveLanguage('en',['ja-JP']),resolveLanguage('ja',['en-US'])],
     safe:tr`<p>${'設定⟪0⟫<b>name</b>'}</p><button>削除</button>`,order:tr`「${'保存'}」の${2}行目を読み込めません。`,unknown:tr('unknown diagnostic')};
   });
-  assert.deepEqual(primitives.auto,['ja','en','en','en','ja']);assert.equal(primitives.safe,'<p>設定⟪0⟫<b>name</b></p><button>Delete</button>');assert.equal(primitives.order,'Could not read line 2 of “保存”.');assert.equal(primitives.unknown,'unknown diagnostic');
+  assert.deepEqual(primitives.auto,['ja','en','fr','en','ja']);assert.equal(primitives.safe,'<p>設定⟪0⟫<b>name</b></p><button>Delete</button>');assert.equal(primitives.order,'Could not read line 2 of “保存”.');assert.equal(primitives.unknown,'unknown diagnostic');
   for(const action of ['video','audio','saveHelp','storage','skins','controllers','backup','diagnostics']){
    await page.locator(`#content [data-action=${action}]`).click();await page.locator('#sheet[open]').waitFor();await clean(action);
    await page.locator('#close-sheet').click();await page.locator('#sheet').waitFor({state:'hidden'});
@@ -59,7 +59,7 @@ const japanese=/[ぁ-んァ-ヶ一-龯]/;
   await context.setOffline(true);assert.equal(await page.evaluate(async()=>{const {tr}=await import('./src/i18n/index.js');return tr('保存失敗');}),'Save failed','Translation needs no network');await context.setOffline(false);
   // WebKit also reports in-memory Blob reads used for local state thumbnails.
   assert.deepEqual(errors,[]);assert.deepEqual(requests.filter(([method,url])=>method!=='GET'||(!url.startsWith(base)&&!url.startsWith('blob:'+base))),[],'Only local static or in-memory resources read');await context.close();
-  for(const locale of ['ja-JP','fr-FR']){
+  for(const locale of ['ja-JP','ru-RU']){
    const c=await browser.newContext({locale,serviceWorkers:'block'}),p=await c.newPage();await p.goto(base+'index.html#settings');await p.locator('#app-language').waitFor();assert.equal(await p.locator('html').getAttribute('lang'),locale==='ja-JP'?'ja':'en');
    if(locale==='ja-JP'){
     await p.locator('#app-language').selectOption('en');await p.waitForFunction(()=>document.documentElement.lang==='en');await p.locator('#app-language').waitFor();

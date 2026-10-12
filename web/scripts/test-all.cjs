@@ -4,7 +4,7 @@ const fs=require('node:fs'),path=require('node:path'),{spawn,fork}=require('node
 const root=path.resolve(__dirname,'..'),scripts=require('../package.json').scripts;
 const cli=process.argv.slice(2),webkit=cli.includes('--webkit')||process.env.BROWSER_ENGINE==='webkit';
 const engine=webkit?'webkit':'chromium';
-const supported=new Set(['i18n','browser','visibility','state-ui','responsive-skins','layout-sizing','layout-alignment','runtime-performance','speed-control','pitch-audio','privacy','native-menu','nds-browser','nds-skin','system-skins','link-panel','direct-link','haptics','room-link','covers','multicore','skin-compatibility','skins','bundled-skins','skin-orientation','update','extended-save','rom-import','diagnostics','game-preferences','input-controls','rewind','backup','startup-input','game-navigation','library','library-bulk','player-selection','mgba-compatibility','touch-recovery','player-gestures','fceumm-update']);
+const supported=new Set(['languages','languages-offline','i18n','browser','visibility','state-ui','responsive-skins','layout-sizing','layout-alignment','runtime-performance','speed-control','pitch-audio','privacy','native-menu','nds-browser','nds-skin','system-skins','link-panel','direct-link','haptics','room-link','covers','multicore','skin-compatibility','skins','bundled-skins','skin-orientation','update','extended-save','rom-import','diagnostics','game-preferences','input-controls','rewind','backup','startup-input','game-navigation','library','library-bulk','player-selection','mgba-compatibility','touch-recovery','player-gestures','fceumm-update']);
 function selectTests(){
  let shard=null;
  for(let i=0;i<cli.length;i++){

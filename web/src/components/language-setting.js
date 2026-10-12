@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import {tr,languagePreference,saveLanguage} from '../i18n/index.js';
+import {tr,languages,languagePreference,saveLanguage} from '../i18n/index.js';
 import {row} from './rows.js';
 
 export function languageSetting(){
  const value=languagePreference();
  return row(tr('言語'),`<select id="app-language" aria-label="${tr('言語')}">${[
-  ['auto',tr('自動')],['ja','日本語'],['en','English']
+  ['auto',tr('自動')],...languages.map(({code,name})=>[code,name])
  ].map(([id,label])=>`<option value="${id}"${value===id?' selected':''}>${label}</option>`).join('')}</select>`,'settings');
 }
 export function bindLanguageSetting(root,{canChange=()=>true,onError=()=>{},reload=()=>location.reload()}={}){

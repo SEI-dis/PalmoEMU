@@ -552,3 +552,9 @@ is AGPL-3.0-or-later. Existing GPL and MPL component headers and additional
 licensing notices remain in force. These changes do not replace license texts.
 No new distributed dependency, artwork, core binary, network endpoint or user
 content is included. ARCHITECTURE.md documents the module boundaries.
+Modified 2026-10-13 (0.3.18): added Simplified/Traditional Chinese, Korean,
+Spanish, French, German and Portuguese application text, regional language
+selection, lazy-loaded catalogues and offline switching. Translated summaries
+do not replace the original license texts, copyright notices or corresponding
+source. No translation model, service or runtime dependency is distributed.
+See LOCALIZATION_REVIEW.md for the localization scope and maintenance process.

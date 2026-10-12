@@ -44,8 +44,9 @@ function input(mask){
 const saveModule=import('./three-ds-save.js');
 async function request(message){
  const {type,id}=message;
- const i18n=await localization;i18n.setWorkerLanguage(message.language);tr=i18n.tr;
+ const i18n=await localization;tr=i18n.tr;
  try{
+  await i18n.setWorkerLanguage(message.language);
   let result;
   if(type==='load'){
    if(core)throw Error(tr('コアは既に起動しています。'));

@@ -1,6 +1,48 @@
 {
   "releases": [
     {
+      "version": "0.3.18",
+      "date": "2026-10-13",
+      "changes": [
+        "中国語（簡体字・繁体字）、韓国語、スペイン語、フランス語、ドイツ語、ポルトガル語に対応しました。",
+        "端末の言語設定に合わせて自動選択し、設定からも切り替えられます。翻訳はオフラインでも使えます。"
+      ],
+      "changesEn": [
+        "Added Simplified and Traditional Chinese, Korean, Spanish, French, German and Portuguese.",
+        "The app follows your preferred language and lets you change it in Settings. Translations also work offline."
+      ],
+      "translations": {
+        "zh-Hans": [
+          "添加了简体和繁体中文、韩语、西班牙语、法语、德语和葡萄牙语。",
+          "应用遵循您偏好的语言，并允许您在“设置”中更改。翻译也支持离线使用。"
+        ],
+        "es": [
+          "Se añadieron chino simplificado y tradicional, coreano, español, francés, alemán y portugués.",
+          "La aplicación sigue su idioma preferido y le permite cambiarlo en Configuración. Las traducciones también funcionan sin conexión."
+        ],
+        "fr": [
+          "Ajouté le chinois simplifié et traditionnel, le coréen, l'espagnol, le français, l'allemand et le portugais.",
+          "L'application suit votre langue préférée et vous permet de la changer dans les Paramètres. Les traductions fonctionnent également hors ligne."
+        ],
+        "de": [
+          "Vereinfachtes und Traditionelles Chinesisch, Koreanisch, Spanisch, Französisch, Deutsch und Portugiesisch hinzugefügt.",
+          "Die App folgt Ihrer bevorzugten Sprache und ermöglicht Ihnen die Änderung in den Einstellungen. Übersetzungen funktionieren auch offline."
+        ],
+        "pt": [
+          "Adicionado Chinês Simplificado e Tradicional, Coreano, Espanhol, Francês, Alemão e Português.",
+          "O aplicativo segue o idioma preferido e permite alterá-lo em Configurações. As traduções também funcionam offline."
+        ],
+        "ko": [
+          "간체 중국어, 번체 중국어, 한국어, 스페인어, 프랑스어, 독일어, 포르투갈어를 추가했습니다.",
+          "앱은 선호하는 언어를 따르며 설정에서 변경할 수 있습니다. 번역은 오프라인에서도 작동합니다."
+        ],
+        "zh-Hant": [
+          "新增了簡體和繁體中文、韓語、西班牙語、法語、德語和葡萄牙語。",
+          "應用遵循您偏好的語言，並允許您在“設定”中更改。翻譯也支援離線使用。"
+        ]
+      }
+    },
+    {
       "version": "0.3.17",
       "date": "2026-10-12",
       "changes": [
@@ -10,7 +52,37 @@
       "changesEn": [
         "Added Japanese and English. The default follows your browser language; you can change it in Settings.",
         "Organized localization and UI components, and added bilingual release notes."
-      ]
+      ],
+      "translations": {
+        "zh-Hans": [
+          "添加了日语和英语。默认语言遵循您的浏览器语言；您可以在“设置”中更改。",
+          "整理了本地化和 UI 组件，并添加了双语发布说明。"
+        ],
+        "es": [
+          "Se añadieron japonés e inglés. El predeterminado sigue el idioma de su navegador; puede cambiarlo en Configuración.",
+          "Componentes de localización e interfaz de usuario organizados, y se añadieron notas de lanzamiento bilingües."
+        ],
+        "fr": [
+          "Ajouté le japonais et l'anglais. Le défaut suit la langue de votre navigateur ; vous pouvez le changer dans les Paramètres.",
+          "Organisé les composants de localisation et d'interface utilisateur, et ajouté des notes de version bilingues."
+        ],
+        "de": [
+          "Japanisch und Englisch hinzugefügt. Standardmäßig wird die Sprache Ihres Browsers verwendet; Sie können sie in den Einstellungen ändern.",
+          "Lokalisierungs- und UI-Komponenten organisiert und zweisprachige Release Notes hinzugefügt."
+        ],
+        "pt": [
+          "Adicionado Japonês e Inglês. O padrão segue o idioma do seu navegador; você pode alterar em Configurações.",
+          "Organizado componentes de localização e UI, e adicionados notas de lançamento bilíngues."
+        ],
+        "ko": [
+          "일본어와 영어를 추가했습니다. 기본값은 브라우저 언어를 따르며, 설정에서 변경할 수 있습니다.",
+          "현지화 및 UI 구성 요소를 정리하고 이중 언어 릴리스 노트를 추가했습니다."
+        ],
+        "zh-Hant": [
+          "新增了日語和英語。預設語言遵循您的瀏覽器語言；您可以在“設定”中更改。",
+          "整理了本地化和 UI 元件，並新增了雙語釋出說明。"
+        ]
+      }
     },
     {
       "version": "0.3.16",
@@ -22,7 +94,37 @@
       "changesEn": [
         "Added readable Japanese release notes and the latest changes to the credits page.",
         "Prevented pull-down gestures during gameplay from triggering browser refresh where supported."
-      ]
+      ],
+      "translations": {
+        "zh-Hans": [
+          "添加了易读的日语发布说明和最新的鸣谢页更改。",
+          "在支持的情况下，防止游戏过程中下拉手势触发浏览器刷新。"
+        ],
+        "es": [
+          "Se añadieron notas de lanzamiento japonesas legibles y los últimos cambios en la página de créditos.",
+          "Se previno que los gestos de extracción durante el juego activaran la actualización del navegador cuando está soportado."
+        ],
+        "fr": [
+          "Ajouté des notes de version japonaises lisibles et les derniers changements sur la page des crédits.",
+          "Prévenu les gestes de tirage vers le bas pendant le jeu pour qu'ils ne déclenchent pas de rafraîchissement du navigateur lorsque cela est pris en charge."
+        ],
+        "de": [
+          "Lesbare japanische Release Notes und die neuesten Änderungen auf der Credits-Seite hinzugefügt.",
+          "Verhindert, dass Wischgesten während des Spielens einen Browser-Refresh auslösen, sofern unterstützt."
+        ],
+        "pt": [
+          "Adicionadas notas de lançamento japonesas legíveis e as últimas alterações na página de créditos.",
+          "Impediu que gestos de puxar para baixo durante o jogo acionassem a atualização do navegador, quando suportado."
+        ],
+        "ko": [
+          "읽기 쉬운 일본어 릴리스 노트와 크레딧 페이지의 최신 변경 사항을 추가했습니다.",
+          "지원되는 경우, 게임 플레이 중 아래로 당기는 제스처가 브라우저 새로고침을 유발하는 것을 방지했습니다."
+        ],
+        "zh-Hant": [
+          "新增了易讀的日語釋出說明和最新的鳴謝頁更改。",
+          "在支援的情況下，防止遊戲過程中下拉手勢觸發瀏覽器重新整理。"
+        ]
+      }
     },
     {
       "version": "0.3.15",
@@ -36,7 +138,44 @@
         "Added the modern Celio link format, acknowledgements and retries. Link play still supports two players.",
         "Fixed a memory bank switching issue in the FCEUmm NES core affecting some games.",
         "Updated core source URLs and credit links."
-      ]
+      ],
+      "translations": {
+        "zh-Hans": [
+          "添加了新版 Celio 通信格式、接收确认和重试机制。联机仍支持两名玩家。",
+          "修复了 FCEUmm NES 核心中影响某些游戏的内存银行切换问题。",
+          "更新了核心源代码 URL 和鸣谢链接。"
+        ],
+        "es": [
+          "Se añadió el formato moderno de conexión Celio, con confirmaciones de recepción y reintentos. La conexión sigue admitiendo dos jugadores.",
+          "Se corrigió un problema de cambio de bancos de memoria en el núcleo FCEUmm NES que afectaba a algunos juegos.",
+          "Actualizadas las URL del código fuente del núcleo y los enlaces de créditos."
+        ],
+        "fr": [
+          "Ajout du format moderne de connexion Celio, des accusés de réception et des nouvelles tentatives. La connexion reste limitée à deux joueurs.",
+          "Corrigé un problème de commutation de banque mémoire dans le cœur FCEUmm NES affectant certains jeux.",
+          "Mis à jour les URL sources du cœur et les liens de crédits."
+        ],
+        "de": [
+          "Modernes Celio-Verbindungsformat, Empfangsbestätigungen und Wiederholungsversuche hinzugefügt. Link-Spiele unterstützen weiterhin zwei Spieler.",
+          "Behob ein Problem beim Wechseln von Speicherbänken im FCEUmm NES Core, das einige Spiele betraf.",
+          "Aktualisiert die Quell-URLs der Cores und die Credit-Links."
+        ],
+        "pt": [
+          "Adicionado o formato moderno de conexão Celio, com confirmações de recebimento e novas tentativas. A conexão continua com suporte a dois jogadores.",
+          "Corrigido um problema de troca de banco de memória no núcleo FCEUmm NES que afetava alguns jogos.",
+          "Atualizadas as URLs das fontes dos núcleos e os links de créditos."
+        ],
+        "ko": [
+          "최신 Celio 통신 형식, 수신 확인 응답 및 재시도를 추가했습니다. 통신 플레이는 여전히 2인까지 지원합니다.",
+          "FCEUmm NES 코어에서 일부 게임에 영향을 미치는 메모리 뱅크 전환 문제를 수정했습니다.",
+          "코어 소스 URL 및 크레딧 링크를 업데이트했습니다."
+        ],
+        "zh-Hant": [
+          "新增了新版 Celio 通訊格式、接收確認和重試機制。聯機仍支援兩名玩家。",
+          "修復了 FCEUmm NES 核心中影響某些遊戲的記憶體銀行切換問題。",
+          "更新了核心原始碼 URL 和鳴謝連結。"
+        ]
+      }
     },
     {
       "version": "0.3.14",
@@ -48,7 +187,37 @@
       "changesEn": [
         "Added protection against page zoom caused by repeated taps or two-finger gestures during gameplay.",
         "Preserved scrolling and text entry in the link panel, and menu taps."
-      ]
+      ],
+      "translations": {
+        "zh-Hans": [
+          "增加了对游戏过程中因重复点击或双指手势导致的页面缩放的保护。",
+          "保留了联机面板中的滚动和文本输入，以及菜单点击功能。"
+        ],
+        "es": [
+          "Se añadió protección contra el zoom de página causado por toques repetidos o gestos con dos dedos durante la partida.",
+          "Se preservó el desplazamiento y la entrada de texto en el panel de conexión, y los toques del menú."
+        ],
+        "fr": [
+          "Ajout d'une protection contre le zoom de page causé par des taps répétés ou des gestes à deux doigts pendant le jeu.",
+          "Préservation du défilement et de la saisie de texte dans le panneau de connexion, ainsi que des taps de menu."
+        ],
+        "de": [
+          "Schutz vor Seiten-Zoom durch wiederholtes Tippen oder Zwei-Finger-Gesten während des Spielens hinzugefügt.",
+          "Scrollen und Texteingabe im Link-Panel sowie Menütippungen beibehalten."
+        ],
+        "pt": [
+          "Adicionada proteção contra zoom de página causado por toques repetidos ou gestos de dois dedos durante o jogo.",
+          "Preservado rolagem e entrada de texto no painel de conexão, e toques em menus."
+        ],
+        "ko": [
+          "게임 플레이 중 반복적인 탭이나 두 손가락 제스처로 인한 페이지 확대 방지 기능을 추가했습니다.",
+          "링크 패널의 스크롤 및 텍스트 입력, 메뉴 탭을 유지했습니다."
+        ],
+        "zh-Hant": [
+          "增加了對遊戲過程中因重複點選或雙指手勢導致的頁面縮放的保護。",
+          "保留了聯機面板中的滾動和文字輸入，以及選單點選功能。"
+        ]
+      }
     },
     {
       "version": "0.3.13",
@@ -60,7 +229,37 @@
       "changesEn": [
         "Added recovery from stuck buttons when a finger-release event is missed.",
         "Preserved holds and simultaneous presses across default, bundled and imported skins."
-      ]
+      ],
+      "translations": {
+        "zh-Hans": [
+          "增加了在错过手指抬起事件时恢复卡住按键的功能。",
+          "保留了默认、捆绑和导入皮肤上的长按和同时按下功能。"
+        ],
+        "es": [
+          "Se añadió recuperación de botones atascados cuando se pierde un evento de liberación de dedo.",
+          "Se preservaron las pulsaciones largas y las pulsaciones simultáneas en diseños predeterminados, empaquetados e importados."
+        ],
+        "fr": [
+          "Ajout de la récupération des boutons bloqués lorsque l'événement de relâchement d'un doigt est manqué.",
+          "Préservation des maintenances et des pressions simultanées sur les habillages par défaut, intégrés et importés."
+        ],
+        "de": [
+          "Wiederherstellung von klemmenden Tasten bei verpasstem Fingerablassereignis hinzugefügt.",
+          "Halten und gleichzeitiges Drücken über Standard-, gebündelte und importierte Skins hinweg beibehalten."
+        ],
+        "pt": [
+          "Adicionada recuperação de botões travados quando um evento de soltura do dedo é perdido.",
+          "Preservados os seguramentos e pressionamentos simultâneos em temas padrão, empacotados e importados."
+        ],
+        "ko": [
+          "손가락 해제 이벤트가 누락되었을 때 걸린 버튼에서 복구하는 기능을 추가했습니다.",
+          "기본, 번들 및 가져온 모든 스킨에서 누름 유지 및 동시 입력을 유지했습니다."
+        ],
+        "zh-Hant": [
+          "增加了在錯過手指抬起事件時恢復卡住按鍵的功能。",
+          "保留了預設、捆綁和匯入皮膚上的長按和同時按下功能。"
+        ]
+      }
     }
   ]
 }
