@@ -23,7 +23,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    res.setHeader('Cache-Control','no-store');
    if(staleBootstrap){staleBootstrap=false;bytes=Buffer.from(bytes.toString().replace(/(<meta name="app-build" content=")[^"]+/,`$1update-test-${revision-1}`));}
   }
-  if(name==='/src/settings-view.js')bytes=Buffer.concat([bytes,Buffer.from('\nglobalThis.updateTestRevision='+revision+';')]);
+  if(name==='/src/views/settings.js')bytes=Buffer.concat([bytes,Buffer.from('\nglobalThis.updateTestRevision='+revision+';')]);
   if(name==='/'+lazyAsset)bytes=Buffer.concat([bytes,Buffer.from('\n// lazy asset revision '+revision)]);
   res.end(bytes);
  });

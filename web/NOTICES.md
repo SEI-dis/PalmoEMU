@@ -536,3 +536,19 @@ editing, panel scrolling and ordinary-page gestures. No new runtime dependencies
 network endpoints, core changes, artwork, ROMs or saves are included. New page,
 generator, CSS and test changes are AGPL-3.0-or-later. See MOBILE_INPUT_REVIEW.md
 for primary references and limits of desktop browser verification.
+
+
+Modified 2026-10-12 (0.3.17): added local Japanese/English UI localization,
+browser-language defaults and a persisted explicit preference. Authored UI
+messages are translated before runtime values are inserted; names, files,
+ROM/save contents and original license texts are not translated or uploaded.
+Release summaries now contain both Japanese and English. Documentation and
+raw upstream diagnostics retain their original languages.
+
+Moved screen modules to src/views and shared row builders to src/components,
+retaining their ManicEMU authorship and AGPL notices; extracted storage and
+language settings components. New localization, component and validation code
+is AGPL-3.0-or-later. Existing GPL and MPL component headers and additional
+licensing notices remain in force. These changes do not replace license texts.
+No new distributed dependency, artwork, core binary, network endpoint or user
+content is included. ARCHITECTURE.md documents the module boundaries.

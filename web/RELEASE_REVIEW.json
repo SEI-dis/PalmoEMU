@@ -4,7 +4,7 @@
   "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices.",
   "openItems": [],
   "note": "Engineering review of pinned dependencies, corresponding source, notices, distribution contents and runtime regression tests. Not a legal opinion or a grant of rights in user ROMs/artwork. iPhone hardware and broad commercial-game compatibility remain unverified; limited local compatibility checks are scoped in RELEASE_VALIDATION.md. Any distribution/workflow change requires renewed review.",
-  "reviewedContentSha256": "0d8a641abe715f130643f6a339798e52271474175ceb32cc3f941d71d4b83111",
+  "reviewedContentSha256": "7d6bb80adaac7d15921bc5d9422e0597fe5d005323b3eba97daeb1abbb544c1a",
   "resolutions": [
     {
       "id": "corresponding-source",
@@ -19,27 +19,27 @@
     {
       "id": "noncommercial-core-combination",
       "evidenceFile": "LICENSE_AUDIT.md",
-      "sha256": "fefd3d94dca435d4978267416a36a1a5d0c846987e8e4f78ada32998a21d8eb3"
+      "sha256": "dfaae4e505194e92c75c332ab30754eb0352325d534a0c8bd215a70cde7db03d"
     },
     {
       "id": "asset-rights",
       "evidenceFile": "NOTICES.md",
-      "sha256": "9c5cea07301c93cf2bece6ae490925ca666f816e4f5103b9b491dd2a9a9e5307"
+      "sha256": "6b24702b8b73ef399026096d68b336a7925b20d56e16f57dc6adb2a95888dcf3"
     },
     {
       "id": "source-archive-materials",
       "evidenceFile": "SOURCES.json",
-      "sha256": "c77447715a7bef1b915fe8c07fb4123c2f1a5489f1e57cdb2b94321f1d2cf87c"
+      "sha256": "5e3859e007a4c0d8bb97a3bcef09239f7bf9837014bb8be206ad679878a5dc47"
     },
     {
       "id": "external-artwork-policy",
       "evidenceFile": "LICENSE_AUDIT.md",
-      "sha256": "fefd3d94dca435d4978267416a36a1a5d0c846987e8e4f78ada32998a21d8eb3"
+      "sha256": "dfaae4e505194e92c75c332ab30754eb0352325d534a0c8bd215a70cde7db03d"
     },
     {
       "id": "runtime-validation",
       "evidenceFile": "RELEASE_VALIDATION.md",
-      "sha256": "fa5a174bbbb9870fc1e83e6b8abc4b4d0ba671906aa5cf628b7b6ac5c7bbef25"
+      "sha256": "3a315abbd79a0cb91d8cdb5d0cc28442829bd42373fc33b346d3ce26e0cfc8ec"
     },
     {
       "id": "alternate-corresponding-source",
@@ -65,6 +65,11 @@
       "id": "mobile-input-0316",
       "evidenceFile": "MOBILE_INPUT_REVIEW.md",
       "sha256": "accba381ae4ffaff78475477af777bf37240a15e8322df65949255b556a72101"
+    },
+    {
+      "id": "localization-and-components-0317",
+      "evidenceFile": "ARCHITECTURE.md",
+      "sha256": "1667e26766bb2291171b706d489f1511937aa425611651a4ff96447c99e4688b"
     }
   ],
   "workflows": {

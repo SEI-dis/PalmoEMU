@@ -2,11 +2,12 @@
 // Browser implementation informed by ManicEMU ControllerMapping / Trigger
 // (Daiuno, 2025) and DeltaCore input mappings (Riley Testut, 2017).
 // Native source is not copied. See the input-controls references in NOTICES.md.
+import {tr} from './i18n/index.js';
 const directions=['up','down','left','right'];
 const buttons={gb:['a','b','start','select'],gbc:['a','b','start','select'],nes:['a','b','start','select'],gba:['a','b','l','r','start','select'],snes:['a','b','x','y','l','r','start','select'],md:['a','b','c','x','y','z','start'],nds:['a','b','x','y','l','r','start','select'],'3ds':['a','b','x','y','l','r','start','select']};
 export const specialInputs=['menu','save','load','speed','rewind'];
-export const inputLabels={up:'上',down:'下',left:'左',right:'右',a:'A',b:'B',c:'C',x:'X',y:'Y',z:'Z',l:'L',r:'R',start:'START',select:'SELECT',menu:'メニュー',save:'ステート保存',load:'クイックロード',speed:'速度切り替え',rewind:'巻き戻し'};
-export const assistModes=[['off','通常'],['turbo','連射'],['hold','押しっぱなし'],['turboHold','連射＋押しっぱなし']];
+export const inputLabels={up:tr('上'),down:tr('下'),left:tr('左'),right:tr('右'),a:'A',b:'B',c:'C',x:'X',y:'Y',z:'Z',l:'L',r:'R',start:'START',select:'SELECT',menu:tr('メニュー'),save:tr('ステート保存'),load:tr('クイックロード'),speed:tr('速度切り替え'),rewind:tr('巻き戻し')};
+export const assistModes=[['off',tr('通常')],['turbo',tr('連射')],['hold',tr('押しっぱなし')],['turboHold',tr('連射＋押しっぱなし')]];
 export const inputSystems=Object.keys(buttons);
 export const gameInputsFor=system=>[...directions,...buttons[system]||buttons.gba];
 const validSystem=system=>Object.hasOwn(buttons,system)?system:'gba';
@@ -15,9 +16,9 @@ const padCode=code=>typeof code==='string'&&/^(b(?:[0-9]|[12][0-9]|3[01])|a[0-7]
 const deviceCode=device=>device==='keyboard'||device==='gamepad'||typeof device==='string'&&/^pad:[0-9a-f]{8}$/.test(device);
 export function deviceKey(pad){let hash=2166136261;for(const c of String(pad.id||'').slice(0,256))hash=Math.imul(hash^c.charCodeAt(0),16777619);return 'pad:'+(hash>>>0).toString(16).padStart(8,'0');}
 export function inputName(code){
- if(code.startsWith('b'))return 'ボタン '+(Number(code.slice(1))+1);
- if(/^a\d[+-]$/.test(code))return '軸 '+(Number(code[1])+1)+' '+code[2];
- return ({ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→',Space:'Space',ShiftLeft:'左Shift',ShiftRight:'右Shift',Escape:'Esc'})[code]||code.replace(/^Key|^Digit/,'');
+ if(code.startsWith('b'))return tr('ボタン ')+(Number(code.slice(1))+1);
+ if(/^a\d[+-]$/.test(code))return tr('軸 ')+(Number(code[1])+1)+' '+code[2];
+ return ({ArrowUp:'↑',ArrowDown:'↓',ArrowLeft:'←',ArrowRight:'→',Space:'Space',ShiftLeft:tr('左Shift'),ShiftRight:tr('右Shift'),Escape:'Esc'})[code]||code.replace(/^Key|^Digit/,'');
 }
 export function defaultBindings(system,device='keyboard'){
  const map=device==='keyboard'?{KeyX:'a',KeyZ:'b',KeyA:'l',KeyS:'r',KeyW:'x',KeyQ:'y',KeyC:'c',KeyE:'z',Enter:'start',ShiftLeft:'select',ShiftRight:'select',ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',Escape:'menu',Tab:'speed',F5:'save',F8:'load',KeyR:'rewind'}:{b0:'a',b1:'b',b2:'y',b3:'x',b4:system==='md'?'c':'l',b5:system==='md'?'z':'r',b8:'select',b9:'start',b12:'up',b13:'down',b14:'left',b15:'right',b16:'menu','a0-':'left','a0+':'right','a1-':'up','a1+':'down'};
@@ -105,7 +106,7 @@ export function createInputControls(api){
  window.addEventListener('keydown',keydown,true);window.addEventListener('keyup',keyup,true);window.addEventListener('blur',onBlur);window.addEventListener('gamepaddisconnected',onBlur);document.addEventListener('visibilitychange',onVisibility);
  return {
   poll,transform,release,capture:startCapture,cancelCapture:()=>finishCapture(null),isCapturing:()=>!!capture,
-  devices:()=>[{key:'keyboard',name:'キーボード'},{key:'gamepad',name:'ゲームパッド（共通）'},...pads().map(p=>({key:deviceKey(p),name:String(p.id||'ゲームパッド').slice(0,100)})).filter((p,i,list)=>list.findIndex(x=>x.key===p.key)===i)],
+  devices:()=>[{key:'keyboard',name:tr('キーボード')},{key:'gamepad',name:tr('ゲームパッド（共通）')},...pads().map(p=>({key:deviceKey(p),name:String(p.id||tr('ゲームパッド')).slice(0,100)})).filter((p,i,list)=>list.findIndex(x=>x.key===p.key)===i)],
   bindings:(system,device)=>mapping(validSystem(system),device),assist:system=>structuredClone(assist(validSystem(system))),
   assign(system,device,action,code){system=validSystem(system);if(!deviceCode(device)||![...gameInputsFor(system),...specialInputs].includes(action)||code!==null&&!(device==='keyboard'?keyboardCode(code):padCode(code)))return false;
    config=configuration();const map=mapping(system,device);for(const input of Object.keys(map))if(map[input]===action)delete map[input];if(code!==null)map[code]=action;

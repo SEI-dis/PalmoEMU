@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+const localization=import('./i18n/index.js');let tr;
 // Development-only source-built core. File/Blob and saves stay in this worker.
 const coreBase=new URL('../__dev3ds__/',self.location.href);
 importScripts(new URL('local_3ds.js',coreBase).href);
@@ -25,7 +26,7 @@ function tick(){
  if(paused||closed)return;
  try{
   const start=performance.now();core._web_frame(keys);
-  if(core._web_failed())throw Error(core.UTF8ToString(core._web_error())||'3DSコアが停止しました。');
+  if(core._web_failed())throw Error(core.UTF8ToString(core._web_error())||tr('3DSコアが停止しました。'));
   frames++;
   const count=core._web_audio_read();
   if(count&&volume){const offset=core._web_audio()>>1,pcm=core.HEAP16.slice(offset,offset+count*2);postMessage({type:'audio',pcm,rate:core._web_audio_rate()},[pcm.buffer]);}
@@ -43,20 +44,21 @@ function input(mask){
 const saveModule=import('./three-ds-save.js');
 async function request(message){
  const {type,id}=message;
+ const i18n=await localization;i18n.setWorkerLanguage(message.language);tr=i18n.tr;
  try{
   let result;
   if(type==='load'){
-   if(core)throw Error('コアは既に起動しています。');
-   if(!crossOriginIsolated||typeof OffscreenCanvas!=='function')throw Error('3DSに必要なブラウザ機能が使えません。');
+   if(core)throw Error(tr('コアは既に起動しています。'));
+   if(!crossOriginIsolated||typeof OffscreenCanvas!=='function')throw Error(tr('3DSに必要なブラウザ機能が使えません。'));
    keyboard=message.keyboard;canvas=new OffscreenCanvas(400,480);
    core=await createLocal3DS({canvas,localKeyboard,mainScriptUrlOrBlob:new URL('local_3ds.js',coreBase).href,
     locateFile:p=>new URL(p,coreBase).href,print:()=>{},printErr:s=>{if(log.length<20)log.push(String(s));}});
    core.FS.mkdir('/roms');const extension=/\.(3ds|3dsx|cci|cxi)$/i.exec(message.filename)?.[1]?.toLowerCase();
-   if(!extension||!(message.blob instanceof Blob))throw Error('3DSのROM形式を確認してください。');
+   if(!extension||!(message.blob instanceof Blob))throw Error(tr('3DSのROM形式を確認してください。'));
    const name='game.'+extension;core.FS.mount(core.FS.filesystems.WORKERFS,{blobs:[{name,data:message.blob}]},'/roms');
    const pointer=core.stringToNewUTF8('/roms/'+name);let loaded;
    try{loaded=core._web_load(pointer,0);}finally{core._free(pointer);}
-   if(!loaded)throw Error(core.UTF8ToString(core._web_error())||'ROMを起動できません。復号済みの形式か確認してください。');
+   if(!loaded)throw Error(core.UTF8ToString(core._web_error())||tr('ROMを起動できません。復号済みの形式か確認してください。'));
    result={fps:core._web_fps()};
   }else if(type==='pause'){setPaused(!!message.value);}
   else if(type==='keys'){input(message.mask);}
@@ -68,14 +70,14 @@ async function request(message){
   else if(type==='restore'){(await saveModule).unpackSave(core.FS,message.bytes);}
   else if(type==='checkpoint'){
    const archive=await saveModule;core._web_flush();result={save:archive.packSave(core.FS),state:null,stateError:null};
-   try{const size=core._web_state_export();if(!size)throw Error('中断状態を保存できませんでした。');result.state=core.HEAPU8.slice(core._web_state_data(),core._web_state_data()+size);}catch(e){result.stateError=describe(e);}
+   try{const size=core._web_state_export();if(!size)throw Error(tr('中断状態を保存できませんでした。'));result.state=core.HEAPU8.slice(core._web_state_data(),core._web_state_data()+size);}catch(e){result.stateError=describe(e);}
   }else if(type==='state'){
-   const size=core._web_state_export();if(!size)throw Error('中断状態を保存できませんでした。');
+   const size=core._web_state_export();if(!size)throw Error(tr('中断状態を保存できませんでした。'));
    result=core.HEAPU8.slice(core._web_state_data(),core._web_state_data()+size);
   }else if(type==='loadState'){
-   const bytes=message.bytes;if(!bytes?.length||bytes.length>128*1048576)throw Error('ステート形式を確認してください。');
-   const pointer=core._malloc(bytes.length);if(!pointer)throw Error('メモリーを確保できませんでした。');
-   try{core.HEAPU8.set(bytes,pointer);if(!core._web_state_import(pointer,bytes.length))throw Error('このコアで読み込めるステートではありません。');}finally{core._free(pointer);}
+   const bytes=message.bytes;if(!bytes?.length||bytes.length>128*1048576)throw Error(tr('ステート形式を確認してください。'));
+   const pointer=core._malloc(bytes.length);if(!pointer)throw Error(tr('メモリーを確保できませんでした。'));
+   try{core.HEAPU8.set(bytes,pointer);if(!core._web_state_import(pointer,bytes.length))throw Error(tr('このコアで読み込めるステートではありません。'));}finally{core._free(pointer);}
   }else if(type==='reset'){core._web_reset();}
   else if(type==='close'){closed=true;clearTimeout(timer);core?._web_close();core?.PThread.terminateAllThreads();}
   if(id)postMessage({type:'reply',id,result},result instanceof Uint8Array?[result.buffer]:type==='checkpoint'?[result.state?.buffer,result.save?.buffer].filter(Boolean):[]);

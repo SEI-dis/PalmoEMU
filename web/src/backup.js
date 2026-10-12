@@ -2,6 +2,7 @@
 // Original portable Web backup. Design references: ManicEMU FilesSyncPolicy,
 // FilesSyncRecord / FilesSyncManager (Daiuno, 2026), and Delta Sync documentation.
 // Explicit exclusions, batched commits and retained prior versions; no cloud API.
+import {tr} from './i18n/index.js';
 import * as db from './storage.js';
 import {hash} from './shared.js';
 import {coreRegistry,compatibleState,supportsGame} from './core-registry.js';
@@ -15,12 +16,12 @@ const format='PalmoEMU-save-backup',version=1,settingsKey='manic-settings',pendi
 const dataStores=['saves','states','backups','recoveries'],gameFields=['id','system','size','preferences','coreKey','cheats','coreCheats','controlLayout','category','favorite'];
 const validId=id=>typeof id==='string'&&/^[a-f0-9]{64}$/.test(id),validHash=validId;
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x)&&Object.getPrototypeOf(x)===Object.prototype;
-const fail=message=>{throw Error(message||'バックアップの形式が正しくありません。');};
+const fail=message=>{throw Error(message||tr('バックアップの形式が正しくありません。'));};
 const keys=(value,allowed)=>{if(!plain(value)||Object.keys(value).some(key=>!allowed.includes(key)))fail();};
-function canonical(value){let nodes=0;function sort(x,depth=0){if(depth>12||++nodes>65536)fail('設定データが複雑すぎます。');return Array.isArray(x)?x.map(v=>sort(v,depth+1)):plain(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,sort(x[k],depth+1)])):x;}return JSON.stringify(sort(value));}
-const strict=(value,clean)=>{if(canonical(value)!==canonical(clean))fail('未対応または不正な設定が含まれています。');return clean;};
+function canonical(value){let nodes=0;function sort(x,depth=0){if(depth>12||++nodes>65536)fail(tr('設定データが複雑すぎます。'));return Array.isArray(x)?x.map(v=>sort(v,depth+1)):plain(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,sort(x[k],depth+1)])):x;}return JSON.stringify(sort(value));}
+const strict=(value,clean)=>{if(canonical(value)!==canonical(clean))fail(tr('未対応または不正な設定が含まれています。'));return clean;};
 const validTime=n=>Number.isSafeInteger(n)&&n>=0&&n<=8640000000000000;
-function checkFileSize(text){if(text.length>backupLimits.file||new Blob([text]).size>backupLimits.file)fail('バックアップファイルは192 MiBまでです。');}
+function checkFileSize(text){if(text.length>backupLimits.file||new Blob([text]).size>backupLimits.file)fail(tr('バックアップファイルは192 MiBまでです。'));}
 function layout(value){
  if(!plain(value))return {};const result={};
  for(const direction of ['portrait','landscape'])if(plain(value[direction])){
@@ -42,32 +43,32 @@ export function sanitizeBackupSettings(value){
  return result;
 }
 function cheats(value){
- if(!Array.isArray(value)||value.length>100)fail('チート設定が正しくありません。');
- return value.map(item=>{keys(item,['name','code','type','enabled']);if(typeof item.name!=='string'||item.name.length>120||typeof item.code!=='string'||item.code.length>16384||!Number.isInteger(item.type)||item.type<0||item.type>4||typeof item.enabled!=='boolean')fail('チート設定が正しくありません。');return {...item};});
+ if(!Array.isArray(value)||value.length>100)fail(tr('チート設定が正しくありません。'));
+ return value.map(item=>{keys(item,['name','code','type','enabled']);if(typeof item.name!=='string'||item.name.length>120||typeof item.code!=='string'||item.code.length>16384||!Number.isInteger(item.type)||item.type<0||item.type>4||typeof item.enabled!=='boolean')fail(tr('チート設定が正しくありません。'));return {...item};});
 }
 function cleanGame(game,importing=false){
  if(importing)keys(game,gameFields);
- if(!validId(game.id)||!Object.hasOwn(coreRegistry,game.system)||!Number.isSafeInteger(game.size)||game.size<1)fail('ゲームの識別情報が正しくありません。');
+ if(!validId(game.id)||!Object.hasOwn(coreRegistry,game.system)||!Number.isSafeInteger(game.size)||game.size<1)fail(tr('ゲームの識別情報が正しくありません。'));
  const result={id:game.id,system:game.system,size:game.size};
  // New exports explicitly retain empty/false values. Missing fields on an old
  // import stay absent so restore can preserve the current library metadata.
- if(Object.hasOwn(game,'category')){if(!['','playing','completed','backlog'].includes(game.category))fail('ゲームの分類が正しくありません。');result.category=game.category;}else if(!importing)result.category='';
- if(Object.hasOwn(game,'favorite')){if(typeof game.favorite!=='boolean')fail('お気に入り設定が正しくありません。');result.favorite=game.favorite;}else if(!importing)result.favorite=false;
+ if(Object.hasOwn(game,'category')){if(!['','playing','completed','backlog'].includes(game.category))fail(tr('ゲームの分類が正しくありません。'));result.category=game.category;}else if(!importing)result.category='';
+ if(Object.hasOwn(game,'favorite')){if(typeof game.favorite!=='boolean')fail(tr('お気に入り設定が正しくありません。'));result.favorite=game.favorite;}else if(!importing)result.favorite=false;
  if(game.preferences!=null)result.preferences=importing?strict(game.preferences,sanitizeGamePreferences(game.preferences)):sanitizeGamePreferences(game.preferences);
- if(game.coreKey!=null){const core=coreRegistry[game.system].find(c=>c.key===game.coreKey);if(!core||!supportsGame(core,game))fail('未対応のコア設定が含まれています。');result.coreKey=game.coreKey;}
+ if(game.coreKey!=null){const core=coreRegistry[game.system].find(c=>c.key===game.coreKey);if(!core||!supportsGame(core,game))fail(tr('未対応のコア設定が含まれています。'));result.coreKey=game.coreKey;}
  if(game.cheats!=null)result.cheats=cheats(game.cheats);
- if(game.coreCheats!=null){if(!plain(game.coreCheats))fail();result.coreCheats={};for(const [key,list] of Object.entries(game.coreCheats)){if(!coreRegistry[game.system].some(c=>c.key===key&&c.cheats))fail('未対応のチート用コアです。');result.coreCheats[key]=cheats(list);}}
+ if(game.coreCheats!=null){if(!plain(game.coreCheats))fail();result.coreCheats={};for(const [key,list] of Object.entries(game.coreCheats)){if(!coreRegistry[game.system].some(c=>c.key===key&&c.cheats))fail(tr('未対応のチート用コアです。'));result.coreCheats[key]=cheats(list);}}
  if(game.controlLayout!=null)result.controlLayout=importing?strict(game.controlLayout,layout(game.controlLayout)):layout(game.controlLayout);
  return result;
 }
 function recordCore(record,games){
  if(!dataStores.includes(record.store)||typeof record.key!=='string'||record.key.length>180)fail();
- const [slot,...tail]=record.key.split(':');if(tail.length>1||(record.store==='states'?tail.length!==1||!/^[a-zA-Z0-9_-]{1,80}$/.test(tail[0]||''):tail.length!==0))fail('保存先の形式が正しくありません。');
- const parts=slot.split('@'),game=games.get(parts.shift());if(!game)fail('ゲームに対応しない保存データがあります。');
- if(parts[0]==='link-2p'){if(game.system!=='gba')fail('2Pセーブの機種が正しくありません。');parts.shift();}
- if(parts.length>1)fail();const core=parts.length?coreRegistry[game.system].find(c=>c.key===parts[0]):coreRegistry[game.system][0];if(!core)fail('未対応の保存用コアです。');return core;
+ const [slot,...tail]=record.key.split(':');if(tail.length>1||(record.store==='states'?tail.length!==1||!/^[a-zA-Z0-9_-]{1,80}$/.test(tail[0]||''):tail.length!==0))fail(tr('保存先の形式が正しくありません。'));
+ const parts=slot.split('@'),game=games.get(parts.shift());if(!game)fail(tr('ゲームに対応しない保存データがあります。'));
+ if(parts[0]==='link-2p'){if(game.system!=='gba')fail(tr('2Pセーブの機種が正しくありません。'));parts.shift();}
+ if(parts.length>1)fail();const core=parts.length?coreRegistry[game.system].find(c=>c.key===parts[0]):coreRegistry[game.system][0];if(!core)fail(tr('未対応の保存用コアです。'));return core;
 }
-function rawBytes(value){if(value instanceof Uint8Array)return value;if(value instanceof ArrayBuffer)return new Uint8Array(value);fail('保存データを読めませんでした。');}
+function rawBytes(value){if(value instanceof Uint8Array)return value;if(value instanceof ArrayBuffer)return new Uint8Array(value);fail(tr('保存データを読めませんでした。'));}
 function cleanRecord(record){
  const item=value=>{
   const result={bytes:rawBytes(value.bytes),hash:value.hash||null,at:value.at||0,coreId:value.coreId||'mgba-rom64-link-v1'};
@@ -76,22 +77,22 @@ function cleanRecord(record){
 }
 function base64(bytes){let text='';for(let i=0;i<bytes.length;i+=32768)text+=String.fromCharCode(...bytes.subarray(i,i+32768));return btoa(text);}
 function unbase64(text,budget){
- if(typeof text!=='string'||text.length%4||text.length>Math.ceil(backupLimits.bytes/3)*4||!/^[A-Za-z0-9+/]*={0,2}$/.test(text))fail('保存データの符号化が正しくありません。');
- const size=text.length/4*3-(text.endsWith('==')?2:text.endsWith('=')?1:0);budget.total+=size;if(size<1||budget.total>backupLimits.bytes)fail('バックアップ内のデータは合計128 MiBまでです。');
+ if(typeof text!=='string'||text.length%4||text.length>Math.ceil(backupLimits.bytes/3)*4||!/^[A-Za-z0-9+/]*={0,2}$/.test(text))fail(tr('保存データの符号化が正しくありません。'));
+ const size=text.length/4*3-(text.endsWith('==')?2:text.endsWith('=')?1:0);budget.total+=size;if(size<1||budget.total>backupLimits.bytes)fail(tr('バックアップ内のデータは合計128 MiBまでです。'));
  const binary=atob(text),bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));if(base64(bytes)!==text)fail();return bytes;
 }
 async function encodeData(data,settings){
- if(data.games.length>backupLimits.games||data.records.length>backupLimits.records)fail('バックアップの件数上限を超えています。');
+ if(data.games.length>backupLimits.games||data.records.length>backupLimits.records)fail(tr('バックアップの件数上限を超えています。'));
  const games=data.games.map(g=>cleanGame(g)),byId=new Map(games.map(g=>[g.id,g])),records=[];let total=0;
  for(const entry of data.records){
   if(!byId.has(String(entry.key).split(/[@:]/,1)[0]))continue;
   const record=cleanRecord(entry),core=recordCore(record,byId),items=Array.isArray(record.value)?record.value:[record.value],output=[];
   for(const item of items){
-   total+=item.bytes.length+(item.save?.length||0);if(total>backupLimits.bytes)fail('バックアップ内のデータは合計128 MiBまでです。');
-   const digest=await hash(item.bytes);if(item.hash&&item.hash!==digest)fail('保存データの検証に失敗しました。元のデータは変更していません。');
-   if(!compatibleState(core.id,item))fail('このバージョンで読めないコアの保存データが含まれています。');
+   total+=item.bytes.length+(item.save?.length||0);if(total>backupLimits.bytes)fail(tr('バックアップ内のデータは合計128 MiBまでです。'));
+   const digest=await hash(item.bytes);if(item.hash&&item.hash!==digest)fail(tr('保存データの検証に失敗しました。元のデータは変更していません。'));
+   if(!compatibleState(core.id,item))fail(tr('このバージョンで読めないコアの保存データが含まれています。'));
    const out={...item,bytes:base64(item.bytes),hash:digest};
-   if(Object.hasOwn(item,'save')){out.save=item.save?.length?base64(item.save):null;out.saveHash=out.save?await hash(item.save):null;if(item.saveHash&&item.saveHash!==out.saveHash)fail('ステート内のセーブが破損しています。');}output.push(out);
+   if(Object.hasOwn(item,'save')){out.save=item.save?.length?base64(item.save):null;out.saveHash=out.save?await hash(item.save):null;if(item.saveHash&&item.saveHash!==out.saveHash)fail(tr('ステート内のセーブが破損しています。'));}output.push(out);
   }records.push({...record,value:Array.isArray(record.value)?output:output[0]});
  }
  const archive={format,version,createdAt:Date.now(),settings:sanitizeBackupSettings(settings),games,records};
@@ -100,44 +101,44 @@ async function encodeData(data,settings){
 }
 async function create(settings){return encodeData(await db.readBackupData(),settings);}
 async function inspect(input){
- if(input instanceof Blob){if(input.size>backupLimits.file)fail('バックアップファイルは192 MiBまでです。');input=await input.text();}
- if(typeof input!=='string')fail('JSON形式のバックアップを選んでください。');checkFileSize(input);
- let archive;try{archive=JSON.parse(input);}catch{fail('JSON形式のバックアップを選んでください。');}
- keys(archive,['format','version','createdAt','settings','games','records']);if(archive.format!==format||archive.version!==version||!validTime(archive.createdAt))fail('未対応のバックアップ形式・バージョンです。');
- if(!Array.isArray(archive.games)||archive.games.length>backupLimits.games||!Array.isArray(archive.records)||archive.records.length>backupLimits.records)fail('バックアップの件数上限を超えています。');
- const settings=strict(archive.settings,sanitizeBackupSettings(archive.settings)),games=archive.games.map(g=>cleanGame(g,true)),byId=new Map(games.map(g=>[g.id,g]));if(byId.size!==games.length)fail('ゲームが重複しています。');
+ if(input instanceof Blob){if(input.size>backupLimits.file)fail(tr('バックアップファイルは192 MiBまでです。'));input=await input.text();}
+ if(typeof input!=='string')fail(tr('JSON形式のバックアップを選んでください。'));checkFileSize(input);
+ let archive;try{archive=JSON.parse(input);}catch{fail(tr('JSON形式のバックアップを選んでください。'));}
+ keys(archive,['format','version','createdAt','settings','games','records']);if(archive.format!==format||archive.version!==version||!validTime(archive.createdAt))fail(tr('未対応のバックアップ形式・バージョンです。'));
+ if(!Array.isArray(archive.games)||archive.games.length>backupLimits.games||!Array.isArray(archive.records)||archive.records.length>backupLimits.records)fail(tr('バックアップの件数上限を超えています。'));
+ const settings=strict(archive.settings,sanitizeBackupSettings(archive.settings)),games=archive.games.map(g=>cleanGame(g,true)),byId=new Map(games.map(g=>[g.id,g]));if(byId.size!==games.length)fail(tr('ゲームが重複しています。'));
  const records=[],seen=new Set(),budget={total:0};
  for(const record of archive.records){
-  keys(record,['store','key','value']);const core=recordCore(record,byId),token=record.store+':'+record.key;if(seen.has(token))fail('保存先が重複しています。');seen.add(token);
-  const history=['backups','recoveries'].includes(record.store);if(history&&(!Array.isArray(record.value)||record.value.length>5)||!history&&Array.isArray(record.value))fail('保存履歴の形式が正しくありません。');
+  keys(record,['store','key','value']);const core=recordCore(record,byId),token=record.store+':'+record.key;if(seen.has(token))fail(tr('保存先が重複しています。'));seen.add(token);
+  const history=['backups','recoveries'].includes(record.store);if(history&&(!Array.isArray(record.value)||record.value.length>5)||!history&&Array.isArray(record.value))fail(tr('保存履歴の形式が正しくありません。'));
   const output=[];for(const item of history?record.value:[record.value]){
    const state=['states','recoveries'].includes(record.store);keys(item,state?['bytes','hash','save','saveHash','at','coreId']:['bytes','hash','at','coreId']);
-   if(!validTime(item.at)||!validHash(item.hash)||typeof item.coreId!=='string'||!compatibleState(core.id,item))fail('保存データの日時・ハッシュ・コアが正しくありません。');
-   const bytes=unbase64(item.bytes,budget);if(!state&&bytes.length>core.maxSave)fail('セーブのサイズがコアの上限を超えています。');if(await hash(bytes)!==item.hash)fail('保存データのハッシュが一致しません。');
-   const value={...item,bytes};if(state){if(item.save===null&&item.saveHash===null)value.save=null;else{if(!validHash(item.saveHash))fail();value.save=unbase64(item.save,budget);if(value.save.length>core.maxSave||await hash(value.save)!==item.saveHash)fail('ステート内のセーブの検証に失敗しました。');}}output.push(value);
+   if(!validTime(item.at)||!validHash(item.hash)||typeof item.coreId!=='string'||!compatibleState(core.id,item))fail(tr('保存データの日時・ハッシュ・コアが正しくありません。'));
+   const bytes=unbase64(item.bytes,budget);if(!state&&bytes.length>core.maxSave)fail(tr('セーブのサイズがコアの上限を超えています。'));if(await hash(bytes)!==item.hash)fail(tr('保存データのハッシュが一致しません。'));
+   const value={...item,bytes};if(state){if(item.save===null&&item.saveHash===null)value.save=null;else{if(!validHash(item.saveHash))fail();value.save=unbase64(item.save,budget);if(value.save.length>core.maxSave||await hash(value.save)!==item.saveHash)fail(tr('ステート内のセーブの検証に失敗しました。'));}}output.push(value);
   }records.push({...record,value:history?output:output[0]});
  }
  const local=await db.all('library'),localMap=new Map(local.map(g=>[g.id,g])),matched=[],missing=[];
- for(const game of games){const target=localMap.get(game.id);if(target&&(target.system!==game.system||target.size!==game.size))fail('同じ識別子のゲーム情報が一致しません。');if(target&&await db.has('roms',game.id))matched.push(game);else missing.push(game);}
+ for(const game of games){const target=localMap.get(game.id);if(target&&(target.system!==game.system||target.size!==game.size))fail(tr('同じ識別子のゲーム情報が一致しません。'));if(target&&await db.has('roms',game.id))matched.push(game);else missing.push(game);}
  const plan=Object.freeze({matched:matched.length,missing:missing.length,records:records.length,bytes:budget.total,createdAt:archive.createdAt});
  plans.set(plan,{games:matched,records:records.filter(r=>matched.some(g=>r.key.split(/[@:]/,1)[0]===g.id)),settings});return plan;
 }
 const plans=new WeakMap();
 async function withLocks(callback){
- if(!navigator.locks)fail('復元にはWeb Locks対応の最新版ブラウザが必要です。');
+ if(!navigator.locks)fail(tr('復元にはWeb Locks対応の最新版ブラウザが必要です。'));
  return navigator.locks.request('palmo-backup-restore',{ifAvailable:true},async lock=>{
-  if(!lock)fail('別のタブで復元中です。完了してからやり直してください。');
+  if(!lock)fail(tr('別のタブで復元中です。完了してからやり直してください。'));
   const names=[...new Set((await db.all('library')).map(g=>'local-game:'+g.id))].sort();
-  const next=i=>i===names.length?callback():navigator.locks.request(names[i],{ifAvailable:true},gameLock=>{if(!gameLock)fail('別のタブでプレイ中です。終了してからやり直してください。');return next(i+1);});return next(0);
+  const next=i=>i===names.length?callback():navigator.locks.request(names[i],{ifAvailable:true},gameLock=>{if(!gameLock)fail(tr('別のタブでプレイ中です。終了してからやり直してください。'));return next(i+1);});return next(0);
  });
 }
 async function restore(plan,{settings={}}={}){
- const data=plans.get(plan);if(!data)fail('ファイルを選び直してください。');
+ const data=plans.get(plan);if(!data)fail(tr('ファイルを選び直してください。'));
  return withLocks(async()=>{
-  if(await db.get('coverCatalogs',pendingKey))fail('前回の設定の復元を完了してからやり直してください。');
+  if(await db.get('coverCatalogs',pendingKey))fail(tr('前回の設定の復元を完了してからやり直してください。'));
   // Probe the actual browser persistence before starting a data replacement.
   const old=localStorage.getItem(settingsKey);localStorage.setItem(settingsKey,old??'{}');if(old===null)localStorage.removeItem(settingsKey);
-  if(!data.games.length&&data.records.length)fail('復元できるゲームがありません。');
+  if(!data.games.length&&data.records.length)fail(tr('復元できるゲームがありません。'));
   let previousSettings=settings;try{previousSettings=JSON.parse(old)||settings;}catch{}
   await db.restoreBackupData({...data,previousSettings:sanitizeBackupSettings(previousSettings),cleanGame,cleanRecord,maxBytes:backupLimits.bytes});
   plans.delete(plan);await applyPending();return {games:data.games.length,records:data.records.length,settings:data.settings};
@@ -148,7 +149,7 @@ async function applyPending(){
  const settings=strict(pending.settings,sanitizeBackupSettings(pending.settings));
  // Skin files/selections are not portable backup data. Keep existing choices
  // on this device instead of silently pointing them at absent imported assets.
- try{let current={};try{current=JSON.parse(localStorage.getItem(settingsKey)||'{}');}catch{}localStorage.setItem(settingsKey,JSON.stringify({...settings,...(plain(current.skins)?{skins:current.skins}:{})}));}catch{fail('セーブの復元は保存済みですが、設定を保存できません。ページを開き直して設定の復元を完了してください。');}
+ try{let current={};try{current=JSON.parse(localStorage.getItem(settingsKey)||'{}');}catch{}localStorage.setItem(settingsKey,JSON.stringify({...settings,...(plain(current.skins)?{skins:current.skins}:{})}));}catch{fail(tr('セーブの復元は保存済みですが、設定を保存できません。ページを開き直して設定の復元を完了してください。'));}
  await db.remove('coverCatalogs',pendingKey);return true;
 }
 async function previous(){const data=await db.readPreviousBackup();return data?encodeData(data,data.settings):null;}

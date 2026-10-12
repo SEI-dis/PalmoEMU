@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Reuse the existing dual-screen UI; run the source-built 3DS core in its own worker.
+import {tr,language} from './i18n/index.js';
 import {VideoOutput} from './video.js';
 import {TimeStretch} from './time-stretch.js';
 import {NDSCore} from './nds.js';
@@ -7,24 +8,24 @@ import {coreFor} from './core-registry.js';
 export class ThreeDSCore extends NDSCore {
  constructor(container){
   super(container);this.pending=new Map();this.sequence=0;this.frames=0;this.paused=true;
-  this.width=400;this.height=480;this.screens.forEach((c,i)=>{c.width=i?320:400;c.height=240;c.setAttribute('aria-label',i?'3DS タッチスクリーン':'3DS 上画面');});
+  this.width=400;this.height=480;this.screens.forEach((c,i)=>{c.width=i?320:400;c.height=240;c.setAttribute('aria-label',i?tr('3DS タッチスクリーン'):tr('3DS 上画面'));});
   this.rawScreens=this.screens.map(c=>{const raw=document.createElement('canvas');raw.width=c.width;raw.height=c.height;return raw;});
   this.videos=this.screens.map(c=>new VideoOutput(c,c.width,c.height));
  }
  async load(blob,game){
-  if(!crossOriginIsolated||typeof SharedArrayBuffer!=='function')throw Error('3DSの起動に必要な設定が反映されていません。ページを開き直してください。');
+  if(!crossOriginIsolated||typeof SharedArrayBuffer!=='function')throw Error(tr('3DSの起動に必要な設定が反映されていません。ページを開き直してください。'));
   this.core=coreFor(game);this.keyboard=new SharedArrayBuffer(1040);
   this.worker=new Worker(new URL('./three-ds-worker.js',import.meta.url));
   this.worker.onmessage=({data})=>this.receive(data);
-  this.worker.onerror=e=>this.failure(Error(e.message||'3DSコアを読み込めませんでした。'));
-  const result=await this.call('load',{blob:blob instanceof Blob?blob:new Blob([blob]),filename:game.filename,keyboard:this.keyboard});
+  this.worker.onerror=e=>this.failure(Error(e.message||tr('3DSコアを読み込めませんでした。')));
+  const result=await this.call('load',{language,blob:blob instanceof Blob?blob:new Blob([blob]),filename:game.filename,keyboard:this.keyboard});
   this.fps=result.fps;
   const poll=()=>{if(this.closed)return;if(!this.paused)this.beforeFrame?.();this.raf=requestAnimationFrame(poll);};poll();
  }
  call(type,data={}){
-  if(!this.worker||this.closed)return Promise.reject(Error('3DSコアは終了しています。'));
+  if(!this.worker||this.closed)return Promise.reject(Error(tr('3DSコアは終了しています。')));
   return new Promise((resolve,reject)=>{const id=++this.sequence;
-   const timer=setTimeout(()=>{this.pending.delete(id);reject(Error('3DSコアの応答がありません。'));},180000);
+   const timer=setTimeout(()=>{this.pending.delete(id);reject(Error(tr('3DSコアの応答がありません。')));},180000);
    this.pending.set(id,{resolve,reject,timer});this.worker.postMessage({type,id,...data});
   });
  }
@@ -57,7 +58,7 @@ export class ThreeDSCore extends NDSCore {
  pause(value){this.paused=!!value;this.keyMask=null;this.stopAudio();this.send('pause',{value:this.paused});if(value)this.releaseTouch();}
  setSpeed(value){super.setSpeed(value);this.send('speed',{value:this.speed});}
  setVolume(value){super.setVolume(value);this.send('volume',{value});}
- setCheats(list){if(list?.some(c=>c.enabled))throw Error('この3DSコアはチートに対応していません。');}
+ setCheats(list){if(list?.some(c=>c.enabled))throw Error(tr('この3DSコアはチートに対応していません。'));}
  setRenderLimit(){}
  presentScreens(){this.rawScreens.forEach((c,i)=>{const video=this.videos[i];if(video.enlarged)video.draw(c.getContext('2d').getImageData(0,0,c.width,c.height));else video.restorePreview(c);});}
  drawBitmap(bitmap){this.rawScreens.forEach((c,i)=>c.getContext('2d').drawImage(bitmap,i?40:0,i?240:0,c.width,240,0,0,c.width,240));this.presentScreens();}
@@ -77,7 +78,7 @@ export class ThreeDSCore extends NDSCore {
   if(this.closed)return;this.pause(true);cancelAnimationFrame(this.raf);
   const flags=this.keyboard&&new Int32Array(this.keyboard,0,4);if(flags){Atomics.store(flags,0,2);Atomics.notify(flags,0);}
   try{await Promise.race([this.call('close'),new Promise(r=>setTimeout(r,3000))]);}finally{
-   this.closed=true;this.worker?.terminate();for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(Error('コアを終了しました。'));}this.pending.clear();this.stopAudio();await this.ac?.close();this.display.remove();
+   this.closed=true;this.worker?.terminate();for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(Error(tr('コアを終了しました。')));}this.pending.clear();this.stopAudio();await this.ac?.close();this.display.remove();
   }
  }
 }

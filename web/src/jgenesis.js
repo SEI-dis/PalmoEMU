@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import {tr} from './i18n/index.js';
 import {MGBACore} from './mgba.js';
 import {VideoOutput} from './video.js';
 let runtime;
@@ -22,7 +23,7 @@ export class JgenesisCore extends MGBACore {
  restore(bytes){const next=new this.Game(this.system,this.rom,bytes);this.stopAudio();this.game.free();this.game=next;this.clock=null;this.draw();}
  state(){return this.game.state();}
  loadState(bytes){this.stopAudio();this.game.load_state(bytes);this.clock=null;this.draw();}
- setCheats(list){if(list.length)throw Error('このコアのチート機能には対応していません。');}
+ setCheats(list){if(list.length)throw Error(tr('このコアのチート機能には対応していません。'));}
  reset(){this.stopAudio();this.game.reset();this.clock=null;}
  close(){super.close();this.game?.free();this.game=null;this.rom=null;}
 }

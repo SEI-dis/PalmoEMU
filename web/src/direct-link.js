@@ -6,6 +6,7 @@
  * in this combined work. Original MPL rights retained. See NOTICES.md and
  * MPL_SECONDARY_LICENSE.md. No ROM/save/storage/network API in this module.
  */
+import {tr} from './i18n/index.js';
 import {CelioDevice,LinkStatus} from './celio-device.js';
 import {CelioSerial} from './celio-serial.js';
 export class DirectLink {
@@ -21,11 +22,11 @@ export class DirectLink {
     if(value===0xFF02){this.command(i,this.masterSelected?0x11:0x10);this.masterSelected=true;}
     else if(value===0xFF01)this.command(i,0x11);
     else if(value===LinkStatus.handshake){this.statuses[i]=value;if(this.statuses.every(v=>v===value)){this.command(0,0x12);this.command(1,0x12);}}
-    else if(value===LinkStatus.connected){this.statuses[i]=value;this.command(other,0x13);this.onStatus('ケーブル通信中');}
-    else if(value===LinkStatus.closed){this.statuses[i]=value;if(this.statuses.every(v=>v===value)&&!this.endTimer)this.endTimer=setTimeout(()=>this.close('通信が完了しました。',{keep:true}),2000);}
+    else if(value===LinkStatus.connected){this.statuses[i]=value;this.command(other,0x13);this.onStatus(tr('ケーブル通信中'));}
+    else if(value===LinkStatus.closed){this.statuses[i]=value;if(this.statuses.every(v=>v===value)&&!this.endTimer)this.endTimer=setTimeout(()=>this.close(tr('通信が完了しました。'),{keep:true}),2000);}
   }
   async start(){
-    if(this.closed||this.started)throw Error('通信を終了してからやり直してください。');this.started=true;
+    if(this.closed||this.started)throw Error(tr('通信を終了してからやり直してください。'));this.started=true;
     try{
       this.ios.forEach((io,i)=>{io.enable(true);io.event=kind=>{try{this.devices[i].event(kind);}catch(e){this.close(e.message);}};});
       if(this.port){
@@ -33,17 +34,17 @@ export class DirectLink {
           if(this.closed)return;
           if(channel===2&&payload.length===2)this.status(1,payload[0]|payload[1]<<8);
           else if(channel===1&&payload.length===64)this.devices[0].receive(Array.from({length:32},(_,i)=>payload[i*2]|payload[i*2+1]<<8));
-          else if(channel===1||channel===2)throw Error('USB通信パケットの長さが不正です。');
+          else if(channel===1||channel===2)throw Error(tr('USB通信パケットの長さが不正です。'));
         },e=>this.close(e.message));
         await this.serial.open();if(this.closed)return;
         this.serial.command(0x0F);this.command(0,1);this.command(1,1);
       }
       this.connected=true;
-      this.onStatus(this.port?'実機とゲームでケーブル通信の受付へ進んでください。':'1P・2Pを切り替えて、両方のゲームでケーブル通信の受付へ進んでください。');
+      this.onStatus(this.port?tr('実機とゲームでケーブル通信の受付へ進んでください。'):tr('1P・2Pを切り替えて、両方のゲームでケーブル通信の受付へ進んでください。'));
       this.modeTimer=setTimeout(()=>{if(!this.closed)try{this.command(0,0);this.command(1,0);}catch(e){this.close(e.message);}},this.port?500:0);
     }catch(e){await this.close(e.message);throw e;}
   }
-  close(reason='通信を中止しました。',{keep=false}={}){
+  close(reason=tr('通信を中止しました。'),{keep=false}={}){
     if(this.completion)return this.completion;this.closed=true;clearTimeout(this.modeTimer);clearTimeout(this.endTimer);
     this.onClosing();
     this.ios.forEach(io=>io.event=null);

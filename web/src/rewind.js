@@ -3,6 +3,7 @@
 // Max and contributors), Game.supportRewind / updateRewind, and
 // RetroArch state_manager (Hans-Kristian Arntzen, Daniel De Matteis, Alfred
 // Agrell). See SOURCES.json. No upstream runtime code or assets are copied.
+import {tr} from './i18n/index.js';
 const MiB=1048576;
 export const REWIND_LIMITS=Object.freeze({maxBytes:8*MiB,maxSeconds:10,intervalMs:500});
 export function supportsRewind(system,coreKey='mgba'){
@@ -29,11 +30,11 @@ export function createRewind({core,system,coreKey='mgba',enabled=false,beforeRes
  const notify=()=>{try{onChange(status());}catch{}};
  const report=error=>{try{onError(error);}catch{}};
  const reset=()=>{epoch++;records=[];bytes=0;timeline=0;lastSample=-Infinity;lastFrames=core?.frameCount?.()||0;lastClock=null;};
- const fail=error=>{active=false;reason=error.message||'巻き戻しを停止しました。';reset();notify();report(error);};
+ const fail=error=>{active=false;reason=error.message||tr('巻き戻しを停止しました。');reset();notify();report(error);};
  const blocked=()=>{try{return !!isBlocked();}catch{return true;}};
  const copy=(raw,optional=false)=>{
   if(optional&&(raw==null||raw.byteLength===0))return null;
-  if(!(raw instanceof Uint8Array)||!raw.byteLength)throw Error('巻き戻し用の状態を取得できませんでした。');
+  if(!(raw instanceof Uint8Array)||!raw.byteLength)throw Error(tr('巻き戻し用の状態を取得できませんでした。'));
   return raw;
  };
  function snapshot(){
@@ -46,7 +47,7 @@ export function createRewind({core,system,coreKey='mgba',enabled=false,beforeRes
    const size=state.byteLength+(save?.byteLength||0);
    // Reserve another whole snapshot for transactional restore/rollback. The
    // history and rollback together must fit, even with a growing flash save.
-   if(size*2>maxBytes)throw Error('巻き戻しの状態が安全に使えるメモリ上限（8 MiB）を超えるため、記録を停止しました。');
+   if(size*2>maxBytes)throw Error(tr('巻き戻しの状態が安全に使えるメモリ上限（8 MiB）を超えるため、記録を停止しました。'));
    // Copy borrowed views too: a core may reuse its serialization buffer later.
    return {state:state.slice(),save:save?.slice()||null,size};
   };
@@ -56,7 +57,7 @@ export function createRewind({core,system,coreKey='mgba',enabled=false,beforeRes
   const state=core.state(),save=core.stateIncludesSave?null:core.save();
   if(thenable(state)||thenable(save)){
    Promise.resolve(state).catch(()=>{});Promise.resolve(save).catch(()=>{});
-   throw Error('このコアでは巻き戻し用の状態を同時に取得できません。');
+   throw Error(tr('このコアでは巻き戻し用の状態を同時に取得できません。'));
   }
   return pack({state,save});
  }
@@ -117,7 +118,7 @@ export function createRewind({core,system,coreKey='mgba',enabled=false,beforeRes
     for(let i=0;bytes+rollback.size>maxBytes&&i<records.length;){
      if(records[i]===record){i++;continue;}bytes-=records[i].size;records.splice(i,1);
     }
-    if(bytes+rollback.size>maxBytes)throw Error('巻き戻しを安全に復元するためのメモリが足りません。');
+    if(bytes+rollback.size>maxBytes)throw Error(tr('巻き戻しを安全に復元するためのメモリが足りません。'));
     mutated=true;await apply(record);
     restoredSeconds=(timeline-record.at)/1000;timeline=record.at;
     records=records.filter(item=>item.at<=record.at);bytes=records.reduce((sum,item)=>sum+item.size,0);
@@ -125,7 +126,7 @@ export function createRewind({core,system,coreKey='mgba',enabled=false,beforeRes
     return true;
    }catch(error){
     errorValue=error;
-    if(mutated&&rollback){try{await apply(rollback);}catch(rollbackError){errorValue=new AggregateError([error,rollbackError],'巻き戻しの復元に失敗しました。ゲームを一時停止しました。');errorValue.rewindFatal=true;}}
+    if(mutated&&rollback){try{await apply(rollback);}catch(rollbackError){errorValue=new AggregateError([error,rollbackError],tr('巻き戻しの復元に失敗しました。ゲームを一時停止しました。'));errorValue.rewindFatal=true;}}
     fail(errorValue);return false;
    }finally{
     rollback=null;

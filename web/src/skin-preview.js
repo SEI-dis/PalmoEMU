@@ -2,6 +2,7 @@
    Copyright © 2025 Manic EMU. Created by Daiuno. Modified 2026-10-09.
    See sources/manicemu-ui/README.md. */
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import {tr} from './i18n/index.js';
 import {dualScreen} from './development.js';
 import {chooseRepresentation} from './skin-format.js';
 import {mountSkinScreens} from './skin-screens.js';
@@ -26,7 +27,7 @@ export function mountSkinPreview(host,skin,{system,orientation,viewport,layout,f
    screenCleanup=mountSkinScreens(mini,{screens:sources},rep,system,{ratio:scale});
    const art=document.createElement('div');art.className='imported-art';art.style.cssText=frameStyle(rep.artFrame||{x:0,y:0,...map},map);art.style.backgroundImage=rep.assets.resizable?`url("${skin.images[rep.assets.resizable]}")`:'none';mini.append(art);
   }
-  host.setAttribute('aria-label',`${skin.name}・${wide?'横':'縦'}画面のプレビュー`);
+  host.setAttribute('aria-label',tr`${skin.name}・${wide?tr('横'):tr('縦')}画面のプレビュー`);
  };
  const observer=new ResizeObserver(draw);observer.observe(host);window.addEventListener('resize',draw);draw();
  return ()=>{screenCleanup();observer.disconnect();window.removeEventListener('resize',draw);};

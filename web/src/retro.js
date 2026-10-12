@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Browser frontend for our source-built libretro cores. No RetroArch/EmulatorJS.
+import {tr} from './i18n/index.js';
 import {MGBACore} from './mgba.js';
 import {coreFor} from './core-registry.js';
 import {VideoOutput} from './video.js';
@@ -7,7 +8,7 @@ const factories=new Map();
 async function factory(system){
  if(!factories.has(system))factories.set(system,new Promise((resolve,reject)=>{
   const script=document.createElement('script');script.src=new URL(`../cores/${system}/core.js`,import.meta.url).href;
-  script.onload=()=>resolve(window.createCore);script.onerror=()=>{factories.delete(system);reject(new Error('コアを読み込めませんでした。'));};document.head.append(script);
+  script.onload=()=>resolve(window.createCore);script.onerror=()=>{factories.delete(system);reject(new Error(tr('コアを読み込めませんでした。')));};document.head.append(script);
  }));return factories.get(system);
 }
 export class RetroCore extends MGBACore {
@@ -15,7 +16,7 @@ export class RetroCore extends MGBACore {
  async load(bytes,game){
   this.system=game.system;const directory=coreFor(game).directory,create=await factory(directory);
   this.m=await create({locateFile:()=>new URL(`../cores/${directory}/core.wasm`,import.meta.url).href});
-  this.copyIn(bytes,(p,n)=>{if(!this.m._web_load(p,n))throw new Error('このコアでROMを読み込めませんでした。');});
+  this.copyIn(bytes,(p,n)=>{if(!this.m._web_load(p,n))throw new Error(tr('このコアでROMを読み込めませんでした。'));});
   this.width=this.m._web_width();this.height=this.m._web_height();this.video=new VideoOutput(this.canvas,this.width,this.height);this.image=new ImageData(this.width,this.height);this.fps=this.m._web_fps();this.startLoop();
  }
  setKeys(mask){const map=this.system==='md'?[1,0,2,3,7,6,4,5,11,10,10,9,8,11]:[8,0,2,3,7,6,4,5,11,10,9,1,8,11];this.keys=map.reduce((out,id,i)=>out|((mask&(1<<i))?1<<id:0),0);}

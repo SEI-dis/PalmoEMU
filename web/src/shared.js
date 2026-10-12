@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import {tr} from './i18n/index.js';
 import {development3DS} from './development.js';
 export const systems = {
-  ...(development3DS?{'3ds':{name:'ニンテンドー3DS（開発版）',short:'3DS',core:'azahar',ext:['3ds','cci','cxi','3dsx'],color:'#d85569'}}:{}),
-  nds:{name:'ニンテンドーDS',short:'NDS',core:'desmume2015',ext:['nds'],color:'#a5adbb'},
+  ...(development3DS?{'3ds':{name:tr('ニンテンドー3DS（開発版）'),short:'3DS',core:'azahar',ext:['3ds','cci','cxi','3dsx'],color:'#d85569'}}:{}),
+  nds:{name:tr('ニンテンドーDS'),short:'NDS',core:'desmume2015',ext:['nds'],color:'#a5adbb'},
   gba:{name:'Game Boy Advance',short:'GBA',core:'mgba64',ext:['gba'],color:'#7984ff'},
   gb:{name:'Game Boy',short:'GB',core:'mgba64',ext:['gb'],color:'#b4c596'},
   gbc:{name:'Game Boy Color',short:'GBC',core:'mgba64',ext:['gbc'],color:'#ff9762'},
-  nes:{name:'ファミリーコンピュータ',short:'FC',core:'fceumm',ext:['nes'],color:'#ed536a'},
-  snes:{name:'スーパーファミコン',short:'SFC',core:'mesen-s',ext:['sfc','smc'],color:'#06d58f'},
-  md:{name:'メガドライブ',short:'MD',core:'clownmdemu',ext:['md','gen','smd','bin'],color:'#33a9ff'}
+  nes:{name:tr('ファミリーコンピュータ'),short:'FC',core:'fceumm',ext:['nes'],color:'#ed536a'},
+  snes:{name:tr('スーパーファミコン'),short:'SFC',core:'mesen-s',ext:['sfc','smc'],color:'#06d58f'},
+  md:{name:tr('メガドライブ'),short:'MD',core:'clownmdemu',ext:['md','gen','smd','bin'],color:'#33a9ff'}
 };
 export function detectSystem(name){const ext=name.toLowerCase().split('.').pop();return Object.keys(systems).find(k=>systems[k].ext.includes(ext));}
 export function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}

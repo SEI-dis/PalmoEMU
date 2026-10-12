@@ -10,9 +10,9 @@ Upstream: https://github.com/Manic-EMU/ManicEMU/tree/fbaeab79c214d5920bb51afa6f2
 
 | Upstream source | Web implementation |
 | --- | --- |
-| GameListView.shouldSelectItemAt / Game.handleTapAction / GameInfoDetailView.startGameButton | src/app.js: library and history selection share showDetails; src/game-info.js: explicit Play starts the core. The Web UI always uses the details-first route requested for this port. Selecting/closing a game does not load its core or change save sessions/playtime. |
+| GameListView.shouldSelectItemAt / Game.handleTapAction / GameInfoDetailView.startGameButton | src/app.js: library and history selection share showDetails; src/views/game-info.js: explicit Play starts the core. The Web UI always uses the details-first route requested for this port. Selecting/closing a game does not load its core or change save sessions/playtime. |
 | FlexSkinSettingViewController / FlexItemView / SkinSettingsView | src/control-editor.js, src/control-layout.js, style.css and src/app.js: separate screen/button editing modes, inactive-layer dimming, drag/pinch, aspect-preserving corner resize, reset and skin-settings entry. Web slider, keyboard access and explicit save/cancel retain draft persistence. |
-| GameInfoView / GameInfoNavigationView / GameInfoDetailView / GameInfoCoverView | src/game-info.js, src/manic-ui.js, native-menu.css and index.html: game-detail sheet, info/more tools, cover, editable title, played time, fixed play/safe-mode header and independently scrolling options. |
+| GameInfoView / GameInfoNavigationView / GameInfoDetailView / GameInfoCoverView | src/views/game-info.js, src/manic-ui.js, native-menu.css and index.html: game-detail sheet, info/more tools, cover, editable title, played time, fixed play/safe-mode header and independently scrolling options. |
 | GameOption.defaultGroupAndSort | src/manic-ui.js: gameOptionGroups preserves the source group/order after unsupported entries are removed. src/app.js: showGameMenu supplies the available controls. |
 | GameOption.Shortcut default list; GameOptionsView.getListPage(.gaming) | MENU title and quit/reload/saveState/quickLoadState navigation shortcuts. No custom resume banner or action-tile grid. Close resumes the game. |
 | ASListPage / ASListItemView / ASNavigationView | Shared grouped rows, leading icons, trailing value/switch/chevron, compact navigation tools and close button in native-menu.css, style.css, index.html and src/app.js. |
@@ -82,9 +82,9 @@ Web grid/snapping, guides, centering, level and mirror placement helpers.
 
 ## Shared controls and local artwork (modified 2026-10-09)
 
-Settings rows/groups/switches use src/ui.js, settings pages use
-src/settings-view.js, skin selection/layout settings use src/skin-settings.js,
-and state dialogs use src/state-dialogs.js. controls.css defines the shared red
+Settings rows/groups/switches use src/components/rows.js, settings pages use
+src/views/settings.js, skin selection/layout settings use src/views/skins.js,
+and state dialogs use src/views/states.js. controls.css defines the shared red
 buttons and inputs.
 Screen-specific styles retain placement; the bottom tabs retain their gradient.
 
@@ -137,7 +137,7 @@ SkinSettingsView, SkinCollectionViewCell, AddSkinCollectionViewCell and
 SkinPreviewViewController guide the two-column library, current-selection marker,
 portrait/landscape preview tabs, separate enlarged preview and Add card.
 The three additional Swift files are retained unmodified at the same revision.
-Implementation: src/skin-settings.js, src/skin-preview.js and style.css.
+Implementation: src/views/skins.js, src/skin-preview.js and style.css.
 Imported records remain in IndexedDB when selection or a standard palette changes.
 The last platform is retained so reopening cannot silently hide another platform.
 The simplified Web preference still selects one skin for both orientations;
@@ -149,7 +149,7 @@ and screen renderers have independent lifetimes from gameplay.
 ## Library organization (reviewed 2026-10-10)
 
 The same pinned ManicEMU revision informed the independent browser modules
-src/library.js, src/library-view.js and library.css. References not already
+src/library.js, src/views/library.js and library.css. References not already
 bundled as Swift originals are recorded by URL and hash in SOURCES.json under
 browserLibraryOrganization; no additional native source or artwork is copied.
 
@@ -164,3 +164,10 @@ ROMs and saves are unchanged by category/favorite edits. Backups include these
 optional metadata fields; older files without them preserve current values.
 Classification/filtering creates no network requests or external metadata lookup.
 Existing authors, AGPL license terms and byte-identical Swift references remain.
+
+
+Modified 2026-10-12: grouped view modules under src/views and shared row
+components under src/components. The paths above reflect this organization.
+Retained original authorship/license headers while adding local Japanese/English
+message calls. Storage settings were extracted from the settings view into a
+component; input bindings, save keys and ManicEMU-derived menu semantics remain.

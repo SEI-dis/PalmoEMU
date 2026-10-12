@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Original NDS layout and vector artwork. No images from commercial skins.
+import {tr} from './i18n/index.js';
 import {applyControlLayout,screenBounds} from './control-layout.js';
 
 const frame=(x,y,width,height)=>({x,y,width,height});
@@ -23,12 +24,12 @@ export function ndsLayout(width,height,layout,{displayOnly=false}={}){
  if(displayOnly){
   const sw=Math.min(wide?(width-4)/2:width,(wide?height:(height-4)/2)*4/3),sh=sw*3/4;
   const x=(width-(wide?sw*2+4:sw))/2,y=(height-(wide?sh:sh*2+4))/2;
-  screen('screen-main','メイン画面',frame(x,y,sw,sh));screen('screen-sub','サブ画面',frame(x+(wide?sw+4:0),y+(wide?0:sh+4),sw,sh));
+  screen('screen-main',tr('メイン画面'),frame(x,y,sw,sh));screen('screen-sub',tr('サブ画面'),frame(x+(wide?sw+4:0),y+(wide?0:sh+4),sw,sh));
  }else if(wide){
   const rail=Math.min(42,width*.055),gap=3,mainW=Math.min(height*4/3,(width-rail-gap)*.67),mainH=mainW*3/4;
   const right=rail+mainW+gap,rw=width-right,subH=Math.min(rw*3/4,height*.56),subW=subH*4/3;
-  screen('screen-main','メイン画面',frame(rail,(height-mainH)/2,mainW,mainH));
-  screen('screen-sub','サブ画面',frame(right+(rw-subW)/2,0,subW,subH));
+  screen('screen-main',tr('メイン画面'),frame(rail,(height-mainH)/2,mainW,mainH));
+  screen('screen-sub',tr('サブ画面'),frame(right+(rw-subW)/2,0,subW,subH));
   const area=height-subH,s=Math.min(1.2,area/185,rw/250),size=138*s,cy=subH+32*s;
   faces(right+(rw-size)/2,cy,size);
   item('r',right+8*s,subH+4*s,58*s,26*s);
@@ -40,7 +41,7 @@ export function ndsLayout(width,height,layout,{displayOnly=false}={}){
  }else{
   const ch=Math.min(236,width*.59,height*.28),s=Math.min(1.1,width/390,ch/230),top=Math.min(26,height*.04),area=height-top-ch;
   const sw=Math.min(width-12,area/1.5),sh=sw*.75,y=top+(area-sh*2)/2,base=height-ch;
-  screen('screen-main','メイン画面',frame((width-sw)/2,y,sw,sh));screen('screen-sub','サブ画面',frame((width-sw)/2,y+sh,sw,sh));
+  screen('screen-main',tr('メイン画面'),frame((width-sw)/2,y,sw,sh));screen('screen-sub',tr('サブ画面'),frame((width-sw)/2,y+sh,sw,sh));
   action('quick-save','save',width*.3-27*s,base+2*s,54*s,28*s);action('quick-load','load',width*.7-27*s,base+2*s,54*s,28*s);
   item('l',12*s,base+39*s,74*s,34*s);item('r',width-86*s,base+39*s,74*s,34*s);
   item('select',width/2-52*s,base+41*s,48*s,26*s);item('start',width/2+4*s,base+41*s,48*s,26*s);

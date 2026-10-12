@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.16",
+  "version": "0.3.17",
   "private": true,
   "scripts": {
     "dev": "node scripts/serve.cjs",
@@ -63,7 +63,8 @@
     "test:mgba-compatibility": "node tests/mgba-compatibility.cjs",
     "test:touch-recovery": "node tests/touch-recovery.cjs",
     "test:player-gestures": "node tests/player-gestures.cjs",
-    "test:fceumm-update": "node tests/fceumm-update.cjs"
+    "test:fceumm-update": "node tests/fceumm-update.cjs",
+    "test:i18n": "node tests/i18n.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

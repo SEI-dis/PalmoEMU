@@ -135,7 +135,7 @@ Webラッパーが生成するMD構成は本体単体だけです。Sega CD・32
 | 設定 | SettingsListView / SettingItem。「このWeb版について」を本家と同じ「その他」へ移動。購入・iCloud・ネイティブ専用項目は省略 |
 | インポート | ImportServiceListView / ImportFileCollectionViewCell。独自の大きな導入カードを本家のファイル選択カードへ置換。クラウド・LAN・URLダウンロードは省略 |
 | スキン・ボタン配置 | SkinSettingsView / FlexSkinSettingViewController / FlexItemView。プレビュー、ゲーム別スキン、画面／ボタンの編集を確認。標準の絵・幾何学アイコン、画面比率の維持と配置補助はWeb用 |
-| 共通部品 | ASListPage / ASListItemView / ASNavigationView。行生成を src/ui.js に集約。既存DOM・エスケープ・入力操作を保持 |
+| 共通部品 | ASListPage / ASListItemView / ASNavigationView。行生成を src/components/rows.js に集約。既存DOM・エスケープ・入力操作を保持 |
 
 参照Swiftは24ファイルすべて、固定コミットのGitオブジェクトとバイト単位で一致しました。
 これは画面構成と操作のソース移植であり、UIKit自体の実行や全機能・全寸法の一致を意味しません。
@@ -229,3 +229,10 @@ FCEUmmは既存のGPL-2.0-or-laterのCファイル1件へ上流Mapper 176修正�
 notices.htmlは日本語の要約として新規作成し、NOTICES.mdの原文・著作権表示・ライセンス全文・対応ソースへのリンクを維持します。原文の削除や非公式の翻訳への置き換えは行っていません。クレジット画面と履歴は同じrelease-notes.jsonから生成し、版の一致と生成結果を公開時に確認します。
 
 追加するHTML・CSS・生成スクリプトと変更した検査はAGPL-3.0-or-later。新しい依存ライブラリ・第三者素材・コアはありません。Android向け対策はプレイ中だけのCSSによるスクロール伝播抑止で、ROM・セーブ・通信先・データ送信条件に変更はありません。対応ソースZIPと配布一覧へ新規ファイルを含めます。
+
+
+## 0.3.17: 表示言語と構成整理（2026-10-12）
+
+翻訳処理・英訳・共通部品・検査はAGPL-3.0-or-laterで新規作成。ManicEMU由来の画面をviewsへ、共通行をcomponentsへ移し、著作権者名と元のライセンス表示を保持しました。既存のGPL・MPLモジュールでは表示用の文言を翻訳関数へ渡す変更だけを行い、元のヘッダーと追加の提供条件を維持します。
+
+英語化するのはアプリ側の説明と要約です。原ライセンス本文・著作権表示・原文へのリンクは残しています。新たな第三者ライブラリ、素材、コアバイナリ、通信先は加えていません。言語選択は端末のlocalStorageのみで、ROMやセーブの保存形式・保存キーは変更しません。対応ソース・移植対応表・配布記録にも移動先と新規ファイルを含めます。

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import {tr} from './i18n/index.js';
 import {setupOffline} from './offline.js';
 import {updateTasksPending} from './update-activity.js';
 
@@ -18,7 +19,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{}){
   return new Promise((resolve,reject)=>{lease=navigator.locks.request(name,{mode:'shared'},()=>new Promise(release=>{releaseLease=release;resolve();}));lease.catch(reject);});
  }
  function release(){releaseLease?.();releaseLease=null;}
- function freeze(label='更新中…',delay=0){
+ function freeze(label=tr('更新中…'),delay=0){
   clearTimeout(indicatorTimer);document.documentElement.dataset.updating='true';indicator.toggleAttribute('data-delayed',!!delay);
   indicator.setAttribute('aria-label',label);indicator.lastElementChild.textContent=label;if(!indicator.open)indicator.showModal();
   if(delay)indicatorTimer=setTimeout(()=>indicator.removeAttribute('data-delayed'),delay);
@@ -26,7 +27,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{}){
  function unfreeze(){clearTimeout(indicatorTimer);indicator.close();indicator.removeAttribute('data-delayed');delete document.documentElement.dataset.updating;}
  function ready(){return navigator.onLine&&!prepared&&!updateTasksPending()&&!pickers.size&&Date.now()-lastInput>=2000&&canUpdate()&&!document.querySelector('dialog[open]')&&!document.activeElement?.matches('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=file]),textarea,select,[contenteditable="true"]');}
  // Keep startup modal protection, but avoid flashing a notice for a fast start.
- freeze('準備中…',300);
+ freeze(tr('準備中…'),300);
  try{await acquire();}catch{unfreeze();return;}
  let registrationTimer;
  try{registration=await Promise.race([setupOffline(),new Promise(resolve=>{registrationTimer=setTimeout(()=>resolve(null),5000);})]);}

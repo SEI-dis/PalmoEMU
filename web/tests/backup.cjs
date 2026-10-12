@@ -123,7 +123,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   });assert.deepEqual(journal,{rejected:true,pending:true,done:true,theme:'light'});
   // Real view: selection only previews, confirmation is a separate user action.
   await page.evaluate(async()=>{
-   window.downloads=[];const {createBackupView}=await import('./src/backup-view.js');
+   window.downloads=[];const {createBackupView}=await import('./src/views/backup.js');
    const show=createBackupView({settings,sheet(title,body){document.querySelector('#sheet-title').textContent=title;document.querySelector('#sheet-body').innerHTML=body;document.querySelector('#sheet').showModal();},download(bytes,name){downloads.push({text:new TextDecoder().decode(bytes),name});},toast(){},onRestored(){window.restoredUI=true;}});show();
   });
   await page.locator('#backup-import').setInputFiles({name:'test-backup.json',mimeType:'application/json',buffer:Buffer.from(fixture.text)});await page.locator('#backup-confirm').waitFor();assert.equal(await page.evaluate(()=>!!window.restoredUI),false);await page.locator('#backup-confirm').click();await page.waitForFunction(()=>window.restoredUI===true);

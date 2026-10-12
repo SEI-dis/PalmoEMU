@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Adapter for the source-built DeSmuME 2015 core. See sources/nds-web/BUILD.md.
+import {tr} from './i18n/index.js';
 import {MGBACore} from './mgba.js';
 import {VideoOutput} from './video.js';
 import {screenBounds} from './control-layout.js';
@@ -9,14 +10,14 @@ function loadFactory(directory){
  if(factories.has(directory))return factories.get(directory);
  const pending=new Promise((resolve,reject)=>{
   const script=document.createElement('script');script.src=new URL(`../cores/${directory}/core.js`,import.meta.url).href;
-  script.onload=()=>resolve(window.createNDS);script.onerror=()=>{factories.delete(directory);reject(Error('NDSコアを読み込めませんでした。'));};document.head.append(script);
+  script.onload=()=>resolve(window.createNDS);script.onerror=()=>{factories.delete(directory);reject(Error(tr('NDSコアを読み込めませんでした。')));};document.head.append(script);
  });factories.set(directory,pending);return pending;
 }
 export class NDSCore extends MGBACore {
  constructor(container){
   super(document.createElement('canvas'));this.container=container;
   this.display=document.createElement('div');this.display.className='nds-display';container.append(this.display);
-  this.screens=[0,1].map(i=>{const canvas=document.createElement('canvas');canvas.className=i?'nds-bottom':'nds-top';canvas.setAttribute('aria-label',i?'NDS タッチスクリーン':'NDS 上画面');this.display.append(canvas);return canvas;});
+  this.screens=[0,1].map(i=>{const canvas=document.createElement('canvas');canvas.className=i?'nds-bottom':'nds-top';canvas.setAttribute('aria-label',i?tr('NDS タッチスクリーン'):tr('NDS 上画面'));this.display.append(canvas);return canvas;});
   this.videos=this.screens.map(c=>new VideoOutput(c,256,192));this.images=[new ImageData(256,192),new ImageData(256,192)];
   const touch=this.screens[1];
   const position=e=>{
@@ -35,7 +36,7 @@ export class NDSCore extends MGBACore {
  async load(bytes,game={system:'nds'}){
   if(bytes instanceof Blob)bytes=new Uint8Array(await bytes.arrayBuffer());
   this.core=coreFor(game);const create=await loadFactory(this.core.directory);this.m=await create({locateFile:()=>new URL(`../cores/${this.core.directory}/core.wasm`,import.meta.url).href});
-  this.copyIn(bytes,(p,n)=>{if(!this.m._web_load(p,n))throw Error('このNDS ROMを読み込めませんでした。');});
+  this.copyIn(bytes,(p,n)=>{if(!this.m._web_load(p,n))throw Error(tr('このNDS ROMを読み込めませんでした。'));});
   this.width=256;this.height=384;this.fps=this.m._web_fps();this.startLoop();
  }
  setKeys(mask){const map=[8,0,2,3,7,6,4,5,11,10,9,1];this.keys=map.reduce((out,id,i)=>out|((mask&(1<<i))?1<<id:0),0);}
@@ -72,7 +73,7 @@ export class NDSCore extends MGBACore {
   }catch{}
  }
  setCheats(list){
-  const enabled=list.filter(c=>c.enabled);if(enabled.some(c=>c.code.length>=1024||!/^[\da-fA-F\s+]+$/.test(c.code)))throw Error('NDSはAction Replay形式（16進数、1023文字以内）で入力してください。');
+  const enabled=list.filter(c=>c.enabled);if(enabled.some(c=>c.code.length>=1024||!/^[\da-fA-F\s+]+$/.test(c.code)))throw Error(tr('NDSはAction Replay形式（16進数、1023文字以内）で入力してください。'));
   this.m._web_cheat_reset();const enc=new TextEncoder();enabled.forEach((c,i)=>this.copyIn(enc.encode(c.code.replace(/\n/g,'+')+'\0'),p=>this.m._web_cheat_set(i,1,p)));
  }
  close(){this.releaseTouch();super.close();this.display.remove();}

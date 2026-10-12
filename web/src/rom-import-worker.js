@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+import {tr,setWorkerLanguage} from './i18n/index.js';
 import {hash} from './shared.js';
 import {largeFileIdentity} from './development.js';
 import * as db from './storage.js';
@@ -7,11 +8,11 @@ function read(file){return new Promise((resolve,reject)=>{
  const reader=new FileReader();
  reader.onprogress=e=>progress('reading',e.loaded,file.size);
  reader.onload=()=>resolve(new Uint8Array(reader.result));
- reader.onerror=()=>reject(reader.error||new Error('ファイルを読み込めませんでした。'));
- reader.onabort=()=>reject(new Error('ファイルの読み込みが中断されました。'));
+ reader.onerror=()=>reject(reader.error||new Error(tr('ファイルを読み込めませんでした。')));
+ reader.onabort=()=>reject(new Error(tr('ファイルの読み込みが中断されました。')));
  reader.readAsArrayBuffer(file);
 });}
-self.onmessage=async({data:{file,system}})=>{
+self.onmessage=async({data:{file,system,language}})=>{setWorkerLanguage(language);
  try{
   progress('reading',0,file.size);
   const bytes=system==='3ds'?null:await read(file);
@@ -29,5 +30,5 @@ self.onmessage=async({data:{file,system}})=>{
    await db.addGame(game,bytes);
   }
   self.postMessage({type:'done',id,added:true});
- }catch(error){self.postMessage({type:'error',name:error.name||'Error',message:error.message||'ゲームを追加できませんでした。'});}
+ }catch(error){self.postMessage({type:'error',name:error.name||'Error',message:error.message||tr('ゲームを追加できませんでした。')});}
 };

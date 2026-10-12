@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Pixel art edge interpolation. Does not add detail to the game's native image.
 // Scale4x applies this port's Scale2x pass twice: https://www.scale2x.it/algorithm
-export const videoFilters=[['pixel','ピクセル'],['smooth','なめらか'],['scanlines','スキャンライン'],['edge2x','輪郭補正2倍'],['edge4x','輪郭補正4倍（高品質）']];
+import {tr} from './i18n/index.js';
+export const videoFilters=[['pixel',tr('ピクセル')],['smooth',tr('なめらか')],['scanlines',tr('スキャンライン')],['edge2x',tr('輪郭補正2倍')],['edge4x',tr('輪郭補正4倍（高品質）')]];
 
 const observers=new WeakMap();
 export function observeVideo(canvas,callback){observers.set(canvas,callback);return()=>{if(observers.get(canvas)===callback)observers.delete(canvas);};}

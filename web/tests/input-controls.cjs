@@ -47,7 +47,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   });assert.deepEqual(sanitized,{version:1,profiles:{gba:{keyboard:{KeyJ:'a'}}},assist:{gba:{interval:100,modes:{a:'turbo'}}}});
   // Use the actual settings component and real focus/key capture in both engines.
   await page.evaluate(async()=>{
-   const {createInputControlsView}=await import('./src/input-controls-view.js');testInputState.paused=true;let cleanup=()=>{};
+   const {createInputControlsView}=await import('./src/views/input-controls.js');testInputState.paused=true;let cleanup=()=>{};
    const sheet=(title,html)=>{cleanup();cleanup=()=>{};const dialog=document.querySelector('#sheet');if(dialog.open)dialog.close();document.querySelector('#sheet-title').textContent=title;document.querySelector('#sheet-body').innerHTML=html;dialog.showModal();};
    window.testShowInputs=createInputControlsView({controls:testInputs,sheet,onClose:fn=>cleanup=fn,getSystem:()=>testInputState.system});
    document.querySelector('#close-sheet').onclick=()=>{cleanup();document.querySelector('#sheet').close();};testShowInputs();

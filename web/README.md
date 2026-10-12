@@ -5,8 +5,14 @@
 ManicEMUの画面・メニュー・設定をWeb向けに移植し、公開ソースの構成に沿って再現したアプリです。
 Web版のコードはAGPL-3.0-or-laterで公開しています。「標準」の画像とスキンは新規に作成しました。別の選択肢として、CC BY 4.0で公開されたManicEMU標準スキン7機種を同梱しています。[クレジット](licenses.html#skins)を参照してください。
 
-最終更新：2026-10-12。アプリのバージョンは `0.3.15` です。設定の下部に、使用中のバージョンとビルド番号を表示します。
+最終更新：2026-10-12。アプリのバージョンは `0.3.17` です。設定の下部に、使用中のバージョンとビルド番号を表示します。
 この文書は同梱するWeb版の動作を説明します。
+
+## 言語
+
+「設定 → 言語」で自動・日本語・Englishを選べます。初期設定は自動で、ブラウザが返す最優先の言語が日本語なら日本語、それ以外は英語です。手動の選択はこのブラウザに保存し、次回も使用します。設定一覧で変更するとページを再読み込みします。ROM・セーブは変更しません。
+
+翻訳はオフラインでも使えます。ゲーム自体の言語や、追加したゲーム・スキンの名前は変更しません。ライセンス原文や開発資料は原文を保持します。コードの役割と追加方法は [開発用の構成](ARCHITECTURE.md) を参照してください。
 
 ## 起動・更新
 
@@ -23,7 +29,7 @@ iPhoneで使う場合は、端末からアクセスできるHTTPSの配信先を
 すべてのタブを閉じた後の切り替えと、手動更新も引き続き利用できます。
 自動切り替え中は画面中央に「更新中…」と回転アイコンを約1.2秒以上表示し、切り替え後に「更新しました」と通知します。動きを減らす設定ではアイコンを静止させます。
 オフライン中は今の版を使います。接続が戻ったら更新を確認し、ダウンロードに失敗した場合は今の版を残して再試行します。
-更新時はコアを含むアプリ用ファイル一式（約20MiB）を確認・保存してから切り替えるため、更新直後もオフラインで使えます。
+更新時はコアを含むアプリ用ファイル一式（約58MiB）を確認・保存してから切り替えるため、更新直後もオフラインで使えます。
 すぐ反映したい場合は、ゲームを保存して終了し、「設定」→「アプリの更新」を開きます。
 更新画面以外のアプリのタブを閉じて「更新」を押してください。ROM・セーブ・ステートは引き継がれます。
 **サイトデータは削除しないでください。**
@@ -363,25 +369,25 @@ ROM・セーブファイルは送りませんが、ゲームの通信データ�
 | ファイル | 担当 |
 | --- | --- |
 | `src/app.js` | アプリの状態、起動・保存・操作の連携 |
-| `src/library.js` / `src/library-view.js` / `library.css` | ライブラリの絞り込み・並べ替え・グループ表示、複数選択と一括操作 |
-| `src/ui.js` / `controls.css` | 共通の設定行・グループ・スイッチと、ボタン・入力部品の色・形 |
-| `src/settings-view.js` | 設定一覧、映像・音量・操作・保存案内・保存容量の画面 |
+| `src/library.js` / `src/views/library.js` / `library.css` | ライブラリの絞り込み・並べ替え・グループ表示、複数選択と一括操作 |
+| `src/components/rows.js` / `controls.css` | 共通の設定行・グループ・スイッチと、ボタン・入力部品の色・形 |
+| `src/views/settings.js` | 設定一覧、映像・音量・操作・保存案内・保存容量の画面 |
 | `src/game-preferences.js` | ゲーム別設定、共通設定からの継承、個別リセット |
-| `src/input-controls.js` / `src/input-controls-view.js` | 機種／機器別割り当て、連射・押しっぱなし、入力待ちUI |
-| `src/backup.js` / `src/backup-view.js` | ROMを除いた一括バックアップ、検証・確認・復元 |
+| `src/input-controls.js` / `src/views/input-controls.js` | 機種／機器別割り当て、連射・押しっぱなし、入力待ちUI |
+| `src/backup.js` / `src/views/backup.js` | ROMを除いた一括バックアップ、検証・確認・復元 |
 | `src/rewind.js` / `src/rewind-session.js` | RAM内の巻き戻し記録と入力・保存・ライフサイクルの連携 |
-| `src/skin-settings.js` / `src/skin-preview.js` | スキン一覧・独立したプレビューと配置編集の呼び出し |
+| `src/views/skins.js` / `src/skin-preview.js` | スキン一覧・独立したプレビューと配置編集の呼び出し |
 | `src/skin-selection.js` | 縦横別の選択・旧形式の読み込み・指定の解除 |
 | `src/bundled-skins.js` / `BUNDLED_SKINS.json` | 許諾を確認した同梱スキンの選択肢・出典と固定ハッシュ |
 | `src/skins.js` / `src/skin-format.js` / `src/skin-zip.js` | 外部スキンの端末内取り込み・形式検査・配置の正規化 |
 | `src/skin-screens.js` / `src/skin-inputs.js` | 外部スキンの複数画面・表示効果・タッチとショートカット |
-| `src/state-dialogs.js` | 手動／自動ステート一覧・クイック保存／読み込み |
+| `src/views/states.js` | 手動／自動ステート一覧・クイック保存／読み込み |
 | `src/auto-update.js` / `src/auto-update-worker.js` / `src/update-activity.js` | 全タブの確認・更新中の操作保護・処理完了の待機 |
 | `src/mgba.js` / `src/time-stretch.js` | 全コア共通の音声出力・キュー管理と、倍速時の音程維持処理 |
 | `src/mgba-compatibility.js` | ROM全体のハッシュとコア能力で限定する、mGBA起動時の互換性補正 |
 | `src/skin-pointers.js` | 標準・同梱・追加スキン共通のポインター追跡と、終了・中断時の入力解除 |
-| `src/game-info.js` / `src/manic-ui.js` / `native-menu.css` | ゲーム詳細とManicEMU形式のメニュー |
-| `src/cover-dialog.js` / `covers.css` | 端末内のカバー画像選択とプレビュー |
+| `src/views/game-info.js` / `src/manic-ui.js` / `native-menu.css` | ゲーム詳細とManicEMU形式のメニュー |
+| `src/views/cover.js` / `covers.css` | 端末内のカバー画像選択とプレビュー |
 | `src/control-editor.js` / `control-editor.css` | 画面・ボタンの配置編集と編集画面の表示 |
 | `src/control-layout.js` / `src/control-alignment.js` | 配置の座標計算、グリッド・吸着・中央／対称の配置補助 |
 | `src/skin-art.js` | 標準スキン生成の窓口 |

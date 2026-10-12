@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Local controls for imported skins. Every pointer is released on pause/layout change.
+import {tr} from './i18n/index.js';
 import {gameInputs} from './skin-format.js';
 import {screenTransform} from './skin-screens.js';
 import {createSkinPointers} from './skin-pointers.js';
@@ -16,7 +17,7 @@ export function mountSkinInputs(host,rep,images,api){
  });
  items.forEach(item=>{
   const pad=!Array.isArray(item.inputs)&&!item.touch,keys=Array.isArray(item.inputs)?item.inputs:[],button=document.createElement('button'),visual=document.createElement('span');
-  button.className='skin-button imported-control'+(pad?' dpad':'')+(item.touch?' touch-region':'');button.setAttribute('aria-label',item.touch?'タッチスクリーン':pad?'十字キー':keys.join(' + '));
+  button.className='skin-button imported-control'+(pad?' dpad':'')+(item.touch?' touch-region':'');button.setAttribute('aria-label',item.touch?tr('タッチスクリーン'):pad?tr('十字キー'):keys.join(' + '));
   const f=item.frame,e=item.extendedEdges||{},hit={x:f.x-(e.left||0),y:f.y-(e.top||0),width:Math.max(1,f.width+(e.left||0)+(e.right||0)),height:Math.max(1,f.height+(e.top||0)+(e.bottom||0))};
   position(button,hit,rep.mappingSize);visual.className='imported-control-art';position(visual,{x:f.x-hit.x,y:f.y-hit.y,width:f.width,height:f.height},hit);visual.style.opacity=item.opacity??1;
   if(item.touchScreen)button.style.transform=screenTransform(item.touchScreen.filters,api.ratio).toString();

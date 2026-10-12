@@ -4,6 +4,7 @@
  * Original projects and revisions are recorded in SOURCES.json / NOTICES.md.
  * Modified 2026-10-08: bounded word queues; Celio relay commands; no logging.
  */
+import {tr} from './i18n/index.js';
 export const LinkStatus={handshake:0xFF03,connected:0xFF05,reconnecting:0xFF06,closed:0xFF07};
 export class CelioDevice {
   constructor(io,emitStatus,emitData){this.io=io;this.emitStatus=emitStatus;this.emitData=emitData;this.master=false;this.reset();}
@@ -17,7 +18,7 @@ export class CelioDevice {
     else if(command===0x13)this.startConnect=true;
     // 0x01 (Cancel) is a no-op in the upstream emulator adapter too.
   }
-  receive(words){if(words.length!==32||words.some(v=>!Number.isInteger(v)||v<0||v>65535))throw new Error('通信データの形式が一致しません。');if(this.received.length+32>16384)throw new Error('通信が遅れています。接続し直してください。');this.received.push(...words);}
+  receive(words){if(words.length!==32||words.some(v=>!Number.isInteger(v)||v<0||v>65535))throw new Error(tr('通信データの形式が一致しません。'));if(this.received.length+32>16384)throw new Error(tr('通信が遅れています。接続し直してください。'));this.received.push(...words);}
   flush(){const words=this.transmit.splice(0,32);while(words.length<32)words.push(0);this.emitData(words);}
   disableTimer(){this.timerEnabled=false;this.timerCount=0;this.io.write(0x10E,0);this.io.write(0x10C,0);}
   transfer(rx){let tx=0;

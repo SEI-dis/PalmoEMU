@@ -204,7 +204,7 @@
     "sources/manicemu-ui/ImportMottoCollectionViewCell.swift": "39813a3f4a68f19adcc2372d6f5f756ff5308fdab6909a1c04300dab32de9472",
     "sources/manicemu-ui/ImportServiceListCollectionViewCell.swift": "2f89cd4ea298870fcd15ced37392d87880193a066cd0a18f5401aa2ef701c680",
     "sources/manicemu-ui/ImportServiceListView.swift": "bb41fa0242aee3bdfcdb53fdabba8d21aa8402bae5c44e4db8c9d3308d5012a9",
-    "sources/manicemu-ui/README.md": "a710e457ed734606c45d129012a071f6470bfc6437c6a5d1ad11682e01861ebf",
+    "sources/manicemu-ui/README.md": "3e3de7abd342353ae3d9f6e2d8bd0f827c820c39d2e4314111ef6e328bb9fd20",
     "sources/manicemu-ui/SaveStateListView.swift": "9748278a90767e5950be547b51fac9ed33a958d048ba9453e5e219a7a6ca3f7f",
     "sources/manicemu-ui/SettingItem.swift": "261e78b05f7cb93ba1fecc8f911b518b9686eacd8bfd86ccd2a0f12374af52ac",
     "sources/manicemu-ui/SettingsListView.swift": "f066b02851a495021c23adfb297145b2c2932f54e06829c4068ef5308c99d3f9",
@@ -294,9 +294,9 @@
     "implementation": [
       "src/game-preferences.js",
       "src/input-controls.js",
-      "src/input-controls-view.js",
+      "src/views/input-controls.js",
       "src/backup.js",
-      "src/backup-view.js",
+      "src/views/backup.js",
       "src/rewind.js",
       "src/rewind-session.js"
     ],
@@ -444,7 +444,7 @@
     "license": "AGPL-3.0-or-later",
     "localModules": [
       "src/library.js",
-      "src/library-view.js",
+      "src/views/library.js",
       "library.css"
     ],
     "changes": "Original browser library filters, explicit sorting/grouping, visible-results multi-selection and confirmed atomic batch deletion. Fixed progress categories and favorite batches are PalmoEMU features. Optional backup category/favorite fields preserve current metadata when missing from old backups.",

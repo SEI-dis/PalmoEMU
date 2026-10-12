@@ -63,4 +63,4 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await page.keyboard.press('Escape');assert.equal(await page.locator('#library-select').textContent(),'選択');await page.locator('[data-game=c]').click();await page.locator('#sheet.game-info').waitFor();await close();
  await page.reload();await page.locator('[data-game=c]').waitFor();assert.deepEqual(await ids(),['c','d']);assert.deepEqual(errors,[]);
  console.log(`PASS ${kind}: library sorting, grouping, filtering, single/batch categories, selection scope, favorites, deletion, persistence and responsive controls`);await context.close();
-}finally{await browser.close();}})().catch(error=>{console.error(error);process.exitCode=1;});
+}finally{await browser.close();}})().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

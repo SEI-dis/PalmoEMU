@@ -1,10 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Original Web control editor. Positions use the available travel, not fixed pixels.
+import {tr} from './i18n/index.js';
 export const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 export function controlId(item){return Array.isArray(item.inputs)?item.inputs.join('+'):'dpad';}
 export function controls(rep){
- return [...rep.items.map(item=>({...item,id:controlId(item),label:item.label||(controlId(item)==='dpad'?'十字キー':item.inputs.join(' + ').toUpperCase())})),
-  ...(rep.actions||[]).map(a=>({...a,label:({'quick-save':'クイック保存','quick-load':'クイック読込','player-menu':'メニュー',boost:'速度'})[a.id]||a.label,tool:a.label}))];
+ return [...rep.items.map(item=>({...item,id:controlId(item),label:item.label||(controlId(item)==='dpad'?tr('十字キー'):item.inputs.join(' + ').toUpperCase())})),
+  ...(rep.actions||[]).map(a=>({...a,label:({'quick-save':tr('クイック保存'),'quick-load':tr('クイック読込'),'player-menu':tr('メニュー'),boost:tr('速度')})[a.id]||a.label,tool:a.label}))];
 }
 export function screenBounds(rep){
  const frames=rep.screens.map(s=>s.outputFrame),x=Math.min(...frames.map(f=>f.x)),y=Math.min(...frames.map(f=>f.y));

@@ -7,10 +7,11 @@
  * as part of this combined work. Original MPL rights retained; see NOTICES.md
  * and MPL_SECONDARY_LICENSE.md. This module has no ROM/save/storage API.
  */
+import {tr} from './i18n/index.js';
 export class CelioSerial {
   constructor(port,onFrame,onError){Object.assign(this,{port,onFrame,onError,buffer:[],pending:0,closed:false,queue:Promise.resolve()});}
   static frame(channel,payload){
-    if(![0,1,2].includes(channel)||payload.length>64||Array.from(payload).some(v=>!Number.isInteger(v)||v<0||v>255))throw Error('USB通信データが不正です。');
+    if(![0,1,2].includes(channel)||payload.length>64||Array.from(payload).some(v=>!Number.isInteger(v)||v<0||v>255))throw Error(tr('USB通信データが不正です。'));
     return Uint8Array.from([71,66,channel,payload.length,0,...payload]);
   }
   feed(chunk){
@@ -19,37 +20,37 @@ export class CelioSerial {
       while(this.buffer.length>=5){
         if(this.buffer[0]!==71||this.buffer[1]!==66){this.buffer.shift();continue;}
         const n=this.buffer[3]|this.buffer[4]<<8;
-        if(n>64)throw Error('USB通信データが大きすぎます。');
+        if(n>64)throw Error(tr('USB通信データが大きすぎます。'));
         if(this.buffer.length<n+5)break;
         const frame=this.buffer.splice(0,n+5);this.onFrame(frame[2],Uint8Array.from(frame.slice(5)));
       }
     }
   }
   open(){
-    if(this.closed||this.openTask)throw Error('USB接続を終了してからやり直してください。');
+    if(this.closed||this.openTask)throw Error(tr('USB接続を終了してからやり直してください。'));
     this.openTask=(async()=>{
       await this.port.open({baudRate:115200});this.opened=true;
       if(this.closed){await this.closePort();return;}
       try{await this.port.setSignals({dataTerminalReady:true,requestToSend:true});}catch{}
       if(this.closed){await this.closePort();return;}
-      if(!this.port.readable||!this.port.writable)throw Error('このUSB変換器を開けません。');
+      if(!this.port.readable||!this.port.writable)throw Error(tr('このUSB変換器を開けません。'));
       this.writer=this.port.writable.getWriter();this.reader=this.port.readable.getReader();this.readTask=this.read();
     })();return this.openTask;
   }
   async read(){
-    try{while(!this.closed){const {value,done}=await this.reader.read();if(done)break;if(value)this.feed(value);}if(!this.closed)this.onError(Error('USB変換器が外れました。'));}
+    try{while(!this.closed){const {value,done}=await this.reader.read();if(done)break;if(value)this.feed(value);}if(!this.closed)this.onError(Error(tr('USB変換器が外れました。')));}
     catch(e){if(!this.closed)this.onError(e);}
     finally{try{this.reader.releaseLock();}catch{}}
   }
   send(channel,payload){
     if(this.closed)return;
-    if(this.pending>=256){this.onError(Error('USB通信が追いつきません。'));return;}
+    if(this.pending>=256){this.onError(Error(tr('USB通信が追いつきません。')));return;}
     const frame=CelioSerial.frame(channel,payload);this.pending++;
     this.queue=this.queue.then(()=>{if(!this.closed)return this.writer.write(frame);}).catch(e=>{if(!this.closed)this.onError(e);}).finally(()=>this.pending--);
   }
   command(value){this.send(0,value===0?[0,1]:[value&255]);}
   data(words){
-    if(words.length!==32||words.some(v=>!Number.isInteger(v)||v<0||v>65535))throw Error('USB通信データが不正です。');
+    if(words.length!==32||words.some(v=>!Number.isInteger(v)||v<0||v>65535))throw Error(tr('USB通信データが不正です。'));
     this.send(1,words.flatMap(v=>[v&255,v>>8]));
   }
   close(){

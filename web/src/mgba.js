@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Browser adapter for the MPL-2.0 mGBA bridge; see licenses/ and SOURCES.json.
+import {tr} from './i18n/index.js';
 import {VideoOutput} from './video.js';
 import {TimeStretch} from './time-stretch.js';
 import {loadCompatibleMGBA} from './mgba-compatibility.js';
@@ -27,7 +28,7 @@ export class MGBACore {
     };this.scheduleFrame();
   }
   scheduleFrame(){if(!this.closed&&!this.paused&&this.tick&&this.raf==null)this.raf=requestAnimationFrame(this.tick);}
-  copyIn(bytes,fn){const p=this.m._malloc(bytes.length);if(!p)throw new Error('メモリを確保できませんでした。');try{this.m.HEAPU8.set(bytes,p);return fn(p,bytes.length);}finally{this.m._free(p);}}
+  copyIn(bytes,fn){const p=this.m._malloc(bytes.length);if(!p)throw new Error(tr('メモリを確保できませんでした。'));try{this.m.HEAPU8.set(bytes,p);return fn(p,bytes.length);}finally{this.m._free(p);}}
   draw(output=this.video){
     const ptr=this.m._web_pixels(),w=this.width,h=this.height,memory=this.m.HEAPU8.buffer;
     if(this.pixelSource?.buffer!==memory||this.pixelSource.byteOffset!==ptr||this.pixelSource.length!==256*h)this.pixelSource=new Uint32Array(memory,ptr,256*h);
@@ -59,8 +60,8 @@ export class MGBACore {
   }
   setFilter(mode){if(this.video?.mode!==mode)this.video?.setMode(mode);}
   frameCount(){return this.frames;}
-  linkIO(){const m=this.m;if(!m._web_link_enable||m._web_platform()!==0)throw new Error('このコアはGBA通信に対応していません。');const io={event:null,enable:on=>{if(!m._web_link_enable(on?1:0))throw new Error('通信機能を開始できません。');},read:p=>m._web_link_read(p),write:(p,v)=>m._web_link_write(p,v),mask:v=>m._web_link_mask(v)};m.webLinkEvent=kind=>io.event?.(kind);return io;}
-  setCheats(list){for(let i=this.cheatCount-1;i>=0;i--)this.m._web_cheat_remove(i);this.cheatCount=0;const enc=new TextEncoder();for(const cheat of list){const index=this.copyIn(enc.encode(cheat.name+'\0'),p=>this.copyIn(enc.encode(cheat.code+'\0'),q=>this.m._web_cheat_add(p,q,Number(cheat.type))));if(index<0)throw new Error(index===-1000?'チートの数・長さを確認してください。':`「${cheat.name}」の${-index}行目を読み込めません。`);this.cheatCount++;this.m._web_cheat_enable(index,cheat.enabled?1:0);}}
+  linkIO(){const m=this.m;if(!m._web_link_enable||m._web_platform()!==0)throw new Error(tr('このコアはGBA通信に対応していません。'));const io={event:null,enable:on=>{if(!m._web_link_enable(on?1:0))throw new Error(tr('通信機能を開始できません。'));},read:p=>m._web_link_read(p),write:(p,v)=>m._web_link_write(p,v),mask:v=>m._web_link_mask(v)};m.webLinkEvent=kind=>io.event?.(kind);return io;}
+  setCheats(list){for(let i=this.cheatCount-1;i>=0;i--)this.m._web_cheat_remove(i);this.cheatCount=0;const enc=new TextEncoder();for(const cheat of list){const index=this.copyIn(enc.encode(cheat.name+'\0'),p=>this.copyIn(enc.encode(cheat.code+'\0'),q=>this.m._web_cheat_add(p,q,Number(cheat.type))));if(index<0)throw new Error(index===-1000?tr('チートの数・長さを確認してください。'):tr`「${cheat.name}」の${-index}行目を読み込めません。`);this.cheatCount++;this.m._web_cheat_enable(index,cheat.enabled?1:0);}}
   setKeys(mask){this.keys=mask;}
   stopAudio(){for(const s of this.sources){s.onended=null;try{s.stop();}catch{}s.disconnect();}this.sources.clear();this.nextAudio=0;this.stretch?.reset();}
   pause(value){this.paused=value;this.keys=0;this.clock=null;if(value){cancelAnimationFrame(this.raf);this.raf=null;this.stopAudio();}else this.scheduleFrame();}
@@ -68,9 +69,9 @@ export class MGBACore {
   setPreservePitch(value){value=!!value;if(this.preservePitch===value)return;this.preservePitch=value;this.stopAudio();this.stretch=null;}
   setSpeed(v){v=Math.max(1,Math.min(5,Number(v)||1));if(this.speed===v)return;this.speed=v;this.stopAudio();this.clock=null;}
   save(){const n=this.m._web_save_export();return n?this.m.HEAPU8.slice(this.m._web_save_data(),this.m._web_save_data()+n):null;}
-  restore(bytes){this.copyIn(bytes,(p,n)=>{if(!this.m._web_save_import(p,n))throw new Error('セーブ形式が一致しません。');});}
-  state(){const n=this.m._web_state_export();if(!n)throw new Error('状態を保存できませんでした。');return this.m.HEAPU8.slice(this.m._web_state_data(),this.m._web_state_data()+n);}
-  loadState(bytes){this.stopAudio();this.copyIn(bytes,(p,n)=>{if(!this.m._web_state_import(p,n))throw new Error('このコアで読み込めるステートではありません。');});this.draw();}
+  restore(bytes){this.copyIn(bytes,(p,n)=>{if(!this.m._web_save_import(p,n))throw new Error(tr('セーブ形式が一致しません。'));});}
+  state(){const n=this.m._web_state_export();if(!n)throw new Error(tr('状態を保存できませんでした。'));return this.m.HEAPU8.slice(this.m._web_state_data(),this.m._web_state_data()+n);}
+  loadState(bytes){this.stopAudio();this.copyIn(bytes,(p,n)=>{if(!this.m._web_state_import(p,n))throw new Error(tr('このコアで読み込めるステートではありません。'));});this.draw();}
   async restorePreview(url){
     // This bridge's states restore CPU/VRAM, but not the last rendered frame.
     // Show the paired local screenshot while paused, until the next emulated frame.

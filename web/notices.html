@@ -23,21 +23,25 @@
 <h2 id="updates">最近の更新</h2>
 <div class="release-list">
 <!-- release-history:start -->
+<article class="release-entry" aria-labelledby="v0-3-17">
+<header><h3 id="v0-3-17">0.3.17</h3><time datetime="2026-10-12">2026年10月12日</time></header>
+<ul><li data-i18n-en="Added Japanese and English. The default follows your browser language; you can change it in Settings.">日本語・英語の切り替えに対応しました。初期設定はブラウザの言語に合わせ、設定から変更できます。</li><li data-i18n-en="Organized localization and UI components, and added bilingual release notes.">翻訳処理と画面の部品を整理し、変更履歴も日本語・英語で表示するようにしました。</li></ul>
+</article>
 <article class="release-entry" aria-labelledby="v0-3-16">
 <header><h3 id="v0-3-16">0.3.16</h3><time datetime="2026-10-12">2026年10月12日</time></header>
-<ul><li>変更内容を日本語で読めるようにし、クレジット画面に最新の更新内容を表示しました。</li><li>ゲーム中に画面を下へ引っ張ったとき、ブラウザの再読み込みにつながる操作を抑止しました。</li></ul>
+<ul><li data-i18n-en="Added readable Japanese release notes and the latest changes to the credits page.">変更内容を日本語で読めるようにし、クレジット画面に最新の更新内容を表示しました。</li><li data-i18n-en="Prevented pull-down gestures during gameplay from triggering browser refresh where supported.">ゲーム中に画面を下へ引っ張ったとき、ブラウザの再読み込みにつながる操作を抑止しました。</li></ul>
 </article>
 <article class="release-entry" aria-labelledby="v0-3-15">
 <header><h3 id="v0-3-15">0.3.15</h3><time datetime="2026-10-12">2026年10月12日</time></header>
-<ul><li>Celioの新しい通信形式に対応し、受信確認と再送を追加しました。通信人数は2人です。</li><li>ファミコンのFCEUmmコアで、一部のゲームに影響するメモリ切り替えの不具合を修正しました。</li><li>コアの取得先とクレジットのリンクを更新しました。</li></ul>
+<ul><li data-i18n-en="Added the modern Celio link format, acknowledgements and retries. Link play still supports two players.">Celioの新しい通信形式に対応し、受信確認と再送を追加しました。通信人数は2人です。</li><li data-i18n-en="Fixed a memory bank switching issue in the FCEUmm NES core affecting some games.">ファミコンのFCEUmmコアで、一部のゲームに影響するメモリ切り替えの不具合を修正しました。</li><li data-i18n-en="Updated core source URLs and credit links.">コアの取得先とクレジットのリンクを更新しました。</li></ul>
 </article>
 <article class="release-entry" aria-labelledby="v0-3-14">
 <header><h3 id="v0-3-14">0.3.14</h3><time datetime="2026-10-12">2026年10月12日</time></header>
-<ul><li>ゲーム中の連打や2本指の操作で、ページ全体が拡大されることへの対策を追加しました。</li><li>通信欄のスクロールと文字入力、メニューのタップ操作は維持しています。</li></ul>
+<ul><li data-i18n-en="Added protection against page zoom caused by repeated taps or two-finger gestures during gameplay.">ゲーム中の連打や2本指の操作で、ページ全体が拡大されることへの対策を追加しました。</li><li data-i18n-en="Preserved scrolling and text entry in the link panel, and menu taps.">通信欄のスクロールと文字入力、メニューのタップ操作は維持しています。</li></ul>
 </article>
 <article class="release-entry" aria-labelledby="v0-3-13">
 <header><h3 id="v0-3-13">0.3.13</h3><time datetime="2026-10-12">2026年10月12日</time></header>
-<ul><li>指を離した通知を取り逃がしたとき、ボタンが押されたままになる状態から復帰できるようにしました。</li><li>長押し・同時押しを維持し、標準・同梱・追加スキンに共通で対策しました。</li></ul>
+<ul><li data-i18n-en="Added recovery from stuck buttons when a finger-release event is missed.">指を離した通知を取り逃がしたとき、ボタンが押されたままになる状態から復帰できるようにしました。</li><li data-i18n-en="Preserved holds and simultaneous presses across default, bundled and imported skins.">長押し・同時押しを維持し、標準・同梱・追加スキンに共通で対策しました。</li></ul>
 </article>
 <!-- release-history:end -->
 <details class="notice-details"><summary>以前の更新</summary>
@@ -83,5 +87,5 @@
 <ul class="notice-links"><li><a href="NOTICES.md">著作権・変更通知の全文（原文）</a></li><li><a href="licenses.html#licenses">ライセンス全文</a></li><li><a href="licenses.html#source">このWeb版の対応ソース</a></li><li><a href="licenses.html#credits">作者・プロジェクトのクレジット</a></li></ul>
 <p>このWeb版は非公式です。原作者による公認を示すものではありません。ソフトウェアのライセンスは、第三者のROM・BIOS・ゲーム素材などの利用権を与えるものではありません。</p>
 <a href="licenses.html">← クレジット・ライセンス</a>
-</main></body>
+</main><script type="module" src="src/i18n/page.js"></script></body>
 </html>

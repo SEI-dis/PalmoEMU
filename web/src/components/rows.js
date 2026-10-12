@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Shared settings rows. Labels/controls are trusted HTML supplied by the UI;
 // escape user-provided text before passing it here.
-import {escapeHTML as esc,icon} from './shared.js';
+import {escapeHTML as esc,icon} from '../shared.js';
 export const row=(label,control,ic='settings')=>`<label class="row">${icon(ic)}<span>${label}</span>${control}</label>`;
 export const detail=(title,text,control,ic)=>row(`${title}<small>${text}</small>`,control,ic);
 export const action=(label,id,ic='chevron',extra='')=>`<button class="row ${extra}" data-action="${id}">${icon(ic)}<span>${label}</span>${ic==='back'||ic==='chevron'?'':icon('chevron')}</button>`;

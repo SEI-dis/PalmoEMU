@@ -9,16 +9,16 @@
 | ROM | IndexedDBのroms。起動時に端末のWASMメモリへコピー | src/app.js、src/storage.js、src/mgba.js、src/retro.js、src/nds.js |
 | セーブ、手動ステート、復旧用ステート、履歴 | IndexedDBのsaves、states、recoveries、backups | src/storage.js、src/save-safety.js |
 | ライブラリ、画像、スキン | IndexedDBのlibrary、skins。表示用に端末内のdata/blob URLを使用 | src/app.js、src/skins.js |
-| カバー画像 | IndexedDBのlibrary。端末内の画像をdata URLに変換 | src/cover-dialog.js |
+| カバー画像 | IndexedDBのlibrary。端末内の画像をdata URLに変換 | src/views/cover.js |
 | 設定・入力機器別割り当て | localStorageのmanic-settings。機器名ではなくIDハッシュを保持。ROM・セーブのバイト列は保存しない | src/game-preferences.js、src/input-controls.js |
-| ライブラリ表示設定 | localStorageのpalmo-library-view-v1。許可したsort/groupだけを保存し、検索語・ゲーム名は含めない | src/library.js、src/library-view.js |
-| 分類・お気に入り | IndexedDBのlibrary.category / library.favorite。一括バックアップの対象 | src/library-view.js、src/storage.js、src/backup.js |
+| ライブラリ表示設定 | localStorageのpalmo-library-view-v1。許可したsort/groupだけを保存し、検索語・ゲーム名は含めない | src/library.js、src/views/library.js |
+| 分類・お気に入り | IndexedDBのlibrary.category / library.favorite。一括バックアップの対象 | src/views/library.js、src/storage.js、src/backup.js |
 | ゲーム別設定 | IndexedDBのlibrary.preferences。共通設定への未変更項目の継承とリセット | src/game-preferences.js、src/storage.js |
 | 一括バックアップ | 手動で端末へJSONダウンロード。復元前の置き換え対象と設定はIndexedDBのcoverCatalogs内の予約名前空間に1世代保持 | src/backup.js、src/storage.js |
 | 巻き戻し | RAM内だけのstate／battery。保持履歴と復元コピー合計8MiB上限、終了時破棄 | src/rewind.js、src/rewind-session.js |
 | オフライン用アプリ | Cache Storage。配布マニフェスト内の静的ファイルだけを保存 | sw.js、offline-manifest.js |
 | ゲーム実行 | 端末内のWASM・Canvas・Web Audio | src/mgba.js、src/retro.js、src/video.js |
-| ユーザーによるセーブ等の書き出し | Blobから端末へのダウンロード。ROMの共有・書き出し機能は実装しない | src/app.jsのdownload、src/game-info.jsのexportSave |
+| ユーザーによるセーブ等の書き出し | Blobから端末へのダウンロード。ROMの共有・書き出し機能は実装しない | src/app.jsのdownload、src/views/game-info.jsのexportSave |
 
 OPFSは利用していません。sessionStorageには、自動更新完了の通知用に旧ビルド番号と時刻だけを一時保存し、再読み込み後に削除します。ROM・セーブは保存しません。「IndexedDBだけ」はアプリによるROM・セーブの
 永続保存先についての説明です。実行中のメモリや、明示的に書き出したファイルは別です。
@@ -164,3 +164,8 @@ library / library-bulk / backup の専用検査はEdge・PC版WebKitで成功し
 一括削除の中断時の原子性、他タブでのプレイ中保護、各コア・2Pの保存区分を確認しています。
 外部APIを持たないことはソース確認、バックアップの外部送信がないことはHTTP記録でも確認します。
 この結果はiPhone実機や公開対象全件CIの検証を示すものではありません。
+
+
+## 0.3.17: 表示言語
+
+`palmo-language`には`auto`・`ja`・`en`だけを保存します。自動の場合はブラウザの最優先言語で日本語／英語を選び、外部APIへ送信しません。この設定は端末固有で、一括バックアップには含めません。翻訳ファイルは配布物とオフラインキャッシュの一部です。ゲーム名・ファイル名・ROM・セーブは翻訳処理へ渡しません。

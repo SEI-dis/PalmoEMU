@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Original Web layout aids. Coordinates use the skin mapping, never preview pixels.
+import {tr} from './i18n/index.js';
 import {clamp} from './control-layout.js';
 import {escapeHTML as esc} from './shared.js';
 
@@ -43,7 +44,7 @@ export function snapPosition(item,items,map,position,{step=16,threshold=6}={}){
 
 export function mountLayoutAlignment(root,host,{geometry,onPosition}){
  let grid=true,snap=true,step=16,guides=[],reference='',previousSelection='';
- root.innerHTML=`<div class="edit-group"><div class="edit-aid-toggles"><label><input id="edit-grid" type="checkbox" checked>グリッド</label><label><input id="edit-snap" type="checkbox" checked>吸着</label></div><label class="edit-field"><span>グリッド間隔</span><select id="edit-grid-step"><option value="8">細かい</option><option value="16" selected>標準</option><option value="32">広い</option></select></label><div class="edit-align-actions"><button data-align="center-x">横中央</button><button data-align="center-y">縦中央</button></div><label class="edit-field"><span>基準</span><select id="edit-align-reference" aria-label="配置の基準"></select></label><div class="edit-align-actions"><button data-align="level">高さをそろえる</button><button data-align="mirror" title="基準と同じ高さで、中央線の反対側に配置">左右対称にする</button></div></div><p class="edit-help">近づけると中央・端・ほかのボタンに吸着します。細かく動かすときは吸着をオフに。</p>`;
+ root.innerHTML=tr`<div class="edit-group"><div class="edit-aid-toggles"><label><input id="edit-grid" type="checkbox" checked>グリッド</label><label><input id="edit-snap" type="checkbox" checked>吸着</label></div><label class="edit-field"><span>グリッド間隔</span><select id="edit-grid-step"><option value="8">細かい</option><option value="16" selected>標準</option><option value="32">広い</option></select></label><div class="edit-align-actions"><button data-align="center-x">横中央</button><button data-align="center-y">縦中央</button></div><label class="edit-field"><span>基準</span><select id="edit-align-reference" aria-label="配置の基準"></select></label><div class="edit-align-actions"><button data-align="level">高さをそろえる</button><button data-align="mirror" title="基準と同じ高さで、中央線の反対側に配置">左右対称にする</button></div></div><p class="edit-help">近づけると中央・端・ほかのボタンに吸着します。細かく動かすときは吸着をオフに。</p>`;
  const $=s=>root.querySelector(s),referenceSelect=$('#edit-align-reference');
  function paint(){
   const {map,zoom}=geometry();if(!map)return;
