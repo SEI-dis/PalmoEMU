@@ -1,0 +1,87 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>変更内容 · PalmoEMU</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="controls.css">
+<link rel="stylesheet" href="notices.css">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon-20d62b6bccd7.png">
+<meta name="apple-mobile-web-app-title" content="PalmoEMU">
+</head>
+<body><main class="page legal notices-page">
+<a href="licenses.html">← クレジット・ライセンス</a>
+<h1>変更内容</h1>
+<p>主な更新と、移植元から変更した部分をまとめています。</p>
+<nav class="legal-nav" aria-label="このページの内容"><a href="#updates">最近の更新</a><a href="#changes">移植・変更した部分</a><a href="#original">著作権・原文</a></nav>
+
+<h2 id="updates">最近の更新</h2>
+<div class="release-list">
+<!-- release-history:start -->
+<article class="release-entry" aria-labelledby="v0-3-16">
+<header><h3 id="v0-3-16">0.3.16</h3><time datetime="2026-10-12">2026年10月12日</time></header>
+<ul><li>変更内容を日本語で読めるようにし、クレジット画面に最新の更新内容を表示しました。</li><li>ゲーム中に画面を下へ引っ張ったとき、ブラウザの再読み込みにつながる操作を抑止しました。</li></ul>
+</article>
+<article class="release-entry" aria-labelledby="v0-3-15">
+<header><h3 id="v0-3-15">0.3.15</h3><time datetime="2026-10-12">2026年10月12日</time></header>
+<ul><li>Celioの新しい通信形式に対応し、受信確認と再送を追加しました。通信人数は2人です。</li><li>ファミコンのFCEUmmコアで、一部のゲームに影響するメモリ切り替えの不具合を修正しました。</li><li>コアの取得先とクレジットのリンクを更新しました。</li></ul>
+</article>
+<article class="release-entry" aria-labelledby="v0-3-14">
+<header><h3 id="v0-3-14">0.3.14</h3><time datetime="2026-10-12">2026年10月12日</time></header>
+<ul><li>ゲーム中の連打や2本指の操作で、ページ全体が拡大されることへの対策を追加しました。</li><li>通信欄のスクロールと文字入力、メニューのタップ操作は維持しています。</li></ul>
+</article>
+<article class="release-entry" aria-labelledby="v0-3-13">
+<header><h3 id="v0-3-13">0.3.13</h3><time datetime="2026-10-12">2026年10月12日</time></header>
+<ul><li>指を離した通知を取り逃がしたとき、ボタンが押されたままになる状態から復帰できるようにしました。</li><li>長押し・同時押しを維持し、標準・同梱・追加スキンに共通で対策しました。</li></ul>
+</article>
+<!-- release-history:end -->
+<details class="notice-details"><summary>以前の更新</summary>
+<h3>0.3.12 · ゲームの互換性</h3>
+<p>特定のゲームで、拡張セーブの対応判定を補正しました。対象ROMを照合して実行用のコピーだけに適用し、取り込んだROMは変更しません。</p>
+<h3>0.3.10〜0.3.11 · タッチ操作とセーブ</h3>
+<p>ゲーム画面の余白や保存表示にも長押し対策を広げ、拡張セーブの読み書きと互換性を確認しました。</p>
+<h3>0.3.8〜0.3.9 · ライブラリと操作</h3>
+<p>ゲームの分類・並べ替え・まとめて選択、個別設定、ボタン割り当て、巻き戻し、バックアップを追加しました。</p>
+<h3>初期のWeb対応</h3>
+<p>メニュー・設定・セーブステート画面を移植し、オフライン利用、自動復旧用の保存、スキンの追加・プレビュー・配置編集、複数コアに対応しました。</p>
+</details>
+</div>
+
+<h2 id="changes">移植・変更した部分</h2>
+<p>2026年10月8日から12日までの主な変更です。作者名・各ライセンス・元のソースは<a href="licenses.html#credits">クレジット</a>と<a href="licenses.html#source">対応ソース</a>から確認できます。</p>
+<details class="notice-details"><summary>ManicEMUの画面と操作</summary>
+<p>ライブラリ、タブ、設定、ゲーム情報、プレイ中のメニュー、セーブステート管理をHTML・CSS・JavaScriptへ移植しました。Webで使わない機能を省き、画面幅に合わせて配置を調整しています。</p>
+<p>ブラウザ内の保存、オフライン更新、バックアップと復旧、入力処理などを追加しました。ManicEMU由来の著作権表示を保持し、Web版のコードと変更はAGPL-3.0-or-laterで提供します。</p>
+</details>
+<details class="notice-details"><summary>スキン・アイコン</summary>
+<p>「標準」のスキンとアプリアイコンは、このWeb版用に作成しました。GBA Moonduskは一般的なボタン配置の参考とし、その画像・配色・ロゴ・ソースは使用していません。</p>
+<p>「ManicEMU」の7機種分の同梱スキンはCC BY 4.0に基づいて使用しています。2026年10月9日にPDFをPNGへ変換し、配置をWeb用に変換しました。元の絵と作者の表示は保持しています。<a href="licenses.html#skins">作品・作者・変更内容の詳細</a></p>
+<p>利用者が追加したスキンには、それぞれの作者の利用条件が適用されます。</p>
+</details>
+<details class="notice-details"><summary>エミュレーターのコア</summary>
+<p>mGBA Celioの64MiB ROM・6MiB拡張セーブに対応したコアをWebAssemblyへビルドしました。liru55のWeb接続部を移植・改修し、MPL-2.0の通知と対応するCソースを保持しています。</p>
+<p>FCEUmm、Mesen-S、ClownMDEmu、DeSmuME 2015、VBA-Next、melonDS、jgenesisも固定したソースからビルドしています。Web用の接続処理と保存処理を追加し、コア別に保存先を分けました。</p>
+<p>FCEUmmには2026年10月12日にMapper 176の修正を取り込みました。jgenesisにはセーブ・時計の書き出し処理を追加し、使用しない32X起動ファームウェアへの参照を除いています。各コアのライセンスと変更通知は保持しています。</p>
+</details>
+<details class="notice-details"><summary>GBA通信</summary>
+<p>Celio-Linkの通信処理と、mGBA Celio Webのブラウザ接続処理を移植しました。利用者が通信を開始したときだけ接続します。</p>
+<p>通信前のバックアップ、異常切断時の復旧、通信中の1倍速固定と自動保存の抑止を追加しました。2026年10月12日には、新形式の複数パケット・受信確認・再送へ対応しました。</p>
+<p>Celioデバイス処理のGPL-3.0、Web接続部のMPL-2.0と追加のAGPL提供条件を保持しています。<a href="licenses.html#source">元のソース・変更したソース</a></p>
+</details>
+<details class="notice-details"><summary>そのほかのライブラリと保存処理</summary>
+<p>PDF.jsは追加スキンのPDF表示に使用しています。ライブラリ本体は変更せず、著作権表示とApache-2.0の全文を同梱しています。</p>
+<p>inih、Emscripten、各コアに含まれるライブラリの権利表示も同梱しています。音の高さを保つ倍速処理、画面レイアウト、保存・復旧などのWeb側の追加実装はAGPL-3.0-or-laterです。</p>
+</details>
+
+<h2 id="original">著作権・原文</h2>
+<p>このページは日本語の要約です。ライセンスの条件や権利表示の全文は、次の資料で確認できます。</p>
+<ul class="notice-links"><li><a href="NOTICES.md">著作権・変更通知の全文（原文）</a></li><li><a href="licenses.html#licenses">ライセンス全文</a></li><li><a href="licenses.html#source">このWeb版の対応ソース</a></li><li><a href="licenses.html#credits">作者・プロジェクトのクレジット</a></li></ul>
+<p>このWeb版は非公式です。原作者による公認を示すものではありません。ソフトウェアのライセンスは、第三者のROM・BIOS・ゲーム素材などの利用権を与えるものではありません。</p>
+<a href="licenses.html">← クレジット・ライセンス</a>
+</main></body>
+</html>

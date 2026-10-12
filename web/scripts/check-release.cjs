@@ -57,7 +57,7 @@ for(const [name,core] of Object.entries(manifest.alternateCores.sources)){
  assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,core.archive))).digest('hex'),archive,'Alternate source archive changed');
 }
 // Credits/source links must work in the published tree, including nested pages.
-for(const name of ['index.html','licenses.html','privacy.html','update.html']){
+for(const name of ['index.html','licenses.html','privacy.html','update.html','notices.html']){
  const html=fs.readFileSync(path.join(root,name),'utf8');
  for(const match of html.matchAll(/(?:href|src)="([^"#]+)(?:#[^"]*)?"/g)){
   const target=match[1];if(/^(?:https?:|data:|blob:|mailto:)/.test(target))continue;

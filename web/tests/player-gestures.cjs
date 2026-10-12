@@ -9,8 +9,14 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   page.on('pageerror',e=>errors.push(e.message));
   await context.route('**/*',route=>{assert.equal(new URL(route.request().url()).origin,new URL(base).origin);assert.equal(route.request().method(),'GET');return route.continue();});
   await page.goto(base);
+  const overscroll=()=>page.evaluate(()=>[document.documentElement,document.body,document.querySelector('#player')].map(el=>getComputedStyle(el).overscrollBehavior));
+  const hasOverscroll=await page.evaluate(()=>CSS.supports('overscroll-behavior','none'));
+  if(kind==='chromium')assert.equal(hasOverscroll,true,'Android Chromium regression requires overscroll support');
+  if(!hasOverscroll)console.log('SKIP native overscroll CSS: this desktop WebKit build does not implement it; all other gesture checks still run.');
+  if(hasOverscroll)assert.deepEqual((await overscroll()).slice(0,2),['auto','auto'],'Library retains native overscroll');
   await page.locator('#rom-input').setInputFiles({name:'Gesture fixture.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});
   await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
+  if(hasOverscroll)assert.deepEqual(await overscroll(),['none','none','none'],'Player contains overscroll at the element and root viewport');
   await page.evaluate(()=>{
    const padding=document.createElement('div');padding.id='gesture-padding';padding.style.cssText='position:absolute;left:20px;top:120px;width:350px;height:120px;z-index:50';padding.textContent='Non-interactive player area';document.querySelector('#player').append(padding);
   });
@@ -52,6 +58,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   assert.equal(await page.locator('#boost').textContent(),'1×','Every speed tap fires exactly once');
   await page.locator('#player-menu').tap();await page.locator('#sheet').waitFor({state:'visible'});
   assert.equal((await defaults('#sheet')).gesturestart,false,'Settings retain native gestures');
+  if(hasOverscroll)assert.equal(await page.locator('#sheet').evaluate(el=>getComputedStyle(el).overscrollBehavior),'contain','In-game menus cannot chain into pull-to-refresh');
   await page.locator('#close-sheet').tap();assert.equal(await page.locator('#resume-game').isVisible(),false,'Closing the menu resumes play');
   await page.locator('#player-link').tap();await page.locator('#link-panel').waitFor({state:'visible'});
   await page.evaluate(()=>{
@@ -71,6 +78,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   assert.deepEqual(await page.locator('#link-input').evaluate(el=>[el.selectionStart,el.selectionEnd]),[0,4]);
   await page.keyboard.insertText('5678');assert.equal(await page.locator('#link-input').inputValue(),'5678');
   await page.locator('#link-input').blur();
+  if(hasOverscroll)assert.deepEqual((await overscroll()).slice(0,2),['none','none'],'Communication editing retains root overscroll protection');
   if(kind==='chromium'){
    const cdp=await context.newCDPSession(page),r=await page.locator('.link-panel-body').boundingBox(),x=r.x+r.width/2,y=r.y+r.height-15;
    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,x,y}]});
@@ -85,12 +93,14 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await page.setViewportSize({width:844,height:390});await page.locator('.skin-button[aria-label=A]').tap();
   assert.equal(await page.evaluate(()=>visualViewport.scale),scale,'Rotation and subsequent tap preserve scale');
   await page.setViewportSize({width:390,height:844});
+  await page.locator('#player-menu').tap();await page.locator('#sheet [data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
+  if(hasOverscroll)assert.deepEqual((await overscroll()).slice(0,2),['auto','auto'],'Normal overscroll returns after leaving the game');
   if(kind==='chromium'){
    // Positive control: the same native gesture really zooms an ordinary page.
-   await page.evaluate(()=>{document.querySelector('#player').hidden=true;const outside=document.createElement('div');outside.style.cssText='position:fixed;inset:0;background:white';document.body.append(outside);});
+   await page.evaluate(()=>{const outside=document.createElement('div');outside.style.cssText='position:fixed;inset:0;background:white';document.body.append(outside);});
    await pinch();assert.ok(await page.evaluate(()=>visualViewport.scale)>scale,'Ordinary pages keep native pinch zoom');
   }
-  console.log('PASS: player pinch/rapid taps, scoped Safari event fallback, native command clicks, panel editing and scroll, pause/resume, rotation; '+kind+'. iPhone hardware gestures not tested.');
+  console.log('PASS: player pinch/rapid taps, scoped Safari event fallback, native command clicks, panel editing and scroll, pause/resume, rotation; '+kind+'. Android/iPhone hardware gestures not tested.');
   assert.deepEqual(errors,[]);await context.close();
  }finally{await browser.close();}
 })().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});

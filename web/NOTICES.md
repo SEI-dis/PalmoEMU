@@ -523,3 +523,16 @@ save files, firmware or artwork are included. Synthetic tests are AGPL-3.0-or-la
 Current canonical repository links use pm-start/mGBA_celio_edition and
 pm-start/mgba-celio-web. The original contributors onikoro334274-cell, liru55
 and upstream authors remain credited; repository moves do not change authorship.
+
+
+Modified 2026-10-12 (0.3.16): added a Japanese summary of the modification
+notices and a versioned release-history page. The current change summary in
+licenses.html and history in notices.html are generated from release-notes.json;
+release checks reject a version mismatch or stale generated content. The original
+copyright/modification notices, license texts, authors and source links remain.
+Added scoped CSS overscroll containment to the visible player and root viewport
+to suppress pull-to-refresh/scroll chaining during gameplay, retaining native
+editing, panel scrolling and ordinary-page gestures. No new runtime dependencies,
+network endpoints, core changes, artwork, ROMs or saves are included. New page,
+generator, CSS and test changes are AGPL-3.0-or-later. See MOBILE_INPUT_REVIEW.md
+for primary references and limits of desktop browser verification.

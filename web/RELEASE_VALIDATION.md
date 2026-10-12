@@ -444,3 +444,14 @@ PC版WebKitの成功を実機検証の代用とはしない。ファイルには
 - link-panel.cjs、privacy.cjs、multicore.cjsも両ブラウザで成功。通信番号のコピー・移動・終了保護、通常プレイの端末内保存と外部通信なし、各代替コアの実行・保存先分離を維持した。mGBA取得先と現行クレジットはpm-startへ更新し、従来の作者名と変更前ソースを保持した。
 - テストは自作データのみ。ROM・セーブ・個人データ・新たなゲーム素材は配布しない。iPhone実機・公開中継のデプロイ版・実ゲームでの交換／対戦完了は今回検証していない。人数上限は2人で、多人数対応を実装済みとは扱わない。
 - オフライン一覧・対応ソースZIP・配布一覧・レビュー対象を更新。同じmainコミットのValidate Web releaseの全件成功を確認してからPublish PalmoEMUを実行する。
+
+
+## 0.3.16: 日本語の変更案内とモバイル操作（2026-10-12）
+
+- 変更通知を英語のMarkdownへ直接誘導する表示から、日本語の更新履歴・移植箇所の要約へ変更。原文、権利表示、全文ライセンス、対応ソースは維持。クレジット画面の10月8日の固定文を現在の版の変更点へ置き換え、release-notes.jsonから履歴と同時生成する。更新画面からも履歴へ進める。
+- build-release-notes.cjsをbuild-offline.cjsへ統合。現バージョンとの一致、日付と新しい順序、空の記録・重複、HTML生成の一致を検査。隔離した入力コピーで、バージョン更新だけでは失敗すること、古い表示を--checkで拒否すること、変更文のHTMLをエスケープすることを確認した。公開時のcheck-release.cjsでも同じ検査を行う。
+- 日本語案内はChromium（Edge）・Windows版WebKitで、320/390pxの縦画面と844pxの横画面を表示し、画面キャプチャを確認。横はみ出しなし、詳細の開閉、ライセンス画面の最新表示からの移動、更新画面からの移動、本文の選択、NOTICES.md原文の取得と完全一致を確認。JavaScriptエラーと外部リクエストなし。
+- Androidの引っ張り更新とスクロール伝播対策として、playerと、player表示中のhtml/bodyへoverscroll-behavior:none、ゲーム中のdialogへcontainを追加。CSSの:hasで表示状態に追従し、終了後は自動的に通常設定へ戻る。既存のtouch-action、iOSのジェスチャー補助、編集欄の例外と長押し対策は変更しない。追加のタッチリスナー・端末判定・履歴トラップはない。
+- player-gestures.cjs、player-selection.cjs、touch-recovery.cjs、link-panel.cjsはChromium・PC版WebKitで成功。Chromiumではプレイ前／中／終了後、メニュー・通信欄でのCSS適用範囲、実タッチのピンチとスクロールも確認。ボタンの長押し・同時押し・連打、入力中断後の復旧、回転後の操作、選択・コピー・貼り付けの例外を維持した。使用データは自作ROM・素材のみ。
+- 使用したWindows版Playwright WebKitではCSS.supports('overscroll-behavior','none')がfalse。このCSS検査だけは明示してスキップし、他の入力検査は実施した。Chromiumでは対応必須。Android/iPhone実機、Androidの更新アニメーション、Samsung Internet/Firefox Android、OS拡大補助の実機確認は未実施。一次資料と対策／非対象はMOBILE_INPUT_REVIEW.mdに記録。
+- コア・依存物・素材・通信・保存処理は不変。オフライン一覧、対応ソースZIP、配布内容とレビュー記録を更新し、同じmainコミットのValidate Web release成功後に公開する。
