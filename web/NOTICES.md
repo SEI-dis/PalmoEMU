@@ -473,3 +473,8 @@ No new third-party image, ROM, BIOS, core binary or native dependency is include
 Modified 2026-10-11: expanded the existing selection/callout guards from the
 skin to the entire player, including padding and status/FPS text. Native text
 field editing is retained. No third-party dependency, artwork or core changes.
+
+Modified 2026-10-12: disabled double-tap zoom across the player by using
+touch-action:manipulation and removing a conflicting panel stylesheet override.
+Native panel scrolling and editable fields remain available. No third-party
+dependency, artwork, core binary or user-data handling changes.

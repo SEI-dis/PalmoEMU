@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
-/* Native scrolling belongs to the panel; the skin and touch controls keep touch-action:none. */
-#player{touch-action:auto}
+/* The player allows panning without double-tap zoom; the skin keeps touch-action:none. */
 .player-link{position:absolute;z-index:18;top:calc(env(safe-area-inset-top) + 2px);left:50%;transform:translateX(-50%);width:48px;height:44px;display:grid;place-items:center;touch-action:manipulation;color:#fff;border-radius:16px}
 .player-link:before{content:'';position:absolute;inset:6px 4px;border-radius:12px;background:#242137b3;border:1px solid #ffffff26;box-shadow:0 2px 6px #0002}
 .player-link svg{position:relative;width:22px;height:22px}

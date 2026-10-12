@@ -56,7 +56,10 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',playwright=require('./b
    assert.ok(Math.abs(b.x+b.width/2-width/2)<1);assert.ok(b.height>=44);
    if(width===390||width===844)await p.screenshot({path:path.join(dir,`${browserName}-${width}x${height}.png`)});
   }
-  await p.locator('summary').click();await panel.locator('.link-panel-body').evaluate(el=>el.scrollTop=el.scrollHeight);
+  await p.locator('summary').click();
+  assert.equal(await p.locator('#player').evaluate(el=>getComputedStyle(el).touchAction),'manipulation','Player allows panel panning without double-tap zoom');
+  for(const locator of [panel,panel.locator('.link-panel-body')])assert.equal(await locator.evaluate(el=>getComputedStyle(el).touchAction),'pan-y','Panel retains native vertical panning');
+  await panel.locator('.link-panel-body').evaluate(el=>el.scrollTop=el.scrollHeight);
   await p.setViewportSize({width:390,height:844});await p.locator('#link-panel-close').click();
   relay.send('42["partnerJoined",{}]');await p.waitForFunction(()=>document.querySelector('#player-link').dataset.state==='connected');
   assert.equal(await panel.isVisible(),false,'Status updates must not reopen panel');await trigger.tap();

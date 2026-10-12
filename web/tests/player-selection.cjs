@@ -5,7 +5,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
 (async()=>{
  const browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
  try{
-  const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
+  const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
   page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(25000);
   page.on('pageerror',e=>errors.push(e.message));
   await context.addInitScript(()=>localStorage.setItem('manic-settings',JSON.stringify({showFps:true})));
@@ -19,9 +19,18 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
   await page.evaluate(()=>{
    const status=document.querySelector('#save-status');status.hidden=false;status.textContent='Saved 19:41';
-   const nested=document.createElement('span');nested.id='selection-player-child';nested.textContent='Player padding';document.querySelector('#player').append(nested);
+   const nested=document.createElement('span');nested.id='selection-player-child';nested.textContent='Player padding';nested.style.cssText='position:absolute;top:10px;left:10px;z-index:50;padding:10px';document.querySelector('#player').append(nested);
    const outside=document.createElement('p');outside.id='selection-outside';outside.textContent='Selectable documentation';document.body.append(outside);
   });
+  // Check the final cascade: panel styles must not re-enable double-tap zoom
+  // on player padding/status, or disable native scrolling inside the panel.
+  assert.equal(await page.locator('#player').evaluate(el=>getComputedStyle(el).touchAction),'manipulation');
+  for(const selector of ['#skin','.skin-button[aria-label=A]'])assert.equal(await page.locator(selector).evaluate(el=>getComputedStyle(el).touchAction),'none');
+  assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).touchAction),'auto','Ordinary pages keep browser gestures');
+  assert.doesNotMatch(await page.locator('meta[name=viewport]').getAttribute('content'),/user-scalable\s*=\s*(?:no|0)|maximum-scale\s*=/i,'Do not disable zoom globally');
+  const scale=await page.evaluate(()=>visualViewport.scale);
+  await page.locator('#selection-player-child').tap();await page.locator('#selection-player-child').tap();
+  assert.equal(await page.evaluate(()=>visualViewport.scale),scale);
   const inspect=selector=>page.locator(selector).evaluate(el=>{
    const style=getComputedStyle(el),events={};
    for(const type of ['contextmenu','selectstart','dragstart','copy','cut','paste']){
@@ -66,7 +75,10 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await page.mouse.move(aPoint.x,aPoint.y);await page.mouse.down();await keys(1);await page.waitForTimeout(800);await keys(1);
   assert.equal(await page.evaluate(()=>getSelection().toString()),'','Holding a game button does not select text');
   await page.mouse.up();await keys(0);
-  await b.tap();assert.ok(await page.evaluate(()=>testKeyHistory.includes(2)),'Touch input reaches the core');await keys(0);
+  await page.evaluate(()=>{testKeyHistory=[0];});
+  await b.tap();await b.tap();await keys(0);
+  assert.deepEqual(await page.evaluate(()=>testKeyHistory),[0,2,0,2,0],'Rapid repeated taps both reach the core and release');
+  assert.equal(await page.evaluate(()=>visualViewport.scale),scale);
   if(kind==='chromium'){
    const cdp=await context.newCDPSession(page);
    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{id:1,...aPoint},{id:2,...bPoint}]});
@@ -78,6 +90,6 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await page.mouse.move(aPoint.x,aPoint.y);await page.mouse.down();await keys(1);
   await page.evaluate(()=>window.dispatchEvent(new Event('blur')));await keys(0);await page.mouse.up();
   assert.deepEqual(errors,[]);await context.close();
-  console.log('PASS: player/padding/status/FPS selection guards, editable exceptions and events, selection/replacement, held/touch input and cancellation; Chromium also checks simultaneous touch. '+kind+'. Physical iPhone not tested.');
+  console.log('PASS: player double-tap policy, unrestricted page zoom, selection guards, editable exceptions, rapid taps, held/touch input and cancellation; Chromium also checks simultaneous touch. '+kind+'. Physical iPhone gestures not tested.');
  }finally{await browser.close();}
 })().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});
