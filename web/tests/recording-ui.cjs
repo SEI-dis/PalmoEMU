@@ -70,7 +70,7 @@ function cartridge(){
  assert.equal(await camera.isDisabled(),false);assert.equal(await camera.count(),1);assert.equal(await page.locator('[data-recording-canvas]').count(),0);assert.equal(await preview.getAttribute('aria-modal'),'false');
  const clipURL=await preview.locator('video').getAttribute('src');assert.match(clipURL,/^blob:/);
  const timing=await preview.evaluate(el=>JSON.parse(el.dataset.recordingTiming));
- for(const field of ['inputDelayMs','pauseMs','finalizeMs','stopCallMs','containerMs','cleanupMs','previewMs'])assert.ok(Number.isFinite(timing[field])&&timing[field]>=0,field);
+ for(const field of ['inputDelayMs','pauseMs','finalizeMs','stopCallMs','containerMs','cleanupMs','preparationMs','urlMs','videoSourceMs','infoMs','shareSupportMs','mountMs','changeMs','previewMs'])assert.ok(Number.isFinite(timing[field])&&timing[field]>=0,field);
  if(native){await page.waitForFunction(()=>document.querySelector('#recording-preview video').readyState>=1);assert.deepEqual(await preview.locator('video').evaluate(v=>[v.videoWidth,v.videoHeight]),[480,320]);}
  await shot(preview,'preview');
  // Review fits narrow portrait and landscape without horizontal overflow.

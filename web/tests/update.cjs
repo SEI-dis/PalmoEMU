@@ -9,7 +9,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
  // The ROM-update Play handoff also crosses a new release. Its release notice
  // must wait until the requested game exits, without swallowing the Play action.
  const releaseVersion=()=>`0.0.${revision>=8?4:process.env.UPDATE_FLOW_ONLY?3:Math.min(revision,3)}`;
- const stageDeadline=1200;
+ const stageDeadline=1200,buildChecks=[];
  const heldRequests=[],shots=process.env.SCREENSHOT_DIR||path.join(root,'test-results','update-flow-'+browserName);fs.mkdirSync(shots,{recursive:true});
  const releaseHeld=()=>{holdAsset=null;for(const finish of heldRequests.splice(0))finish();};
  const server=http.createServer((req,res)=>{
@@ -27,7 +27,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    const source=bytes.toString();let matches=0;
    // Only shorten the staging-help timer, leaving startup gates, coordinator
    // leases and network timeouts at their real product values.
-   bytes=Buffer.from(source.replace(/(stageTimer=setTimeout\([\s\S]*?),60000\)/g,(_,prefix)=>{matches++;return prefix+','+stageDeadline+')';}));
+   bytes=Buffer.from(source.replace(/(stageTimer=setTimeout\([\s\S]*?),60000\)/g,(_,prefix)=>{matches++;return prefix+','+stageDeadline+')';}).replace('if(build&&currentBuild&&build!==currentBuild)',"console.debug('update-test-build '+JSON.stringify({build,currentBuild,controller:navigator.serviceWorker.controller?.state}));if(build&&currentBuild&&build!==currentBuild)"));
    assert.equal(matches,1,'Expected exactly one 60-second staging timer');
    bytes=Buffer.concat([bytes,Buffer.from('\nglobalThis.updateTestAutoHash='+JSON.stringify(require('node:crypto').createHash('sha256').update(source).digest('hex'))+';')]);
   }
@@ -49,7 +49,9 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port+'/';
  const browser=await browserType.launch({headless:true,...(browserName==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
  try{
-  const context=await browser.newContext({viewport:{width:390,height:844}}),page=await context.newPage();await page.goto(base+'index.html');
+  const context=await browser.newContext({viewport:{width:390,height:844}});
+  context.on('page',client=>client.on('console',message=>{if(message.text().startsWith('update-test-build ')){buildChecks.push({url:client.url(),...JSON.parse(message.text().slice(18))});if(buildChecks.length>40)buildChecks.shift();}}));
+  const page=await context.newPage();await page.goto(base+'index.html');
   // Playwright WebKit's offline flag rejects even cached SW navigations (#42775).
   // Use a real origin outage there; Edge also exercises the native online event.
   async function connection(offline){
@@ -199,7 +201,8 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   // Later defers this visit. Reopen the cached app before retrying online.
   await update.reload();await update.locator('.settings-page').waitFor();
   failAsset=null;revision=7;await connection(false);
-  await update.waitForFunction(()=>globalThis.updateTestRevision===7,{},{timeout:30000});await second.waitForFunction(()=>globalThis.updateTestRevision===7);await second.locator('.game-launch').waitFor();
+  try{await update.waitForFunction(()=>globalThis.updateTestRevision===7,{},{timeout:30000});await second.waitForFunction(()=>globalThis.updateTestRevision===7);await second.locator('.game-launch').waitFor();}
+  catch(error){console.error('Reconnection startup build checks:',JSON.stringify(buildChecks));throw error;}
   await connection(true);await cachedReload(second);
   assert.match(await second.evaluate(name=>fetch(name).then(r=>r.text()),lazyAsset),/lazy asset revision 7/,'Previously cached cores are refreshed before switching versions and remain available offline');
   assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage.js')).get('saves','keep')).bytes]),[7,9]);
@@ -240,7 +243,11 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.equal(await second.getByRole('button',{name:'今は続ける',exact:true}).isVisible(),true,'A long download offers a way to continue');
   assert.equal(await second.locator('.update-progress[data-phase=failed]').count(),0,'Elapsed time is not a download failure');
   assert.equal(await second.evaluate(()=>updateGateLoads),0,'A long download does not start a core');
-  releaseHeld();await second.locator('.update-progress[data-phase=applying]').waitFor();
+  releaseHeld();
+  try{await second.locator('.update-progress[data-phase=applying]').waitFor();}
+  catch(error){
+   console.error('Post-download update context:',await second.evaluate(async()=>{const reg=await navigator.serviceWorker.ready,dialog=document.querySelector('.update-progress');return {revision:globalThis.updateTestRevision,build:document.querySelector('meta[name=app-build]')?.content,hidden:document.hidden,active:document.activeElement?.outerHTML,phase:dialog?.dataset.phase,open:dialog?.open,status:dialog?.querySelector('[role=status]')?.textContent,tasks:(await import('./src/update-activity.js')).updateTasksPending(),locks:await navigator.locks.query(),waiting:reg.waiting?.state,installing:reg.installing?.state};}));throw error;
+  }
   await screenshot('applying-portrait',390,844);await screenshot('applying-landscape',844,390);await second.setViewportSize({width:390,height:844});
   await second.waitForFunction(()=>globalThis.updateTestRevision===8,{},{timeout:30000});await second.locator('#player').waitFor({state:'visible'});await second.locator('#loading').waitFor({state:'hidden'});
   assert.equal(await second.locator('#sheet').isVisible(),false,'The explicit play request resumes without an intervening release notice');

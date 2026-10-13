@@ -39,16 +39,18 @@ export function createRecordingPreview({onInteract=()=>{},onChange=()=>{},error=
   cancelPreparation(){if(!preparing)return;preparation(false);panel.hidden=true;status.textContent='';onChange();},
   show(result){
    if(file)throw Error('Recording preview is already occupied');
-   const at=performance.now();
-   preparation(false);
-   file=result.file;url=URL.createObjectURL(file);video.src=url;confirm.hidden=true;
+   const at=performance.now(),steps={};let stepAt=at;
+   const step=name=>{const now=performance.now();steps[name]=now-stepAt;stepAt=now;};
+   preparation(false);step('preparationMs');
+   file=result.file;url=URL.createObjectURL(file);step('urlMs');video.src=url;step('videoSourceMs');confirm.hidden=true;
    const seconds=Math.round(result.duration/1000),minutes=Math.floor(seconds/60),size=(file.size/1048576).toFixed(1),format=file.type.includes('mp4')?'MP4':'WebM';
    panel.querySelector('[data-video-info]').textContent=tr`${minutes}分${String(seconds%60).padStart(2,'0')}秒 · ${size} MB · ${format}`;
    status.textContent=['duration','size'].includes(result.reason)?tr('録画の上限に達したため停止しました。動画を保存できます。'):result.reason!=='user'?tr('ゲームの中断に合わせて録画を停止しました。動画を保存できます。'):'';
+   step('infoMs');
    let supported=false;try{supported=typeof navigator.share==='function'&&navigator.canShare?.({files:[file]})===true;}catch{}
-   share.hidden=!supported;mount();panel.hidden=false;onChange();
+   step('shareSupportMs');share.hidden=!supported;mount();panel.hidden=false;step('mountMs');onChange();step('changeMs');
    // Bounded local timing only: no title, ROM, pixels, save or file contents.
-   const timing={...result.timing,previewMs:performance.now()-at};panel.dataset.recordingTiming=JSON.stringify(timing);
+   const timing={...result.timing,...steps,previewMs:performance.now()-at};panel.dataset.recordingTiming=JSON.stringify(timing);
    requestAnimationFrame(()=>{if(file===result.file)panel.dataset.recordingTiming=JSON.stringify({...timing,previewFrameMs:performance.now()-at});});
   },
   open(){if(file){mount();panel.hidden=false;}},
