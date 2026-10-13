@@ -33,6 +33,20 @@ NDS専用の `nds-bridge.c` に `web_set_language(-1..5)` と `web_blow(0/1)` �
 
 変更日：2026-10-09。AGPLのWebアダプタを追加し、入力・音声・ステート・端末内セーブを接続しました。melonDSにはROMデータの生存期間を保つアダプタとSRAM入出力を追加し、未実装のチート初期化を使わないようにしました。FreeBIOSのBSD-2-Clause通知も同梱します。
 
+### 2026-10-13: melonDSのふた操作
+
+`web_set_lid(0/1)` は既存のlibretro L3へ開閉位置を渡し、`web_get_lid()` は
+`lid.cpp` から `NDS::IsLidClosed()` の実状態を読みます。ManicEMUの
+[simLid](https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/Play/VIewControllers/PlayViewController.swift#L4422-L4430)
+を参考に、採用中のmelonDS 0.9.3では一瞬の押下ではなく、希望する開閉位置を
+維持します。旧コアはKeyInputをステートに含めないため、読込後も現在のふた位置を
+保ちます。リセットで開き、終了時に注入入力を解除します。上流ソース、セーブ、
+ステート形式を変更していません。
+
+`tests/nds-lid-core.cjs` の自作ARM7プログラムが実際のKEYXYレジスタを読み、
+開閉・連続操作・リセット・セーブ保持と旧新版のステート相互読込を検証します。
+別の空ディレクトリへ配布アーカイブを展開した独立ビルドでJS/WASM一致を確認しました。
+
 ## jgenesis
 
 `jgenesis-web-source.tar.gz` を空のディレクトリへ展開します。ラッパー、変更済みコア、Cargo.lock、依存クレートのソースと通知、Cargoのオフライン設定を含みます。未使用のデスクトップUI・素材・テスト用バイナリは含めません。削除したファイルの項目だけをvendorチェックサム一覧から除き、残したファイルとクレートの元のチェックサムは維持しています。

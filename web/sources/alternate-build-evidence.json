@@ -21,12 +21,12 @@
     "melonds": {
       "commit": "66b5d2634cd0a79030562811e6e05f5532f800ba",
       "rebuildMatches": true,
-      "method": "Independent rebuild from a separately extracted distribution source archive with the updated DS language/microphone Web bridge; Emscripten 4.0.15. Both JS/WASM match.",
+      "method": "Independent clean build from a fresh separate extraction of the distributed archive plus updated lid bridge; Emscripten 4.0.15. Both JS/WASM match.",
       "files": {
-        "core.js": "799f57665dedca38172921664b76cc67311208f1a1a1c283ba2c9286f2b999fe",
-        "core.wasm": "392767d97c5209b112f24f7f285e6836401caf0abf5a807d9b3f507ddb106e4b"
+        "core.js": "25719a5678ec20664f81d8b2f10109a1f35db3db04dc79cbc8b25e56e961a3e4",
+        "core.wasm": "6a3ec8e00334c4474a9c2ce0f86ffe2e8ecb737e5cb11dfcf2a2348edcfdf6de"
       },
-      "changes": "Boot-time firmware language and five-second simulated blowing via the existing L2 Blow Noise input. Core code, battery and state layouts unchanged."
+      "changes": "Boot-time language, five-second blowing via L2 and held lid position via L3. Core, battery/state layouts unchanged. melonDS 0.9.3 does not serialize KeyInput, so state loads retain current physical lid position. Authored ARM7 hinge and old/new state compatibility pass."
     },
     "jgenesis": {
       "commit": "6c0933c0d689dce87b32266ee1c4eacf15e105f2",

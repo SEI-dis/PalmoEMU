@@ -26,7 +26,7 @@ import {createImportProgress} from './import-progress.js';
 import {systems,detectSystem,escapeHTML as esc,icon,bytesLabel} from './shared.js';
 import * as db from './storage.js';
 import {createCore} from './core-factory.js';
-import {coreFor,saveKey,cheatsFor} from './core-registry.js';
+import {coreFor,saveKey,cheatsFor,linkModes} from './core-registry.js';
 import {videoFilters} from './video.js';
 import {setupOffline,offlineStatus} from './offline.js';
 import {startAutoUpdates} from './auto-update.js';
@@ -42,11 +42,14 @@ import {chooseRepresentation} from './skin-format.js';
 import {mountSkinScreens} from './skin-screens.js';
 import {mountSkinInputs} from './skin-inputs.js';
 import {createSkinPointers} from './skin-pointers.js';
-import {builtinDpadDirections} from './dpad-input.js';
+import {builtinDpadDirections,touchInputDefaults} from './dpad-input.js';
+import {configureBuiltinTouchTargets} from './touch-targets.js';
 import {guardPlayerGestures} from './player-gestures.js';
 import {builtinLayout} from './skin-art.js';
 import {screenBounds} from './control-layout.js';
 import {ndsDisplayLayout} from './nds-skin.js';
+import {cameraLayout,cameraBackgroundSize,bindCameraButton} from './camera-button.js';
+import {clamp,normalizedPosition} from './control-layout.js';
 import {createSkinSettings} from './views/skins.js';
 import {createStateDialogs} from './views/states.js';
 import {groupedOptions,gameShortcuts,stateDate,nativeAction,nativeSelect,nativeToggle} from './manic-ui.js';
@@ -66,7 +69,7 @@ let savedSettings={};try{savedSettings=JSON.parse(localStorage.getItem('manic-se
 // Pitch preservation is standard playback behavior; legacy preferences are ignored.
 delete savedSettings?.preservePitch;
 let settingsGame=null,gameMenuReturn=null;
-const preferences=createGamePreferences({theme:'dark',volume:.7,speed:1,autosave:true,recovery:true,haptics:true,filter:'pixel',showFps:false,touchControls:true,rewindEnabled:false,...savedSettings},{getGame:()=>current||settingsGame,saveGame:(id,value)=>db.setGamePreferences(id,value),onError:error});
+const preferences=createGamePreferences({theme:'dark',volume:.7,speed:1,autosave:true,recovery:true,haptics:true,filter:'pixel',showFps:false,touchControls:true,showCamera:true,rewindEnabled:false,...touchInputDefaults,...savedSettings},{getGame:()=>current||settingsGame,saveGame:(id,value)=>db.setGamePreferences(id,value),onError:error});
 const settings=preferences.settings;delete settings.autoCovers;
 diagnostics.setContext(()=>{
  const core=current?coreFor(current):null;
@@ -91,7 +94,7 @@ const inputControls=createInputControls({settings,keybits,pressed,updateKeys,
  unlockAudio:()=>engine?.unlockAudio(),saveSettings:applySettings,
  ignoreEvent:event=>{if($('#sheet').open||event.target.closest?.('#link-panel'))return true;if(event.code==='Escape'&&linkPanel.visible){event.preventDefault();linkPanel.hide({focus:true});return true;}if(event.code==='Tab'&&linkPanel.visible)return true;return ['Enter','Space'].includes(event.code)&&!!event.target.closest?.('button,a');}
 });
-const showInputControls=createInputControlsView({controls:inputControls,sheet,onClose:cleanup=>{sheetCleanup=cleanup;},getSystem:()=>current?.system||settingsGame?.system||'gba',isPlaying:()=>!!engine});
+const showInputControls=createInputControlsView({controls:inputControls,settings,applySettings:()=>{applySettings();layoutSkin();},sheet,onClose:cleanup=>{sheetCleanup=cleanup;},getSystem:()=>current?.system||settingsGame?.system||'gba',isPlaying:()=>!!engine});
 createUINavigation({active:()=>!importing&&!launching&&!exiting&&(!engine||paused),capturing:()=>inputControls.isCapturing(),release:()=>inputControls.release(),back:()=>{if($('#sheet').open)$('#close-sheet').click();else if(tab!=='games'){$('[data-tab=games]').click();}}});
 // Suppress callouts on the whole player, including status text and empty space.
 // Keep native selection, copy and paste in room numbers and other text fields.
@@ -165,7 +168,7 @@ function renderGames(){libraryView.render();}
 function renderImports(){
  $('#content').innerHTML=tr`<section class="page import-page" aria-label="インポート"><header class="import-hero"><img src="assets/icon.svg" alt=""></header>
   <button class="import-file" id="choose-rom"><span class="import-file-icon">${icon('folder')}</span><span><strong>ファイル</strong><small>端末内のROMを追加</small></span></button>
-  <div class="import-services"><button class="import-service" id="import-patch"><span class="import-service-icon">${icon('code')}</span><strong>ROMパッチ</strong><small>パッチを適用</small></button><button class="import-service" id="import-skins"><span class="import-service-icon skin-service">${icon('image')}</span><strong>スキン</strong><small>追加・変更</small></button><button class="import-service" id="import-saves" ${library.length?'':'disabled'}><span class="import-service-icon save-service">${icon('saveImport')}</span><strong>セーブデータ</strong><small>${library.length?tr('ゲームを選んで読み込む'):tr('先にゲームを追加')}</small></button></div>
+  <div class="import-services"><button class="import-service" id="import-saves" ${library.length?'':'disabled'}><span class="import-service-icon save-service">${icon('saveImport')}</span><strong>セーブデータ</strong><small>${library.length?tr('ゲームを選んで読み込む'):tr('先にゲームを追加')}</small></button><button class="import-service" id="import-skins"><span class="import-service-icon skin-service">${icon('image')}</span><strong>スキン</strong><small>追加・変更</small></button><button class="import-service" id="import-patch"><span class="import-service-icon">${icon('code')}</span><strong>ROMパッチ</strong><small>パッチを適用</small></button></div>
   <div class="import-drop"><span class="import-drop-icon">${icon('import')}</span><span><strong>ドラッグ＆ドロップ</strong><small>ROMをこの画面にドロップ</small></span></div>
   <details class="import-formats"><summary>対応する形式</summary><p class="sheet-note">${Object.values(systems).map(s=>`${s.short}：${s.ext.map(ext=>'.'+ext).join(' / ')}`).join('<br>')}</p><p class="sheet-note">ZIPも追加できます。ROMとセーブは端末内に保存します。利用する権利のあるROMを使用してください。</p></details></section>`;
  $('#choose-rom').onclick=()=>$('#rom-input').click();
@@ -177,7 +180,7 @@ function renderImports(){
  };
 }
 
-function bindSettings(root){root.querySelectorAll('[data-setting]').forEach(el=>el.onchange=()=>{settings[el.dataset.setting]=el.type==='checkbox'?(el.dataset.invert?!el.checked:el.checked):['volume','speed','hapticStrength','deadZone','filterStrength'].includes(el.dataset.setting)?Number(el.value):el.value;if(el.dataset.setting==='hapticStrength')settings.haptics=!!settings.hapticStrength;const value=el.closest('.native-select')?.querySelector('.native-value');if(value)value.textContent=el.selectedOptions[0].textContent;applySettings();const scope=$('#game-preferences-mode'),game=current||settingsGame;if(scope&&game){scope.textContent=hasGamePreferences(game)?tr('このゲームの設定'):tr('共通設定を使用');const reset=$('[data-action=resetPreferences]');if(reset)reset.disabled=!hasGamePreferences(game);}if(['haptics','hapticStrength'].includes(el.dataset.setting)){if(settings.haptics)tapHaptic(settings);else stopHaptics();}if($('#video-filter-note'))$('#video-filter-note').hidden=settings.filter!=='edge4x';if(['touchControls','showFps','ndsSwapScreens'].includes(el.dataset.setting))layoutSkin();});}
+function bindSettings(root){root.querySelectorAll('[data-setting]').forEach(el=>el.onchange=()=>{settings[el.dataset.setting]=el.type==='checkbox'?(el.dataset.invert?!el.checked:el.checked):['volume','speed','hapticStrength','deadZone','filterStrength'].includes(el.dataset.setting)?Number(el.value):el.value;if(el.dataset.setting==='hapticStrength')settings.haptics=!!settings.hapticStrength;const value=el.closest('.native-select')?.querySelector('.native-value');if(value)value.textContent=el.selectedOptions[0].textContent;applySettings();const scope=$('#game-preferences-mode'),game=current||settingsGame;if(scope&&game){scope.textContent=hasGamePreferences(game)?tr('このゲームの設定'):tr('共通設定を使用');const reset=$('[data-action=resetPreferences]');if(reset)reset.disabled=!hasGamePreferences(game);}if(['haptics','hapticStrength'].includes(el.dataset.setting)){if(settings.haptics)tapHaptic(settings);else stopHaptics();}if($('#video-filter-note'))$('#video-filter-note').hidden=settings.filter!=='edge4x';if(['touchControls','showFps','ndsSwapScreens','showCamera'].includes(el.dataset.setting))layoutSkin();});}
 async function importFiles(files){
  if(!files.length)return;
  if(importing){toast(tr('追加が終わるまでお待ちください。'));return;}
@@ -214,6 +217,7 @@ function menuControlCells(game=current){return {
  rewindEnabled:game&&supportsRewind(game.system,coreFor(game).key)?nativeToggle(tr('巻き戻しを記録'),'rewindEnabled','history',!!settings.rewindEnabled,{detail:tr('最大10秒・記録用メモリ8 MiBまで。通信中は停止')}):'',
  rewind:engine&&supportsRewind(current.system,coreFor(current).key)?nativeAction(tr('最大3秒戻す'),'rewind','history'):'',
  deadZone:nativeSelect(tr('デッドゾーン'),'deadZone','joystick',[[.1,'10%'],[.2,'20%'],[.3,'30%'],[.4,'40%'],[.5,'50%']],settings.deadZone??.4),
+ cameraButton:nativeToggle(tr('スクリーンショットボタン'),'showCamera','camera',settings.showCamera!==false),
  hideControls:nativeToggle(tr('コントロール非表示'),'touchControls','hide',!settings.touchControls,{invert:true}),
  screenScaling:nativeSelect(tr('画面スケーリング'),'screenScaling','expand',[['fit',tr('アスペクト比を維持')],['stretch',tr('引き伸ばし')],['fill',tr('画面を埋める')]],settings.screenScaling||'fit')
 };}
@@ -239,16 +243,16 @@ const protection=new SaveProtection(status=>{
  el.dataset.detail=status.error?tr('保存失敗：')+status.error:status.busy?tr('保存中…'):details||tr('まだ保存されていません');el.title=el.dataset.detail;el.setAttribute('aria-label',el.dataset.detail);
  const note=$('#protection-status');if(note)note.textContent=el.dataset.detail;
 });
-const stateDialogs=createStateDialogs({runtime,sheet,closeSheet,setPause,persist,launch,showGameMenu,toast,error});
+const stateDialogs=createStateDialogs({runtime,sheet,closeSheet,setPause,persist,launch,showGameMenu,toast,error,download});
 async function launch(game,{safeMode=false,skipRecovery=false}={}){
  if(engine||launching)return false;launching=true;
  try{if(await autoUpdates?.beforeLaunch?.()===false){launching=false;setTimeout(()=>autoUpdates?.refresh(),0);return false;}}catch(error){launching=false;throw error;}
  gameMenuReturn=null;current=game;$('#player').hidden=false;$('#loading').hidden=false;$('#loading').textContent=tr('コアを読み込んでいます…');
  try{
   await preferences.flush();const stored=await db.get('library',game.id);if(!stored)throw new Error(tr('ゲームが見つかりません。'));current=game=stored;settingsGame=null;
+  const bytes=await db.get('roms',game.id);if(!bytes)throw new Error(tr('ROMが見つかりません。もう一度追加してください。'));
   const previous=await protection.open(game,coreFor(game).id);
   if(previous.interrupted)diagnostics.record(null,'previous-session');
-  const bytes=await db.get('roms',game.id);if(!bytes)throw new Error(tr('ROMが見つかりません。もう一度追加してください。'));
   await reloadSkins(false);$('#screen').replaceChildren();
   engine=createCore($('#screen'),game);
   engine.onKeyboard=showCoreKeyboard;engine.onError=e=>{diagnostics.record(e,'core');setPause(true);void rewindSession.clear({halt:true});error(e);};engine.unlockAudio()?.catch?.(()=>{});engine.setCartridgeOptions?.(settings);engine.setNDSOptions?.(settings);await engine.load(bytes,game,systems[game.system]);engine.pause(true);
@@ -260,6 +264,7 @@ async function launch(game,{safeMode=false,skipRecovery=false}={}){
 }
 function frameStyle(frame,map){return `left:${frame.x/map.width*100}%;top:${frame.y/map.height*100}%;width:${frame.width/map.width*100}%;height:${frame.height/map.height*100}%;`;}
 let layoutFrame=null,lastLayoutSize='',skinScreenCleanup=()=>{},skinInputs=null;
+let cameraPlacement=null,cameraBinding=null;
 function clearImportedSkin(){skinScreenCleanup();skinScreenCleanup=()=>{};skinInputs?.destroy();skinInputs=null;$('#skin .imported-art')?.remove();}
 function scheduleSkinLayout(){if(layoutFrame!==null)return;layoutFrame=requestAnimationFrame(()=>{layoutFrame=null;layoutSkin(false);});}
 async function reloadSkins(draw=true){
@@ -271,23 +276,25 @@ function layoutSkin(force=true){if(!current||!skinPair||!engine)return;
  const stage=$('#player'),{width,height}=playerSize(),orientation=skinOrientation({width,height}),skinData=skinPair[orientation],builtin=skinData.id.startsWith('builtin:'),padding=getComputedStyle(stage),sizeKey=[skinData.id,width,height,padding.paddingLeft,padding.paddingTop,padding.paddingRight,padding.paddingBottom].join(':');
  // ResizeObserver, viewport and window can report the same resize. Do not
  // rebuild held buttons or generate the SVG again when geometry is unchanged.
- if(!force&&sizeKey===lastLayoutSize)return;lastLayoutSize=sizeKey;release();clearImportedSkin();
+ if(!force&&sizeKey===lastLayoutSize)return;lastLayoutSize=sizeKey;cameraBinding?.cancel();cameraPlacement=null;release();configureBuiltinTouchTargets($('#touch-controls'),null);clearImportedSkin();
  stage.dataset.skinId=skinData.id;stage.dataset.skinDirection=orientation;stage.dataset.system=current.system;stage.dataset.builtin=String(builtin);stage.dataset.displayOnly=String(!settings.touchControls);$('#quick-actions').hidden=!builtin||!settings.touchControls;$('#boost').hidden=!settings.touchControls;
  const landscape=width>height;
  let rep=builtin?builtinLayout(skinData,width,height,controlLayout(current.system,current)[landscape?'landscape':'portrait'],current.system==='gba'?48:32):chooseRepresentation(skinData,width,height);
  if(!settings.touchControls&&dualScreen(current.system))rep=ndsDisplayLayout(width,height,controlLayout(current.system,current)[landscape?'landscape':'portrait']);
  else if(!settings.touchControls){const aspect=['gb','gbc'].includes(current.system)?160/144:current.system==='gba'?1.5:4/3,sw=Math.min(width,height*aspect),customScreen=builtin&&controlLayout(current.system,current)[landscape?'landscape':'portrait']?.screen;rep={mappingSize:{width,height},assets:{},items:[],wide:customScreen?rep.wide:undefined,screens:[{outputFrame:customScreen?{...rep.screens[0].outputFrame}:{x:(width-sw)/2,y:(height-sw/aspect)/2,width:sw,height:sw/aspect}}]};}
+ rep=cameraLayout(rep,controlLayout(current.system,current)[landscape?'landscape':'portrait'],width,height,{enabled:settings.showCamera!==false,hitSlop:builtin?(settings.touchHitSlop||0):0,fallbackBoost:settings.touchControls});$('#player-camera').hidden=settings.showCamera===false;
  engine?.setLayout?.(rep.wide??landscape,!!settings.ndsSwapScreens,rep);stage.dataset.wide=String(rep.wide??landscape);stage.style.setProperty('--skin-side',(rep.side||130)+'px');
  const imported=!builtin&&settings.touchControls;
  $('#boost').hidden=!settings.touchControls||(imported&&rep.items.some(item=>Array.isArray(item.inputs)&&item.inputs.some(key=>key==='toggleFastForward'||/^fastForward/.test(key))));
- const map=rep.mappingSize,ratio=Math.min(width/map.width,height/map.height);const skin=$('#skin');skin.style.width=map.width*ratio+'px';skin.style.height=map.height*ratio+'px';skin.style.backgroundImage=rep.assets.resizable?`url("${skinData.images[rep.assets.resizable]}")`:"none";$('#screen').style.cssText=frameStyle(screenBounds(rep),map)+`border-radius:${skinData.screenRadius||0}px;`;
+ const map=rep.mappingSize,ratio=Math.min(width/map.width,height/map.height);const skin=$('#skin');skin.style.width=map.width*ratio+'px';skin.style.height=map.height*ratio+'px';skin.style.backgroundImage=rep.assets.resizable?`url("${skinData.images[rep.assets.resizable]}")`:"none";skin.style.backgroundSize=cameraBackgroundSize(rep);$('#screen').style.cssText=frameStyle(screenBounds(rep),map)+`border-radius:${skinData.screenRadius||0}px;`;
  if(imported){
   skin.style.backgroundImage='none';$('#screen').style.cssText='left:0;top:0;width:100%;height:100%;';
   skinScreenCleanup=mountSkinScreens($('#screen'),engine,rep,current.system,{swap:!!settings.ndsSwapScreens,ratio});
   const art=document.createElement('div');art.className='imported-art';art.style.cssText=frameStyle(rep.artFrame||{x:0,y:0,...map},map);art.style.backgroundImage=rep.assets.resizable?`url("${skinData.images[rep.assets.resizable]}")`:'none';skin.append(art);
  }
- for(const id of ['quick-load','quick-save','player-menu','boost'])$('#'+id).removeAttribute('style');
+ for(const id of ['quick-load','quick-save','player-menu','boost','player-camera'])$('#'+id).removeAttribute('style');
  const skinRect=skin.getBoundingClientRect(),stageRect=stage.getBoundingClientRect();
+ const camera=rep.actions?.find(a=>a.id==='player-camera');if(camera)cameraPlacement={game:current,orientation,map:{...map},frame:{...camera.frame},ratio,left:skinRect.left-stageRect.left,top:skinRect.top-stageRect.top};
  for(const id of ['fps-meter','save-status']){
   const badge=$('#'+id);badge.removeAttribute('style');
   if(builtin&&settings.touchControls){const maxWidth=dualScreen(current.system)?(skinRect.width-30)/2:rep.wide?rep.side*ratio-20:(skinRect.width-30)/2;badge.style.top=skinRect.top-stageRect.top+8+'px';badge.style.maxWidth=Math.max(1,maxWidth)+'px';if(id==='fps-meter')badge.style.left=skinRect.left-stageRect.left+10+'px';else badge.style.right=stageRect.right-skinRect.right+10+'px';}
@@ -296,11 +303,11 @@ function layoutSkin(force=true){if(!current||!skinPair||!engine)return;
  if(imported){dpadViews=[];skinInputs=mountSkinInputs($('#touch-controls'),rep,skinData.images,{keybits,pressed,updateKeys,action:skinAction,engine,ratio,swap:!!settings.ndsSwapScreens,selected:command=>({volume:settings.muted,reverseScreens:settings.ndsSwapScreens,toggleControlls:!settings.touchControls})[command],paused:()=>paused,haptic:()=>{tapHaptic(settings);}});return;}
  $('#touch-controls').innerHTML=rep.items.map((item,i)=>{const pad=!Array.isArray(item.inputs),inputs=pad?['dpad']:item.inputs;return `<button class="skin-button${pad?' dpad':''}" data-item="${i}" aria-label="${pad?tr('十字キー'):esc(item.label||inputs.join('+').toUpperCase())}" style='${frameStyle(item.frame,map)}opacity:${item.opacity??1};background-image:url("${skinData.images[item.asset?.normal]||''}")'>${pad?['up','down','left','right'].map(d=>`<span class="dpad-direction${item.asset?.normal?'':' baked'}" data-direction="${d}" aria-hidden="true" hidden></span>`).join(''):''}</button>`;}).join('');
  dpadViews=$$('.dpad-direction').map(el=>{const inputs=rep.items[Number(el.parentElement.dataset.item)].inputs,key=keybits[inputs[el.dataset.direction]];return {el,mask:key===undefined?0:1<<key,on:false};});
- $$('#touch-controls .skin-button').forEach(btn=>{const item=rep.items[Number(btn.dataset.item)];btn.dataset.gameInput='';function input(e){if(Array.isArray(item.inputs)){if(item.inputs.includes('menu'))return;pressed.set(e.pointerId,item.inputs.reduce((v,k)=>v|(keybits[k]===undefined?0:1<<keybits[k]),0));}else{const r=btn.getBoundingClientRect();let bits=0;for(const d of builtinDpadDirections((e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height))if(keybits[item.inputs[d]]!==undefined)bits|=1<<keybits[item.inputs[d]];pressed.set(e.pointerId,bits);}btn.classList.add('pressed');updateKeys();}
- btn.onpointerdown=e=>{e.preventDefault();engine?.unlockAudio();if(item.inputs.includes?.('menu')){showGameMenu();return;}if(paused)return;if($('#link-panel').contains(document.activeElement))document.activeElement.blur();skinPointers.start(btn,e,{move:Array.isArray(item.inputs)?undefined:input,end:()=>{pressed.delete(e.pointerId);btn.classList.toggle('pressed',skinPointers.has(btn));updateKeys();}});tapHaptic(settings);input(e);};});}
+ $$('#touch-controls .skin-button').forEach(btn=>{const item=rep.items[Number(btn.dataset.item)];btn.dataset.gameInput='';function input(e){if(Array.isArray(item.inputs)){if(item.inputs.includes('menu'))return;pressed.set(e.pointerId,item.inputs.reduce((v,k)=>v|(keybits[k]===undefined?0:1<<keybits[k]),0));}else{const r=btn.getBoundingClientRect();let bits=0;for(const d of builtinDpadDirections((e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height,settings))if(keybits[item.inputs[d]]!==undefined)bits|=1<<keybits[item.inputs[d]];pressed.set(e.pointerId,bits);}btn.classList.add('pressed');updateKeys();}
+ btn.onpointerdown=e=>{e.preventDefault();engine?.unlockAudio();if(item.inputs.includes?.('menu')){showGameMenu();return;}if(paused)return;if($('#link-panel').contains(document.activeElement))document.activeElement.blur();skinPointers.start(btn,e,{move:Array.isArray(item.inputs)?undefined:input,end:()=>{pressed.delete(e.pointerId);btn.classList.toggle('pressed',skinPointers.has(btn));updateKeys();}});tapHaptic(settings);input(e);};});configureBuiltinTouchTargets($('#touch-controls'),settings);}
 function updateKeys(time){let keys=0,second=0;for(const [source,mask] of pressed){const player=source==='mapped-gamepad-2'?2:source==='mapped-keyboard'?inputControls.player(current?.system,'keyboard'):source==='mapped-gamepad'?1:inputControls.player(current?.system,'touch');if(player===2)second|=mask;else keys|=mask;}keys=inputControls.transform(keys,time);if(paused||rewindSession.busy)keys=second=0;engine?.setKeys(keys);if(engine?.multiplayer)engine.setKeys(second,1);keys|=second;for(const view of dpadViews){const on=!!(keys&view.mask);if(on!==view.on){view.on=on;view.el.hidden=!on;}}}
 function release(){skinPointers.release();inputControls.release();stopHaptics();skinInputs?.release();pressed.clear();updateKeys();$$('.pressed').forEach(b=>b.classList.remove('pressed'));}
-function setPause(v){if(!v&&(linkStarting||link?.closed||rewindSession.busy))return;if(v&&playRunAt&&current){current.playDuration=(current.playDuration||0)+Math.max(0,Date.now()-playRunAt);playRunAt=0;}else if(!v&&!playRunAt&&engine)playRunAt=Date.now();paused=v;$('#resume-game').hidden=!v;release();engine?.pause(v);void rewindSession.pause(v);if(!v)engine?.unlockAudio();}
+function setPause(v){if(!v&&(linkStarting||link?.closed||rewindSession.busy))return;if(v)cameraBinding?.cancel();if(v&&playRunAt&&current){current.playDuration=(current.playDuration||0)+Math.max(0,Date.now()-playRunAt);playRunAt=0;}else if(!v&&!playRunAt&&engine)playRunAt=Date.now();paused=v;$('#resume-game').hidden=!v;release();engine?.pause(v);void rewindSession.pause(v);if(!v)engine?.unlockAudio();}
 $('#resume-game').onclick=()=>{if(engine&&!document.hidden)setPause(false);};
 function backgroundPause(){if(!engine)return;const wasPaused=paused,wasLinked=!!link;setPause(true);if(link?.connected)link.close(tr('画面を離れたため接続を終了しました。'));if(!wasPaused&&!wasLinked)persist({checkpoint:settings.recovery,reason:'background'}).catch(error);}
 function syncResume(){if(engine)$('#resume-game').hidden=!paused;}
@@ -342,11 +349,11 @@ function showGameMenu(){
   cheatCode:coreFor(current).cheats?nativeAction(tr('チートコード'),'cheats','code'):'',saveState:nativeAction(tr('セーブ'),'newState','save'),quickLoadState:nativeAction(tr('クイックロード'),'quickLoad','history'),
   ...menuControlCells(),screenShot:nativeAction(tr('スクリーンショット'),'screenshot','image'),
   showFps:nativeToggle(tr('FPS表示'),'showFps','bolt',settings.showFps),
-  netplay:current.system==='gba'&&coreFor(current).link?nativeAction(tr('通信（実験版）'),'link','wifi'):'',fullScreen:nativeAction(tr('全画面'),'fullscreen','expand'),reload:nativeAction(tr('再起動'),'restart','reload'),quit:nativeAction(tr('終了'),'exit','power','','danger')
+  netplay:linkModes(current).length?nativeAction(tr('通信（実験版）'),'link','wifi'):'',fullScreen:nativeAction(tr('全画面'),'fullscreen','expand'),reload:nativeAction(tr('再起動'),'restart','reload'),quit:nativeAction(tr('終了'),'exit','power','','danger')
  };
  sheet('MENU',gamePreferenceSummary(current)+groupedOptions(cells,settings.menuOrder),true);$('#sheet').classList.add('port-menu','native-menu');$('#close-sheet').dataset.action='play';$('#close-sheet').setAttribute('aria-label',tr('ゲームに戻る'));
  const handlers={cartridge:()=>current.system==='nds'?showNDSOptions({sheet,closeSheet,engine,settings,applySettings,toast}):showGBAOptions({sheet,engine,system:current.system,settings,applySettings,toast,onClose:fn=>{sheetCleanup=fn;}}),rewind:rewindNow,resetPreferences:()=>resetGamePreferences(current,showGameMenu),importSave:()=>chooseSaveImport(current),export:exportGameSave,link:showLink,states:()=>showStates(),newState:()=>confirmStateSave(),quickLoad:showQuickLoad,saveData:showSaveData,cheats:showCheats,skins:()=>showSkins(current.system,current),controllers:()=>{showControllers();dialogResume=true;},
-  screenshot:()=>{const a=document.createElement('a');a.href=engine.screenshot();a.download=current.name+'.png';a.click();},
+  screenshot:captureScreenshot,
   fullscreen:async()=>{if(document.fullscreenElement)await document.exitFullscreen();else if($('#player').requestFullscreen)await $('#player').requestFullscreen();else toast(tr('Safariでは共有メニューからホーム画面に追加すると全画面で開けます。'));},restart:confirmRestart,exit:exitGame};
  bindSettings($('#sheet-body'));bindActions($('#sheet-body'),handlers);menuTools(gameShortcuts.filter(([id])=>!Array.isArray(settings.gameShortcuts)||settings.gameShortcuts.includes(id)),handlers);
 }
@@ -402,12 +409,34 @@ function skinAction(command){
   volume:()=>{settings.muted=!settings.muted;applySettings();},haptics:()=>{if(!supportsHaptics()){toast(tr('このブラウザは振動に対応していません。'));return;}settings.haptics=!settings.haptics;applySettings();if(settings.haptics)tapHaptic(settings);else stopHaptics();toast(settings.haptics?tr('振動：オン'):tr('振動：オフ'));},
   reverseScreens:()=>{if(!dualScreen(current.system)){toast(tr('2画面のゲームで使えます。'));return;}settings.ndsSwapScreens=!settings.ndsSwapScreens;applySettings();layoutSkin();},
   toggleControlls:()=>{settings.touchControls=!settings.touchControls;applySettings();layoutSkin();},restart:()=>{setPause(true);confirmRestart();},quit:()=>{setPause(true);sheet(tr('ゲームを終了しますか？'),tr('<div class="sheet-actions"><button class="secondary" id="skin-stay">キャンセル</button><button class="primary" id="skin-exit">終了</button></div>'),true);$('#skin-stay').onclick=closeSheet;$('#skin-exit').onclick=()=>exitGame().catch(error);},
-  screenshot:()=>{const a=document.createElement('a');a.href=engine.screenshot();a.download=current.name+'.png';a.click();}
+  screenshot:captureScreenshot
  };
  const handler=actions[command];if(!handler){toast(tr('このスキンの操作はWeb版では使えません。'));return;}
  try{Promise.resolve(handler()).catch(error);}catch(e){error(e);}
 }
 function cycleSpeed(){if(!engine||paused||link||linkStarting||rewindSession.busy)return;settings.speed=settings.speed%5+1;applySettings();}
+function captureScreenshot(){if(!engine||!current||launching||exiting)return;try{const a=document.createElement('a');a.href=engine.screenshot();a.download=current.name+'.png';a.click();}catch(e){error(e);}}
+function beginCameraMove(){
+ const placement=cameraPlacement,button=$('#player-camera');
+ if(!placement||placement.game!==current||!engine||paused||launching||exiting||rewindSession.busy||$('#sheet').open)return null;
+ const previous=button.style.cssText,{map,frame,ratio,game,orientation}=placement;let position={x:frame.x,y:frame.y};
+ const valid=()=>cameraPlacement===placement&&current===game&&!paused&&!launching&&!exiting&&!rewindSession.busy;
+ const cancel=()=>{if(cameraPlacement===placement)button.style.cssText=previous;};
+ return {
+  update(dx,dy){if(!valid())return;position={x:clamp(frame.x+dx/ratio,0,map.width-frame.width),y:clamp(frame.y+dy/ratio,0,map.height-frame.height)};button.style.left=placement.left+position.x*ratio+'px';button.style.top=placement.top+position.y*ratio+'px';},
+  cancel,
+  async commit(){
+   if(!valid()){cancel();return;}if(Math.abs(position.x-frame.x)<.01&&Math.abs(position.y-frame.y)<.01){cancel();return;}
+   try{
+    const layout=await db.setGameCameraPosition(game.id,orientation,normalizedPosition(frame,map,position.x,position.y),structuredClone(settings.controlLayouts?.[game.system]||{}));
+    if(current===game)game.controlLayout=layout;
+    if(cameraPlacement===placement){placement.frame={...frame,...position};toast(tr('レイアウトを保存しました。'));}
+   }catch(e){cancel();error(e);}
+  }
+ };
+}
+$('#player-camera').innerHTML=icon('camera');$('#player-camera').title=tr('スクリーンショット')+' · '+tr('長押しで移動');
+cameraBinding=bindCameraButton($('#player-camera'),()=>{if(!paused&&!rewindSession.busy)captureScreenshot();},{beginMove:beginCameraMove});
 $('#boost').onclick=cycleSpeed;
 $('#boost').onkeydown=e=>{if(e.code==='Enter'||e.code==='Space'){e.preventDefault();e.stopPropagation();if(!e.repeat)cycleSpeed();}};
 let fpsEngine=null,fpsAt=0,fpsFrames=0;
@@ -438,13 +467,13 @@ function showCheats(game=current){if(!coreFor(game).cheats)return;const list=che
 function showConnectedMenu(){release();sheet('MENU',tr`<p class="sheet-note">通信中は1倍速です。ステート・チートの変更はできません。</p><div class="settings-group">${action(tr('ゲームに戻る'),'play','play')}${action(tr('通信の状態'),'link','wifi')}${action(tr('通信を中止'),'disconnect','back')}${action(tr('ライブラリに戻る'),'exit','back')}</div>`,true);bindActions($('#sheet-body'),{play:closeSheet,link:showLink,disconnect:async()=>{await link?.close();closeSheet();},exit:exitGame});}
 function updateLinkButton(){
  const button=$('#player-link'),state=linkStarting?'connecting':link?.closed?'connecting':link?.connected?'connected':link?.joined?'waiting':link?'connecting':'idle';
- button.hidden=!engine||current?.system!=='gba'||!coreFor(current).link;button.dataset.state=state;
- const label=state==='connected'?tr('GBA通信：接続中'):state==='waiting'?tr`GBA通信：部屋 ${link.room} で待機中`:state==='connecting'?tr('GBA通信：準備中'):tr('GBA通信');
+ button.hidden=!engine||!linkModes(current).length;button.dataset.state=state;
+ const label=current?.system!=='gba'?(state==='connected'?tr('GB・GBC通信：接続中'):state==='connecting'?tr('GB・GBC通信：準備中'):tr('GB・GBC通信')):state==='connected'?tr('GBA通信：接続中'):state==='waiting'?tr`GBA通信：部屋 ${link.room} で待機中`:state==='connecting'?tr('GBA通信：準備中'):tr('GBA通信');
  button.setAttribute('aria-label',label);button.title=label;
 }
 function showLink(){
  if(rewindSession.busy)return;
- if(!engine||current?.system!=='gba'||!coreFor(current).link||exiting)return;
+ if(!engine||!linkModes(current).length||exiting)return;
  if($('#sheet').open)closeSheet();release();renderLinkPanel();linkPanel.show();
 }
 function renderLinkPanel(){linkControls.render();}

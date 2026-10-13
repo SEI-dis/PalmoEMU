@@ -5,24 +5,27 @@ import {tr} from '../i18n/index.js';
 import {systems,escapeHTML as esc} from '../shared.js';
 import {row,nativeAction} from '../components/rows.js';
 import {gameInputsFor,specialInputs,inputLabels,inputName,assistModes} from '../input-controls.js';
-export function createInputControlsView({controls,sheet,onClose,getSystem=()=> 'gba',isPlaying=()=>false}){
+import {inputTestMarkup,mountInputTest} from './input-test.js';
+import {touchOptionsMarkup,mountTouchOptions} from './touch-options.js';
+export function createInputControlsView({controls,sheet,onClose,getSystem=()=> 'gba',isPlaying=()=>false,settings={},applySettings=()=>{}}){
  return function showInputControls(initial=getSystem()){
   let system=systems[initial]?initial:'gba',device='keyboard',tab='mapping',alive=true;
   const find=s=>document.querySelector(s);
-  const cancel=()=>controls.cancelCapture();
+  let stopTest=()=>{};
+  const cancel=()=>{controls.cancelCapture();stopTest();stopTest=()=>{};};
   function render(){
    cancel();const devices=controls.devices(),bindings=controls.bindings(system,device),assist=controls.assist(system);
    if(!devices.some(d=>d.key===device))device='gamepad';
    sheet(tr('コントローラーと操作補助'),tr`<div class="input-controls-view">
     <div class="settings-group">${row(tr('機種'),tr`<select id="input-system" aria-label="機種">${Object.entries(systems).map(([id,s])=>`<option value="${id}" ${system===id?'selected':''}>${s.short}</option>`).join('')}</select>`,'game')}</div>
-    <div class="segmented" role="group" aria-label="操作の設定"><button data-input-tab="mapping" aria-pressed="${tab==='mapping'}">ボタン割り当て</button><button data-input-tab="assist" aria-pressed="${tab==='assist'}">連射・押しっぱなし</button></div>
+    <div class="segmented input-tabs" role="group" aria-label="操作の設定"><button data-input-tab="mapping" aria-pressed="${tab==='mapping'}">ボタン割り当て</button><button data-input-tab="assist" aria-pressed="${tab==='assist'}">連射・押しっぱなし</button><button data-input-tab="touch" aria-pressed="${tab==='touch'}">タッチの感度</button><button data-input-tab="test" aria-pressed="${tab==='test'}">入力の確認</button></div>
     ${tab==='mapping'?tr`<div class="settings-group">${row(tr('入力機器'),tr`<select id="input-device" aria-label="入力機器">${devices.map(d=>`<option value="${d.key}" ${d.key===device?'selected':''}>${esc(d.name)}</option>`).join('')}</select>`,'game')}</div>
     ${['nes','snes','md'].includes(system)?tr`<div class="settings-group">${controls.playerDevices(system).map(d=>row(esc(d.name),tr`<select data-player-device="${d.key}" aria-label="プレイヤー"><option value="1" ${d.player===1?'selected':''}>1P</option><option value="2" ${d.player===2?'selected':''}>2P</option></select>`,'game')).join('')}</div><p class="sheet-note">連射・押しっぱなしは1Pに適用します。</p>`:''}
     <p class="sheet-note">変更する操作を選んで、キーやコントローラーのボタンを押してください。同じ機種・入力機器で使用します。</p>
     <div id="input-capture" class="input-capture" hidden><p id="input-capture-status" role="status" aria-live="polite"></p><div class="two"><button class="secondary" id="input-capture-cancel">キャンセル</button><button class="secondary" id="input-capture-clear">割り当てを解除</button></div></div>
     <div class="settings-group">${[...gameInputsFor(system),...specialInputs].map(action=>nativeAction(inputLabels[action],'map-'+action,'game',Object.entries(bindings).filter(([,mapped])=>mapped===action).map(([code])=>inputName(code)).join(' / ')||tr('未設定'))).join('')}</div>
     <button class="secondary" id="input-reset">割り当てを初期設定に戻す</button><p class="sheet-note">ゲームパッドが表示されない場合は、接続してボタンを押してからこの画面を開き直してください。</p>`:
-    tr`<p class="sheet-note">タッチ・キーボード・ゲームパッドに適用します。「押しっぱなし」は一度押すと固定し、もう一度押すと解除します。一時停止や切断でも解除します。通信中は通常操作になります。</p>
+    tab!=='assist'?`${tab==='touch'?touchOptionsMarkup(settings):''}${inputTestMarkup(system)}`:tr`<p class="sheet-note">タッチ・キーボード・ゲームパッドに適用します。「押しっぱなし」は一度押すと固定し、もう一度押すと解除します。一時停止や切断でも解除します。通信中は通常操作になります。</p>
     <div class="settings-group">${row(tr('連射の間隔'),tr`<select id="input-turbo-interval" aria-label="連射の間隔">${[50,75,100,150,200,300,500,1000].map(n=>tr`<option value="${n}" ${assist.interval===n?'selected':''}>${n} ms（毎秒${(1000/n).toFixed(n===300?1:0)}回）</option>`).join('')}</select>`,'bolt')}</div>
     <div class="settings-group">${gameInputsFor(system).map(action=>row(inputLabels[action],tr`<select data-input-assist="${action}" aria-label="${esc(inputLabels[action])}の操作補助">${assistModes.map(([mode,name])=>`<option value="${mode}" ${(assist.modes[action]||'off')===mode?'selected':''}>${name}</option>`).join('')}</select>`,'game')).join('')}</div>`}
     </div>`,isPlaying());
@@ -40,9 +43,12 @@ export function createInputControlsView({controls,sheet,onClose,getSystem=()=> '
      find('#input-capture-cancel').onclick=cancel;
      find('#input-capture-clear').onclick=()=>{cancel();controls.assign(system,device,action,null);render();};
     });
-   }else{
+   }else if(tab==='assist'){
     find('#input-turbo-interval').onchange=e=>controls.setInterval(system,Number(e.target.value));
     document.querySelectorAll('[data-input-assist]').forEach(select=>select.onchange=()=>controls.setAssist(system,select.dataset.inputAssist,select.value));
+   }else{
+    const container=find('.input-controls-view');stopTest=mountInputTest({container,controls,system,settings});
+    if(tab==='touch')mountTouchOptions({container,settings,applySettings,render});
    }
   }
   render();

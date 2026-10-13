@@ -73,6 +73,24 @@ samples during simulated blowing, stop/reset/state cleanup and battery/state
 round trips. Old/new distributed cores also accept each other's states. Browser
 menu tests pass on Chromium and desktop WebKit; see RELEASE_VALIDATION.md.
 
+## Lid operation (2026-10-13)
+
+`web_set_lid(0/1)` requests an open/closed lid and `web_get_lid()` reads the
+actual KEYXY hinge bit through `lid.cpp`. The bridge drives DeSmuME's existing
+L2 toggle only while actual and desired positions differ. A second request
+during the core's 30-frame debounce is retained until it can be applied.
+Reset/close clear the request; successful state imports synchronize it to the
+lid position already serialized by DeSmuME. No core source or state ABI changes.
+The interaction follows ManicEMU's
+[simLid](https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/Play/VIewControllers/PlayViewController.swift#L4422-L4430),
+adapted to this pinned libretro implementation, rather than using a timed pulse.
+
+`tests/nds-lid-core.cjs` reads the real hinge register from an authored ARM7
+program and checks idempotent requests, rapid changes, state/reset/save/close.
+Set `NDS_OLD_CORE_ROOT` to a retained release's core directory to additionally
+check bidirectional state compatibility. An independently extracted archive
+build matches both distributed binaries; see `nds-build-evidence.json`.
+
 ## Validation and limits
 
 `node tests/nds-core.cjs` executes an original ARM9/ARM7 test cartridge generated

@@ -75,8 +75,8 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',playwright=require('./b
   assert.ok(wire.some(m=>m==='42["sessionLeft"]'));assert.equal(await p.evaluate(()=>testEngine.paused),true);
   await p.locator('#link-panel-close').click();await p.locator('#player-menu').click();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
   // No Wi-Fi shortcut is offered for an unsupported machine.
-  await p.locator('#rom-input').setInputFiles({name:'Original GB test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});
-  await p.getByRole('button',{name:'Original GB testの設定を開く',exact:true}).click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});assert.equal(await trigger.isVisible(),false);assert.equal(await panel.isVisible(),false);
+  await p.locator('#rom-input').setInputFiles({name:'Original NES test.nes',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').nes())});
+  await p.getByRole('button',{name:'Original NES testの設定を開く',exact:true}).click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});assert.equal(await trigger.isVisible(),false);assert.equal(await panel.isVisible(),false);
   assert.deepEqual(errors,[]);await ctx.close();
   console.log('PASS: non-modal play/input, field copy, menu Wi-Fi shortcut, drag/keyboard movement, responsive bounds, retained connection while hidden, status updates, rollback, pending-backup close and unsupported cores.');
  }finally{await browser.close();}

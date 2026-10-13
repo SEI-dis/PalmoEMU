@@ -20,9 +20,8 @@ export function createSkinSettings(api){
 async function editControls(system,game,id){
  if(runtime.engine)setPause(true);
  const preview=await previewSkin(system,id);
- if(!preview.skin.id.startsWith('builtin:')){preview.urls.forEach(URL.revokeObjectURL);return;}
  sheet(tr('レイアウトを編集'),'',!!runtime.engine);$('#sheet').classList.add('control-edit');
- const cleanup=mountControlEditor($('#sheet-body'),{skin:preview.skin,layout:controlLayout(system,game),shared:settings.controlLayouts?.[system],inherits:game?.controlLayout==null,game:!!game,orientation:skinOrientation,viewport:playerSize,
+ const cleanup=mountControlEditor($('#sheet-body'),{skin:preview.skin,layout:controlLayout(system,game),shared:settings.controlLayouts?.[system],inherits:game?.controlLayout==null,game:!!game,orientation:skinOrientation,viewport:playerSize,touchHitSlop:settings.touchHitSlop||0,
   onCancel:()=>showSkins(system,game),
   onSave:async layout=>{
    if(game){await db.setGameControls(game.id,layout);game.controlLayout=layout??undefined;}
@@ -54,7 +53,7 @@ async function showSkins(system=settings.skinSystem||'gba',game=null,orientation
  const grid=$('#skin-grid'),standard=grid.firstElementChild;
  $('#sheet').classList.add('skin-manager');
  $('#sheet-tools').innerHTML=tr`<button class="sheet-tool skin-edit-toggle" id="manage-skins" ${saved.length?'':'disabled'}>編集</button>`;
- const previewOptions=()=>({system,orientation:skinOrientation,viewport:playerSize,layout:controlLayout(system,game),frameStyle});
+ const previewOptions=()=>({system,orientation:skinOrientation,viewport:playerSize,layout:controlLayout(system,game),frameStyle,cameraEnabled:settings.showCamera!==false,touchHitSlop:settings.touchHitSlop||0});
  function disposeCard(node){const entry=mounted.get(node);if(entry){entry.cleanup();entry.preview.urls.forEach(URL.revokeObjectURL);mounted.delete(node);}node.querySelector('.skin-card-preview').replaceChildren();}
  async function mountCard(node){
   if(!alive||mounted.has(node)||pending.has(node))return;
@@ -77,9 +76,9 @@ async function showSkins(system=settings.skinSystem||'gba',game=null,orientation
   $('#skin-orientation-label').textContent=direction+tr('のスキン');
   if($('#skin-inherit')){$('#skin-inherit').checked=!selected;$('#skin-inherit-label').textContent=direction+tr('は機種の設定を使う');}
   const standardSelected=effective.startsWith('builtin:');
-  $('.skin-standard-options').hidden=!standardSelected;
+  $('.skin-standard-options').hidden=false;
   $('#skin-palette').hidden=!standardSelected||colors.length<2;
-  $('#edit-controls').hidden=!standardSelected;
+  $('#edit-controls').hidden=false;$('#edit-controls').textContent=standardSelected?tr('画面・ボタンのレイアウト'):tr('スクリーンショットボタン');
   const entry=[...mounted.entries()].find(([node])=>node.dataset.skinCard===effective)?.[1];
   $('#skin-description').textContent=entry?(entry.preview.skin.warnings||[]).join('\n'):'';
  }

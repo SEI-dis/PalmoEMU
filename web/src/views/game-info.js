@@ -9,10 +9,12 @@ import {coreRegistry,coreFor,saveKey,supportsGame} from '../core-registry.js';
 import * as db from '../storage.js';
 import {gameInfoHero,groupedOptions,nativeAction,orderedOptionGroups,gameShortcuts} from '../manic-ui.js';
 import {createCoverDialog} from './cover.js';
+import {createROMUpdateDialog} from './rom-update.js';
 import {categoryLabel} from '../library.js';
 
 export function createGameInfo(api){
  const coverDialog=createCoverDialog({...api,showGame:show});
+ const romDialog=createROMUpdateDialog({...api,showGame:show});
  const $=s=>document.querySelector(s);
  const nativeSheet=(title,html)=>{api.sheet(title,html);$('#sheet').classList.add('native-menu');};
  const bind=handlers=>$('#sheet-body').querySelectorAll('[data-action]').forEach(b=>b.onclick=guardUpdateTask(()=>Promise.resolve().then(()=>handlers[b.dataset.action]?.()).catch(api.error)));
@@ -63,12 +65,13 @@ export function createGameInfo(api){
    ...api.controlCells(game),gameOptionSort:nativeAction(tr('機能順序設定'),'optionOrder','layers'),gameShortcut:nativeAction(tr('ゲームショートカット'),'shortcuts','shortcuts'),
    copyLink:nativeAction(tr('起動リンクをコピー'),'copyLink','link'),delete:nativeAction(tr('ゲームを削除'),'delete','trash','','danger')
   };
-  api.sheet(game.name,gameInfoHero(game)+tr`<div class="native-options" aria-label="ゲームの設定">${api.preferenceSummary?.(game)||''}${groupedOptions(cells,api.settings().menuOrder)}</div>`);
+  const romActions=`<div class="settings-group">${nativeAction(tr('ROMを更新'),'updateROM','reload')}${game.romMissing?'':nativeAction(tr('ROMだけ取り外す'),'detachROM','folder')}${game.romUpdate?nativeAction(tr('前のバージョン'),'previousROM','history')+nativeAction(tr('更新前のセーブを書き出す'),'exportPrevious','saveExport'):''}</div>`;
+  api.sheet(game.name,gameInfoHero(game)+tr`<div class="native-options" aria-label="ゲームの設定">${api.preferenceSummary?.(game)||''}${groupedOptions(cells,api.settings().menuOrder)}${romActions}</div>`);
   $('#sheet').classList.add('native-menu','game-info');$('#sheet-cover').src=game.cover||'assets/controller.svg';$('#sheet-cover').hidden=false;
   $('#sheet-tools').innerHTML=tr`<button class="sheet-tool" id="game-info-button" aria-label="ゲーム情報">${icon('info')}</button><button class="sheet-tool" id="game-more-button" aria-label="その他の操作">${icon('more')}</button>`;
   $('#game-info-button').onclick=()=>info(game);$('#game-more-button').onclick=()=>more(game);
   api.bindSettings($('#sheet-body'));
-  bind({category:()=>api.showCategory(game),resetPreferences:()=>api.resetPreferences?.(game),switchCore:()=>chooseCore(game),play:()=>{api.closeSheet({dismiss:true});return api.launch(game);},safeMode:()=>safeMode(game),rename:()=>rename(game),cover:()=>coverDialog.open(game),gameSkin:()=>api.showSkins(game.system,game),states:()=>api.showStates(game),importSave:()=>api.importSave(game),exportSaved:()=>exportSave(game),cheats:()=>api.showCheats(game),controllers:api.showControllers,optionOrder:()=>sortOptions(game,cells),shortcuts:()=>shortcuts(game),copyLink:()=>copyLink(game),delete:()=>remove(game)});
+  bind({updateROM:()=>romDialog.open(game),restoreROM:()=>romDialog.open(game,{reattach:true}),detachROM:()=>romDialog.detach(game),previousROM:()=>romDialog.previous(game),exportPrevious:()=>romDialog.exportPrevious(game),category:()=>api.showCategory(game),resetPreferences:()=>api.resetPreferences?.(game),switchCore:()=>chooseCore(game),play:()=>{api.closeSheet({dismiss:true});return api.launch(game);},safeMode:()=>safeMode(game),rename:()=>rename(game),cover:()=>coverDialog.open(game),gameSkin:()=>api.showSkins(game.system,game),states:()=>api.showStates(game),importSave:()=>api.importSave(game),exportSaved:()=>exportSave(game),cheats:()=>api.showCheats(game),controllers:api.showControllers,optionOrder:()=>sortOptions(game,cells),shortcuts:()=>shortcuts(game),copyLink:()=>copyLink(game),delete:()=>remove(game)});
   $('.native-options').scrollTop=scrollTop;
  }
  return {show};

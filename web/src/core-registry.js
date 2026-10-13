@@ -20,5 +20,6 @@ export function defaultCore(game){return coreRegistry[game.system][0].key===core
 export function saveKey(game){return defaultCore(game)?game.id:game.id+'@'+coreFor(game).key;}
 export function cheatsFor(game){return defaultCore(game)?game.cheats||[]:game.coreCheats?.[coreFor(game).key]||[];}
 export function supportsGame(core,game){return game.size<=core.maxRom;}
+export function linkModes(game){return game&&coreFor(game).link?(game.system==='gba'?['room','local','usb']:['gb','gbc'].includes(game.system)?['local']:[]):[];}
 
 export function compatibleState(coreId,record){const from=record?.coreId||'mgba-rom64-link-v1';return from===coreId||Object.values(coreRegistry).flat().find(core=>core.id===coreId)?.compatibleStateIds?.includes(from)===true;}

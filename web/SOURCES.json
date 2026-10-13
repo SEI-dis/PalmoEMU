@@ -3,7 +3,7 @@
     "repository": "https://github.com/Manic-EMU/ManicEMU",
     "commit": "fbaeab79c214d5920bb51afa6f2d786fb2b12a58",
     "license": "AGPL-3.0-or-later",
-    "changes": "Web port of library/navigation, GameInfoView/detail/navigation/cover, GameOptionsView, SaveStateListView, ImportServiceListView and its motto/file/service/footer cells, SettingsListView/SettingItem and FlexSkinSettingViewController/FlexItemView layout editing. SkinSettingsView, SkinCollectionViewCell, AddSkinCollectionViewCell and SkinPreviewViewController guide the persistent skin library and separate preview. New browser storage/runtime adapters. Artwork is separately scoped: only the CC BY 4.0 skin allowlist under bundledSkins is included; other native artwork/logos are excluded. Modified 2026-10-13: NDSSaveConverter, FocusKit, ControllersSettingView and RomPatcherView interaction ports; original notices retained.",
+    "changes": "Web port of library/navigation, GameInfoView/detail/navigation/cover, GameOptionsView, SaveStateListView, ImportServiceListView and its motto/file/service/footer cells, SettingsListView/SettingItem and FlexSkinSettingViewController/FlexItemView layout editing. SkinSettingsView, SkinCollectionViewCell, AddSkinCollectionViewCell and SkinPreviewViewController guide the persistent skin library and separate preview. New browser storage/runtime adapters. Artwork is separately scoped: only the CC BY 4.0 skin allowlist under bundledSkins is included; other native artwork/logos are excluded. Modified 2026-10-13: NDSSaveConverter, FocusKit, ControllersSettingView and RomPatcherView interaction ports; original notices retained. Modified 2026-10-13 (0.3.24): individual state import/export follows SaveStateListView; DS lid interaction follows PlayViewController simLid at the same pinned commit. Original browser-only ROM migration, selective restoration and input-inspection modules retain AGPL licensing.",
     "referenceSource": "sources/manicemu-ui"
   },
   "mgba": {
@@ -51,6 +51,18 @@
       "file": "mgba/version.cmake",
       "beforeSha256": "f945337b5a3580ab535a1648e8e4dd294003e4480314c0dddf7ccf1a1bc362d1",
       "modifiedSha256": "e66695fc2a68cedb43a41e57df7d764619f2d46b384a4312c1aa27d586ab1c07"
+    },
+    "localLink": {
+      "modified": "2026-10-13",
+      "platforms": [
+        "gb",
+        "gbc"
+      ],
+      "driver": "https://github.com/pm-start/mGBA_celio_edition/blob/0ba86121bd92aa570d38301086d8e8f584238d62/src/gb/sio/lockstep.c",
+      "schedulerReference": "https://github.com/pm-start/mGBA_celio_edition/blob/0ba86121bd92aa570d38301086d8e8f584238d62/src/platform/qt/MultiplayerController.cpp",
+      "localBridge": "sources/mgba-web-port/gb-link.h",
+      "license": "MPL-2.0",
+      "changes": "Cooperative single-thread scheduling of two independent native mCore instances in one WASM module. ROM, RAM, RTC, peripherals and framebuffer remain separate. Browser confirmation commits both save owners atomically; no new network protocol. Original Jeffrey Pfau copyright/MPL notice retained; existing native save/state formats and IDs unchanged."
     }
   },
   "otherCores": {
@@ -153,12 +165,12 @@
     "cores/jgenesis/core_bg.wasm": "f4de98ee17a437c1190ba1e13a0483a1c0b4c5ff467e20ff248f01a4f368af93",
     "cores/md/core.js": "bb2fab117a8029d064342e6cf8095768514bfe6a9b6f569a9c634faacbc0e300",
     "cores/md/core.wasm": "3877035cbe389b9738a3f617aaeda1e63010d5aff37e2a0e8dced5e24486f091",
-    "cores/melonds/core.js": "799f57665dedca38172921664b76cc67311208f1a1a1c283ba2c9286f2b999fe",
-    "cores/melonds/core.wasm": "392767d97c5209b112f24f7f285e6836401caf0abf5a807d9b3f507ddb106e4b",
-    "cores/mgba/mgba.js": "f5fe34cc45c5e8d140a6aba79e0e1c2609543e628ab7b9b7e13979b0e3ada3b0",
-    "cores/mgba/mgba.wasm": "9063e80ab584b08cb70884616572974c12ca772e10fa38a6dac3d18554b53d97",
-    "cores/nds/core.js": "fb8e297ef7e0acdbf0c7d8e4df4210b539a6310a252fa286b927a5f03002a7db",
-    "cores/nds/core.wasm": "3a760d86d108b1147532b5dacee301679110c002b5d77bcdbd962110657fdeb9",
+    "cores/melonds/core.js": "25719a5678ec20664f81d8b2f10109a1f35db3db04dc79cbc8b25e56e961a3e4",
+    "cores/melonds/core.wasm": "6a3ec8e00334c4474a9c2ce0f86ffe2e8ecb737e5cb11dfcf2a2348edcfdf6de",
+    "cores/mgba/mgba.js": "9ee6e96e43685cec04e4c32359794e94af3f0a56dbaeec6fac0f1f52e97bebe6",
+    "cores/mgba/mgba.wasm": "6fc73034dd28806ef9836cd15a758696c28a1fe20ecb16c26a22ad9f8629de7f",
+    "cores/nds/core.js": "1f60f3ad71bc94f18276d7c27532689433644f782150519f1bd2343596b8e912",
+    "cores/nds/core.wasm": "53c3512e603df8581cee396ae9d8a7848541c3d4c3c3c5a7ab6f064178434160",
     "cores/nes/core.js": "cd3799a369fa1b87d6fd085cd8eaecac8289dc4305ec259b21715a60c5f66f67",
     "cores/nes/core.wasm": "72550ad6e81968b6b42cb68cad25f13e4feaab17e826c59b0127cf8284898c9e",
     "cores/snes/core.js": "1f127b5dd1995b8ed505607f98b0fbe3fc349628deff01bfee957be7b1efd814",
@@ -195,15 +207,15 @@
     "licenses/mGBA-compiled-file-notices.txt": "20f30f8ffa667bf9c9be26cd19de280415280e0c62762fbd1b99a8b1f448844d",
     "licenses/melonDS-GPL-3.0.txt": "0b383d5a63da644f628d99c33976ea6487ed89aaa59f0b3257992deac1171e6b",
     "licenses/musl-COPYRIGHT.txt": "f9bc4423732350eb0b3f7ed7e91d530298476f8fec0c6c427a1c04ade22655af",
-    "sources/alternate-build-evidence.json": "9dc511a61d015cbea1b250d82dfd5eb8b18ed068d85815f28430ab6f8d7fa030",
+    "sources/alternate-build-evidence.json": "b51e7cd3f7f58d4969148551cd29de24f1636753bcccb4de7f7d608adf8ab639",
     "sources/alternate-c-cores-source.tar.gz": "b3e06d71819d8951148b649093fa3af6f3758b8215f480f5b6dadbe34f992034",
-    "sources/alternate-web/BUILD.md": "41b6ed475c88b814b1bc0e237b6a97168b40ba4b93c623f5da3e228446cc4009",
-    "sources/alternate-web/CMakeLists.txt": "aba1bfd8ea89417ea683df247399b9eae5390bc537945d20d67be4418fa1fd67",
+    "sources/alternate-web/BUILD.md": "bd2383b6fde174280d1eb5141b65d7ad8b6c1a602f9d55d1c0e0e95cb2d3ae01",
+    "sources/alternate-web/CMakeLists.txt": "fa8efe89707ae12e7fdf21d5761faa8924fb114f8b57c922e7cd75ef63164bd5",
     "sources/alternate-web/DEPENDENCIES.json": "6b3746a6f99ece4a2a8f6840ae9e7a189ab3b5e9ae0444205c9d5075c350470e",
     "sources/alternate-web/battery.cpp": "52f9f71d55b34510b9de832dc1c70ccdb471eb73c2077d3c435ef1ac3cdd5982",
     "sources/alternate-web/gba-bridge.c": "a848d45253a7125d6cb645951abde1bd3f91884ae2c8dc7a900182ab285ef785",
-    "sources/alternate-web/nds-bridge.c": "a09f1b43d3a64eb70f6d4a6aba8aa402b75c958686f87f86198f94e4fd8394bb",
-    "sources/build-evidence.json": "f3efc3b214279616a8a10ffafb894bb7d295e511a35df82c149ee90de2549d3f",
+    "sources/alternate-web/nds-bridge.c": "5f7b33b7a5775748e821b9923d1e2c1c02ede6fe321bd04441324bf8ff446e17",
+    "sources/build-evidence.json": "621f716a7a273dc343327ef65dd1d378612f6593cd26fd055ca7fe738deededb",
     "sources/celio-device-source.tar.gz": "0c0a5e7e2b2ae0626fd011571e73cf4084f01172889e28a17b2f031ff3ded907",
     "sources/celio-server-source.tar.gz": "3297aebba1cce33c696f6e472fb41b437ae0181c329c9fe7f1f44ef9837278e6",
     "sources/celio-web-transport/celio-serial.js": "2562ad97ccde5abbb7a9562d2b62b6e6560ab49084fbe7a4061c0855a119c8ac",
@@ -248,15 +260,15 @@
     "sources/manicemu-ui/SkinSettingsView.swift": "7a66934a6309cfe69bafde672433e1a1080b4308ecc786a7f731884ad2e9e7a7",
     "sources/mgba-celio-rom64-source.tar.gz": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16",
     "sources/mgba-celio-web-source.tar.gz": "7d40fa0d7134ee877a1724de940b59957768fe05cf73c7e9c41b7d4079f566ba",
-    "sources/mgba-web-port/BUILD.md": "c4a369dc9f35b9322aecc2895c10e33d67c4d4b50a19918d05885aacfe93671b",
+    "sources/mgba-web-port/BUILD.md": "48fe977349eadaa1bf6bb0c9725b5b23c808f85bf8e301f665fcd1159ff9cc3a",
     "sources/mgba-web-port/CMakeLists.txt": "43b4e296249f68ed7f4b69176afd59ae1693a109f0c66db91ae5ecd9d0f3fee2",
-    "sources/mgba-web-port/bridge.c": "6608d3cc5ab8b5560a20a7ff6681a13acbbd0ab56b08bceb32bc22ae4480cb6e",
+    "sources/mgba-web-port/bridge.c": "c12e6291ddfc4e36bc85a3920173d87da797e100ba26ce101598f9c5ccf10a93",
     "sources/mgba-web-port/link.h": "afd65148934ff4ed99bb6a45df8400f967d0af02fcc1987de38fd8c86e4ee629",
-    "sources/nds-build-evidence.json": "9b8431d2a98b35733f4adfaa2cfd0e50a04d3c61c6875d86f4bd2f885b2b0ed8",
-    "sources/nds-web/BUILD.md": "ae80df0f91287de21f700bd95bfe657441c5e01d2e2c73c2a49e0a8eb20177cf",
-    "sources/nds-web/CMakeLists.txt": "bd856f7a3f2afc9b56b521a4ad7b24d398da35974ae3dd6bee28b4718cf412eb",
+    "sources/nds-build-evidence.json": "827935658af47236db6d213519bc706f3f76d2b9ce83ee7844c660f6d275535c",
+    "sources/nds-web/BUILD.md": "da4168052c8acad5d703a7db9e1196af7a2869106c609f13a655b19d8a5cfb40",
+    "sources/nds-web/CMakeLists.txt": "162601aeb6df05e4a4f1a52c87b266ea2f966894fc9c2547898a8ba9f1d4e472",
     "sources/nds-web/battery.cpp": "7c8d71adaa2405e908ee653c63463e66c32e90e46eb5c6743e28a30abf740c9d",
-    "sources/nds-web/bridge.c": "319e256bad206edc2c0555a952ae9eb147a99c9a6ead7a946a9c5cf7b1f20248",
+    "sources/nds-web/bridge.c": "f5511fc2aeccd50f840fcd6534d82f83e2828e988c8b2d5d0d410cc96cfbc547",
     "sources/pdfjs-build.json": "5e1287b2b3024e8088bd83d083c79eb14abaeab0b1a1d33ce5a0526e4363fb08",
     "sources/pdfjs-library-source.tar.gz": "36dd8bf703921388710997aa260b8fdae96696a6ae726864bab4631d0c2cb453",
     "vendor/pdfjs/pdf.mjs": "dd13af821c9c3e1778653340d6539a1ba07bc56cba40073a4c727864cf0c232a",
@@ -282,7 +294,11 @@
     "sources/manicemu-ui/FocusSystem.swift": "6e8e53e50feffaeb99d73da10268c89ac4a7d880b5f5b087de67539d21903768",
     "sources/manicemu-ui/NDSSaveConverter.swift": "ece392b87580d52315ae151b2a82c2ad05b67f72947f0cea43dc095a92b9b48c",
     "sources/manicemu-ui/RomPatcherView.swift": "e4dc81314bb81750baaefe77889963cde10b8bff5107363471ffd9b89fee16b6",
-    "src/pixel-transfer.js": "21d6b6646d1111f48f8ace522154ce0e5768e9c7e2c1a4ad3475fdd015edaa45"
+    "src/pixel-transfer.js": "21d6b6646d1111f48f8ace522154ce0e5768e9c7e2c1a4ad3475fdd015edaa45",
+    "sources/nds-web/lid.cpp": "9f6fff1656520afba496c2b454f7c7819a9dc2120c89781339191e49514b1127",
+    "sources/alternate-web/lid.cpp": "fcd916c8c502c6e4da54a41c7ebbc063aeb706bfd6ef8830a79b868fbaa8752c",
+    "sources/mgba-web-port/options.h": "c5c975d07444f6073d93a9536f94e7510ca9dced790a84bb49832b8be84f537a",
+    "sources/mgba-web-port/gb-link.h": "11794818a31e6a9328aa880f2d306b1038c46f9b83f67abb40793f68c87b258f"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",
@@ -677,6 +693,7 @@
     "reference": "https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/Play/VIewControllers/PlayViewController.swift#L3481",
     "authors": "Daiuno / Manic EMU",
     "license": "AGPL-3.0-or-later",
-    "changes": "Five-second simulated blowing interaction adapted to pinned DeSmuME L3/internal and melonDS L2/Blow Noise interfaces; boot-time firmware language. No microphone recording."
+    "changes": "Five-second simulated blowing interaction adapted to pinned DeSmuME L3/internal and melonDS L2/Blow Noise interfaces; boot-time firmware language. No microphone recording. Lid action adapted to DeSmuME L2 toggle/debounce and melonDS L3 held position, with actual hardware status. Existing core save/state ABI unchanged.",
+    "lidReference": "https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/Play/VIewControllers/PlayViewController.swift#L4422-L4430"
   }
 }

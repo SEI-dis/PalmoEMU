@@ -15,14 +15,14 @@
   "cores": {
     "nds": {
       "js": {
-        "sha256": "fb8e297ef7e0acdbf0c7d8e4df4210b539a6310a252fa286b927a5f03002a7db",
+        "sha256": "1f60f3ad71bc94f18276d7c27532689433644f782150519f1bd2343596b8e912",
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "3a760d86d108b1147532b5dacee301679110c002b5d77bcdbd962110657fdeb9",
+        "sha256": "53c3512e603df8581cee396ae9d8a7848541c3d4c3c3c5a7ab6f064178434160",
         "rebuildMatches": true
       }
     }
   },
-  "method": "Independent build from a separately extracted distribution archive and the updated DS bridge using the pinned toolchain; both JS/WASM match. Added boot-time language and simulated microphone APIs without changing serialized state or battery formats."
+  "method": "Independent build from a fresh separate extraction of the distributed source archive and the Web bridge using the pinned toolchain. Both JS/WASM match. Added hardware lid control via existing L2 without changing upstream core, battery or state format; authored ARM7 hinge test and bidirectional previous-release state import pass."
 }

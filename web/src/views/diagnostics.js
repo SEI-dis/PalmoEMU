@@ -17,7 +17,7 @@ export function createDiagnosticsView({sheet,download,toast}){
   find('#diagnostics-export').onclick=()=>{
    const data=diagnostics.snapshot();
    download(new TextEncoder().encode(JSON.stringify(data,null,2)+'\n'),'PalmoEMU-diagnostics-'+new Date().toISOString().replace(/[:.]/g,'-')+'.json');
-   toast(tr('診断ファイルを書き出しました。'));
+   toast(tr('ダウンロードを開始しました。'));
   };
   find('#diagnostics-clear').onclick=()=>{diagnostics.clear();showDiagnostics();toast(tr('診断記録を削除しました。'));};
  };

@@ -22,6 +22,17 @@ function privateFree(value){
   await page.evaluate(async()=>{window.diagnostics=(await import('./src/diagnostics.js')).diagnostics;});
   assert.equal(await page.evaluate(k=>localStorage.getItem(k),key),null,'Loading the app must not create diagnostic records');
   assert.deepEqual(await page.evaluate(()=>diagnostics.list()),[]);
+  const exportReport=async()=>{
+   const waiting=page.waitForEvent('download');await page.locator('#diagnostics-export').click();const download=await waiting,chunks=[];
+   assert.match(download.suggestedFilename(),/^PalmoEMU-diagnostics-.*\.json$/);
+   for await(const chunk of await download.createReadStream())chunks.push(chunk);
+   const bytes=Buffer.concat(chunks);assert.ok(bytes.length>0,'Diagnostic file is not empty');const report=JSON.parse(bytes.toString('utf8'));
+   privateFree(report);assert.equal(report.schemaVersion,1);assert.equal(await page.locator('#toast').textContent(),'ダウンロードを開始しました。');return report;
+  };
+  // Empty diagnostics are still exportable; opting in is not a prerequisite.
+  await page.locator('[data-tab=settings]').click();await page.locator('[data-action=diagnostics]').click();
+  assert.equal(await page.locator('#diagnostics-enabled').isChecked(),true);assert.deepEqual((await exportReport()).reports,[]);await page.locator('#close-sheet').click();
+
   const canaries=await page.evaluate(async marker=>{
    const db=await import('./src/storage.js'),id='diagnostic-data-canary';
    await db.addGame({id,name:marker,filename:marker+'.nds',system:'nds',size:4},new Uint8Array([41,42,43,44]));
@@ -67,16 +78,16 @@ function privateFree(value){
   await page.locator('[data-tab=settings]').click();await page.locator('[data-action=diagnostics]').click();
   assert.equal(await page.locator('#sheet-title').textContent(),'診断レポート');
   privateFree(JSON.parse(await page.locator('#diagnostics-preview').textContent()));
-  const waiting=page.waitForEvent('download');await page.locator('#diagnostics-export').click();const download=await waiting,chunks=[];
-  for await(const chunk of await download.createReadStream())chunks.push(chunk);
-  const exported=JSON.parse(Buffer.concat(chunks).toString('utf8'));privateFree(exported);assert.equal(exported.schemaVersion,1);assert.ok(exported.reports.length>0);
+  const exported=await exportReport();assert.ok(exported.reports.length>0);
   await page.locator('#diagnostics-enabled').uncheck();assert.equal(await page.evaluate(()=>diagnostics.isEnabled()),false);
   const disabledCount=await page.evaluate(()=>diagnostics.list().length);
   await page.evaluate(marker=>diagnostics.record(new Error(marker),'handled'),marker);
   assert.equal(await page.evaluate(()=>diagnostics.list().length),disabledCount,'Opt-out suppresses additional records');
+  const disabledExport=await exportReport();assert.equal(disabledExport.reports.length,disabledCount,'Opt-out leaves existing records exportable');
   await page.reload();await page.evaluate(async()=>{window.diagnostics=(await import('./src/diagnostics.js')).diagnostics;});assert.equal(await page.evaluate(()=>diagnostics.isEnabled()),false,'Opt-out survives reload');
   await page.locator('[data-tab=settings]').click();await page.locator('[data-action=diagnostics]').click();
   await page.locator('#diagnostics-clear').click();await page.waitForFunction(()=>diagnostics.list().length===0);
+  assert.equal(await page.locator('#diagnostics-enabled').isChecked(),false);assert.deepEqual((await exportReport()).reports,[],'Zero records export while collection remains disabled');
   const preserved=await page.evaluate(async({id,marker})=>{const db=await import('./src/storage.js');return {rom:[...await db.get('roms',id)],save:[...(await db.get('saves',id)).bytes],name:(await db.get('library',id)).name,unrelated:localStorage.getItem('diagnostic-unrelated'),enabled:diagnostics.isEnabled()};},{id:canaries.id,marker});
   assert.deepEqual(preserved,{rom:[41,42,43,44],save:[7,9,13],name:marker,unrelated:marker,enabled:false});
   assert.equal(await page.evaluate(()=>diagnosticConnections),0,'Diagnostics must not open WebSocket or WebRTC connections');
@@ -98,6 +109,6 @@ function privateFree(value){
    // Edge opens its internal download UI after the explicit local JSON export.
    if(url.protocol==='edge:')continue;
    assert.equal(url.origin,new URL(base).origin,'Unexpected network URL: '+request.url);assert.equal(url.search,'');assert.ok(['GET','HEAD'].includes(request.method));assert.equal(request.body,0);assert.ok(!request.url.includes(marker));}
-  console.log('PASS: local bounded diagnostics, caught/uncaught/rejection capture, reload persistence, deduplication, poisoned-storage redaction, opt-out, safe storage failure, private-free JSON export, data-preserving clear, and no upload/network connection.');
+  console.log('PASS: local bounded diagnostics, caught/uncaught/rejection capture, reload persistence, deduplication, poisoned-storage redaction, opt-out, safe storage failure, private-free JSON export with recording on/off and zero records, data-preserving clear, and no upload/network connection.');
  }finally{await browser.close();}
 })().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

@@ -13,7 +13,7 @@ export const gameOptionGroups=[
  ['switchCore'],
  ['cheatCode','manual','cartridge'],
  ['saveState','quickLoadState','volume','volumeLevel','fastForward','preservePitch','shaders','screenShot',
-  'rewindEnabled','rewind','haptic','controllerSetting','deadZone','swapScreen','frameLimit','hideControls','screenScaling','showFps','netplay','fullScreen','reload','quit'],
+  'rewindEnabled','rewind','haptic','controllerSetting','deadZone','swapScreen','frameLimit','hideControls','cameraButton','screenScaling','showFps','netplay','fullScreen','reload','quit'],
  ['gameOptionSort','gameShortcut'],
  ['copyLink'],
  ['delete']
@@ -36,7 +36,8 @@ export function gamePlaySummary(game){
 }
 // GameInfoDetailView's pinned title/subtitle/play/safe-mode block.
 export function gameInfoHero(game){
- return tr`<header class="game-info-hero"><div class="game-info-title"><h2>${esc(game.name)}</h2><button data-action="rename" aria-label="名前を変更">${icon('pencil')}</button></div><p class="game-info-subtitle">${icon('starCircle')}<span>${gamePlaySummary(game)}</span></p><button class="game-info-play" data-action="play">${icon('play')}<span>プレイ</span></button><button class="game-info-safe" data-action="safeMode">セーフモード ${icon('arrowUpRight')}</button></header>`;
+ const play=game.romMissing?tr`<button class="game-info-play" data-action="restoreROM">${icon('import')}<span>ROMを追加</span></button>`:tr`<button class="game-info-play" data-action="play">${icon('play')}<span>プレイ</span></button><button class="game-info-safe" data-action="safeMode">セーフモード ${icon('arrowUpRight')}</button>`;
+ return tr`<header class="game-info-hero"><div class="game-info-title"><h2>${esc(game.name)}</h2><button data-action="rename" aria-label="名前を変更">${icon('pencil')}</button></div><p class="game-info-subtitle">${icon('starCircle')}<span>${gamePlaySummary(game)}</span></p>${play}</header>`;
 }
 export const stateDate=at=>{const date=new Date(at);return `<time datetime="${date.toISOString()}">${esc(date.toLocaleDateString(locale()))}<span>${esc(date.toLocaleTimeString(locale(),{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}))}</span></time>`;};
 

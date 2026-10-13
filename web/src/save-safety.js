@@ -3,6 +3,7 @@ import {tr} from './i18n/index.js';
 import * as db from './storage.js';
 import {saveKey,coreFor,compatibleState} from './core-registry.js';
 import {hash} from './shared.js';
+import {assertHistoryRecord} from './save-history.js';
 export class SaveProtection {
  constructor(onStatus){this.onStatus=onStatus;this.queue=Promise.resolve();this.stateAt=0;}
  async open(game,coreId){
@@ -15,6 +16,7 @@ export class SaveProtection {
   });
   try{
    const fresh=await db.get('library',game.id);if(fresh&&coreFor(fresh).key!==coreFor(game).key)throw Error(tr('コア設定が変更されました。ゲームを開き直してください。'));
+   if(fresh?.romMissing)throw Error(tr('ROMが取り外されています。同じROMを追加してください。'));
    this.game=game;this.storageKey=saveKey(game);this.coreId=coreId;this.id=crypto.randomUUID();this.stateAt=0;
    const previous=await db.get('sessions',this.storageKey);
    const recoveries=await db.get('recoveries',this.storageKey)||[];
@@ -37,6 +39,9 @@ export class SaveProtection {
     const save=bytes?{bytes,at,hash:await hash(bytes),coreId,reason}:null;
     let recovery=null;
     if(state){let image;try{image=core.screenshot?.();}catch{}recovery={bytes:state,hash:await hash(state),save:bytes,saveHash:save?.hash||null,at,coreId,sessionId:session,image};}
+    // An unsupported oversized checkpoint must not block the game's ordinary
+    // battery save, nor replace a previously usable recovery record.
+    if(recovery){try{assertHistoryRecord(recovery);}catch(e){stateError=e;recovery=null;}}
     await db.commitProtection(storageKey,session,save,recovery,clean&&!stateError);
     if(recovery)this.stateAt=at;
     this.status={at:save?at:this.status?.at||0,stateAt:recovery?at:this.status?.stateAt||0};

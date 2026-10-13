@@ -62,7 +62,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
    const game=await db.get('library',a);game.name='Latest renamed game';game.favorite=false;game.category='backlog';await db.put('library',a,game);
    for(const id of [fixture.b,fixture.canary])await db.put('library',id,{...await db.get('library',id),favorite:true,category:'backlog'});
    localStorage.setItem('manic-settings',JSON.stringify({theme:'dark',volume:.6,skins:{gba:'SKIN_PRIVATE_CANARY'}}));
-   const before=await db.readBackupData();window.beforeRestore=before;const plan=await backup.inspectBackup(original.text);const result=await backup.restoreBackup(plan,{settings:{theme:'dark',volume:.6}});
+   const before=await db.readBackupData();window.beforeRestore=before;const plan=await backup.inspectBackup(original.text);const result=await backup.restoreBackup(plan,{settings:{theme:'dark',volume:.6},includeSettings:true});
    const previous=await backup.previousBackup();return {result,previous:previous.archive,game:await db.get('library',a),other:await db.get('library',fixture.b),unclassified:await db.get('library',fixture.canary),save:[...(await db.get('saves',a)).bytes],oldState:await db.has('states',a+':newer'),rom:[...await db.get('roms',a)],session:await db.get('sessions',a),skin:await db.get('skins','skin-canary'),catalog:await db.get('coverCatalogs','cover-canary'),diagnostics:localStorage.getItem('palmo-diagnostics-v1'),unrelated:localStorage.getItem('unrelated')};
   });
   assert.equal(restored.result.games,3);assert.deepEqual(restored.save,[1,2,3]);assert.equal(restored.oldState,false);assert.equal(restored.game.name,'Latest renamed game');assert.equal(restored.game.favorite,true);assert.equal(restored.game.cover,'COVER_PRIVATE_CANARY');assert.deepEqual(restored.game.preferences,{volume:.2,speed:2});assert.equal(restored.rom.length,16);assert.ok(restored.rom.every(n=>n===211));assert.equal(restored.session.id,'SESSION_PRIVATE_CANARY');assert.equal(restored.skin.private,'SKIN_BYTES_PRIVATE_CANARY');assert.equal(restored.catalog.private,'CATALOG_PRIVATE_CANARY');assert.equal(restored.diagnostics,'DIAGNOSTICS_PRIVATE_CANARY');assert.equal(restored.unrelated,'LOCAL_CANARY');
@@ -77,18 +77,18 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   const legacy=await page.evaluate(async()=>{
    const source=structuredClone(original.archive);for(const game of source.games){delete game.category;delete game.favorite;}
    const {a}=fixture;await db.put('library',a,{...await db.get('library',a),category:'backlog',favorite:true});
-   const restore=async data=>backup.restoreBackup(await backup.inspectBackup(JSON.stringify(data)),{settings});
+   const restore=async data=>backup.restoreBackup(await backup.inspectBackup(JSON.stringify(data)),{settings,includeSettings:true});
    const metadata=async()=>{const game=await db.get('library',a);return {category:game.category,favorite:game.favorite};};
    await restore(source);const absent=await metadata();
    const categoryOnly=structuredClone(source);categoryOnly.games.find(game=>game.id===a).category='';await restore(categoryOnly);const category=await metadata();
    await db.put('library',a,{...await db.get('library',a),category:'completed'});
    const favoriteOnly=structuredClone(source);favoriteOnly.games.find(game=>game.id===a).favorite=false;await restore(favoriteOnly);const favorite=await metadata();
-   await backup.restoreBackup(await backup.inspectBackup(original.text),{settings});return {absent,category,favorite};
+   await backup.restoreBackup(await backup.inspectBackup(original.text),{settings,includeSettings:true});return {absent,category,favorite};
   });assert.deepEqual(legacy,{absent:{category:'backlog',favorite:true},category:{category:undefined,favorite:true},favorite:{category:'completed',favorite:false}});
   // Unavailable games are previewed and skipped, never made into ghost entries.
   const missing=await page.evaluate(async()=>{
    const source=structuredClone(original.archive);source.games=source.games.filter(g=>g.id===fixture.a);source.records=source.records.filter(r=>r.key.startsWith(fixture.a));source.games.push({...source.games[0],id:fixture.missing});source.records.push({store:'saves',key:fixture.missing,value:source.records.find(r=>r.store==='saves'&&r.key===fixture.a).value});
-   const plan=await backup.inspectBackup(JSON.stringify(source));window.partial=JSON.stringify(source);await backup.restoreBackup(plan,{settings});return {matched:plan.matched,missing:plan.missing,library:await db.has('library',fixture.missing),rom:await db.has('roms',fixture.missing),save:await db.has('saves',fixture.missing),canary:[...(await db.get('saves',fixture.canary)).bytes]};
+   const plan=await backup.inspectBackup(JSON.stringify(source));window.partial=JSON.stringify(source);await backup.restoreBackup(plan,{settings,includeSettings:true});return {matched:plan.matched,missing:plan.missing,library:await db.has('library',fixture.missing),rom:await db.has('roms',fixture.missing),save:await db.has('saves',fixture.missing),canary:[...(await db.get('saves',fixture.canary)).bytes]};
   });assert.deepEqual(missing,{matched:1,missing:1,library:false,rom:false,save:false,canary:[51,52]});
   const invalid=await page.evaluate(async()=>{
    const cases=[a=>a.extra='ROM',a=>a.version=99,a=>a.games[0].system='nes',a=>a.games[0].size++,a=>a.games.push(a.games[0]),a=>a.settings.remoteUrl='https://example.invalid',a=>a.settings.speed=42,a=>a.games[0].preferences={volume:5},a=>a.records[0].value.hash='f'.repeat(64),a=>a.records[0].value.coreId='unknown-core',a=>a.records[0].value.bytes='AA=A',a=>a.records[0].key='../../roms',a=>a.records.push(a.records[0]),a=>a.records[0].value.image='https://example.invalid',a=>a.records[0].store='roms',a=>a.records.find(r=>r.store==='states').value.saveHash='f'.repeat(64),a=>a.records[0].value.at=-1];
@@ -98,20 +98,20 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   });assert.ok(invalid.every(Boolean),'Every corrupt/unknown/mismatched archive rejected');
   const changedAfterPreview=await page.evaluate(async()=>{
    const plan=await backup.inspectBackup(original.text),game=await db.get('library',fixture.a),save=await db.get('saves',fixture.a);await db.put('library',fixture.a,{...game,size:game.size+1});
-   let rejected=false;try{await backup.restoreBackup(plan,{settings});}catch(e){rejected=/ゲーム一覧が変わりました/.test(e.message);}finally{await db.put('library',fixture.a,game);}
+   let rejected=false;try{await backup.restoreBackup(plan,{settings,includeSettings:true});}catch(e){rejected=/ゲーム一覧が変わりました/.test(e.message);}finally{await db.put('library',fixture.a,game);}
    return {rejected,same:(await db.get('saves',fixture.a)).hash===save.hash};
   });assert.deepEqual(changedAfterPreview,{rejected:true,same:true});
   const large=await page.evaluate(async()=>{try{await backup.inspectBackup(new Blob([new Uint8Array(backup.backupLimits.file+1)]));return false;}catch(e){return /192/.test(e.message);}});assert.equal(large,true);
   // A distinct tab holding an actual Web Lock blocks before the first write.
   const other=await context.newPage();await other.goto(base);await other.evaluate(id=>{window.held=false;window.task=navigator.locks.request('local-game:'+id,async()=>{window.held=true;await new Promise(resolve=>window.release=resolve);});},fixture.a);await other.waitForFunction(()=>held);
-  const locked=await page.evaluate(async()=>{const plan=await backup.inspectBackup(original.text);try{await backup.restoreBackup(plan,{settings});return false;}catch(e){return /プレイ中/.test(e.message);}});assert.equal(locked,true);await other.evaluate(async()=>{release();await task;});await other.close();
+  const locked=await page.evaluate(async()=>{const plan=await backup.inspectBackup(original.text);try{await backup.restoreBackup(plan,{settings,includeSettings:true});return false;}catch(e){return /プレイ中/.test(e.message);}});assert.equal(locked,true);await other.evaluate(async()=>{release();await task;});await other.close();
   // Deliberate mid-transaction failure must roll back metadata, deleted/inserted
   // states, saves, previous snapshot AND pending settings together.
   const rollback=await page.evaluate(async()=>{
    const plan=await backup.inspectBackup(original.text),before=await backup.createBackup(settings),previous=await backup.previousBackup(),oldSettings=localStorage.getItem('manic-settings');
    const real=IDBObjectStore.prototype.put;let injected=false;
    IDBObjectStore.prototype.put=function(...args){if(this.name==='states'&&!injected){injected=true;throw new DOMException('synthetic quota','QuotaExceededError');}return real.apply(this,args);};
-   let rejected=false;try{await backup.restoreBackup(plan,{settings});}catch{rejected=true;}finally{IDBObjectStore.prototype.put=real;}
+   let rejected=false;try{await backup.restoreBackup(plan,{settings,includeSettings:true});}catch{rejected=true;}finally{IDBObjectStore.prototype.put=real;}
    const after=await backup.createBackup(settings),afterPrevious=await backup.previousBackup();
    return {injected,rejected,same:JSON.stringify(before.archive.records)===JSON.stringify(after.archive.records)&&JSON.stringify(before.archive.games)===JSON.stringify(after.archive.games),previousSame:JSON.stringify(previous.archive.records)===JSON.stringify(afterPrevious.archive.records),settingsSame:oldSettings===localStorage.getItem('manic-settings'),pending:await db.has('coverCatalogs',db.backupMetadataPrefix+'pending')};
   });assert.deepEqual(rollback,{injected:true,rejected:true,same:true,previousSame:true,settingsSame:true,pending:false});
@@ -119,7 +119,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   const journal=await page.evaluate(async()=>{
    const plan=await backup.inspectBackup(original.text),real=Storage.prototype.setItem;let calls=0,rejected=false;
    Storage.prototype.setItem=function(key,value){if(key==='manic-settings'&&++calls===2)throw new DOMException('synthetic quota','QuotaExceededError');return real.call(this,key,value);};
-   try{await backup.restoreBackup(plan,{settings});}catch(e){rejected=/設定を保存できません/.test(e.message);}finally{Storage.prototype.setItem=real;}
+   try{await backup.restoreBackup(plan,{settings,includeSettings:true});}catch(e){rejected=/設定を保存できません/.test(e.message);}finally{Storage.prototype.setItem=real;}
    const pending=await db.has('coverCatalogs',db.backupMetadataPrefix+'pending');await backup.applyPendingBackupSettings();return {rejected,pending,done:!await db.has('coverCatalogs',db.backupMetadataPrefix+'pending'),theme:JSON.parse(localStorage.getItem('manic-settings')).theme};
   });assert.deepEqual(journal,{rejected:true,pending:true,done:true,theme:'light'});
   // Real view: selection only previews, confirmation is a separate user action.

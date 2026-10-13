@@ -26,7 +26,7 @@ function layout(value){
  if(!plain(value))return {};const result={};
  for(const direction of ['portrait','landscape'])if(plain(value[direction])){
   const entries={};for(const [id,item] of Object.entries(value[direction]).slice(0,64)){
-   if(!/^(?:screen(?:-(?:main|sub))?|dpad|[abclrxysz]+(?:\+[abclrxysz]+)*|start|select|quick-save|quick-load|player-menu|boost)$/.test(id)||!plain(item))continue;
+   if(!/^(?:screen(?:-(?:main|sub))?|dpad|[abclrxysz]+(?:\+[abclrxysz]+)*|start|select|quick-save|quick-load|player-menu|player-camera|boost)$/.test(id)||!plain(item))continue;
    const clean={};for(const key of ['x','y','opacity','scale'])if(Number.isFinite(item[key])&&item[key]>=0&&item[key]<=(key==='scale'?2:1))clean[key]=item[key];
    entries[id]=clean;
   }result[direction]=entries;
@@ -65,7 +65,7 @@ function recordCore(record,games){
  if(!dataStores.includes(record.store)||typeof record.key!=='string'||record.key.length>180)fail();
  const [slot,...tail]=record.key.split(':');if(tail.length>1||(record.store==='states'?tail.length!==1||!/^[a-zA-Z0-9_-]{1,80}$/.test(tail[0]||''):tail.length!==0))fail(tr('保存先の形式が正しくありません。'));
  const parts=slot.split('@'),game=games.get(parts.shift());if(!game)fail(tr('ゲームに対応しない保存データがあります。'));
- if(parts[0]==='link-2p'){if(game.system!=='gba')fail(tr('2Pセーブの機種が正しくありません。'));parts.shift();}
+ if(parts[0]==='link-2p'){if(!['gba','gb','gbc'].includes(game.system))fail(tr('2Pセーブの機種が正しくありません。'));parts.shift();}
  if(parts.length>1)fail();const core=parts.length?coreRegistry[game.system].find(c=>c.key===parts[0]):coreRegistry[game.system][0];if(!core)fail(tr('未対応の保存用コアです。'));return core;
 }
 function rawBytes(value){if(value instanceof Uint8Array)return value;if(value instanceof ArrayBuffer)return new Uint8Array(value);fail(tr('保存データを読めませんでした。'));}
@@ -118,31 +118,36 @@ async function inspect(input){
    const value={...item,bytes};if(state){if(item.save===null&&item.saveHash===null)value.save=null;else{if(!validHash(item.saveHash))fail();value.save=unbase64(item.save,budget);if(value.save.length>core.maxSave||await hash(value.save)!==item.saveHash)fail(tr('ステート内のセーブの検証に失敗しました。'));}}output.push(value);
   }records.push({...record,value:history?output:output[0]});
  }
- const local=await db.all('library'),localMap=new Map(local.map(g=>[g.id,g])),matched=[],missing=[];
- for(const game of games){const target=localMap.get(game.id);if(target&&(target.system!==game.system||target.size!==game.size))fail(tr('同じ識別子のゲーム情報が一致しません。'));if(target&&await db.has('roms',game.id))matched.push(game);else missing.push(game);}
- const plan=Object.freeze({matched:matched.length,missing:missing.length,records:records.length,bytes:budget.total,createdAt:archive.createdAt});
- plans.set(plan,{games:matched,records:records.filter(r=>matched.some(g=>r.key.split(/[@:]/,1)[0]===g.id)),settings});return plan;
+ const local=await db.readBackupData({summary:true}),localMap=new Map(local.games.map(g=>[g.id,g])),matched=[],missing=[];
+ for(const game of games){const target=localMap.get(game.id);if(target&&(target.system!==game.system||target.size!==game.size))fail(tr('同じ識別子のゲーム情報が一致しません。'));if(target&&(target.romMissing===true||await db.has('roms',game.id)))matched.push(game);else missing.push(game);}
+ const byGame=list=>{const result=new Map();for(const record of list){const id=record.key.split(/[@:]/,1)[0],row=result.get(id)||{at:0,count:0};for(const value of Array.isArray(record.value)?record.value:[record.value])row.at=Math.max(row.at,value.at||0);row.count++;result.set(id,row);}return result;};
+ const current=byGame(local.records),incoming=byGame(records),rows=matched.map(game=>Object.freeze({id:game.id,name:localMap.get(game.id).name||game.system.toUpperCase(),system:game.system,currentAt:current.get(game.id)?.at||0,backupAt:incoming.get(game.id)?.at||0,records:incoming.get(game.id)?.count||0,romMissing:localMap.get(game.id).romMissing===true}));
+ const plan=Object.freeze({matched:matched.length,missing:missing.length,records:records.length,bytes:budget.total,createdAt:archive.createdAt,games:Object.freeze(rows)});
+ const ids=new Set(matched.map(game=>game.id));plans.set(plan,{games:matched,records:records.filter(r=>ids.has(r.key.split(/[@:]/,1)[0])),settings});return plan;
 }
 const plans=new WeakMap();
-async function withLocks(callback){
+async function withLocks(callback,gameIds){
  if(!navigator.locks)fail(tr('復元にはWeb Locks対応の最新版ブラウザが必要です。'));
  return navigator.locks.request('palmo-backup-restore',{ifAvailable:true},async lock=>{
   if(!lock)fail(tr('別のタブで復元中です。完了してからやり直してください。'));
-  const names=[...new Set((await db.all('library')).map(g=>'local-game:'+g.id))].sort();
+  const names=[...new Set((gameIds||(await db.all('library')).map(g=>g.id)).map(id=>'local-game:'+id))].sort();
   const next=i=>i===names.length?callback():navigator.locks.request(names[i],{ifAvailable:true},gameLock=>{if(!gameLock)fail(tr('別のタブでプレイ中です。終了してからやり直してください。'));return next(i+1);});return next(0);
  });
 }
-async function restore(plan,{settings={}}={}){
+async function restore(plan,{settings={},gameIds,includeSettings=false}={}){
  const data=plans.get(plan);if(!data)fail(tr('ファイルを選び直してください。'));
+ if(typeof includeSettings!=='boolean'||gameIds!==undefined&&(!Array.isArray(gameIds)||gameIds.some(id=>!data.games.some(game=>game.id===id))))fail(tr('復元するゲームを選び直してください。'));
+ const ids=new Set(gameIds===undefined?data.games.map(game=>game.id):gameIds),selected={games:data.games.filter(game=>ids.has(game.id)),records:data.records.filter(record=>ids.has(record.key.split(/[@:]/,1)[0]))};
+ if(!ids.size&&!includeSettings)fail(tr('復元するゲームか共通設定を選んでください。'));
  return withLocks(async()=>{
   if(await db.get('coverCatalogs',pendingKey))fail(tr('前回の設定の復元を完了してからやり直してください。'));
   // Probe the actual browser persistence before starting a data replacement.
-  const old=localStorage.getItem(settingsKey);localStorage.setItem(settingsKey,old??'{}');if(old===null)localStorage.removeItem(settingsKey);
-  if(!data.games.length&&data.records.length)fail(tr('復元できるゲームがありません。'));
+  let old=null;try{old=localStorage.getItem(settingsKey);}catch(e){if(includeSettings)throw e;}
+  if(includeSettings){localStorage.setItem(settingsKey,old??'{}');if(old===null)localStorage.removeItem(settingsKey);}
   let previousSettings=settings;try{previousSettings=JSON.parse(old)||settings;}catch{}
-  await db.restoreBackupData({...data,previousSettings:sanitizeBackupSettings(previousSettings),cleanGame,cleanRecord,maxBytes:backupLimits.bytes});
-  plans.delete(plan);await applyPending();return {games:data.games.length,records:data.records.length,settings:data.settings};
- });
+  await db.restoreBackupData({...selected,settings:includeSettings?data.settings:undefined,previousSettings:sanitizeBackupSettings(previousSettings),cleanGame,cleanRecord,maxBytes:backupLimits.bytes});
+  plans.delete(plan);if(includeSettings)await applyPending();return {games:selected.games.length,records:selected.records.length,settings:includeSettings?data.settings:null};
+ },includeSettings?undefined:[...ids]);
 }
 async function applyPending(){
  const pending=await db.get('coverCatalogs',pendingKey);if(!pending)return false;

@@ -635,3 +635,33 @@ update download and activation stages before safe app actions, retaining
 shared version locks and two-phase activation across tabs. No game/save data
 or analytics is transmitted. Game startup pauses emulation until a stored
 save has been verified and restored.
+
+Modified 2026-10-13 (0.3.24): ROM update/save copying, ROM-only removal,
+selective backup restoration and the portable state envelope are original
+AGPL-3.0-or-later Web implementations. Individual state selection/import/export
+follows the behavior of ManicEMU SaveStateListView; existing source attribution,
+authors, original Swift references and license texts are retained. DS lid control
+follows the simLid operation in ManicEMU PlayViewController.swift at the pinned
+fbaeab79c214d5920bb51afa6f2d786fb2b12a58 revision (lines 4422–4430), adapted
+to the distributed DeSmuME 2015 and melonDS libretro interfaces. The modified
+DS bridges remain AGPL-3.0-or-later. The underlying DeSmuME and melonDS cores
+retain their original GPL notices and corresponding sources.
+
+GB/GBC local link uses the pinned mGBA GBSIOLockstep implementation through
+an MPL-2.0 wrapper in sources/mgba-web-port/gb-link.h adapted from
+mGBA MultiplayerController.cpp, retaining Jeffrey Pfau's copyright notice. This keeps both
+instances inside one WASM module; no network service or new dependency is
+introduced. Standard-skin touch options and ROM-free input tests are original
+AGPL-3.0-or-later code. Imported artwork and its authored geometry are unchanged.
+No ROMs, saves, BIOS files, third-party artwork or new network endpoints are
+included in these changes. The changed core build evidence, preservation tests
+and distribution review are recorded with this release.
+
+
+Modified 2026-10-13 (0.3.24): the common camera shortcut, placement helper
+and camera SVG path are original AGPL-3.0-or-later work. They reuse the
+existing game-image capture and control-layout editor, preserving its
+ManicEMU attribution. Captured images are downloaded locally; no user
+image, ROM or save is uploaded. Imported skin assets are not modified.
+
+0.3.24では保存履歴の合計サイズ制限と、IndexedDBの同期書き込み失敗時の全体取消を追加しました。既存の保存形式・コア形式を変えないオリジナルのWeb側修正です。

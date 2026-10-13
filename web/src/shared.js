@@ -16,6 +16,7 @@ export function escapeHTML(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp
 export const bytesLabel=n=>n>=1048576?`${(n/1048576).toFixed(n%1048576?1:0)} MB`:`${Math.ceil(n/1024)} KB`;
 export async function hash(bytes){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),n=>n.toString(16).padStart(2,'0')).join('');}
 const paths={
+ camera:'M3 6h4l2-3h6l2 3h4v15H3V6Zm9 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z',
  wifi:'M2 8a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0m-11 4a6 6 0 0 1 8 0m-4 4h.01',
  copy:'M9 8h11v13H9V8ZM5 16H3V3h11v2',
  info:'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18ZM12 11v6m0-10h.01',

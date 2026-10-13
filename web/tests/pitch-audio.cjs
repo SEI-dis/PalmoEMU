@@ -95,7 +95,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
   // Old backups remain readable, but their false value cannot disable audio
   // preservation after the restored settings are applied on the next launch.
-  await page.evaluate(async()=>{const backup=await import('./src/backup.js'),settings={speed:4,volume:.4,preservePitch:false,autosave:false,recovery:false};const saved=await backup.createBackup(settings),plan=await backup.inspectBackup(saved.text);await backup.restoreBackup(plan,{settings});});
+  await page.evaluate(async()=>{const backup=await import('./src/backup.js'),settings={speed:4,volume:.4,preservePitch:false,autosave:false,recovery:false};const saved=await backup.createBackup(settings),plan=await backup.inspectBackup(saved.text);await backup.restoreBackup(plan,{settings,includeSettings:true});});
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('manic-settings')).preservePitch),false,'The fixture restored a real legacy false value');
   assert.equal(await page.evaluate(async()=>(await (await import('./src/storage.js')).all('library'))[0].preferences.preservePitch),false,'Legacy per-game data remains readable');
   await page.reload();await page.locator('.game-launch').waitFor();await instrument();await page.locator('.game-launch').click();assert.equal(await pitch.count(),0);await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});

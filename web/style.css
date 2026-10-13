@@ -196,3 +196,9 @@ dialog.control-edit{width:min(1000px,calc(100% - 16px - env(safe-area-inset-left
 .row:has(#patch-rom,#patch-file){display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.row:has(#patch-rom,#patch-file)>span{grid-column:1}.row input[type=file]{width:100%;min-width:0;font:inherit;font-size:13px;color:var(--secondary)}.row input[type=file]::file-selector-button{border:0;border-radius:8px;padding:9px 12px;margin-right:8px;background:var(--raised);color:var(--text);font:inherit}
 .row.clock-field{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.clock-field input{width:100%;min-width:0;max-width:100%;font:inherit;color:var(--text);background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:9px}
 .row:has([data-sensor]){display:flex!important;flex-direction:column;align-items:stretch;gap:8px}.row [data-sensor]{width:100%!important;max-width:none!important}
+
+/* Original common camera shortcut and imported-skin layout preview. */
+.player-camera{position:absolute;z-index:17;padding:0;background:#222b;color:#fff;border:1px solid #fff5;border-radius:50%;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.player-camera svg{width:58%;height:58%}.edit-tool svg,.skin-mini-tool svg{width:65%;height:65%}.edit-imported-background{position:absolute;inset:0;pointer-events:none;z-index:0}.edit-imported-art{position:absolute;background-size:100% 100%;background-repeat:no-repeat}.edit-imported-background .skin-mini-screen{position:absolute}.edit-preview:has(.edit-imported-background) .edit-control{z-index:1}.edit-preview:has(.edit-imported-background) .edit-resize{z-index:2}
+.skin-mini-tool[data-control=player-camera]{z-index:2}
+
+.player-camera.camera-moving{background:var(--accent);outline:3px solid #fff;outline-offset:3px;box-shadow:0 0 0 7px #0008;cursor:grabbing}.player-camera.camera-moving:active{transform:none}

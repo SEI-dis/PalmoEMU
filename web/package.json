@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.23",
+  "version": "0.3.24",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
@@ -22,6 +22,7 @@
     "prepare:release": "python -B scripts/prepare-release.py",
     "check:release": "node scripts/check-release.cjs",
     "test:save": "node tests/save-safety.cjs",
+    "test:save-history-limits": "node tests/save-history-limits.cjs",
     "test:state-ui": "node tests/state-ui.cjs",
     "test:skins": "node tests/skins.cjs",
     "test:bundled-skins": "node tests/bundled-skins.cjs",
@@ -81,7 +82,16 @@
     "test:nds-options": "node tests/nds-options.cjs",
     "test:nds-options-core": "node tests/nds-options-core.cjs",
     "test:nds-options-browser": "node tests/nds-options-browser.cjs",
-    "test:rom-zip": "node tests/rom-zip.cjs"
+    "test:rom-zip": "node tests/rom-zip.cjs",
+    "test:rom-update": "node tests/rom-update.cjs",
+    "test:backup-selection": "node tests/backup-selection.cjs",
+    "test:state-transfer": "node tests/state-transfer.cjs",
+    "test:gb-link-core": "node tests/gb-link-core.cjs",
+    "test:gb-local-link": "node tests/gb-local-link.cjs",
+    "test:input-test": "node tests/input-test.cjs",
+    "test:nds-lid-core": "node tests/nds-lid-core.cjs",
+    "test:nds-lid-browser": "node tests/nds-lid-browser.cjs",
+    "test:camera": "node tests/camera.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

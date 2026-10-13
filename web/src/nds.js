@@ -47,6 +47,9 @@ export class NDSCore extends MGBACore {
  setNDSOptions({ndsLanguage='default'}={}){this.ndsLanguage=ndsLanguages.includes(ndsLanguage)?ndsLanguage:'default';}
  get supportsNDSLanguage(){return typeof this.m?._web_set_language==='function';}
  get canBlow(){return !this.closed&&typeof this.m?._web_blow==='function';}
+ get canSetLid(){return !this.closed&&typeof this.m?._web_set_lid==='function'&&typeof this.m?._web_get_lid==='function';}
+ get lidClosed(){return this.canSetLid&&!!this.m._web_get_lid();}
+ setLidClosed(closed){if(!this.canSetLid)return false;this.stopBlowing();this.pointer=null;this.releaseTouch();return !!this.m._web_set_lid(closed?1:0);}
  // ManicEMU's simBlowing action uses a five-second synthetic microphone input.
  // The C adapters map this to each pinned core's public libretro input; no
  // microphone permission, device recording or network request is involved.

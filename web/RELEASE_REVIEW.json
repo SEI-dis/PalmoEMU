@@ -1,20 +1,20 @@
 {
   "reviewedOn": "2026-10-13",
   "status": "ready",
-  "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices. Version 0.3.20 includes reviewed ManicEMU behavior ports, MPL optimization/effect sources, MIT patcher modules and GPL xBRZ shader source. No additional user data or remote upload service. Version 0.3.21 adjusts original built-in D-pad artwork and direction sectors only; authored/imported skin layouts, safe areas, storage and cores are unchanged. Version 0.3.22 adds reviewed DS microphone/language controls, bounded local ZIP import, GB/GBC tilt options, game-specific RTC and opt-in gamepad rumble, MPL pixel-transfer calibration and filter strength. It protects home-screen double taps and stages automatic updates with a clear central title while preserving game/save/task/version locks. Pinned mGBA and both DS cores were independently rebuilt and matched. Startup restores validated battery data before running frames. No new third-party artwork, analytics, ROM/save upload or network relay. Version 0.3.23 adds an original AGPL update-completion notice generated from the current nine-language release notes, with a maximum of three changes and a local details link. Version-only acknowledgment is isolated from game storage. Existing cores, third-party assets, licenses, data formats and network endpoints are unchanged. Manual/automatic update and notice behavior were tested in isolated Chromium and desktop WebKit contexts; iPhone hardware was not tested.",
+  "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices. Version 0.3.20 includes reviewed ManicEMU behavior ports, MPL optimization/effect sources, MIT patcher modules and GPL xBRZ shader source. No additional user data or remote upload service. Version 0.3.21 adjusts original built-in D-pad artwork and direction sectors only; authored/imported skin layouts, safe areas, storage and cores are unchanged. Version 0.3.22 adds reviewed DS microphone/language controls, bounded local ZIP import, GB/GBC tilt options, game-specific RTC and opt-in gamepad rumble, MPL pixel-transfer calibration and filter strength. It protects home-screen double taps and stages automatic updates with a clear central title while preserving game/save/task/version locks. Pinned mGBA and both DS cores were independently rebuilt and matched. Startup restores validated battery data before running frames. No new third-party artwork, analytics, ROM/save upload or network relay. Version 0.3.23 adds an original AGPL update-completion notice generated from the current nine-language release notes, with a maximum of three changes and a local details link. Version-only acknowledgment is isolated from game storage. Existing cores, third-party assets, licenses, data formats and network endpoints are unchanged. Manual/automatic update and notice behavior were tested in isolated Chromium and desktop WebKit contexts; iPhone hardware was not tested. Version 0.3.24 adds battery-save-only ROM migration with immutable old data and atomic target copies, ROM-only detachment, selected-game backup restore, individual manual/automatic state export and validated append-only state import. It adds isolated input testing, built-in touch options, DS lid controls and same-ROM GB/GBC local link. GB link preserves the upstream MPL driver and Jeffrey Pfau attribution; ManicEMU state/lid references remain attributed, DS bridges retain AGPL and underlying cores retain GPL terms. All three changed core JS/WASM builds independently match distributed sources, with unchanged battery/state layouts. The pre-camera regression run passed Chromium 80 and desktop WebKit 58 suites after updating the obsolete unsupported-GB test; focused camera and affected UI checks are recorded separately. New Japanese UI and release notes were translated into eight languages and reviewed for safety-sensitive meaning. The configurable camera button saves only the game image locally, reuses the existing capture path and uses an original SVG icon. Automatic recovery, recent battery backups and spaced archives now have per-history 96 MiB budgets (keeping one indivisible large battery save), preserving the existing schema. An oversized checkpoint preserves ordinary battery saves and prior recoveries; synchronous IndexedDB callback failures abort the complete transaction. Synthetic extended-save and injected-failure tests cover these paths. No new third-party artwork, dependency, user-file upload, telemetry or network endpoint is added. Real iPhone controls and broad commercial-game or cross-version ROM save compatibility were not tested. The screenshot shortcut also supports long-press dragging, merging only its current-orientation coordinates into the latest per-game layout. Diagnostics export wording describes download initiation rather than guaranteed filesystem completion; isolated Chromium/WebKit download tests passed. These additions use original Web code and existing local storage/download paths.",
   "openItems": [],
   "note": "Engineering review of pinned dependencies, corresponding source, notices, distribution contents and runtime regression tests. Not a legal opinion or a grant of rights in user ROMs/artwork. iPhone hardware and broad commercial-game compatibility remain unverified; limited local compatibility checks are scoped in RELEASE_VALIDATION.md. Any distribution/workflow change requires renewed review.",
-  "reviewedContentSha256": "153cb5fd2a0aed3881999206f14986b6e80e36abe4bd408c4974e3db79b4e000",
+  "reviewedContentSha256": "45decf86f036b131702c285ba0858fdadb2815e07faed0c38b4d6fc1b8013566",
   "resolutions": [
     {
       "id": "corresponding-source",
       "evidenceFile": "sources/build-evidence.json",
-      "sha256": "f3efc3b214279616a8a10ffafb894bb7d295e511a35df82c149ee90de2549d3f"
+      "sha256": "621f716a7a273dc343327ef65dd1d378612f6593cd26fd055ca7fe738deededb"
     },
     {
       "id": "nds-corresponding-source",
       "evidenceFile": "sources/nds-build-evidence.json",
-      "sha256": "9b8431d2a98b35733f4adfaa2cfd0e50a04d3c61c6875d86f4bd2f885b2b0ed8"
+      "sha256": "827935658af47236db6d213519bc706f3f76d2b9ce83ee7844c660f6d275535c"
     },
     {
       "id": "noncommercial-core-combination",
@@ -24,12 +24,12 @@
     {
       "id": "asset-rights",
       "evidenceFile": "NOTICES.md",
-      "sha256": "5216defece657e002c652f2d4cdb5e9014d0ce4cd3e93c6b9ccb3094bcd5f080"
+      "sha256": "823b4287041ecdc640de0d0f72703923c1b7284561955ec05b6a99b85984381a"
     },
     {
       "id": "source-archive-materials",
       "evidenceFile": "SOURCES.json",
-      "sha256": "ed531af1793b4b18e5fd10455abd10a6769cfc15931340dfc9cfd6081af6c854"
+      "sha256": "efc0359f8d1e78199094c64d09b3c04be488a71b8ff02025e6edaba79f7af9b0"
     },
     {
       "id": "external-artwork-policy",
@@ -39,12 +39,12 @@
     {
       "id": "runtime-validation",
       "evidenceFile": "RELEASE_VALIDATION.md",
-      "sha256": "81b909e5a14e5adb673d7e71ba74b3e99a2e4b717dbd384b52ae85f0a7af0f6f"
+      "sha256": "d3020fbcfcf18d0eb692993f5faace115f8370e0d5128cfcad72a5cd4f6822e3"
     },
     {
       "id": "alternate-corresponding-source",
       "evidenceFile": "sources/alternate-build-evidence.json",
-      "sha256": "9dc511a61d015cbea1b250d82dfd5eb8b18ed068d85815f28430ab6f8d7fa030"
+      "sha256": "b51e7cd3f7f58d4969148551cd29de24f1636753bcccb4de7f7d608adf8ab639"
     },
     {
       "id": "mgba-save6-update",
@@ -69,7 +69,7 @@
     {
       "id": "localization-and-components-0317",
       "evidenceFile": "ARCHITECTURE.md",
-      "sha256": "7925d8142ee62f610396830e92639b856a488bea848aa1542596466a2b3c3a8a"
+      "sha256": "24d8e31a603d6557cf18f645bb17ef8c6ecd52a9eba8669baddc4af2a03f5c4e"
     },
     {
       "id": "localization-0318",
@@ -84,12 +84,17 @@
     {
       "id": "feature-ports-0320",
       "evidenceFile": "FEATURE_REVIEW.md",
-      "sha256": "ec4d0372607ed5543140f13b03e1e59965efbf54216636568932a1f4a4444887"
+      "sha256": "9f7fcede6f8ebbf48312f7fea767b98b501fd7dfc129349c807acbe55f70c90b"
     },
     {
       "id": "feature-ports-and-update-flow-0322",
       "evidenceFile": "FEATURE_REVIEW.md",
-      "sha256": "ec4d0372607ed5543140f13b03e1e59965efbf54216636568932a1f4a4444887"
+      "sha256": "9f7fcede6f8ebbf48312f7fea767b98b501fd7dfc129349c807acbe55f70c90b"
+    },
+    {
+      "id": "save-migration-controls-and-link-0324",
+      "evidenceFile": "FEATURE_REVIEW.md",
+      "sha256": "9f7fcede6f8ebbf48312f7fea767b98b501fd7dfc129349c807acbe55f70c90b"
     }
   ],
   "workflows": {

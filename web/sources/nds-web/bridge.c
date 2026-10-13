@@ -17,7 +17,8 @@ static int16_t audio[16384*2];
 static unsigned width=256,height=240,format=RETRO_PIXEL_FORMAT_0RGB1555,keys,audio_frames;
 static struct retro_system_av_info av;
 static bool loaded,initialized,options_changed;
-static bool blowing;
+static bool blowing, lid_target;
+extern int local_lid_closed(void);
 static const char *firmware_language;
 static const char *languages[]={"Japanese","English","French","German","Italian","Spanish"};
 static int16_t touch_x,touch_y;static bool touching;static unsigned frame_serial;
@@ -60,12 +61,14 @@ static void video_callback(const void *data,unsigned w,unsigned h,size_t pitch){
 static size_t audio_batch(const int16_t *data,size_t frames){size_t n=frames;if(n>16384-audio_frames)n=16384-audio_frames;memcpy(audio+audio_frames*2,data,n*4);audio_frames+=n;return frames;}
 static void audio_sample(int16_t l,int16_t r){int16_t data[2]={l,r};audio_batch(data,1);}
 static void input_poll(void){}
-static int16_t input_state(unsigned port,unsigned device,unsigned index,unsigned id){if(port||index)return 0;if(device==RETRO_DEVICE_POINTER){if(id==RETRO_DEVICE_ID_POINTER_PRESSED)return touching;if(id==RETRO_DEVICE_ID_POINTER_X)return touch_x;if(id==RETRO_DEVICE_ID_POINTER_Y)return touch_y;return 0;}if(device!=RETRO_DEVICE_JOYPAD)return 0;if(id==RETRO_DEVICE_ID_JOYPAD_L3)return blowing;return id<16?!!(keys&(1u<<id)):0;}
-EXPORT void web_close(void){blowing=false;if(loaded)retro_unload_game();if(initialized)retro_deinit();loaded=initialized=false;free(rom);rom=NULL;free(snapshot);snapshot=NULL;snapshot_size=0;for(unsigned i=0;i<var_count;i++){free(vars[i].key);free(vars[i].value);}var_count=0;}
+static int16_t input_state(unsigned port,unsigned device,unsigned index,unsigned id){if(port||index)return 0;if(device==RETRO_DEVICE_POINTER){if(id==RETRO_DEVICE_ID_POINTER_PRESSED)return touching;if(id==RETRO_DEVICE_ID_POINTER_X)return touch_x;if(id==RETRO_DEVICE_ID_POINTER_Y)return touch_y;return 0;}if(device!=RETRO_DEVICE_JOYPAD)return 0;if(id==RETRO_DEVICE_ID_JOYPAD_L3)return blowing;if(id==RETRO_DEVICE_ID_JOYPAD_L2)return lid_target!=(local_lid_closed()!=0);return id<16?!!(keys&(1u<<id)):0;}
+EXPORT void web_close(void){blowing=false;lid_target=false;if(loaded)retro_unload_game();if(initialized)retro_deinit();loaded=initialized=false;free(rom);rom=NULL;free(snapshot);snapshot=NULL;snapshot_size=0;for(unsigned i=0;i<var_count;i++){free(vars[i].key);free(vars[i].value);}var_count=0;}
 /* Must be selected before retro_init creates the dummy firmware. -1 preserves
  * this port's existing Japanese default. Never rebuild firmware during play. */
 EXPORT int web_set_language(int language){if(initialized||language < -1||language > 5)return 0;firmware_language=language<0?NULL:languages[language];return 1;}
 EXPORT void web_blow(int enabled){blowing=loaded&&enabled!=0;}
+EXPORT int web_set_lid(int closed){if(!loaded)return 0;lid_target=closed!=0;return 1;}
+EXPORT int web_get_lid(void){return loaded?local_lid_closed():0;}
 EXPORT int web_load(const void *data,size_t size){
  web_close();format=RETRO_PIXEL_FORMAT_0RGB1555;audio_frames=0;keys=0;
  retro_set_environment(environment);retro_set_video_refresh(video_callback);retro_set_audio_sample(audio_sample);retro_set_audio_sample_batch(audio_batch);retro_set_input_poll(input_poll);retro_set_input_state(input_state);retro_init();initialized=true;
@@ -83,8 +86,8 @@ EXPORT double web_audio_rate(void){return av.timing.sample_rate>0?av.timing.samp
 EXPORT unsigned web_audio_read(void){return audio_frames;} EXPORT const void *web_audio(void){return audio;}
 EXPORT size_t web_state_export(void){size_t n=retro_serialize_size();if(!n||n>64*1024*1024)return 0;if(n!=snapshot_size){void *next=realloc(snapshot,n);if(!next)return 0;snapshot=next;snapshot_size=n;}return retro_serialize(snapshot,n)?n:0;}
 EXPORT void *web_state_data(void){return snapshot;}
-EXPORT int web_state_import(const void *data,size_t size){blowing=false;return loaded&&size==retro_serialize_size()&&retro_unserialize(data,size);}
-EXPORT void web_reset(void){blowing=false;if(loaded)retro_reset();}
+EXPORT int web_state_import(const void *data,size_t size){blowing=false;int ok=loaded&&size==retro_serialize_size()&&retro_unserialize(data,size);if(ok)lid_target=local_lid_closed()!=0;return ok;}
+EXPORT void web_reset(void){blowing=false;lid_target=false;if(loaded)retro_reset();}
 EXPORT void web_cheat_reset(void){retro_cheat_reset();}
 EXPORT void web_cheat_set(unsigned index,int enabled,const char *code){if(enabled&&code&&strlen(code)<1024)retro_cheat_set(index,true,code);}
 

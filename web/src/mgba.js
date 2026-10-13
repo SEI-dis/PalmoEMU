@@ -7,12 +7,26 @@ import {TimeStretch} from './time-stretch.js';
 import {loadCompatibleMGBA} from './mgba-compatibility.js';
 import {choosePixelTransfer,createPixelTransfer} from './pixel-transfer.js';
 import {GameRumble} from './game-rumble.js';
+// Bind every native operation to its own mCore. Heap views remain dynamic when
+// WASM memory grows, and the original exports remain usable by older callers.
+function coreInstance(module,index){
+  if(typeof module._web_select!=='function'){if(index)throw Error(tr('通信機能を開始できません。'));return module;}
+  const methods=new Map();
+  return new Proxy(module,{get(target,key){
+    const value=Reflect.get(target,key);
+    if(typeof value!=='function'||!String(key).startsWith('_web_'))return value;
+    if(!methods.has(key))methods.set(key,(...args)=>{target._web_select(index);return value.apply(target,args);});
+    return methods.get(key);
+  },set(target,key,value){methods.delete(key);return Reflect.set(target,key,value);}});
+}
 export class MGBACore {
   constructor(canvas){this.canvas=canvas;this.keys=0;this.speed=1;this.volume=.7;this.paused=true;this.sources=new Set();this.frames=0;this.presented=0;this.cheatCount=0;this.preservePitch=true;}
-  async load(bytes){
+  async load(bytes,{sharedCore}={}){
     this.stateIncludesSave=true; // The bridge restores SAVESTATE_SAVEDATA, including the active flash bank.
-    this.m=await window.createMGBA({locateFile:p=>new URL('../cores/mgba/'+p,import.meta.url).href});
-    this.pixelTransferChoice=choosePixelTransfer(this.m);
+    if(sharedCore&&!sharedCore.supportsGBLink)throw Error(tr('通信機能を開始できません。'));
+    this.nativeModule=sharedCore?.nativeModule||await window.createMGBA({locateFile:p=>new URL('../cores/mgba/'+p,import.meta.url).href});
+    this.instance=sharedCore?1:0;this.m=coreInstance(this.nativeModule,this.instance);
+    this.pixelTransferChoice=sharedCore?.pixelTransferChoice||choosePixelTransfer(this.m);
     this.compatibility=await loadCompatibleMGBA(this.m,bytes);
     this.width=this.m._web_width();this.height=this.m._web_height();this.video=new VideoOutput(this.canvas,this.width,this.height);this.image=new ImageData(this.width,this.height);this.pixelTransfer=createPixelTransfer(this.m,this.width,this.height,this.pixelTransferChoice.mode);this.fps=this.m._web_fps();this.sensors=new GBASensors((...values)=>this.m._web_sensors?.(...values));
     if(this.supportsGameRumble)this.rumble=new GameRumble({readStrength:()=>this.m._web_rumble_strength(),setEnabled:value=>this.m._web_rumble_enable(value)});
@@ -71,6 +85,7 @@ export class MGBACore {
   linkIO(){const m=this.m;if(!m._web_link_enable||m._web_platform()!==0)throw new Error(tr('このコアはGBA通信に対応していません。'));const io={event:null,enable:on=>{if(!m._web_link_enable(on?1:0))throw new Error(tr('通信機能を開始できません。'));if(!on)m._web_overclock?.(this.overclock||1);},read:p=>m._web_link_read(p),write:(p,v)=>m._web_link_write(p,v),mask:v=>m._web_link_mask(v)};m.webLinkEvent=kind=>io.event?.(kind);return io;}
   setCheats(list){for(let i=this.cheatCount-1;i>=0;i--)this.m._web_cheat_remove(i);this.cheatCount=0;const enc=new TextEncoder();for(const cheat of list){const index=this.copyIn(enc.encode(cheat.name+'\0'),p=>this.copyIn(enc.encode(cheat.code+'\0'),q=>this.m._web_cheat_add(p,q,Number(cheat.type))));if(index<0)throw new Error(index===-1000?tr('チートの数・長さを確認してください。'):tr`「${cheat.name}」の${-index}行目を読み込めません。`);this.cheatCount++;this.m._web_cheat_enable(index,cheat.enabled?1:0);}}
   get supportsRTC(){return typeof this.m?._web_rtc_set==='function';}
+  get supportsGBLink(){return this.m?._web_platform?.()===1&&typeof this.m?._web_gb_link_frame==='function'&&typeof this.m?._web_select==='function';}
   get supportsGameRumble(){return typeof this.m?._web_rumble_enable==='function'&&typeof this.m?._web_rumble_strength==='function';}
   applyClockOptions(){if(this.clockOptions&&this.supportsRTC)this.m._web_rtc_set(this.clockOptions.mode,this.clockOptions.offset);}
   setCartridgeOptions(options){

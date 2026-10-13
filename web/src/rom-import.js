@@ -2,7 +2,7 @@
 // Keep large file copies and hashing away from the UI thread. No ROM bytes are
 // posted back to the page; the worker commits them before reporting success.
 import {tr,language} from './i18n/index.js';
-export function importROM(file,system,onProgress){
+export function importROM(file,system,onProgress,options={}){
  return new Promise((resolve,reject)=>{
   const worker=new Worker(new URL('./rom-import-worker.js',import.meta.url),{type:'module'});
   const finish=(fn,value)=>{worker.terminate();fn(value);};
@@ -13,6 +13,6 @@ export function importROM(file,system,onProgress){
    else if(data.type==='error'){const error=new Error(data.message);error.name=data.name;error.addedCount=data.addedCount||0;error.duplicateCount=data.duplicateCount||0;finish(reject,error);}
   };
   worker.onmessageerror=()=>finish(reject,new Error(tr('ゲームの追加処理を読み取れませんでした。')));
-  try{worker.postMessage({file,system,language});}catch(error){finish(reject,error);}
+  try{worker.postMessage({file,system,language,...options});}catch(error){finish(reject,error);}
  });
 }

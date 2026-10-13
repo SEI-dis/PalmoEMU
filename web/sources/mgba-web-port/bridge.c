@@ -8,13 +8,37 @@
 #include <mgba-util/image.h>
 #include <mgba-util/vfs.h>
 
+/* Two GB CPUs share the native lockstep coordinator, not cartridge memory.
+ * Existing exports operate on the selected instance; instance zero remains
+ * the default for callers using the original single-core ABI. */
+static struct WebContext {
+  struct mCore* machine;
+  mColor framebuffer[256 * 224];
+  void* romData;
+  void* saveData;
+  void* stateData;
+  unsigned w, h;
+} webContexts[2];
+static unsigned webSelected;
 static struct mCore* core;
-static mColor pixels[256 * 224];
-static int16_t audio[4096 * 2];
-static void* rom;
-static void* save;
-static void* state;
+static mColor* pixels = webContexts[0].framebuffer;
+static void *rom, *save, *state;
 static unsigned width, height;
+static int16_t audio[4096 * 2];
+static void web_store_context(void) {
+  struct WebContext* c = &webContexts[webSelected];
+  c->machine=core; c->romData=rom; c->saveData=save; c->stateData=state;
+  c->w=width; c->h=height;
+}
+EMSCRIPTEN_KEEPALIVE int web_select(unsigned instance) {
+  if (instance > 1) return 0;
+  web_store_context();
+  webSelected = instance;
+  struct WebContext* c = &webContexts[instance];
+  core=c->machine; pixels=c->framebuffer; rom=c->romData;
+  save=c->saveData; state=c->stateData; width=c->w; height=c->h;
+  return 1;
+}
 /* 16 MiB extra RAM + 6 MiB flash + core/RTC metadata. */
 #define WEB_STATE_LIMIT (32 * 1024 * 1024)
 #ifdef GBA_SIZE_FLASH_EXT
@@ -24,8 +48,10 @@ static unsigned width, height;
 #endif
 #include "link.h"
 #include "options.h"
+#include "gb-link.h"
 
 EMSCRIPTEN_KEEPALIVE void web_close(void) {
+  web_gb_link_stop();
   if (core) {
     web_link_enable(0);
     linkCallbacksAdded = false;

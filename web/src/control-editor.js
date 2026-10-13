@@ -7,19 +7,24 @@ import {builtinLayout} from './skin-art.js';
 import {controls,normalizedPosition,clamp} from './control-layout.js';
 import {escapeHTML as esc,icon} from './shared.js';
 import {mountLayoutAlignment} from './control-alignment.js';
+import {chooseRepresentation} from './skin-format.js';
+import {cameraLayout,cameraBackgroundSize} from './camera-button.js';
 
-export function mountControlEditor(root,{skin,layout,shared,inherits,game,orientation,viewport,onSave,onCancel}){
+export function mountControlEditor(root,{skin,layout,shared,inherits,game,orientation,viewport,onSave,onCancel,touchHitSlop=0}){
+ const imported=!skin.id.startsWith('builtin:');
+ const previewBrand='PalmoEMU';
  const copy=value=>structuredClone(value||{});
- let draft=copy(layout),useShared=!!inherits,mode='buttons',selected='dpad',lastButton='dpad',lastScreen=skin.system==='nds'?'screen-main':'screen',rep,items,drag=null,disposed=false,saving=false;
+ let draft=copy(layout),useShared=!!inherits,mode='buttons',selected=imported?'player-camera':'dpad',lastButton=selected,lastScreen=skin.system==='nds'?'screen-main':'screen',rep,items,drag=null,disposed=false,saving=false;
  const pointers=new Map();
  root.innerHTML=tr`<div class="control-editor"><div class="edit-stage"><div class="edit-preview" aria-label="画面とボタンの配置"></div></div><div class="edit-tools"><div class="segmented edit-mode" role="group" aria-label="編集する対象"><button data-edit-mode="screen">${icon('image')}画面</button><button data-edit-mode="buttons">${icon('game')}ボタン</button></div><div class="edit-inspector"><p class="edit-help">ドラッグで移動・丸いハンドルでサイズ変更</p><div class="edit-group"><div class="edit-field"><span>向き</span><div class="segmented edit-orientation" role="group" aria-label="編集する向き"><button data-edit-orientation="portrait">縦</button><button data-edit-orientation="landscape">横</button></div></div><label class="edit-field" id="edit-selection-row"><span id="edit-selection-label">ボタン</span><select id="edit-selection"></select></label><label class="edit-field" for="edit-size"><span>サイズ <output id="edit-size-value"></output></span><input id="edit-size" type="range" min="50" max="200" step="1" aria-label="サイズ"></label><label class="edit-field" for="edit-opacity" id="edit-opacity-row"><span>透明度 <output id="edit-opacity-value"></output></span><input id="edit-opacity" type="range" min="0" max="80" step="5"></label></div><div class="edit-alignment"></div><div class="edit-group edit-reset-group"><button id="edit-reset">${icon('reload')}<span>初期配置に戻す<small id="edit-reset-scope"></small></span></button>${game?tr`<button id="edit-inherit">${icon('layers')}<span>機種の配置を使う</span></button>`:''}</div><p class="edit-help" id="edit-screen-note" hidden>${skin.system==='nds'?tr('メイン画面とサブ画面を個別に移動・拡大縮小できます。'):''}画面の縦横比は維持されます。ボタンは画面の手前に重なり、ボタンの透明度で見え方を調整できます。</p></div><div class="edit-footer"><p id="edit-status" role="status" aria-live="polite"></p><div class="sheet-actions"><button class="secondary" id="edit-cancel">キャンセル</button><button class="primary" id="edit-save">保存</button></div></div></div></div>`;
  const $=s=>root.querySelector(s),host=$('.edit-preview'),stage=$('.edit-stage'),select=$('#edit-selection'),opacitySlider=$('#edit-opacity'),sizeSlider=$('#edit-size'),status=$('#edit-status');
  const setStatus=()=>{status.textContent=useShared&&game?tr('機種の配置を使用中'):game?tr('このゲームの配置'):tr('この機種の共通配置');};
  const edit=(id,change)=>{useShared=false;draft[orientation]??={};draft[orientation][id]={...draft[orientation][id],...change};setStatus();};
- const alignment=mountLayoutAlignment($('.edit-alignment'),host,{geometry:()=>({items:items||[],map:rep?.mappingSize,selected,zoom:host.clientWidth/(rep?.mappingSize.width||1)}),onPosition:(item,{x,y})=>{edit(item.id,normalizedPosition(item.frame,rep.mappingSize,x,y));draw();}});
+ const layoutMap=item=>item.id==='player-camera'?rep.mappingSize:rep.cameraBaseSize||rep.mappingSize;
+ const alignment=mountLayoutAlignment($('.edit-alignment'),host,{geometry:()=>({items:items||[],map:rep?.mappingSize,selected,zoom:host.clientWidth/(rep?.mappingSize.width||1)}),onPosition:(item,{x,y})=>{edit(item.id,normalizedPosition(item.frame,layoutMap(item),x,y));draw();}});
  const cancelDrag=()=>{drag=null;pointers.clear();alignment.clear();};
  const targets=()=>items.filter(i=>selected==='all'?!i.screen:i.id===selected);
- const maxScale=item=>Math.min(2,rep.mappingSize.width/item.baseFrame.width,rep.mappingSize.height/item.baseFrame.height);
+ const maxScale=item=>Math.min(2,layoutMap(item).width/item.baseFrame.width,layoutMap(item).height/item.baseFrame.height);
  function choose(id){
   selected=id;if(items.find(i=>i.id===id)?.screen)lastScreen=id;else lastButton=id;select.value=id;
   const picked=targets(),opacities=picked.map(i=>i.opacity??1),sizes=picked.map(i=>i.scale??1);
@@ -40,7 +45,7 @@ export function mountControlEditor(root,{skin,layout,shared,inherits,game,orient
  function resize(item,wanted,{x,y}={}){
   const scale=clamp(wanted,item.screen ? .25 : .5,maxScale(item)),frame={width:item.baseFrame.width*scale,height:item.baseFrame.height*scale};
   const left=x??item.frame.x+(item.frame.width-frame.width)/2,top=y??item.frame.y+(item.frame.height-frame.height)/2;
-  edit(item.id,{scale,...normalizedPosition(frame,rep.mappingSize,left,top)});
+  edit(item.id,{scale,...normalizedPosition(frame,layoutMap(item),left,top)});
  }
  function begin(e,id,kind='move'){
   if(saving||e.button>0)return;
@@ -52,7 +57,7 @@ export function mountControlEditor(root,{skin,layout,shared,inherits,game,orient
  }
  function move(e){
   if(!drag||!pointers.has(e.pointerId))return;e.preventDefault();pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
-  const d=drag,item=items.find(i=>i.id===d.id),map=rep.mappingSize;
+  const d=drag,item=items.find(i=>i.id===d.id),map=layoutMap(item);
   if(d.kind==='pinch'){
    const [a,b]=[...pointers.values()];if(!b)return;
    const scale=clamp(d.scale*Math.hypot(b.x-a.x,b.y-a.y)/d.distance,item.screen ? .25 : .5,maxScale(item));
@@ -79,15 +84,15 @@ export function mountControlEditor(root,{skin,layout,shared,inherits,game,orient
  function draw(){
   if(disposed)return;
   const size=viewport(),wide=orientation==='landscape',w=wide?Math.max(size.width,size.height):Math.min(size.width,size.height),h=wide?Math.min(size.width,size.height):Math.max(size.width,size.height);
-  rep=builtinLayout(skin,w,h,draft[orientation]);
-  items=[...controls(rep),...rep.screens.map(s=>({id:s.id||'screen',label:s.label||tr('ゲーム画面'),screen:true,frame:s.outputFrame,baseFrame:s.baseFrame,scale:s.scale}))];
+  rep=cameraLayout(imported?chooseRepresentation(skin,w,h):builtinLayout(skin,w,h,draft[orientation]),draft[orientation],w,h,{hitSlop:imported?0:touchHitSlop});
+  items=imported?controls(rep).filter(item=>item.id==='player-camera'):[...controls(rep),...rep.screens.map(s=>({id:s.id||'screen',label:s.label||tr('ゲーム画面'),screen:true,frame:s.outputFrame,baseFrame:s.baseFrame,scale:s.scale}))];
   const map=rep.mappingSize,zoom=Math.max(.01,Math.min(stage.clientWidth/map.width,stage.clientHeight/map.height));
-  host.style.width=map.width*zoom+'px';host.style.height=map.height*zoom+'px';host.style.backgroundImage=`url("${skin.images.responsive}")`;host.dataset.editMode=mode;
+  host.style.width=map.width*zoom+'px';host.style.height=map.height*zoom+'px';host.style.backgroundImage=imported?'none':`url("${skin.images.responsive}")`;host.style.backgroundSize=cameraBackgroundSize(rep);host.dataset.editMode=mode;
   if(!host.querySelector('[data-edit-control]')){
    host.innerHTML=items.map(i=>tr`<button class="edit-control ${i.screen?'edit-screen':''}" data-edit-control="${i.id}" aria-label="${esc(i.label)}の位置" title="${esc(i.label)}（方向キーでも移動できます）"><span class="${i.screen?'skin-mini-screen':`edit-art ${i.tool?'edit-tool':''}`}" ${i.tool?`data-control="${i.id}"`:''}>${i.screen?`<span>${esc(i.label)}</span>`:''}</span></button>`).join('')+tr`<button class="edit-resize" aria-label="サイズを変更">${icon('expand')}</button>`;
    host.querySelectorAll('[data-edit-control]').forEach(b=>{
     wirePointer(b,b.dataset.editControl,'move');b.onclick=()=>choose(b.dataset.editControl);
-    b.onkeydown=e=>{const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!delta||saving)return;e.preventDefault();e.stopPropagation();alignment.clear();choose(b.dataset.editControl);const f=items.find(i=>i.id===selected).frame,step=e.shiftKey?10:2;edit(selected,normalizedPosition(f,rep.mappingSize,f.x+delta[0]*step,f.y+delta[1]*step));draw();};
+    b.onkeydown=e=>{const delta={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];if(!delta||saving)return;e.preventDefault();e.stopPropagation();alignment.clear();choose(b.dataset.editControl);const item=items.find(i=>i.id===selected),f=item.frame,step=e.shiftKey?10:2;edit(selected,normalizedPosition(f,layoutMap(item),f.x+delta[0]*step,f.y+delta[1]*step));draw();};
    });
    const handle=$('.edit-resize');wirePointer(handle,()=>selected,'resize');
    handle.onkeydown=e=>{const sign={ArrowLeft:-1,ArrowDown:-1,ArrowRight:1,ArrowUp:1}[e.key];if(!sign||saving)return;e.preventDefault();e.stopPropagation();const item=items.find(i=>i.id===selected);if(item){resize(item,item.scale+sign*(e.shiftKey ? .1 : .01));draw();}};
@@ -95,22 +100,28 @@ export function mountControlEditor(root,{skin,layout,shared,inherits,game,orient
   for(const i of items){
    const b=host.querySelector(`[data-edit-control="${i.id}"]`),art=b.firstElementChild,f=i.frame;
    b.style.left=f.x/map.width*100+'%';b.style.top=f.y/map.height*100+'%';b.style.width=f.width/map.width*100+'%';b.style.height=f.height/map.height*100+'%';
-   if(i.screen)continue;art.style.opacity=i.opacity??1;if(i.tool){art.textContent=i.tool;art.style.fontSize=Math.max(8,11*zoom*i.scale)+'px';}else art.style.backgroundImage=`url("${skin.images[i.asset.normal]}")`;
+   if(i.screen)continue;art.style.opacity=i.opacity??1;if(i.tool){if(i.icon)art.innerHTML=icon(i.icon);else art.textContent=i.tool;art.style.fontSize=Math.max(8,11*zoom*i.scale)+'px';}else art.style.backgroundImage=`url("${skin.images[i.asset.normal]}")`;
   }
   root.querySelectorAll('[data-edit-orientation]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.editOrientation===orientation)));
-  root.querySelectorAll('[data-edit-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.editMode===mode)));
+  root.querySelectorAll('.edit-mode [data-edit-mode]').forEach(b=>{b.setAttribute('aria-pressed',String(b.dataset.editMode===mode));b.hidden=imported;});
   select.innerHTML=(mode==='buttons'?tr('<option value="all">すべてのボタン</option>'):'')+items.filter(i=>!!i.screen===(mode==='screen')).map(i=>`<option value="${i.id}">${esc(i.label)}</option>`).join('');
   $('#edit-selection-label').textContent=mode==='screen'?tr('画面'):tr('ボタン');
   $('#edit-selection-row').hidden=mode==='screen'&&rep.screens.length===1;$('#edit-opacity-row').hidden=mode==='screen';$('#edit-screen-note').hidden=mode!=='screen';
-  $('#edit-reset-scope').textContent=(orientation==='portrait'?tr('縦'):tr('横'))+tr('向きの画面とボタン');choose(selected);
+  $('#edit-reset-scope').textContent=(orientation==='portrait'?tr('縦'):tr('横'))+(imported?' · '+tr('スクリーンショットボタン'):tr('向きの画面とボタン'));choose(selected);
+  if(imported){
+   let background=host.querySelector('.edit-imported-background');if(!background){background=document.createElement('div');background.className='edit-imported-background';host.prepend(background);}
+   const css=f=>`left:${f.x/map.width*100}%;top:${f.y/map.height*100}%;width:${f.width/map.width*100}%;height:${f.height/map.height*100}%;`;
+   background.innerHTML=rep.screens.map(s=>`<span class="skin-mini-screen" style="${css(s.outputFrame)}">${previewBrand}</span>`).join('');
+   const art=document.createElement('span');art.className='edit-imported-art';art.style.cssText=css(rep.artFrame||{x:0,y:0,...map});art.style.backgroundImage=`url("${skin.images[rep.assets.resizable]||''}")`;background.append(art);
+  }
  }
  select.onchange=()=>choose(select.value);
  opacitySlider.oninput=()=>{const opacity=clamp((100-Number(opacitySlider.value))/100,.2,1);for(const i of targets())edit(i.id,{opacity});draw();};
  sizeSlider.oninput=()=>{const size=Number(sizeSlider.value)/100;for(const i of targets())resize(i,size);draw();};
- root.querySelectorAll('[data-edit-mode]').forEach(b=>b.onclick=()=>{cancelDrag();mode=b.dataset.editMode;selected=mode==='screen'?lastScreen:lastButton;draw();});
+ root.querySelectorAll('.edit-mode [data-edit-mode]').forEach(b=>b.onclick=()=>{cancelDrag();mode=b.dataset.editMode;selected=mode==='screen'?lastScreen:lastButton;draw();});
  root.querySelectorAll('[data-edit-orientation]').forEach(b=>b.onclick=()=>{cancelDrag();orientation=b.dataset.editOrientation;draw();});
- $('#edit-reset').onclick=()=>{cancelDrag();useShared=false;draft[orientation]={};setStatus();draw();};
- if(game)$('#edit-inherit').onclick=()=>{cancelDrag();draft=copy(shared);useShared=true;setStatus();draw();};
+ $('#edit-reset').onclick=()=>{cancelDrag();useShared=false;if(imported){draft[orientation]??={};delete draft[orientation]['player-camera'];}else draft[orientation]={};setStatus();draw();};
+ if(game)$('#edit-inherit').onclick=()=>{cancelDrag();if(imported&&!useShared){for(const direction of ['portrait','landscape']){draft[direction]??={};delete draft[direction]['player-camera'];if(shared?.[direction]?.['player-camera'])draft[direction]['player-camera']=copy(shared[direction]['player-camera']);}}else{draft=copy(shared);useShared=true;}setStatus();draw();};
  $('#edit-cancel').onclick=()=>{if(!saving)onCancel();};
  $('#edit-save').onclick=async()=>{
   if(saving)return;saving=true;cancelDrag();root.querySelectorAll('button,input,select').forEach(e=>e.disabled=true);status.textContent=tr('保存中…');

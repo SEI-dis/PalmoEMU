@@ -23,5 +23,51 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.deepEqual(result,{length:6*1048576,last:0x27,backup:true,recovery:true});
   assert.deepEqual(errors,[]);assert.ok(requests.every(r=>r.method()==='GET'&&!r.postData()&&new URL(r.url()).origin===new URL(base).origin));
   await context.close();console.log('PASS: 6 MiB UI import, manual state, paired recovery, retained battery backup and no uploads.');
+  // Five minutes at the app's ten-second save interval. This second context
+  // has no app-owned running game, so its timer cannot race these checkpoints.
+  // The real core executes authored code in a padded 64 MiB cartridge; time
+  // advances only for persistence scheduling, not for simulated CPU gameplay.
+  const capacityContext=await browser.newContext({serviceWorkers:'block'}),capacityPage=await capacityContext.newPage(),capacityErrors=[],capacityRequests=[];
+  capacityContext.on('request',r=>capacityRequests.push(r));capacityPage.on('pageerror',e=>capacityErrors.push(e.message));
+  await capacityContext.route('**/*',route=>new URL(route.request().url()).origin===new URL(base).origin?route.continue():route.abort());
+  await capacityPage.goto(base);await capacityPage.waitForFunction(()=>typeof window.createMGBA==='function');
+  const capacity=await capacityPage.evaluate(async encoded=>{
+   const [{MGBACore},{SaveProtection},db,{hash},{historyRecordBytes}]=await Promise.all([import('./src/mgba.js'),import('./src/save-safety.js'),import('./src/storage.js'),import('./src/shared.js'),import('./src/save-history.js')]);
+   const core=new MGBACore(document.createElement('canvas')),protection=new SaveProtection(()=>{}),coreId='mgba-rom64-save6-v2';
+   const rom=new Uint8Array(64*1048576);rom.set(Uint8Array.from(atob(encoded),c=>c.charCodeAt(0)));
+   const game={id:'synthetic-extended-save-capacity',system:'gba',name:'Authored 64 MiB flash capacity',size:rom.length};
+   const clock=Date.now,start=clock(),ticks=[],historyWrites=[],put=IDBObjectStore.prototype.put;let firstStateBytes;
+   try{
+    await core.load(rom);core.pause(true);for(let frame=0;frame<30;frame++){core.m._web_frame(0);core.m._web_audio_read();}core.draw();
+    await db.addGame(game,rom);await protection.open(game,coreId);
+    const initialState=core.state(),initialSave=core.save(),manual={bytes:initialState,hash:await hash(initialState),save:initialSave,saveHash:await hash(initialSave),at:start-1000,coreId};firstStateBytes=initialState.length;
+    await db.put('states',game.id+':before-capacity-run',manual);
+    IDBObjectStore.prototype.put=function(value,key){
+     if(['recoveries','backups','archives'].includes(this.name)&&key===game.id&&Array.isArray(value))historyWrites.push({store:this.name,count:value.length,bytes:value.reduce((sum,record)=>sum+historyRecordBytes(record),0)});
+     return put.call(this,value,key);
+    };
+    for(let tick=1;tick<=30;tick++){
+     Date.now=()=>start+tick*10000;
+     const battery=core.save();battery[battery.length-1]=tick;core.restore(battery);core.m._web_frame(0);core.m._web_audio_read();
+     const checkpoint=Date.now()-protection.stateAt>=20000;await protection.save(core,{checkpoint});
+     const saved=await db.get('saves',game.id);ticks.push({tick,checkpoint,at:(saved.at-start)/1000,marker:saved.bytes.at(-1)});
+    }
+    const recoveries=await db.get('recoveries',game.id),backups=await db.get('backups',game.id),archives=await db.get('archives',game.id),latest=await db.get('saves',game.id),states=await db.stateEntries(game.id),restored=[];
+    for(const record of recoveries){await protection.restoreState(core,record);restored.push({second:(record.at-start)/1000,marker:core.save().at(-1),paired:await hash(core.save())===record.saveHash,first:core.save()[0],lastBank:core.save()[95*65536]});}
+    const retainedManual=states.find(entry=>entry.key===game.id+':before-capacity-run')?.value;
+    const manualUnchanged=states.length===1&&await hash(retainedManual.bytes)===manual.hash&&await hash(retainedManual.save)===manual.saveHash;
+    await protection.restoreState(core,retainedManual);
+    return {romBytes:rom.length,saveBytes:latest.bytes.length,stateBytes:firstStateBytes,ticks,historyWrites,recoveryCount:recoveries.length,restored,latestMarker:latest.bytes.at(-1),latestSecond:(latest.at-start)/1000,backupMarkers:backups.map(record=>record.bytes.at(-1)),archiveMarkers:archives.map(record=>record.bytes.at(-1)),manualUnchanged,manualRestoredMarker:core.save().at(-1)};
+   }finally{IDBObjectStore.prototype.put=put;Date.now=clock;await protection.close();core.close();}
+  },Buffer.from(require('./core-upgrade.cjs').flash(95,true)).toString('base64'));
+  assert.equal(capacity.romBytes,64*1048576);assert.equal(capacity.saveBytes,6*1048576);assert.ok(capacity.stateBytes>22*1048576);
+  assert.equal(capacity.ticks.length,30);assert.equal(capacity.ticks.filter(tick=>tick.checkpoint).length,15);
+  for(const tick of capacity.ticks){assert.equal(tick.marker,tick.tick);assert.equal(tick.at,tick.tick*10);}
+  assert.equal(capacity.recoveryCount,3);assert.deepEqual(capacity.restored,[29,27,25].map(tick=>({second:tick*10,marker:tick,paired:true,first:0x5a,lastBank:0x3c})));
+  assert.equal(capacity.latestMarker,30);assert.equal(capacity.latestSecond,300);assert.deepEqual(capacity.backupMarkers,[29,28,27,26,25]);assert.deepEqual(capacity.archiveMarkers,[1]);
+  assert.ok(capacity.historyWrites.length>0);assert.ok(capacity.historyWrites.every(write=>write.bytes<=96*1048576),'Every serialized history stays within its byte budget');
+  assert.equal(capacity.manualUnchanged,true);assert.equal(capacity.manualRestoredMarker,0xff);
+  assert.deepEqual(capacityErrors,[]);assert.ok(capacityRequests.every(r=>r.method()==='GET'&&!r.postData()&&new URL(r.url()).origin===new URL(base).origin));
+  await capacityContext.close();console.log(`PASS: 64 MiB authored ROM, ${capacity.stateBytes}-byte states, 30 saves / 15 checkpoints over five simulated minutes, latest three paired recoveries restored, old manual state preserved, max history ${Math.max(...capacity.historyWrites.map(write=>write.bytes))} bytes, no uploads.`);
  }finally{await browser.close();}
-})().catch(error=>{console.error(error);process.exitCode=1;});
+})().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

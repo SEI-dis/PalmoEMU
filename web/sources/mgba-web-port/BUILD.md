@@ -52,14 +52,14 @@ The Web bridge explicitly sets CPU overclock to 1, overriding the upstream
 new default of 2. This preserves hardware timing and avoids doubling CPU work
 on phones. The existing 1–5x play-speed control remains separate.
 Qt automatic backup and physical USB link features are not compiled into this
-Web target. Web saves retain the existing five local backup generations and
-five recovery snapshots. No upload endpoint is added.
+Web target. Web saves retain up to five local backup generations and
+five recovery snapshots, depending on their size. No upload endpoint is added.
 
 ## 2026-10-13 features
 
 The default clock remains 1. options.h exposes optional 2/4/8 multipliers and local rotation/luminance input. link.h forces clock 1 during link play. bridge.c adds an opaque, tightly packed RGBA output without changing the raw framebuffer ABI, save format or state identifiers.
 The source archive includes four MPL-2.0 optimization backports from pm-start/mgba-celio-web 23235bc6db1b67009808c0dc7e1f25131eb75e7a. Their original and modified hashes are in ../build-evidence.json. Rebuild the updated archive with this bridge, not the unmodified upstream archive; candidate upgrades must review conflicts with these backports. Independent extraction and rebuilding produced identical JS/WASM.
-The Web storage layer separately retains ten 5-minute save generations in addition to the five recent backups and five recovery snapshots. It does not change the native save ABI.
+The Web storage layer separately retains up to ten 5-minute save generations in addition to up to five recent backups and five recovery snapshots. Each automatic history has a 96 MiB budget, so fewer generations may be kept; one indivisible large battery save is preserved even if it exceeds that budget. It does not change the native save ABI.
 
 ## 2026-10-13 0.3.22 RTC and game-rumble additions
 
@@ -80,3 +80,35 @@ metadata. An extracted archive previously picked up an unrelated parent app
 repository revision, changing binary version strings between app commits.
 The archive now reports its core version; native source checkouts retain their
 own Git metadata. No emulator execution or save/state format is changed.
+
+## 2026-10-13 0.3.24 GB/GBC local cable
+
+`gb-link.h` connects two independent GB cores to the pinned upstream
+`GBSIOLockstep` driver. Its cooperative cycle-accounting callbacks are adapted
+from `src/platform/qt/MultiplayerController.cpp` at core commit
+`0ba86121bd92aa570d38301086d8e8f584238d62`; Jeffrey Pfau's copyright and MPL-2.0
+notice are retained. Both cores run on one browser thread in one WASM module.
+ROM, cartridge RAM, state buffers, framebuffer and peripherals remain separate.
+The existing single-core exports still select instance zero by default, and
+the existing GBA Celio path still uses separate WASM instances. No threading,
+shared-memory browser headers or network service is required.
+
+The bridge adds instance selection, bounded cooperative frame execution,
+attach/detach and transfer-busy queries. The browser pauses both CPUs before
+detaching. GB serial has no universal game-session completion message, so the
+UI requires explicit confirmation after both games finish their session and
+save. The existing IndexedDB batch commits both separate save owners together;
+cancellation restores the pre-link 1P state and retains the previous 2P save.
+Native save/state layouts and `mgba-rom64-save6-v2` state compatibility remain
+unchanged.
+
+The distribution archive was independently extracted into a new source tree,
+and a separate copy of this bridge was configured and built in a fresh CMake
+directory with the pinned toolchain. Both JS and WASM match the normal build;
+see `../build-evidence.json`. `tests/gb-link-core.cjs` uses authored SM83
+cartridges to check both directions, changing internal-clock ownership, SIO
+interrupts, normal/fast serial timing, CGB double-speed and mixed CPU speeds,
+external-clock cancellation/reconnect, and independent save/state/RTC round
+trips. Browser checks use authored cartridges and generated RAM for the two
+player UI and atomic-save failures. No commercial game or physical cable
+compatibility is claimed by these tests.
