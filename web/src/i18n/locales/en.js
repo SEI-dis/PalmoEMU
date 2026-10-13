@@ -1113,5 +1113,7 @@ export default {
  "DS本体の言語": "DS System Language",
  "息の入力はプレイ中に使えます。": "Blowing input is available during gameplay.",
  "このコアでは追加のDS操作を利用できません。ページを更新してください。": "This core does not support additional DS controls. Please refresh the page.",
- "5秒間、息を吹きます。": "Simulating blowing for 5 seconds."
+ "5秒間、息を吹きます。": "Simulating blowing for 5 seconds.",
+ "詳しく見る": "View details",
+ "更新しました": "Updated"
 };

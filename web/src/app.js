@@ -30,8 +30,9 @@ import {coreFor,saveKey,cheatsFor} from './core-registry.js';
 import {videoFilters} from './video.js';
 import {setupOffline,offlineStatus} from './offline.js';
 import {startAutoUpdates} from './auto-update.js';
+import {createReleaseNotice} from './release-notice.js';
 import {guardUpdateTask} from './update-activity.js';
-let appReady=false,autoUpdates;
+let appReady=false,autoUpdates,updateCompleted=false;
 import {supportsHaptics,tapHaptic,stopHaptics} from './haptics.js';
 import {createLinkControls} from './link-controls.js';
 import {SaveProtection} from './save-safety.js';
@@ -59,6 +60,7 @@ let link=null,linkMessage='',linkStarting=false,linkSaveBlocked=false,exiting=fa
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let library=[],tab=tabFromHash(),engine=null,current=null,skinPair=null,paused=false,toastTimer,saveLock=null,launching=false,importing=false,dialogResume=false;
 const finishStartupInputs=holdStartupInputs();
+const releaseNotice=createReleaseNotice({sheet,closeSheet,onClose:cleanup=>{sheetCleanup=cleanup;},canShow:()=>!libraryView.selecting&&!engine&&!launching&&!importing&&!exiting&&!saveLock&&!link&&!linkStarting});
 try{await applyPendingBackupSettings();}catch(e){diagnostics.record(e,'startup');const message=document.createElement('p');message.textContent=e.message||tr('保存データを開けませんでした。');$('#content').replaceChildren(message);const retry=document.createElement('button');retry.className='primary';retry.textContent=tr('再読み込みして復元を完了');retry.onclick=()=>location.reload();$('#content').append(retry);throw e;}
 let savedSettings={};try{savedSettings=JSON.parse(localStorage.getItem('manic-settings')||'{}');}catch{}
 // Pitch preservation is standard playback behavior; legacy preferences are ignored.
@@ -449,7 +451,7 @@ function renderLinkPanel(){linkControls.render();}
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(settings.theme==='auto')applySettings();});
 setupOffline().catch(e=>console.warn('Offline setup:',e.message));
 function openGameLink(){if(engine||!location.hash.startsWith('#game='))return;const game=library.find(g=>g.id===location.hash.slice(6));if(game)showDetails(game);else toast(tr('このブラウザにゲームがありません。先にROMを追加してください。'));}
-window.addEventListener('hashchange',()=>{if(engine)return;tab=tabFromHash();render();openGameLink();});
-if((autoUpdates=await startAutoUpdates(()=>appReady&&!libraryView.selecting&&!engine&&!launching&&!importing&&!exiting&&!link&&!linkStarting&&!saveLock&&tab!=='imports',()=>toast(tr('更新しました。')),toast))!==false){
- applySettings();refresh().then(async()=>{dragDepth=0;document.body.classList.remove('drop-active');await finishStartupInputs({onTab:id=>{setTab(id);render();},onFiles:guardUpdateTask(importFiles)});openGameLink();appReady=true;autoUpdates?.refresh();}).catch(e=>{error(e);$('#content').innerHTML=tr('<div class="empty-library"><h2>保存データを開けませんでした</h2><p>プライベートブラウズを終了するか、ブラウザの保存設定を確認してください。</p></div>');});
+window.addEventListener('hashchange',()=>{if(engine||!appReady)return;tab=tabFromHash();render();openGameLink();});
+if((autoUpdates=await startAutoUpdates(()=>appReady&&!libraryView.selecting&&!engine&&!launching&&!importing&&!exiting&&!link&&!linkStarting&&!saveLock&&tab!=='imports',()=>{updateCompleted=true;},toast))!==false){
+ applySettings();refresh().then(async()=>{dragDepth=0;document.body.classList.remove('drop-active');await preferences.flush();await releaseNotice.start({updated:updateCompleted,existing:library.length>0});await finishStartupInputs({onTab:id=>{setTab(id);render();},onFiles:guardUpdateTask(importFiles)});openGameLink();appReady=true;autoUpdates?.refresh();}).catch(e=>{error(e);$('#content').innerHTML=tr('<div class="empty-library"><h2>保存データを開けませんでした</h2><p>プライベートブラウズを終了するか、ブラウザの保存設定を確認してください。</p></div>');});
 }

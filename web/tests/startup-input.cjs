@@ -45,10 +45,11 @@ function slowStartup({bytes,failSettings=false}){
     const seed=await context.newPage();
     try{
      await seed.goto(base);await seed.locator('#add-first').waitFor();
-     await seed.evaluate(async()=>{
+     await seed.evaluate(async version=>{
       const db=await import('./src/storage.js');localStorage.setItem('manic-settings',JSON.stringify({theme:'dark',speed:1,volume:.7,filter:'pixel'}));
+      localStorage.setItem('palmo-release-seen:'+new URL('.',location.href).pathname,version);
       await db.put('coverCatalogs',db.backupMetadataPrefix+'pending',{settings:{theme:'light',speed:4,volume:.3,filter:'smooth',autosave:false,recovery:false}});
-     });
+     },require('../package.json').version);
     }finally{await seed.close();}
    }
    // Seed in a separate, closed document. The measured page must be created

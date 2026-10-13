@@ -23,7 +23,9 @@ const root=path.resolve(__dirname,'..');
   await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
   const storage=await page.evaluate(async()=>{const db=await import('./src/storage.js'),[game]=await db.all('library');const keys=[];for(const key of await caches.keys())for(const request of await (await caches.open(key)).keys())keys.push(request.url);return {rom:[...await db.get('roms',game.id)],save:[...(await db.get('saves',game.id)).bytes],states:(await db.stateEntries(game.id)).length,auto:(await db.get('recoveries',game.id)).length,localKeys:Object.keys(localStorage),sessionKeys:Object.keys(sessionStorage),cacheKeys:keys};});
   assert.deepEqual(Buffer.from(storage.rom),rom);assert.deepEqual(Buffer.from(storage.save),save);assert.equal(storage.states,1);assert.ok(storage.auto>0);
-  assert.ok(storage.localKeys.every(k=>k==='manic-settings'));assert.deepEqual(storage.sessionKeys,[]);
+  const releaseKey='palmo-release-seen:'+new URL('.',base).pathname;
+  assert.deepEqual(storage.localKeys.sort(),['manic-settings',releaseKey].sort());assert.deepEqual(storage.sessionKeys,[releaseKey]);
+  assert.deepEqual(await page.evaluate(key=>[localStorage.getItem(key),sessionStorage.getItem(key)],releaseKey),[require('../package.json').version,require('../package.json').version],'Release notice storage contains only the acknowledged version');
   for(const url of storage.cacheKeys){assert.ok(!url.includes(marker));assert.ok(fs.existsSync(path.join(root,new URL(url).pathname)),'Cache contains only shipped application files');}
   await page.locator('#rom-input').setInputFiles({name:marker+'.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});
   await page.getByRole('button',{name:marker+'の設定を開く',exact:true}).first().click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});

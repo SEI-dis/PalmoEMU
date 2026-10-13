@@ -11,7 +11,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium',pw=require('./browser-runtime.
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';
   context.on('request',r=>{if(/^https?:/.test(r.url()))requests.push({url:r.url(),method:r.method(),body:r.postData()});});
   await context.route('**/*',route=>new URL(route.request().url()).origin===new URL(base).origin?route.continue():route.abort());
-  await context.addInitScript(()=>{if(!localStorage.getItem('manic-settings'))localStorage.setItem('manic-settings',JSON.stringify({autoCovers:true}));});
+  // This legacy cover preference belongs to the current-release fixture.
+  await context.addInitScript(({version,scope})=>{if(!localStorage.getItem('manic-settings'))localStorage.setItem('manic-settings',JSON.stringify({autoCovers:true}));localStorage.setItem('palmo-release-seen:'+scope,version);},{version:require('../package.json').version,scope:new URL('.',base).pathname});
   page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(15000);await page.goto(base);
   await page.evaluate(()=>navigator.serviceWorker.ready);
   await page.locator('#content .empty-library').waitFor();

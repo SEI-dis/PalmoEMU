@@ -21,6 +21,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
     const bytes=zip({'info.json':JSON.stringify({name:'Input recovery fixture',gameTypeIdentifier:'com.rileytestut.delta.game.gba',representations:{iphone:{edgeToEdge:{portrait:rep,landscape:rep}}}}),'art.png':Buffer.from(png,'base64')});
     await page.evaluate(async bytes=>{const {importSkin}=await import('./src/skins.js'),skin=await importSkin(new File([new Uint8Array(bytes)],'recovery.deltaskin'));localStorage.setItem('manic-settings',JSON.stringify({skins:{gba:skin.id}}));},[...bytes]);
    }
+   await page.evaluate(version=>localStorage.setItem('palmo-release-seen:'+new URL('.',location.href).pathname,version),require('../package.json').version);
    await page.reload();await page.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js'),set=MGBACore.prototype.setKeys;MGBACore.prototype.setKeys=function(mask){window.testKeys=mask;return set.call(this,mask);};});
    await page.locator('#rom-input').setInputFiles({name:'Touch recovery.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});
    await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});

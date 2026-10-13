@@ -23,12 +23,13 @@ function buildReleaseNotes(root,{check=false}={}){
  }
  const esc=text=>text.replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
  const date=entry=>{const [y,m,d]=entry.date.split('-').map(Number);return `<time datetime="${entry.date}">${y}年${m}月${d}日</time>`;};
- const list=entry=>`<ul>${entry.changes.map((text,i)=>{
+ const list=(entry,limit=entry.changes.length)=>`<ul>${entry.changes.slice(0,limit).map((text,i)=>{
   const translations={en:entry.changesEn[i],...Object.fromEntries(Object.entries(entry.translations).map(([code,values])=>[code,values[i]]))};
   return `<li data-i18n="${esc(JSON.stringify(translations))}">${esc(text)}</li>`;
  }).join('')}</ul>`;
  const latest=releases[0];
  const fragments=[
+  ['index.html','latest-update-notes',`<template id="latest-update-notes" data-version="${latest.version}">\n<p class="update-note-version" translate="no">${latest.version}</p>\n${list(latest,3)}\n<p><a id="release-notice-details" href="notices.html#v${latest.version.replaceAll('.','-')}">詳しく見る</a></p>\n</template>`],
   ['licenses.html','latest-release',`<section class="latest-release" aria-labelledby="latest-release-title">\n<h2 id="latest-release-title"><span>最新の更新</span> · ${latest.version}</h2>\n<p>${date(latest)}</p>\n${list(latest)}\n<p><a href="notices.html">これまでの更新・詳しい変更内容</a></p>\n</section>`],
   ['notices.html','release-history',releases.map(entry=>`<article class="release-entry" aria-labelledby="v${entry.version.replaceAll('.','-')}">\n<header><h3 id="v${entry.version.replaceAll('.','-')}">${entry.version}</h3>${date(entry)}</header>\n${list(entry)}\n</article>`).join('\n')]
  ];

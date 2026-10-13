@@ -6,6 +6,9 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
  vm.runInNewContext(fs.readFileSync(path.join(root,'offline-manifest.js'),'utf8'),manifestScope);
  const lazyAsset=manifestScope.self.APP_OFFLINE.files.find(name=>name.startsWith('cores/')&&name.endsWith('.js'));
  assert.ok(lazyAsset);let revision=1,staleBootstrap=true,failAsset=null,originUnavailable=false,holdAsset=null;
+ // Only the first two upgrades are new releases. Later builds exercise the
+ // existing update guards without prompting again for the same app version.
+ const releaseVersion=()=>`0.0.${process.env.UPDATE_FLOW_ONLY?3:Math.min(revision,3)}`;
  const heldRequests=[],shots=process.env.SCREENSHOT_DIR||path.join(root,'test-results','update-flow-'+browserName);fs.mkdirSync(shots,{recursive:true});
  const releaseHeld=()=>{holdAsset=null;for(const finish of heldRequests.splice(0))finish();};
  const server=http.createServer((req,res)=>{
@@ -20,7 +23,11 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   if(name==='/sw.js')bytes=Buffer.concat([bytes,Buffer.from('\n// update-test revision '+revision)]);
   if(name==='/src/auto-update-worker.js'&&[3,8].includes(revision))bytes=Buffer.from(bytes.toString().replace('await self.skipWaiting();','await new Promise(resolve=>setTimeout(resolve,1500));await self.skipWaiting();'));
   if(name==='/offline-manifest.js')bytes=Buffer.from(bytes.toString().replace(/"version":"[^"]+"/,`"version":"update-test-${revision}"`));
-  if(name==='/index.html')bytes=Buffer.from(bytes.toString().replace(/(<meta name="app-build" content=")[^"]+/,`$1update-test-${revision}`));
+  if(name==='/index.html')bytes=Buffer.from(bytes.toString()
+   .replace(/(<meta name="app-build" content=")[^"]+/,`$1update-test-${revision}`)
+   .replace(/(<meta name="app-version" content=")[^"]+/,`$1${releaseVersion()}`)
+   .replace(/(<template id="latest-update-notes" data-version=")[^"]+/,`$1${releaseVersion()}`)
+   .replace(/(<p class="update-note-version"[^>]*>)[^<]+/,`$1${releaseVersion()}`));
   if(name==='/index.html'&&req.url.includes('new-tab=1')){
    res.setHeader('Cache-Control','no-store');
    if(staleBootstrap){staleBootstrap=false;bytes=Buffer.from(bytes.toString().replace(/(<meta name="app-build" content=")[^"]+/,`$1update-test-${revision-1}`));}
@@ -42,8 +49,39 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    if(!offline)for(const client of context.pages())await client.evaluate(()=>window.dispatchEvent(new Event('online')));
   }
   async function cachedReload(client){const response=await client.reload();assert.equal(response.fromServiceWorker(),true,'Reload is served by the app worker, not the HTTP cache');await client.locator('.game-launch').waitFor();}
+  async function noReleaseNotice(clients,version,message){
+   // Observe multiple retry intervals, including the storage event delivered
+   // to peer tabs when the displayed notice is acknowledged.
+   for(let i=0;i<6;i++){
+    for(const client of clients){assert.equal(await client.locator('#sheet.release-notice[open]').count(),0,message);assert.equal(await client.evaluate(()=>localStorage.getItem('palmo-release-seen:/')),version);}
+    if(i<5)await clients[0].waitForTimeout(200);
+   }
+  }
+  async function acknowledgeRelease(clients,version){
+   let shown;
+   for(let i=0;i<100&&!shown;i++){
+    for(const client of clients)if(await client.locator('#sheet.release-notice[open]').isVisible()){shown=client;break;}
+    if(!shown)await clients[0].waitForTimeout(100);
+   }
+   assert.ok(shown,'The new release notice appears immediately after update, without another navigation');
+   await shown.bringToFront();
+   assert.equal(await shown.evaluate(()=>document.hidden),false,'The release notice is shown in a visible tab');
+   assert.equal(await shown.locator('#sheet-title').textContent(),'更新しました');
+   assert.equal(await shown.locator('#sheet .update-note-version').textContent(),version);
+   const changes=await shown.locator('#sheet-body li').count();assert.ok(changes>=1&&changes<=3,'The notice contains one to three release changes');
+   assert.equal(await shown.locator('#release-notice-details').isVisible(),true);
+   assert.match(await shown.locator('#release-notice-details').getAttribute('href'),/^notices\.html#v[\d-]+$/);
+   // Keep the lock held across a retry in the other tab, then verify that only
+   // one tab owns the release dialog before acknowledging it.
+   await shown.waitForTimeout(700);
+   assert.equal((await Promise.all(clients.map(client=>client.locator('#sheet.release-notice[open]').count()))).reduce((sum,count)=>sum+count,0),1,'Only one tab presents the release notice');
+   await shown.locator('#release-notice-done').click();await shown.locator('#sheet').waitFor({state:'hidden'});
+   await noReleaseNotice(clients,version,'Acknowledging the release prevents another tab from showing it again');
+  }
   await page.evaluate(async()=>{await navigator.serviceWorker.ready;const db=await import('./src/storage.js');await db.put('saves','keep',{bytes:new Uint8Array([7,9]),at:1});});
   await page.waitForFunction(()=>globalThis.updateTestRevision===1);
+  await page.waitForFunction(version=>localStorage.getItem('palmo-release-seen:/')===version,releaseVersion());
+  assert.equal(await page.locator('#sheet.release-notice[open]').count(),0,'A first visit establishes the current release without an update notice');
   assert.match(await page.evaluate(name=>fetch(name).then(r=>r.text()),lazyAsset),/lazy asset revision 1/);
   if(process.env.UPDATE_FLOW_ONLY){
    await page.locator('#rom-input').setInputFiles({name:'Original-update-test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});await page.locator('.game-launch').waitFor();
@@ -56,12 +94,14 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await update.getByText('更新できます。',{exact:true}).waitFor();await update.locator('#apply-update:enabled').click();
   await update.getByText('この画面以外のアプリのタブを閉じてください。',{exact:true}).waitFor();
   await page.close();await update.locator('#apply-update').click();await update.waitForURL(base+'index.html');
+  await acknowledgeRelease([update],releaseVersion());
   const data=await update.evaluate(async()=>{const db=await import('./src/storage.js');return [...(await db.get('saves','keep')).bytes];});
   assert.deepEqual(data,[7,9]);assert.equal(await update.evaluate(()=>globalThis.updateTestRevision),2,'New worker must not install shell files from an old HTTP cache');
   assert.match(await update.evaluate(name=>fetch(name).then(r=>r.text()),lazyAsset),/lazy asset revision 2/,'First core request after update must bypass old HTTP cache');
   assert.deepEqual(await update.evaluate(()=>caches.keys()),['manic-web:/:update-test-2']);
   await update.goto(base+'update.html');await update.getByText('最新の状態です。',{exact:true}).waitFor();assert.equal(await update.locator('#apply-update').isDisabled(),true,'The button becomes disabled after applying the update');await update.goto(base+'index.html');
-  console.log('PASS: update blocks other tabs, preserves saves, and refreshes shell and lazy core assets despite a still-fresh HTTP cache.');
+  await noReleaseNotice([update],releaseVersion(),'Reopening the manually updated app does not repeat the release notice');
+  console.log('PASS: manual update blocks other tabs, immediately shows release changes once, preserves saves, and refreshes shell and lazy core assets despite a still-fresh HTTP cache.');
   const second=await context.newPage();await second.goto(base+'index.html');
   await second.locator('#rom-input').setInputFiles({name:'Original-update-test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});
   await second.locator('.game-launch').click();await second.locator('.game-info-play').click();await second.locator('#loading').waitFor({state:'hidden'});
@@ -94,12 +134,12 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.equal(await second.locator('.update-spinner').evaluate(el=>getComputedStyle(el).animationName),'update-spin');
   await second.screenshot({path:path.join(shots,'update-existing-portrait.png')});
   await update.waitForFunction(()=>globalThis.updateTestRevision===3,{},{timeout:30000});await second.waitForFunction(()=>globalThis.updateTestRevision===3);await second.locator('.game-launch').waitFor();await update.locator('.settings-page').waitFor();
-  await update.locator('#toast.show').filter({hasText:'更新しました。'}).waitFor();
+  await acknowledgeRelease([update,second],releaseVersion());
   assert.equal(new URL(update.url()).hash,'#settings','Automatic reload retains the selected tab');
   assert.equal(await second.locator('.game-launch').count(),1,'Automatic reload retains the original cartridge');
   assert.deepEqual(await update.evaluate(async()=>[...(await(await import('./src/storage.js')).get('saves','keep')).bytes]),[7,9]);
   assert.equal(await update.evaluate(async()=>(await(await import('./src/offline.js')).offlineStatus()).ready),true,'Updated app includes every offline resource, including newly used cores');
-  console.log('PASS: automatic update waits for another tab to exit a game, settings dialogs, asynchronous tasks and native file selection; then refreshes every idle tab and preserves data.');
+  console.log('PASS: automatic update waits for another tab to exit a game, settings dialogs, asynchronous tasks and native file selection; then refreshes every idle tab, shows release changes in one tab, and preserves data.');
   await update.evaluate(()=>{
    let started;
    new MutationObserver(()=>{const el=document.querySelector('.update-progress');if(el.open&&el.dataset.phase==='applying'&&started===undefined)started=performance.now();}).observe(document.querySelector('.update-progress'),{attributes:true});
@@ -109,6 +149,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await update.evaluate(async()=>{await(await navigator.serviceWorker.ready).update();});await stays(3);
   await unknown.close();await update.waitForFunction(()=>globalThis.updateTestRevision===4,{},{timeout:30000});await second.waitForFunction(()=>globalThis.updateTestRevision===4);await second.locator('.game-launch').waitFor();await update.locator('.settings-page').waitFor();
   assert.ok(Number(await update.evaluate(()=>sessionStorage.getItem('update-test-visible-ms')))>=1100,'Even a fast activation leaves the update notice visible for about 1.2 seconds');
+  await noReleaseNotice([update,second],releaseVersion(),'A new build of an acknowledged app version does not repeat the release notice');
   // Become busy after answering the probe. All prepared tabs must be released.
   await second.evaluate(async()=>{
    const {guardUpdateTask}=await import('./src/update-activity.js');
@@ -124,7 +165,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.ok(navigations>=2,'Old HTML arriving after activation is reloaded before app actions become available');
   assert.equal(await late.locator('meta[name=app-build]').getAttribute('content'),'update-test-5');
   assert.equal(await late.evaluate(()=>document.body.inert),false);
-  assert.equal(await late.locator('#toast.show').filter({hasText:'更新しました。'}).count(),0,'Opening a new tab does not show a false update-complete notice');
+  await noReleaseNotice([late],releaseVersion(),'A new tab with corrected stale HTML does not repeat the acknowledged release notice');
   console.log('PASS: a newly opened tab with stale HTML refreshes before enabling app actions.');
   await late.close();
   assert.match(await second.evaluate(name=>fetch(name).then(r=>r.text()),lazyAsset),/lazy asset revision 5/);

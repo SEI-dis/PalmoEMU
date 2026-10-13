@@ -1113,5 +1113,7 @@ export default {
  "DS本体の言語": "Idioma del sistema de la DS",
  "息の入力はプレイ中に使えます。": "La entrada de soplido está disponible durante el juego.",
  "このコアでは追加のDS操作を利用できません。ページを更新してください。": "Este núcleo no admite operaciones adicionales de DS. Por favor, actualice la página.",
- "5秒間、息を吹きます。": "Simulando un soplido durante 5 segundos."
+ "5秒間、息を吹きます。": "Simulando un soplido durante 5 segundos.",
+ "詳しく見る": "Ver más",
+ "更新しました": "Actualizado"
 };

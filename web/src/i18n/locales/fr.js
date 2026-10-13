@@ -1113,5 +1113,7 @@ export default {
  "DS本体の言語": "Langue de la console DS",
  "息の入力はプレイ中に使えます。": "Le souffle peut être simulé pendant le jeu.",
  "このコアでは追加のDS操作を利用できません。ページを更新してください。": "Ce cœur ne prend pas en charge les commandes DS supplémentaires. Veuillez actualiser la page.",
- "5秒間、息を吹きます。": "Simulation d’un souffle pendant 5 secondes."
+ "5秒間、息を吹きます。": "Simulation d’un souffle pendant 5 secondes.",
+ "詳しく見る": "Voir plus",
+ "更新しました": "Mis à jour"
 };

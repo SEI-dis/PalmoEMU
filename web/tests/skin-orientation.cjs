@@ -8,7 +8,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-run
   browser=await runtime.launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
   const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
   page.on('pageerror',e=>errors.push(e.message));await page.goto(`http://127.0.0.1:${server.address().port}/`);
-  await page.evaluate(()=>localStorage.setItem('manic-settings',JSON.stringify({skins:{gba:'builtin:mint'},haptics:false})));await page.reload();
+  await page.evaluate(version=>{localStorage.setItem('manic-settings',JSON.stringify({skins:{gba:'builtin:mint'},haptics:false}));localStorage.setItem('palmo-release-seen:'+new URL('.',location.href).pathname,version);},require('../package.json').version);await page.reload();
   await page.locator('#rom-input').setInputFiles({name:'Orientation.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});await page.locator('.game-launch').waitFor();
   await page.evaluate(async()=>{
    const db=await import('./src/storage.js'),game=(await db.all('library'))[0];await db.setGameSkin(game.id,'builtin:sunset');

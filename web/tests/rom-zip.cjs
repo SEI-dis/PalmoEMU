@@ -51,6 +51,8 @@ function overlappingZip(){
  try{
   const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',error=>errors.push(error.message));context.on('request',request=>requests.push(request));await page.goto(base+'privacy.html');
+  // Module-level imports below prepopulate a current-release library before UI startup.
+  await page.evaluate(version=>localStorage.setItem('palmo-release-seen:'+new URL('.',location.href).pathname,version),require('../package.json').version);
   const result=await page.evaluate(async({fixtures,source,identity})=>{
    const {listROMZip,extractROMZip}=await import('./src/rom-zip.js'),{importROM}=await import('./src/rom-import.js'),db=await import('./src/storage.js');
    const check=(value,message)=>{if(!value)throw Error(message);},archive=name=>new File([new Uint8Array(fixtures[name])],name+'.zip');

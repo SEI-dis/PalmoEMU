@@ -51,12 +51,46 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   assert.equal(translateSource(`<span title='設定 > 詳細'>保存</span>`,{'設定 > 詳細':'Settings > More','保存':'Save'}),`<span title='Settings &gt; More'>Save</span>`);
   assert.throws(()=>validateText('MPL-2.0 と 6 MiB','MPL-2.0 and 6 MB'),/MiB/);
   assert.throws(()=>validateText('保存しました','保存しました','en'),/Untranslated/);
+  verifyReleaseSummary(root,targets);
   await verifyProviderAndWatcher(root);
   console.log('PASS: extraction, new UI/all-language generation, same-version notes edits, removals/reordering, missing locales, manual translation preservation, escaped/unwrapped/dynamic text, HTML/CSS/JSON, nonexecuting catalogues, failure atomicity and concurrent-edit protection.');
  }finally{
   const resolved=path.resolve(root);assert.equal(path.dirname(resolved),path.resolve(os.tmpdir()));assert.ok(path.basename(resolved).startsWith('palmo-i18n-'));fs.rmSync(resolved,{recursive:true,force:true});
  }
 })().catch(error=>{console.error(error);process.exitCode=1;});
+
+function verifyReleaseSummary(parent,targets){
+ const {buildReleaseNotes}=require('../scripts/build-release-notes.cjs');
+ const root=path.join(parent,'release-summary');fs.mkdirSync(root);
+ const put=(file,value)=>fs.writeFileSync(path.join(root,file),typeof value==='string'?value:JSON.stringify(value));
+ const release=(version,changes)=>({version,date:'2026-10-13',changes,changesEn:changes.map((_,i)=>'English '+i),translations:Object.fromEntries(targets.filter(x=>x.code!=='en').map(({code})=>[code,changes.map((_,i)=>code+' <note> & "quoted" '+i)]))});
+ const latest=release('1.2.0',['変更 <script> & "引用"','次の変更','三つ目','四つ目','五つ目']);
+ const notes={releases:[latest,release('1.1.0',['過去の変更'])]};
+ put('package.json',{version:latest.version});put('release-notes.json',notes);
+ for(const [name,key]of [['index.html','latest-update-notes'],['licenses.html','latest-release'],['notices.html','release-history']])put(name,`<!-- ${key}:start -->\n<!-- ${key}:end -->`);
+ const template=()=>fs.readFileSync(path.join(root,'index.html'),'utf8').match(/<template id="latest-update-notes" data-version="([^"]+)">([\s\S]*?)<\/template>/);
+ const decode=text=>text.replace(/&(amp|lt|gt|quot|#39);/g,(_,name)=>({amp:'&',lt:'<',gt:'>',quot:'"','#39':"'"}[name]));
+ buildReleaseNotes(root);buildReleaseNotes(root,{check:true});
+ let [,version,body]=template();assert.equal(version,latest.version);
+ assert.ok(body.includes('<p class="update-note-version" translate="no">1.2.0</p>'),'The displayed version comes from the latest release');
+ assert.ok(body.includes('id="release-notice-details" href="notices.html#v1-2-0"'),'Details links to this release');
+ const items=[...body.matchAll(/<li data-i18n="([^"]*)">([\s\S]*?)<\/li>/g)];assert.equal(items.length,3,'Update summaries have a fixed cap of three changes');
+ for(const [i,item]of items.entries()){
+  assert.equal(decode(item[2]),latest.changes[i],'Japanese changes retain their source order');
+  const translations=JSON.parse(decode(item[1]));assert.deepEqual(Object.keys(translations).sort(),targets.map(x=>x.code).sort(),'Every item includes all eight translations alongside Japanese');
+  for(const {code}of targets)assert.equal(translations[code],code==='en'?latest.changesEn[i]:latest.translations[code][i]);
+ }
+ assert.ok(!body.includes('<script>')&&!body.includes('四つ目')&&!body.includes('過去の変更'),'Summary content is escaped and limited to the latest release');
+ const history=fs.readFileSync(path.join(root,'notices.html'),'utf8');assert.ok(history.includes('四つ目')&&history.includes('五つ目')&&history.includes('過去の変更'),'The full history retains every change');
+ latest.translations.fr[0]='Corrected French translation';put('release-notes.json',notes);
+ assert.throws(()=>buildReleaseNotes(root,{check:true}),/Release notes are stale: index.html/,'A changed translation invalidates the generated summary');
+ buildReleaseNotes(root);assert.ok(template()[2].includes('Corrected French translation'));
+ notes.releases.unshift(release('1.3.0',['一つだけの変更']));put('package.json',{version:'1.3.0'});put('release-notes.json',notes);
+ buildReleaseNotes(root);buildReleaseNotes(root,{check:true});[,version,body]=template();assert.equal(version,'1.3.0');
+ assert.equal([...body.matchAll(/<li\b/g)].length,1,'Short releases have no padded or repeated changes');
+ assert.ok(body.includes('notices.html#v1-3-0')&&!body.includes('三つ目'),'The summary and link advance to the latest version together');
+ console.log('PASS: latest-only release summary, fixed three-item cap, nine-language content, escaping, matching version/details link and stale-summary detection.');
+}
 
 async function verifyProviderAndWatcher(parent){
  const {pathToFileURL}=require('node:url'),{spawn}=require('node:child_process'),http=require('node:http');
@@ -99,7 +133,7 @@ async function verifyProviderAndWatcher(parent){
   for(const {code}of targets)put('src/i18n/locales/'+code+'.js','export default '+JSON.stringify({'保存':'Reviewed save'})+';');
   put('release-notes.json',{releases:[{version:'1.0.0',date:'2026-10-13',changes:['更新'],changesEn:['Reviewed update'],translations:Object.fromEntries(targets.filter(x=>x.code!=='en').map(x=>[x.code,['Reviewed update']]))}]});
   put('scripts/i18n/state.json',{schema:1,messages:{'保存':hash('保存')},releases:{'1.0.0':hash(JSON.stringify(['更新']))}});
-  put('index.html','<meta name="app-version" content="1.0.0"><meta name="app-build" content="0000000000000000">');
+  put('index.html','<meta name="app-version" content="1.0.0"><meta name="app-build" content="0000000000000000"><!-- latest-update-notes:start --><!-- latest-update-notes:end -->');
   put('licenses.html','<!-- latest-release:start --><!-- latest-release:end -->');put('notices.html','<!-- release-history:start --><!-- release-history:end -->');put('sw.js','');
   const count=requests.length;child=spawn(process.execPath,['scripts/develop.mjs'],{cwd:root,env:{...process.env,PORT:'0'},windowsHide:true,stdio:['ignore','pipe','pipe']});
   child.stdout.on('data',data=>output+=data);child.stderr.on('data',data=>output+=data);
@@ -111,6 +145,7 @@ async function verifyProviderAndWatcher(parent){
   for(const {code}of targets){assert.ok(fs.readFileSync(path.join(root,'src/i18n/locales',code+'.js'),'utf8').includes('新しい画面'));}
   const notes=JSON.parse(fs.readFileSync(path.join(root,'release-notes.json')));assert.equal(notes.releases[0].changesEn[0],'Translated ');assert.equal(Object.keys(notes.releases[0].translations).length,7);
   await wait(()=>fs.readFileSync(path.join(root,'notices.html'),'utf8').includes('変更通知を編集'),'Generated history');
+  await wait(()=>fs.readFileSync(path.join(root,'index.html'),'utf8').includes('変更通知を編集'),'Generated update summary');
   const url=output.match(/PalmoEMU development: (http:\/\/127\.0\.0\.1:\d+)/)[1];assert.ok((await(await fetch(url+'/notices.html')).text()).includes('変更通知を編集'));
   console.log('PASS: local-only translator, model pin, structured response failures, redirect rejection and real dev command watching UI/release-note edits across eight languages.');
  }finally{

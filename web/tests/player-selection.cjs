@@ -8,7 +8,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   const context=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
   page.setDefaultTimeout(15000);page.setDefaultNavigationTimeout(25000);
   page.on('pageerror',e=>errors.push(e.message));
-  await context.addInitScript(()=>localStorage.setItem('manic-settings',JSON.stringify({showFps:true})));
+  await context.addInitScript(({version,scope})=>{localStorage.setItem('manic-settings',JSON.stringify({showFps:true}));localStorage.setItem('palmo-release-seen:'+scope,version);},{version:require('../package.json').version,scope:new URL('.',base).pathname});
   await page.goto(base);
   // The app shell disables double-tap zoom while preserving panning and pinch.
   // Standalone documents must be checked in their own page, outside that shell.

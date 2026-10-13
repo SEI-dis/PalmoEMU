@@ -17,8 +17,8 @@
     },
     {
       "path": "ARCHITECTURE.md",
-      "bytes": 7638,
-      "sha256": "315a04cf8e538fc51a6ecf5e3856ded4234048424c01886bdd2e74a35bf6a00f",
+      "bytes": 9366,
+      "sha256": "7925d8142ee62f610396830e92639b856a488bea848aa1542596466a2b3c3a8a",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -89,14 +89,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 62732,
-      "sha256": "e72d9572fcba9aea538698bc7358b830a830ca1cc053d9e999369eb1b1046793",
+      "bytes": 62953,
+      "sha256": "d1a6187aaad37411f3b4b2ff41134e2966a0d6c20904f3b3c260636c31fabbe9",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 79883,
-      "sha256": "ff609fd8e0eb9a7745e41f303a91a46c66e5911e038e6370a1cafdd40f6ba70b",
+      "bytes": 83613,
+      "sha256": "81b909e5a14e5adb673d7e71ba74b3e99a2e4b717dbd384b52ae85f0a7af0f6f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -899,8 +899,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 4984,
-      "sha256": "50ef1fce1c5fb3322bff34020bcbf90b9d7feb188aef149ae59b6bd14ce6d72c",
+      "bytes": 7185,
+      "sha256": "6cb83614fd0645274ab1e44398b5ee21d2d39aa54aa563233666cf4fa55d0730",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -917,8 +917,8 @@
     },
     {
       "path": "licenses.html",
-      "bytes": 26241,
-      "sha256": "b4758bfd8b22e5dd99d4bd1c480b8dba52bd61f9ea684596c5a3b4b7212926e8",
+      "bytes": 18976,
+      "sha256": "304b189b8b20e41614982fc595bd7d0e5938c5e1c9dc0aa639f8ea9535ff9b11",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1145,14 +1145,14 @@
     },
     {
       "path": "notices.html",
-      "bytes": 45418,
-      "sha256": "e1787bab047b722f453adc2f06608d6f7bbaf675bf0079675ef6cc3ac61eadb8",
+      "bytes": 47498,
+      "sha256": "b54638ee084d8e3ed41fc3fbeb6630e416e486f74ff39c67f0d1e08eeb92d7ed",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "package.json",
-      "bytes": 4435,
-      "sha256": "d209163584ae7529b5ceb0f0557b3cda05655e4e1a54408aff2b01cb24ebfb68",
+      "bytes": 4496,
+      "sha256": "df5c4506dfcb69d4cabe556d190a35981a556a2765a679aff7c5489d133dcbcd",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1163,8 +1163,8 @@
     },
     {
       "path": "release-notes.json",
-      "bytes": 36998,
-      "sha256": "bba6f30bccbb17477297ac194b53b2b89de502af8489a292a983de9ea86cca5b",
+      "bytes": 39020,
+      "sha256": "471f7406eacf63dd50134987aed310a764833513ea4899f15ca2c5ff28fabc53",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1199,8 +1199,8 @@
     },
     {
       "path": "scripts/build-release-notes.cjs",
-      "bytes": 4333,
-      "sha256": "9b25ac4d2516351c7c00bd62f3bf58d7052913d7530bc74d82cc6740fc82e1e5",
+      "bytes": 4708,
+      "sha256": "8571dbe28e22ecb954cfb6b20b596986de475c218dec1a7465a4ce9a8a9de3e6",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1259,8 +1259,8 @@
     },
     {
       "path": "scripts/i18n/state.json",
-      "bytes": 142071,
-      "sha256": "e7815e9ad7759a095b5d4c6247d78036dbd193ecbf04bef89adaf7a6ee6d1efe",
+      "bytes": 142332,
+      "sha256": "08378f441d80525dfebc2101d58d120eeedbd374d6926a28ba3b386f8db03dca",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1343,8 +1343,8 @@
     },
     {
       "path": "scripts/test-all.cjs",
-      "bytes": 5653,
-      "sha256": "cc6c6d9418bc0b807cb9251b2f95a53a58bb39297e4409998a876e8ce69db3f5",
+      "bytes": 5670,
+      "sha256": "9ed6d323462be0c101d9f6fb8ee8a96f86f8e8ea8ebb2d9769af4025732f2fdb",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40499,8 +40499,8 @@
     },
     {
       "path": "src/app.js",
-      "bytes": 62125,
-      "sha256": "edd38f634a3443c115f9fe922213b596205d1fd79c999f6aa947ac3559376cbf",
+      "bytes": 62524,
+      "sha256": "5cd8b33681463ab7ce9167e4cf3e4fa7ee3bab3a5d401135ac34fb650bc49912",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40673,50 +40673,50 @@
     },
     {
       "path": "src/i18n/locales/de.js",
-      "bytes": 124419,
-      "sha256": "a14c06305dbe8edbc39034a7b46aa8cb14f3a7ca3f58d6dae93cecb989fea397",
+      "bytes": 124500,
+      "sha256": "5e05e58cfcb78c2a727322bd44796477783a38eea3dd7ea844f84dc5a3a40145",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/en.js",
-      "bytes": 112120,
-      "sha256": "641d06fe38792e8e5fd8c3771050cb02ec845be59904490397b313bfcf63c769",
+      "bytes": 112192,
+      "sha256": "8a38927dfd01140ddd0d514fe2f04d24c4edbb9f2cdaa0c98409064133ed4554",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/es.js",
-      "bytes": 124224,
-      "sha256": "54ee80f6fe2740a4aa3e0440cc5d0a307aee2c56f966990686aa3c2485843b1e",
+      "bytes": 124296,
+      "sha256": "a4fcc7426d3c2707bc28f09f992aa5f9e864ccbddf0fd552ef18858589289400",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/fr.js",
-      "bytes": 127643,
-      "sha256": "d110be04cd320eb4ba6783e0f287d31afd17bed321a1cf5ef6f79978ed846e57",
+      "bytes": 127716,
+      "sha256": "13a4b66e5ab4807cbea0cbe128d5413c292556253f6fd6a747538a329b0e2b70",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/ko.js",
-      "bytes": 126700,
-      "sha256": "372e43fe77e059ee5371e0cf4432b14ab2ea120059aaf7784885e4b48eb5ff8a",
+      "bytes": 126784,
+      "sha256": "b71b9e8faa1482822c8845dab5dd086761dece156d0727e4dc6500bb40255773",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/pt.js",
-      "bytes": 121704,
-      "sha256": "0390a99e4a1693f563de11a19d5b522b1c703575882226660fb737fdb4b36748",
+      "bytes": 121779,
+      "sha256": "059b2904ffedac476aaef1a2a5d39e299083af9ccb7f22e7e3ab6f96d4e0a3d7",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/zh-Hans.js",
-      "bytes": 110432,
-      "sha256": "c4e74e75fc2f8db297e6fe81f00c95ee96f07971bb1ecfe3014fe7d1ca27b17d",
+      "bytes": 110506,
+      "sha256": "21e04d21c239b6b8f106a9da092c9e517e497bf19e2c6dd335b0af7bef9a6488",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/zh-Hant.js",
-      "bytes": 110702,
-      "sha256": "3b2d408881add35456e9694501323f41928098a051813c946f7f9ad8ce27020f",
+      "bytes": 110776,
+      "sha256": "0fe9bb5520ea2a579087da468a82e79162ec422f6000815b63f40b871405f9f7",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40837,6 +40837,12 @@
       "path": "src/player-gestures.js",
       "bytes": 1318,
       "sha256": "63d5270d2aa94fbb84c82f2a6381cf509181f890d7519c6f95783247c7b776ac",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "src/release-notice.js",
+      "bytes": 3793,
+      "sha256": "ee4ad2d826c26df275eb23daff79a05c341484c8ae82c0c25c8f5fcd1624538c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41117,8 +41123,8 @@
     },
     {
       "path": "style.css",
-      "bytes": 34412,
-      "sha256": "45535feb7d414fd1d214455091b0875510112be04c98555235ef5c195827b468",
+      "bytes": 35071,
+      "sha256": "b925ed77ff61b52195a7f63671a5775e83e3ae6e73feacea4ebbd3c34ee1579f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41201,8 +41207,8 @@
     },
     {
       "path": "tests/covers.cjs",
-      "bytes": 4759,
-      "sha256": "c3f7b6c24c3fb8874826717c2cbe03c27dae0a8ea1d18bbd3131185e87400159",
+      "bytes": 4985,
+      "sha256": "bd3f1d026218d50ab8ede9d970864c975bdc672a3275abb95c2d69ff0d8dd73e",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41333,8 +41339,8 @@
     },
     {
       "path": "tests/localization-pipeline.cjs",
-      "bytes": 14767,
-      "sha256": "5fede61fd21b77312d7cedd65c5c977944368d3558b22765abc852e8ca6ff92e",
+      "bytes": 18709,
+      "sha256": "c12c588a3096cee7d23a67137357ce81ff7438a1dfd2ae9a5bdca5fecda82a7a",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41435,14 +41441,20 @@
     },
     {
       "path": "tests/player-selection.cjs",
-      "bytes": 10280,
-      "sha256": "0cc6468b1dee9bd3191fb89b5cebc512475559fec678e506d7635e3c8c6fc6a1",
+      "bytes": 10434,
+      "sha256": "a07de10947202f0e3324f231f2909cc00c5cb55c645e35f0e3254062de1c18ff",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "tests/privacy.cjs",
-      "bytes": 7548,
-      "sha256": "f27762189a94b48307c9798088249263cb38c4c52878d18697a029c34394a8ed",
+      "bytes": 7899,
+      "sha256": "50bd170f9feaddc74e5807d86fe3baf5c2869351698ab29ad1f6c0147fa604d4",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/release-notice.cjs",
+      "bytes": 16697,
+      "sha256": "44a6efed21ed5eeba46d14b4e657cd05c0de67011c8c8de30f4a158aa877d108",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41465,8 +41477,8 @@
     },
     {
       "path": "tests/rom-zip.cjs",
-      "bytes": 8875,
-      "sha256": "5b1844cea5ef6de9f74f157df20c3f9bd6f96a952e76a72851c54fcf2c91127c",
+      "bytes": 9120,
+      "sha256": "5c2babffa4cd70aec05c685f92193984b9dd162c9da202896b010c8a4981d6f9",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41495,8 +41507,8 @@
     },
     {
       "path": "tests/skin-compatibility.cjs",
-      "bytes": 10005,
-      "sha256": "c0671e99e7c9011b2a4fd728b933366a70c5174029f376bc3720ed638ca7899d",
+      "bytes": 10155,
+      "sha256": "b55b32d4f782501cc148f091bdd1dbaa98f1a020d50d752c0335cca5b3520dd0",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41507,8 +41519,8 @@
     },
     {
       "path": "tests/skin-orientation.cjs",
-      "bytes": 10958,
-      "sha256": "e8cbd718e248229c6e13a5cdea3e77cc5b7306a227d368c05d0f4dff48eb5d4d",
+      "bytes": 11089,
+      "sha256": "2c124d30f57c1512ed964e189bded9bdc50a1c8acffc7d5153361cb9ec1f22ec",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41525,8 +41537,8 @@
     },
     {
       "path": "tests/startup-input.cjs",
-      "bytes": 8797,
-      "sha256": "f56a952f334bdd3bbf746056e4b0045b0fc6b6e33dee74b89aaf5cf63386413e",
+      "bytes": 8933,
+      "sha256": "3c6f7f3508d254251f64f67838b8f7fc27ad044ae6d666bbddad8862ab2ea551",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41561,8 +41573,8 @@
     },
     {
       "path": "tests/touch-recovery.cjs",
-      "bytes": 8099,
-      "sha256": "fbc9c17e89588de607a9c058b035cdd70763f87d450984167245bc5d359fa106",
+      "bytes": 8256,
+      "sha256": "85e4a5a4039fb198d29bae62eb53be636f97ad3d4deb34b6033fb3847cd23d1c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41573,8 +41585,8 @@
     },
     {
       "path": "tests/update.cjs",
-      "bytes": 26178,
-      "sha256": "7ba0532626199f55b059ce509424a6a0d79349813f3b97755e8b7762fd832ed6",
+      "bytes": 29476,
+      "sha256": "4fd9854b09fda0373a0a8a624afd382763689df574a46773ab2b3c79e9151bf1",
       "component": "web-port-code-and-documentation"
     },
     {

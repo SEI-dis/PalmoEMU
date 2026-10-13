@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.22",
+  "version": "0.3.23",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
@@ -17,6 +17,7 @@
     "test:licenses": "python -B -X utf8 tests/audit-content.py",
     "test:all": "node scripts/test-all.cjs",
     "test:update": "node tests/update.cjs",
+    "test:release-notice": "node tests/release-notice.cjs",
     "test:room-link": "node tests/room-link.cjs",
     "prepare:release": "python -B scripts/prepare-release.py",
     "check:release": "node scripts/check-release.cjs",

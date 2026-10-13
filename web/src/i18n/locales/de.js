@@ -1113,5 +1113,7 @@ export default {
  "DS本体の言語": "Sprache des DS-Geräts",
  "息の入力はプレイ中に使えます。": "Die Pusteingabe ist während des Spielens verfügbar.",
  "このコアでは追加のDS操作を利用できません。ページを更新してください。": "Dieser Kern unterstützt keine zusätzlichen DS-Funktionen. Bitte laden Sie die Seite neu.",
- "5秒間、息を吹きます。": "Pusten wird 5 Sekunden lang simuliert."
+ "5秒間、息を吹きます。": "Pusten wird 5 Sekunden lang simuliert.",
+ "詳しく見る": "Details anzeigen",
+ "更新しました": "Aktualisiert"
 };
