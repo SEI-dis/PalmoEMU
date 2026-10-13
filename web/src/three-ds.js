@@ -74,7 +74,7 @@ export class ThreeDSCore extends NDSCore {
   if(typeof url!=='string'||!url.startsWith('data:image/png;base64,')||url.length>8*1048576)return;
   try{const image=new Image();image.src=url;await image.decode();if(!this.closed&&this.paused)this.drawBitmap(image);}catch{}
  }
- async close(){
+ async close(){this.video?.dispose();
   if(this.closed)return;this.pause(true);cancelAnimationFrame(this.raf);
   const flags=this.keyboard&&new Int32Array(this.keyboard,0,4);if(flags){Atomics.store(flags,0,2);Atomics.notify(flags,0);}
   try{await Promise.race([this.call('close'),new Promise(r=>setTimeout(r,3000))]);}finally{

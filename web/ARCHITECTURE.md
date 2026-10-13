@@ -43,3 +43,13 @@
 - `release-notes.json`には同じ版の日本語の`changes`を追加・編集。`npm --prefix web run dev`または`node web/scripts/build-offline.cjs`が英語・追加言語を生成する。原文が変わらない手修正の訳は保持する。公開検査は生成せず、不足・古い原文ハッシュ・未登録文言を拒否する。HTMLもこの1つのデータから生成する。
 - `scripts/i18n/state.json`は翻訳済み原文のハッシュ。生成器が更新するため手で承認しない。`exclusions.json`は翻訳不要な固定値の完全一致と理由だけを保持し、未使用の例外も拒否する。詳細は[翻訳手順](LOCALIZATION_REVIEW.md)を参照。
 - 配布生成・ソースZIP・監査記録・CI・公開の順序は [公開手順](../deployment/README.md) を使用。ROMや実際のセーブを検証成果物へ入れない。
+
+## 保存・入力・映像の拡張（0.3.20）
+
+`nds-save.js`はDSVの構造だけを検証し、DBへは触れません。`save-history.js`は5分間隔の履歴選択だけを担当し、storage.jsの同一トランザクションが最新セーブ・直近履歴・長期履歴を確定します。DBはv5へ上げますが、既存ストア名・キー・バイナリ形式は維持します。
+
+`ui-navigation.js`はメニュー中だけフォーカスを操作します。ゲーム中のinput-controls.jsと切り替わる際に押下状態を解放します。NES/SNES/MDは各プレイヤー16bitを使うコアABIで、セーブ／ステート形式は変更しません。
+
+`gpu-filter.js`はMPL-2.0の映像効果アダプターです。video.jsは既存2Dキャンバスへ結果を合成し、スキンの複数画面とスクリーンショットを維持します。`gba-options.js`は明示許可された端末の動きのみ読み、一時停止時は中立値に戻し、終了時に解除します。
+
+`rom-patch.js`と専用Classic Workerは、MITのRomPatcher.jsを形式別の境界検査後に実行します。Workerは入力バッファだけを受け取り、ゲームDBへ接続しません。中断時はWorkerを終了し、既存ファイルを更新しません。

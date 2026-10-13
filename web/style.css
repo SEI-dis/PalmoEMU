@@ -180,3 +180,5 @@ dialog.control-edit{width:min(1000px,calc(100% - 16px - env(safe-area-inset-left
 .import-drop strong,.import-drop small{display:block;line-height:1.5}.import-drop strong{font-size:14px;font-weight:500}.import-drop small{margin-top:2px;font-size:12px;color:var(--secondary)}
 .import-formats{margin:24px 4px;color:var(--secondary);font-size:13px}
 @media(orientation:landscape) and (max-height:600px){.import-hero{min-height:100px;background:var(--panel);border-radius:20px}.import-hero:before{display:none}.import-hero img{width:72px;height:72px;border-radius:16px}.import-service{min-height:138px}}
+
+.controller-focus:focus{outline:3px solid var(--accent,#ff3966);outline-offset:3px}

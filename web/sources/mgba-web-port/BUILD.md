@@ -54,3 +54,9 @@ on phones. The existing 1–5x play-speed control remains separate.
 Qt automatic backup and physical USB link features are not compiled into this
 Web target. Web saves retain the existing five local backup generations and
 five recovery snapshots. No upload endpoint is added.
+
+## 2026-10-13 features
+
+The default clock remains 1. options.h exposes optional 2/4/8 multipliers and local rotation/luminance input. link.h forces clock 1 during link play. bridge.c adds an opaque, tightly packed RGBA output without changing the raw framebuffer ABI, save format or state identifiers.
+The source archive includes four MPL-2.0 optimization backports from pm-start/mgba-celio-web 23235bc6db1b67009808c0dc7e1f25131eb75e7a. Their original and modified hashes are in ../build-evidence.json. Rebuild the updated archive with this bridge, not the unmodified upstream archive; candidate upgrades must review conflicts with these backports. Independent extraction and rebuilding produced identical JS/WASM.
+The Web storage layer separately retains ten 5-minute save generations in addition to the five recent backups and five recovery snapshots. It does not change the native save ABI.

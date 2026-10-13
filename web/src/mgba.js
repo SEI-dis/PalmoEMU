@@ -2,6 +2,7 @@
 // Browser adapter for the MPL-2.0 mGBA bridge; see licenses/ and SOURCES.json.
 import {tr} from './i18n/index.js';
 import {VideoOutput} from './video.js';
+import {GBASensors} from './gba-options.js';
 import {TimeStretch} from './time-stretch.js';
 import {loadCompatibleMGBA} from './mgba-compatibility.js';
 export class MGBACore {
@@ -10,7 +11,7 @@ export class MGBACore {
     this.stateIncludesSave=true; // The bridge restores SAVESTATE_SAVEDATA, including the active flash bank.
     this.m=await window.createMGBA({locateFile:p=>new URL('../cores/mgba/'+p,import.meta.url).href});
     this.compatibility=await loadCompatibleMGBA(this.m,bytes);
-    this.width=this.m._web_width();this.height=this.m._web_height();this.video=new VideoOutput(this.canvas,this.width,this.height);this.image=new ImageData(this.width,this.height);this.fps=this.m._web_fps();this.startLoop();
+    this.width=this.m._web_width();this.height=this.m._web_height();this.video=new VideoOutput(this.canvas,this.width,this.height);this.image=new ImageData(this.width,this.height);this.fps=this.m._web_fps();this.sensors=new GBASensors((...values)=>this.m._web_sensors?.(...values));this.startLoop();
   }
   // Display refresh can exceed emulation refresh (for example, 120 Hz phones).
   // Present only new frames, and schedule no emulation callbacks while paused.
@@ -30,11 +31,11 @@ export class MGBACore {
   scheduleFrame(){if(!this.closed&&!this.paused&&this.tick&&this.raf==null)this.raf=requestAnimationFrame(this.tick);}
   copyIn(bytes,fn){const p=this.m._malloc(bytes.length);if(!p)throw new Error(tr('メモリを確保できませんでした。'));try{this.m.HEAPU8.set(bytes,p);return fn(p,bytes.length);}finally{this.m._free(p);}}
   draw(output=this.video){
-    const ptr=this.m._web_pixels(),w=this.width,h=this.height,memory=this.m.HEAPU8.buffer;
-    if(this.pixelSource?.buffer!==memory||this.pixelSource.byteOffset!==ptr||this.pixelSource.length!==256*h)this.pixelSource=new Uint32Array(memory,ptr,256*h);
+    const packed=!!this.m._web_rgba_pixels,ptr=packed?this.m._web_rgba_pixels():this.m._web_pixels(),w=this.width,h=this.height,memory=this.m.HEAPU8.buffer,stride=packed?w:256;
+    if(this.pixelSource?.buffer!==memory||this.pixelSource.byteOffset!==ptr||this.pixelSource.length!==stride*h)this.pixelSource=new Uint32Array(memory,ptr,stride*h);
     if(this.pixelTarget?.buffer!==this.image.data.buffer)this.pixelTarget=new Uint32Array(this.image.data.buffer);
     const src=this.pixelSource,dst=this.pixelTarget;
-    for(let y=0;y<h;y++){const from=y*256,to=y*w;for(let x=0;x<w;x++)dst[to+x]=src[from+x]|0xff000000;}
+    if(packed)dst.set(src);else for(let y=0;y<h;y++){const from=y*256,to=y*w;for(let x=0;x<w;x++)dst[to+x]=src[from+x]|0xff000000;}
     output.draw(this.image);this.presented++;
   }
   async unlockAudio(){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;this.ac??=new AudioContext();if(!this.gain){this.gain=this.ac.createGain();this.gain.connect(this.ac.destination);this.gain.gain.value=this.volume;}if(this.ac.state!=='running')await this.ac.resume();}
@@ -60,18 +61,19 @@ export class MGBACore {
   }
   setFilter(mode){if(this.video?.mode!==mode)this.video?.setMode(mode);}
   frameCount(){return this.frames;}
-  linkIO(){const m=this.m;if(!m._web_link_enable||m._web_platform()!==0)throw new Error(tr('このコアはGBA通信に対応していません。'));const io={event:null,enable:on=>{if(!m._web_link_enable(on?1:0))throw new Error(tr('通信機能を開始できません。'));},read:p=>m._web_link_read(p),write:(p,v)=>m._web_link_write(p,v),mask:v=>m._web_link_mask(v)};m.webLinkEvent=kind=>io.event?.(kind);return io;}
+  linkIO(){const m=this.m;if(!m._web_link_enable||m._web_platform()!==0)throw new Error(tr('このコアはGBA通信に対応していません。'));const io={event:null,enable:on=>{if(!m._web_link_enable(on?1:0))throw new Error(tr('通信機能を開始できません。'));if(!on)m._web_overclock?.(this.overclock||1);},read:p=>m._web_link_read(p),write:(p,v)=>m._web_link_write(p,v),mask:v=>m._web_link_mask(v)};m.webLinkEvent=kind=>io.event?.(kind);return io;}
   setCheats(list){for(let i=this.cheatCount-1;i>=0;i--)this.m._web_cheat_remove(i);this.cheatCount=0;const enc=new TextEncoder();for(const cheat of list){const index=this.copyIn(enc.encode(cheat.name+'\0'),p=>this.copyIn(enc.encode(cheat.code+'\0'),q=>this.m._web_cheat_add(p,q,Number(cheat.type))));if(index<0)throw new Error(index===-1000?tr('チートの数・長さを確認してください。'):tr`「${cheat.name}」の${-index}行目を読み込めません。`);this.cheatCount++;this.m._web_cheat_enable(index,cheat.enabled?1:0);}}
+  setCartridgeOptions(options){this.overclock=[1,2,4,8].includes(options.overclock)?options.overclock:1;this.m?._web_overclock?.(this.overclock);this.sensors?.configure(options);}
   setKeys(mask){this.keys=mask;}
   stopAudio(){for(const s of this.sources){s.onended=null;try{s.stop();}catch{}s.disconnect();}this.sources.clear();this.nextAudio=0;this.stretch?.reset();}
-  pause(value){this.paused=value;this.keys=0;this.clock=null;if(value){cancelAnimationFrame(this.raf);this.raf=null;this.stopAudio();}else this.scheduleFrame();}
+  pause(value){this.paused=value;this.sensors?.pause(value);this.keys=0;this.clock=null;if(value){cancelAnimationFrame(this.raf);this.raf=null;this.stopAudio();}else this.scheduleFrame();}
   setVolume(v){if(!v&&this.volume)this.stopAudio();this.volume=v;if(this.gain)this.gain.gain.value=v;}
   setPreservePitch(value){value=!!value;if(this.preservePitch===value)return;this.preservePitch=value;this.stopAudio();this.stretch=null;}
   setSpeed(v){v=Math.max(1,Math.min(5,Number(v)||1));if(this.speed===v)return;this.speed=v;this.stopAudio();this.clock=null;}
   save(){const n=this.m._web_save_export();return n?this.m.HEAPU8.slice(this.m._web_save_data(),this.m._web_save_data()+n):null;}
   restore(bytes){this.copyIn(bytes,(p,n)=>{if(!this.m._web_save_import(p,n))throw new Error(tr('セーブ形式が一致しません。'));});}
   state(){const n=this.m._web_state_export();if(!n)throw new Error(tr('状態を保存できませんでした。'));return this.m.HEAPU8.slice(this.m._web_state_data(),this.m._web_state_data()+n);}
-  loadState(bytes){this.stopAudio();this.copyIn(bytes,(p,n)=>{if(!this.m._web_state_import(p,n))throw new Error(tr('このコアで読み込めるステートではありません。'));});this.draw();}
+  loadState(bytes){this.stopAudio();this.copyIn(bytes,(p,n)=>{if(!this.m._web_state_import(p,n))throw new Error(tr('このコアで読み込めるステートではありません。'));});this.m._web_overclock?.(this.overclock||1);this.draw();}
   async restorePreview(url){
     // This bridge's states restore CPU/VRAM, but not the last rendered frame.
     // Show the paired local screenshot while paused, until the next emulated frame.
@@ -79,6 +81,6 @@ export class MGBACore {
     try{const image=new Image();image.src=url;await image.decode();if(this.paused&&!this.closed)this.video.restorePreview(image);}catch{}
   }
   screenshot(){return this.canvas.toDataURL('image/png');}
-  reset(){this.stopAudio();this.m._web_reset();this.clock=null;}
-  close(){this.closed=true;cancelAnimationFrame(this.raf);this.stopAudio();this.ac?.close();this.m?._web_close();}
+  reset(){this.stopAudio();this.m._web_reset();this.m._web_overclock?.(this.overclock||1);this.clock=null;}
+  close(){this.closed=true;this.sensors?.close();this.video?.dispose();cancelAnimationFrame(this.raf);this.stopAudio();this.ac?.close();this.m?._web_close();}
 }

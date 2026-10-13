@@ -3,7 +3,7 @@
     "repository": "https://github.com/Manic-EMU/ManicEMU",
     "commit": "fbaeab79c214d5920bb51afa6f2d786fb2b12a58",
     "license": "AGPL-3.0-or-later",
-    "changes": "Web port of library/navigation, GameInfoView/detail/navigation/cover, GameOptionsView, SaveStateListView, ImportServiceListView and its motto/file/service/footer cells, SettingsListView/SettingItem and FlexSkinSettingViewController/FlexItemView layout editing. SkinSettingsView, SkinCollectionViewCell, AddSkinCollectionViewCell and SkinPreviewViewController guide the persistent skin library and separate preview. New browser storage/runtime adapters. Artwork is separately scoped: only the CC BY 4.0 skin allowlist under bundledSkins is included; other native artwork/logos are excluded.",
+    "changes": "Web port of library/navigation, GameInfoView/detail/navigation/cover, GameOptionsView, SaveStateListView, ImportServiceListView and its motto/file/service/footer cells, SettingsListView/SettingItem and FlexSkinSettingViewController/FlexItemView layout editing. SkinSettingsView, SkinCollectionViewCell, AddSkinCollectionViewCell and SkinPreviewViewController guide the persistent skin library and separate preview. New browser storage/runtime adapters. Artwork is separately scoped: only the CC BY 4.0 skin allowlist under bundledSkins is included; other native artwork/logos are excluded. Modified 2026-10-13: NDSSaveConverter, FocusKit, ControllersSettingView and RomPatcherView interaction ports; original notices retained.",
     "referenceSource": "sources/manicemu-ui"
   },
   "mgba": {
@@ -16,7 +16,37 @@
     "webBridgeOrigin": "https://github.com/pm-start/mgba-celio-web/tree/de2c446e7369610f3ab402dd775e81d6a1661608/web",
     "localBridge": "sources/mgba-web-port",
     "sourceFiltering": "Web compiler dependency closure and build/license inputs; rebuild matched both JS/WASM. See sources/build-evidence.json.",
-    "bridgeSourceFiltering": "Only original bridge, build recipe and root license/README retained from liru55; current full core source is the separate author rom64 archive."
+    "bridgeSourceFiltering": "Only original bridge, build recipe and root license/README retained from liru55; current full core source is the separate author rom64 archive.",
+    "optimizationBackports": {
+      "repository": "https://github.com/pm-start/mgba-celio-web",
+      "commit": "23235bc6db1b67009808c0dc7e1f25131eb75e7a",
+      "files": [
+        {
+          "file": "src/util/audio-buffer.c",
+          "beforeSha256": "11d44588899bbdb745fe1dff8b5df1193a5e254ee7a3d7559ada43b6c5b99080",
+          "upstreamSha256": "12e109f168494c64dc041a0f02c087085f060fd1424f1966f83a743d55ea1981",
+          "modifiedSha256": "6f5aeebc5918036b0e6b41d13d892f57a6ee82dbc679511be82a53c8b7c1faf9"
+        },
+        {
+          "file": "src/util/audio-resampler.c",
+          "beforeSha256": "3ac0b801ad71fc65a2a72a4bb4b752aa7891d254834fe914bb6c604e20805192",
+          "upstreamSha256": "378cc6d701e51f6d37cab802501508daef9b5a37c835b706eb187054e3099fd1",
+          "modifiedSha256": "92cf2d35c10e315565aa8fc6de24cb863f435559c59b51e19d6b311e4360d61d"
+        },
+        {
+          "file": "src/arm/isa-arm.c",
+          "beforeSha256": "05694f531a08e0732d198e12dad5d156a5994f982453573677ce03903cfbe079",
+          "upstreamSha256": "2f19b0f018af6a909324b1dad9370639b322f873f2aa223bc7e0fb2a3168a3dc",
+          "modifiedSha256": "e64b5bb0224c5b88bb0ed222e64703d318682d515fed3cb3118b28a8eca7b956"
+        },
+        {
+          "file": "src/gba/renderers/software-mode0.c",
+          "beforeSha256": "b9d2a891930f37ab823e21950cb32f173559fe87c4e604a1eb7f7842240a104a",
+          "upstreamSha256": "ecefc48132a467525c700746d1a852d5fd786096e32063146f20012879a6d586",
+          "modifiedSha256": "d12ab66f1a7fe182f025491a4cb11286a83f1d2010c5473618bb49419aaacadb"
+        }
+      ]
+    }
   },
   "otherCores": {
     "correspondingSourceVerified": true,
@@ -115,19 +145,19 @@
     "assets/empty.svg": "54b0d8289d04e610aabdd79a4e3246e0a9e9089510ef1d35dc284fc7901b130a",
     "assets/icon.svg": "f5e6c8d8e24f13233d1b4aef69ea2c4e0ee6232c8c8637f0495e1e583cdec422",
     "cores/jgenesis/core.js": "8aabeec2af5b9caf258476df0f88b1e3607324925c7f152f83aaaf512c669008",
-    "cores/jgenesis/core_bg.wasm": "df5398b2f0b9af6671152da95d082588c5ba4f592b475197aa9bf48c0dbb9d30",
+    "cores/jgenesis/core_bg.wasm": "f4de98ee17a437c1190ba1e13a0483a1c0b4c5ff467e20ff248f01a4f368af93",
     "cores/md/core.js": "bb2fab117a8029d064342e6cf8095768514bfe6a9b6f569a9c634faacbc0e300",
-    "cores/md/core.wasm": "bb47682ae13e62c790485733af91f51d6dc958d7faf06b96e6cf0af3b0110693",
+    "cores/md/core.wasm": "3877035cbe389b9738a3f617aaeda1e63010d5aff37e2a0e8dced5e24486f091",
     "cores/melonds/core.js": "a26f04de5eef64a9e9e0884d004a34936f4658c4fc6c88e3c598f0568ff2f6ae",
     "cores/melonds/core.wasm": "d1cca80bce316ca935e2cbbaebcf65f35fadef0a671b68a87bed79fcdc0f25ba",
-    "cores/mgba/mgba.js": "3073b2a121db575fc9578646be5b5998ebe7a919a7db18cbd0dc82758720c000",
-    "cores/mgba/mgba.wasm": "6d89f5476207465d2cee6bf57be75d673b4966a92b5dbbb87174fb1248b64510",
+    "cores/mgba/mgba.js": "9f2ea112049c9248ae3a2db35fe143dee615cffe91e9bf8030e45f318749bbe0",
+    "cores/mgba/mgba.wasm": "9b74ba7f2a4f3f7ad0c5f46996138e159a2eaa89c56b5c486109e5434ef3050e",
     "cores/nds/core.js": "aaa6695c96d20f268d5a5cb7152f76ca793f48414c3d58127f79ac2dbeb6fe5c",
     "cores/nds/core.wasm": "ea0b03591bedbfd59645b63a74e4d2a87bbfcc93ea92e26307e235fac3845ba5",
     "cores/nes/core.js": "cd3799a369fa1b87d6fd085cd8eaecac8289dc4305ec259b21715a60c5f66f67",
-    "cores/nes/core.wasm": "568e594d65bc82cd153e176a399775fd4e088fabc11e0fd8f122784de4a43890",
+    "cores/nes/core.wasm": "72550ad6e81968b6b42cb68cad25f13e4feaab17e826c59b0127cf8284898c9e",
     "cores/snes/core.js": "1f127b5dd1995b8ed505607f98b0fbe3fc349628deff01bfee957be7b1efd814",
-    "cores/snes/core.wasm": "454c0a6de528b76f5200e73585e27101173015b45b959843d52f5e6780769447",
+    "cores/snes/core.wasm": "9365fe01e58ec1f8711c85398eb29127d4b1448cb4af900b284a20dd518d2590",
     "cores/vba-next/core.js": "7236df7fcf0babc340d5883098513eafdf6f280d1e89710d2e717e8b465848f6",
     "cores/vba-next/core.wasm": "4b66959a321bad4635e36b8c70f0faf1cfc56cfe106de04cb682b9c3db10cacb",
     "licenses/Alternate-C-file-notices.txt": "ea4e380114c672ed126b7f0d36849ba0295611ec3af7bc84bee01506f6c371d7",
@@ -160,26 +190,26 @@
     "licenses/mGBA-compiled-file-notices.txt": "20f30f8ffa667bf9c9be26cd19de280415280e0c62762fbd1b99a8b1f448844d",
     "licenses/melonDS-GPL-3.0.txt": "0b383d5a63da644f628d99c33976ea6487ed89aaa59f0b3257992deac1171e6b",
     "licenses/musl-COPYRIGHT.txt": "f9bc4423732350eb0b3f7ed7e91d530298476f8fec0c6c427a1c04ade22655af",
-    "sources/alternate-build-evidence.json": "b276f6652da551330a35af356d1058e7a03ab7f7ddee2bc6f11e36b2d7798150",
+    "sources/alternate-build-evidence.json": "d948f92e87ae51d27f0c52e22706b4c1362bd4bf32e248fa8ac7a3c2e2e7458b",
     "sources/alternate-c-cores-source.tar.gz": "dd336cc35cca5396b00f3c03b4a339ebc004396d80bebcbdf57eefb92efbdc5d",
-    "sources/alternate-web/BUILD.md": "91a5ee8f70d12ec308d7eb07e9a020e443ff630c0d1ccf03380fad5b94a58d36",
+    "sources/alternate-web/BUILD.md": "adefe34de7ce6d7d3ecc55b2d90789b02ebd6dbe931ad77f4f91e970f895500a",
     "sources/alternate-web/CMakeLists.txt": "aba1bfd8ea89417ea683df247399b9eae5390bc537945d20d67be4418fa1fd67",
     "sources/alternate-web/DEPENDENCIES.json": "6b3746a6f99ece4a2a8f6840ae9e7a189ab3b5e9ae0444205c9d5075c350470e",
     "sources/alternate-web/battery.cpp": "52f9f71d55b34510b9de832dc1c70ccdb471eb73c2077d3c435ef1ac3cdd5982",
     "sources/alternate-web/gba-bridge.c": "a848d45253a7125d6cb645951abde1bd3f91884ae2c8dc7a900182ab285ef785",
     "sources/alternate-web/nds-bridge.c": "407d4e60405aed164becd864d1ba737272d6fb2c6b3964c4c6870417fe5ba39a",
-    "sources/build-evidence.json": "ad7dc3b5dc4043546628060bbd435fbb0c21f675c7eb057c9769a7e53a62a2be",
+    "sources/build-evidence.json": "93f1319dc2ec10c0a4a7f73986989ba44a7ffab8329b041a18f4bbf620aff08f",
     "sources/celio-device-source.tar.gz": "0c0a5e7e2b2ae0626fd011571e73cf4084f01172889e28a17b2f031ff3ded907",
     "sources/celio-server-source.tar.gz": "3297aebba1cce33c696f6e472fb41b437ae0181c329c9fe7f1f44ef9837278e6",
     "sources/celio-web-transport/celio-serial.js": "2562ad97ccde5abbb7a9562d2b62b6e6560ab49084fbe7a4061c0855a119c8ac",
     "sources/celio-web-transport/LICENSE": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
     "sources/celio-web-transport/link-session.js": "063e1a11aeee3ed43e5a3178f206920e8388c8c3c6a22f024daddc7980ad3d65",
     "sources/desmume2015-source.tar.gz": "966f3f2aee97124699cd385a35ec75f86c8ed95c49eb950b9bc09ff1359bb696",
-    "sources/jgenesis-web-source.tar.gz": "0255700d4b5c2f099481b7a5d11ae5276c569f81a1560d546afee9a722597746",
+    "sources/jgenesis-web-source.tar.gz": "e569f455e12476adaea71447b0c1ce85792c9b72d2510da2337e88b64f1da0c3",
     "sources/libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
     "sources/libretro-web/BUILD.md": "a57ca4ed82f51fbe00e4efd6e579f9992f09cafabb8c95d22207d0db9fcad7b8",
     "sources/libretro-web/CMakeLists.txt": "709f75293f65d477cd19df9c633bb339167b34f6ed45f01b63cf3c2452f1e1e8",
-    "sources/libretro-web/bridge.c": "ba747e845011559f03e6e84d52733bec533b63027a8afe5ad37cb0d9a84aba76",
+    "sources/libretro-web/bridge.c": "d2e955c7affc20da6e14939dcd4fa2eb24771437f8ad5d6b625bc26bcbe8d554",
     "sources/manicemu-ui/ASListItemView.swift": "4f437f81c7dd421876ce8b583d6d6717c01146f720025b09e1e05f6a68ab5fc9",
     "sources/manicemu-ui/ASListPage.swift": "c30a9b16fbfb102a1f39828be49d0eca28cf436e750f49554a6c22eb01ff29ba",
     "sources/manicemu-ui/ASNavigationView.swift": "cdc5a7ad646e4bc7b263197bd03931373dc6588aeec39db097b6f9279888e35a",
@@ -204,19 +234,19 @@
     "sources/manicemu-ui/ImportMottoCollectionViewCell.swift": "39813a3f4a68f19adcc2372d6f5f756ff5308fdab6909a1c04300dab32de9472",
     "sources/manicemu-ui/ImportServiceListCollectionViewCell.swift": "2f89cd4ea298870fcd15ced37392d87880193a066cd0a18f5401aa2ef701c680",
     "sources/manicemu-ui/ImportServiceListView.swift": "bb41fa0242aee3bdfcdb53fdabba8d21aa8402bae5c44e4db8c9d3308d5012a9",
-    "sources/manicemu-ui/README.md": "3e3de7abd342353ae3d9f6e2d8bd0f827c820c39d2e4314111ef6e328bb9fd20",
+    "sources/manicemu-ui/README.md": "853b504381ffeef304f8c1b636d0c9dffd50c7e09a08edf890413a13d5930450",
     "sources/manicemu-ui/SaveStateListView.swift": "9748278a90767e5950be547b51fac9ed33a958d048ba9453e5e219a7a6ca3f7f",
     "sources/manicemu-ui/SettingItem.swift": "261e78b05f7cb93ba1fecc8f911b518b9686eacd8bfd86ccd2a0f12374af52ac",
     "sources/manicemu-ui/SettingsListView.swift": "f066b02851a495021c23adfb297145b2c2932f54e06829c4068ef5308c99d3f9",
     "sources/manicemu-ui/SkinCollectionViewCell.swift": "e39d9b5f3564ded34e9299c24a4d55a5c9501890560ddff739b84b7d047355cc",
     "sources/manicemu-ui/SkinPreviewViewController.swift": "759f4e28d567651004c8260f3abc94bf72a0191899a0be32d3a14ee8d7a42cbb",
     "sources/manicemu-ui/SkinSettingsView.swift": "7a66934a6309cfe69bafde672433e1a1080b4308ecc786a7f731884ad2e9e7a7",
-    "sources/mgba-celio-rom64-source.tar.gz": "fcd90d33ad210288a7f67e16a81878d0233e0a23cb1af27fb9756f6e26a2c1b8",
+    "sources/mgba-celio-rom64-source.tar.gz": "27a1997be81d4df8dfbed1b289a1c2736568fe6d67eafb1d1aa402551abd1b11",
     "sources/mgba-celio-web-source.tar.gz": "7d40fa0d7134ee877a1724de940b59957768fe05cf73c7e9c41b7d4079f566ba",
-    "sources/mgba-web-port/BUILD.md": "8a208afb989ca73f060b59dbc50b5d0b9edd1cb4e3592d05b7f8e42438c6c5da",
+    "sources/mgba-web-port/BUILD.md": "e79f809801279612a80167f09451ec972610f24dca53caa264c507454d45bbf1",
     "sources/mgba-web-port/CMakeLists.txt": "43b4e296249f68ed7f4b69176afd59ae1693a109f0c66db91ae5ecd9d0f3fee2",
-    "sources/mgba-web-port/bridge.c": "6aca820768f684b34d3d5f4fd4a391ddcca9224ecb7d81c9ed5c8460d31a5362",
-    "sources/mgba-web-port/link.h": "2a3b7c0d9e8465cf54841e4206428968a6cb7961161573da321c4bea1e3c0ae1",
+    "sources/mgba-web-port/bridge.c": "6608d3cc5ab8b5560a20a7ff6681a13acbbd0ab56b08bceb32bc22ae4480cb6e",
+    "sources/mgba-web-port/link.h": "afd65148934ff4ed99bb6a45df8400f967d0af02fcc1987de38fd8c86e4ee629",
     "sources/nds-build-evidence.json": "7cbb452ba776bc5ae35e234286ae472435251e8564fb756b233c23c3b88be090",
     "sources/nds-web/BUILD.md": "10afc7b31d641b9f7e8c5a29911057fe7d3c1d26bb176d72028fbf57c7f545a1",
     "sources/nds-web/CMakeLists.txt": "bd856f7a3f2afc9b56b521a4ad7b24d398da35974ae3dd6bee28b4718cf412eb",
@@ -229,7 +259,24 @@
     "BUNDLED_SKINS.json": "d7df7ff622187c11c438f7104f3dd2b1377a729faeda6176d1d61abc982ffb2d",
     "licenses/ManicEMUSkins-CC-BY-4.0.txt": "7e7170e3cebf88a9f60c7b8421418323c09304da1af4d5e90f4da1dc1c8a2661",
     "sources/manic-skins/UPSTREAM-README.md": "91d97f509a353eb9d7dcacded92f8cf15dccef5fbe8c28e9317525850bfdb12e",
-    "sources/celio-server-modern-source.tar.gz": "681b54f885ec5a67225e71cb4f48767f00d9d1ced406b3a6415a519e68a22ec7"
+    "sources/celio-server-modern-source.tar.gz": "681b54f885ec5a67225e71cb4f48767f00d9d1ced406b3a6415a519e68a22ec7",
+    "vendor/rom-patcher/BinFile.js": "3856e2f30bb8f105796a0371231a9b2aa37266148ac496711f07fd1e80fef688",
+    "vendor/rom-patcher/HashCalculator.js": "9d3a437aa3a75706533a44745f0201f773718be276d4e60bc2d7613ec01ab95a",
+    "vendor/rom-patcher/LICENSE": "a379dd012587a2fbe434ea6fcef30f502f32077738c2bd36e9e20cce621162bb",
+    "vendor/rom-patcher/README.md": "fa4d7f03b7c0a1cb22b2f513aaf9e6ea262417105dd81d79a1dffbf5df3c71f7",
+    "vendor/rom-patcher/RomPatcher.format.bps.js": "559ea67eba3532dc5410c3edd7613580e81997e86b10c2ee446e9a82f98e8c1d",
+    "vendor/rom-patcher/RomPatcher.format.ips.js": "aeff473533ef47b490f71dcd9796c1d6539a43e04807c14a1746a6aabfd61c36",
+    "vendor/rom-patcher/RomPatcher.format.ups.js": "06de1b1630564d5b0d38b13eca5703316669a9ca21c71c4519a0c48744547ba9",
+    "shaders/COPYING.txt": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "shaders/README.md": "dd9e0b26c6f839cdd4a17d4c6d892c20d7b359860ee653fe99a27f8e69b38fdf",
+    "shaders/xbrz-pass0.glsl": "bb33262daa8cba06026fe09bab2a29d60b4e89b4b966d6241aaabc9f8c5e640a",
+    "shaders/xbrz-pass1.glsl": "8785f14f704a4ce4a644c5e34174eccf75dd58f85023aa9c6efde88956a7f64f",
+    "sources/manicemu-ui/ControllersSettingView.swift": "a023ac910113b3fad2a0ffac4d7d37825564973958a15b72572a287a16a62f33",
+    "sources/manicemu-ui/FocusEngine.swift": "7db471f21558fb9f6b19cc07561d431f3e66da8c4400d8a58f24ae801a9f8fd1",
+    "sources/manicemu-ui/FocusKeyObserver.swift": "a6f88dca19d34d15bdacf5164597d22c57a0f179a96f682e99f9a03b2087e0f7",
+    "sources/manicemu-ui/FocusSystem.swift": "6e8e53e50feffaeb99d73da10268c89ac4a7d880b5f5b087de67539d21903768",
+    "sources/manicemu-ui/NDSSaveConverter.swift": "ece392b87580d52315ae151b2a82c2ad05b67f72947f0cea43dc095a92b9b48c",
+    "sources/manicemu-ui/RomPatcherView.swift": "e4dc81314bb81750baaefe77889963cde10b8bff5107363471ffd9b89fee16b6"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",
@@ -591,6 +638,25 @@
       "annotatedTag": "b63a4e15ce4ca3d4c85025f7e25cd83337198f78",
       "originalArchiveSha256": "490d0185fa6e0a3016a298ecb9397878cf7257f4cf790651e32c8b394bcc2ec3",
       "archiveChanges": "Removed only acorn-loose/node_modules/acorn and acorn-walk/node_modules/acorn symlinks; regular source files unchanged. Reproduce with scripts/prepare-acorn.py."
+    }
+  },
+  "romPatcher": {
+    "repository": "https://github.com/marcrobledo/RomPatcher.js",
+    "commit": "3183884086825c3a57c72026234debcef1e2240c",
+    "license": "MIT",
+    "localSource": "vendor/rom-patcher",
+    "changes": "Unmodified BinFile/HashCalculator and IPS/BPS/UPS modules. Original bounded preflight/worker wrapper; local files only, no auto-download or existing game/save overwrite."
+  },
+  "screenEffects": {
+    "repository": "https://github.com/pm-start/mgba-celio-web",
+    "commit": "23235bc6db1b67009808c0dc7e1f25131eb75e7a",
+    "license": "MPL-2.0",
+    "modifiedSource": "src/gpu-filter.js",
+    "shaders": {
+      "repository": "https://github.com/libretro/glsl-shaders",
+      "commit": "435612fe4f1023117b3aae48c88603fb413404a3",
+      "license": "GPL-3.0 with retained Hyllian permissive notice and Zenju exception",
+      "localSource": "shaders"
     }
   }
 }

@@ -4,7 +4,7 @@
   "emscriptenReleasesCommit": "b412b6307e541b93dd93f01b61181e15c17302ec",
   "cmake": "3.31.6",
   "ninja": "1.11.1",
-  "sourceSelection": "Compiler dependency closure, CMake inputs, required auxiliary source, and license/readme notices. No ROM/test fixtures, native GUI art or fonts. Upstream contents remain unchanged except the documented FCEUmm mapper-176 backport (2026-10-12).",
+  "sourceSelection": "Compiler dependency closure, CMake inputs, required auxiliary source, and license/readme notices. No ROM/test fixtures, native GUI art or fonts. Upstream contents remain unchanged except the documented FCEUmm mapper-176 backport (2026-10-12) and four MPL-2.0 mGBA optimization backports (2026-10-13).",
   "cores": {
     "nes": {
       "js": {
@@ -12,7 +12,7 @@
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "568e594d65bc82cd153e176a399775fd4e088fabc11e0fd8f122784de4a43890",
+        "sha256": "72550ad6e81968b6b42cb68cad25f13e4feaab17e826c59b0127cf8284898c9e",
         "rebuildMatches": true
       }
     },
@@ -22,7 +22,7 @@
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "454c0a6de528b76f5200e73585e27101173015b45b959843d52f5e6780769447",
+        "sha256": "9365fe01e58ec1f8711c85398eb29127d4b1448cb4af900b284a20dd518d2590",
         "rebuildMatches": true
       }
     },
@@ -32,24 +32,24 @@
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "bb47682ae13e62c790485733af91f51d6dc958d7faf06b96e6cf0af3b0110693",
+        "sha256": "3877035cbe389b9738a3f617aaeda1e63010d5aff37e2a0e8dced5e24486f091",
         "rebuildMatches": true
       }
     },
     "mgba": {
       "js": {
-        "sha256": "3073b2a121db575fc9578646be5b5998ebe7a919a7db18cbd0dc82758720c000",
+        "sha256": "9f2ea112049c9248ae3a2db35fe143dee615cffe91e9bf8030e45f318749bbe0",
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "6d89f5476207465d2cee6bf57be75d673b4966a92b5dbbb87174fb1248b64510",
+        "sha256": "9b74ba7f2a4f3f7ad0c5f46996138e159a2eaa89c56b5c486109e5434ef3050e",
         "rebuildMatches": true
       }
     }
   },
   "archives": {
     "libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
-    "mgba-celio-rom64-source.tar.gz": "fcd90d33ad210288a7f67e16a81878d0233e0a23cb1af27fb9756f6e26a2c1b8"
+    "mgba-celio-rom64-source.tar.gz": "27a1997be81d4df8dfbed1b289a1c2736568fe6d67eafb1d1aa402551abd1b11"
   },
   "mgbaUpdatedOn": "2026-10-09",
   "mgbaCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
@@ -61,5 +61,33 @@
     "sourceSha256": "57f57e156d27d4f840d894d4f5839149224bf75843c90de487f0a19aae52795e",
     "modifiedSha256": "e8d8f4817383d0196c3f1ff52a08a9d6c26baa66dafab2463c1b53176177432d"
   },
-  "fceummSourceDifference": "Only libretro-cores/fceumm/src/boards/fk23c.c differs from the previous archive; all archive paths and other files match. Rebuilt independently from the repacked archive with Emscripten 4.0.15/CMake 3.31.6/Ninja 1.11.1; JS and WASM match."
+  "fceummSourceDifference": "Only libretro-cores/fceumm/src/boards/fk23c.c differs from the previous archive; all archive paths and other files match. Rebuilt independently from the repacked archive with Emscripten 4.0.15/CMake 3.31.6/Ninja 1.11.1; JS and WASM match.",
+  "featureBuildUpdatedOn": "2026-10-13",
+  "featureBuildMethod": "Independent CMake/Ninja builds from separately extracted distribution source archives; all four JS/WASM pairs match. Bridge adds packed RGBA, optional cartridge peripherals/CPU clock and two-player libretro input; default timing is unchanged. Callbacks are registered after retro_init for Mesen-S.",
+  "mgbaOptimizations": [
+    {
+      "file": "src/util/audio-buffer.c",
+      "beforeSha256": "11d44588899bbdb745fe1dff8b5df1193a5e254ee7a3d7559ada43b6c5b99080",
+      "upstreamSha256": "12e109f168494c64dc041a0f02c087085f060fd1424f1966f83a743d55ea1981",
+      "modifiedSha256": "6f5aeebc5918036b0e6b41d13d892f57a6ee82dbc679511be82a53c8b7c1faf9"
+    },
+    {
+      "file": "src/util/audio-resampler.c",
+      "beforeSha256": "3ac0b801ad71fc65a2a72a4bb4b752aa7891d254834fe914bb6c604e20805192",
+      "upstreamSha256": "378cc6d701e51f6d37cab802501508daef9b5a37c835b706eb187054e3099fd1",
+      "modifiedSha256": "92cf2d35c10e315565aa8fc6de24cb863f435559c59b51e19d6b311e4360d61d"
+    },
+    {
+      "file": "src/arm/isa-arm.c",
+      "beforeSha256": "05694f531a08e0732d198e12dad5d156a5994f982453573677ce03903cfbe079",
+      "upstreamSha256": "2f19b0f018af6a909324b1dad9370639b322f873f2aa223bc7e0fb2a3168a3dc",
+      "modifiedSha256": "e64b5bb0224c5b88bb0ed222e64703d318682d515fed3cb3118b28a8eca7b956"
+    },
+    {
+      "file": "src/gba/renderers/software-mode0.c",
+      "beforeSha256": "b9d2a891930f37ab823e21950cb32f173559fe87c4e604a1eb7f7842240a104a",
+      "upstreamSha256": "ecefc48132a467525c700746d1a852d5fd786096e32063146f20012879a6d586",
+      "modifiedSha256": "d12ab66f1a7fe182f025491a4cb11286a83f1d2010c5473618bb49419aaacadb"
+    }
+  ]
 }

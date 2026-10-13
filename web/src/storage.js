@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from './i18n/index.js';
+import {retainArchive} from './save-history.js';
 import {guardUpdateTask} from './update-activity.js';
 import {coreRegistry,supportsGame} from './core-registry.js';
 import {withSkinChoice,withoutSkinChoice} from './skin-selection.js';
 import {sanitizeGamePreferences} from './game-preferences.js';
-const stores=['library','roms','saves','states','backups','recoveries','sessions','skins','coverCatalogs'];
+const stores=['library','roms','saves','states','backups','archives','recoveries','sessions','skins','coverCatalogs'];
 const database=new Promise((resolve,reject)=>{
- const r=indexedDB.open('manicemu-web',4);let blocked=false;
+ const r=indexedDB.open('manicemu-web',5);let blocked=false;
  r.onupgradeneeded=()=>{for(const s of stores)if(!r.result.objectStoreNames.contains(s))r.result.createObjectStore(s);};
  r.onblocked=()=>{blocked=true;reject(new Error(tr('保存機能の更新が必要です。このアプリのほかのタブを閉じ、このページを開き直してください。サイトデータは削除しないでください。')));};
  r.onsuccess=()=>{if(blocked){r.result.close();return;}r.result.onversionchange=()=>r.result.close();resolve(r.result);};r.onerror=()=>reject(r.error);
@@ -134,14 +135,14 @@ async function setGameCore(id,key){
  });
 }
 async function deleteGames(ids){const db=await database;return new Promise((resolve,reject)=>{
- const tx=write(db,['library','roms','saves','states','backups','recoveries','sessions']);let pending=ids.length,failure;
+ const tx=write(db,['library','roms','saves','states','backups','archives','recoveries','sessions']);let pending=ids.length,failure;
  const abort=e=>{failure=e;try{tx.abort();}catch{}};
  tx.oncomplete=()=>resolve(ids.length);tx.onabort=()=>reject(failure||tx.error||Error(tr('削除が中断されました。元のゲームと保存データは残っています。')));tx.onerror=()=>{};
  for(const id of ids){const request=tx.objectStore('library').get(id);request.onsuccess=()=>{try{
   if(!request.result||request.result.id!==id)throw Error(tr('ゲーム一覧が変わりました。対象を選び直してください。'));
   if(--pending)return;
   for(const selected of ids){
-   for(const name of ['library','roms','saves','backups','recoveries','sessions']){const store=tx.objectStore(name);store.delete(selected);if(name!=='library'&&name!=='roms')store.delete(IDBKeyRange.bound(selected+'@',selected+'@\uffff'));}
+   for(const name of ['library','roms','saves','backups','archives','recoveries','sessions']){const store=tx.objectStore(name);store.delete(selected);if(name!=='library'&&name!=='roms')store.delete(IDBKeyRange.bound(selected+'@',selected+'@\uffff'));}
    const states=tx.objectStore('states');states.delete(IDBKeyRange.bound(selected+':',selected+':\uffff'));states.delete(IDBKeyRange.bound(selected+'@',selected+'@\uffff'));
   }
  }catch(e){abort(e);}};}
@@ -154,7 +155,7 @@ async function commitProtection(id,sessionId,save,recovery,clean=false){
 }
 async function commitProtectionBatch(entries){
  const db=await database;return new Promise((resolve,reject)=>{
-  const tx=write(db,['saves','backups','recoveries','sessions']);let failure;
+  const tx=write(db,['saves','backups','archives','recoveries','sessions']);let failure;
   for(const {id,sessionId,save,recovery,clean=false} of entries){
   const sessions=tx.objectStore('sessions'),request=sessions.get(id);
   request.onsuccess=()=>{
@@ -168,6 +169,7 @@ async function commitProtectionBatch(entries){
       r.onsuccess=()=>history.put([old.result,...(r.result||[])].slice(0,5),id);
      }
      saves.put(save,id);
+     const archives=tx.objectStore('archives'),request=archives.get(id);request.onsuccess=()=>{const previous=request.result||[],next=retainArchive(previous,save);if(next!==previous)archives.put(next,id);};
     };
    }
    if(recovery){const store=tx.objectStore('recoveries'),r=store.get(id);r.onsuccess=()=>store.put([recovery,...(r.result||[])].slice(0,5),id);}
@@ -183,7 +185,7 @@ async function stateEntries(id){const db=await database;return new Promise((reso
 // Private metadata keys share the existing catalog store to avoid a disruptive
 // database upgrade while another tab is playing. No catalog API enumerates it.
 export const backupMetadataPrefix='\u0001palmo-backup:';
-const backupStores=['saves','states','backups','recoveries'];
+const backupStores=['saves','states','backups','archives','recoveries'];
 async function readBackupData(){const db=await database;return new Promise((resolve,reject)=>{
  const tx=db.transaction(['library',...backupStores]),result={games:[],records:[]};let bytes=0,failure;
  for(const name of ['library',...backupStores]){const request=tx.objectStore(name).openCursor();request.onsuccess=()=>{try{const c=request.result;if(!c)return;

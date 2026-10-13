@@ -1,12 +1,12 @@
 {
-  "reviewedOn": "2026-10-09",
+  "reviewedOn": "2026-10-13",
   "toolchains": {
     "c": "Emscripten 4.0.15 / CMake 3.31.6 / Ninja 1.11.1.4",
     "rust": "Rust 1.99.0 Windows GNU host, wasm32-unknown-unknown / wasm-bindgen 0.2.126 / Emscripten Clang for zstd / LLVM-MinGW 20261006 for host tools"
   },
   "archives": {
     "sources/alternate-c-cores-source.tar.gz": "dd336cc35cca5396b00f3c03b4a339ebc004396d80bebcbdf57eefb92efbdc5d",
-    "sources/jgenesis-web-source.tar.gz": "0255700d4b5c2f099481b7a5d11ae5276c569f81a1560d546afee9a722597746"
+    "sources/jgenesis-web-source.tar.gz": "e569f455e12476adaea71447b0c1ce85792c9b72d2510da2337e88b64f1da0c3"
   },
   "cores": {
     "vba-next": {
@@ -33,8 +33,9 @@
       "method": "Independent offline build after moving the first tree aside and extracting the distribution archive into the same absolute build path; no target/object cache reused. Cargo crate identifiers vary with source paths, so a separate-path build is not byte-identical.",
       "files": {
         "core.js": "8aabeec2af5b9caf258476df0f88b1e3607324925c7f152f83aaaf512c669008",
-        "core_bg.wasm": "df5398b2f0b9af6671152da95d082588c5ba4f592b475197aa9bf48c0dbb9d30"
-      }
+        "core_bg.wasm": "f4de98ee17a437c1190ba1e13a0483a1c0b4c5ff467e20ff248f01a4f368af93"
+      },
+      "changes": "Two player inputs for NES/SNES/MD only. GB remains single player because its set_field ignores the player argument. Snapshot/battery formats unchanged. Explicit SNES/MD second gamepad; aliased MD buttons combined with OR."
     }
   },
   "tests": "tests/multicore.cjs: original synthetic programs, input/stylus, state reset and restore, malformed-state rejection, battery import/export/reset, per-core storage and original-data preservation. See RELEASE_VALIDATION.md."

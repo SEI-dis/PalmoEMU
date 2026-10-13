@@ -24,6 +24,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
    await db.put('states',a+':manual-1',await state([11,12,13],'mgba-rom64-save6-v2'));
    await db.put('states',a+'@vba-next:manual-2',await state([14,15,16],'vba-next-web-v1'));
    await db.put('backups',a,[await save([21,22],'mgba-rom64-save6-v2')]);
+   await db.put('archives',a,await Promise.all(Array.from({length:10},(_,i)=>save([61,i],'mgba-rom64-save6-v2'))));
    await db.put('recoveries',a,[await state([31,32],'mgba-rom64-save6-v2')]);
    await db.put('recoveries',a+'@link-2p',[await state([33,34],'mgba-rom64-save6-v2')]);
    await db.put('saves',b,await save([41,42],'desmume2015-web-v1'));
@@ -37,7 +38,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
    localStorage.setItem('manic-settings',JSON.stringify(settings));
    const result=await backup.createBackup(settings);window.original=result;return {a,b,canary,text:result.text,summary:result.summary};
   });
-  assert.equal(fixture.summary.games,3);assert.equal(fixture.summary.records,11);
+  assert.equal(fixture.summary.games,3);assert.equal(fixture.summary.records,12);
   for(const secret of ['COVER_PRIVATE','SKIN_PRIVATE','ROM_PRIVATE','SCREEN_PRIVATE','SESSION_PRIVATE','SECRET_REASON','CATALOG_PRIVATE','SKIN_BYTES_PRIVATE','DIAGNOSTICS_PRIVATE','PRIVATE_UNKNOWN_SETTING'])assert.ok(!fixture.text.includes(secret),'Excluded '+secret);
   const archive=JSON.parse(fixture.text);assert.equal(archive.games.find(g=>g.id===fixture.b).controlLayout.portrait['screen-sub'].scale,.8);
   assert.deepEqual(archive.games.map(({category,favorite})=>({category,favorite})),[{category:'playing',favorite:true},{category:'completed',favorite:false},{category:'',favorite:false}],'New backups explicitly represent every classification and favorite value');

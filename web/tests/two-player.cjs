@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||'chromium';
+function cartridge(port){
+ const rom=require('./cartridges.cjs').nes(),code=[];const emit=(...v)=>code.push(...v);
+ emit(0x78,0xd8,0xa2,0xff,0x9a,0xa9,0,0x8d,0,0x20,0x8d,1,0x20);const loop=0x8000+code.length;
+ emit(0xa9,1,0x8d,0x16,0x40,0xa9,0,0x8d,0x16,0x40,0xad,port===1?0x16:0x17,0x40,0x29,1,0xf0,4,0xa2,0x30,0xd0,2,0xa2,1);
+ emit(0xa9,0x3f,0x8d,6,0x20,0xa9,0,0x8d,6,0x20,0x8e,7,0x20,0x4c,loop&255,loop>>8);rom.set(code,16);return [...rom];
+}
+function snesCartridge(port){
+ const rom=require('./cartridges.cjs').snes(),code=[0x78,0xd8,0xa9,0x0f,0x8d,0,0x21,0xa9,0,0x8d,0x2c,0x21],loop=0x8000+code.length;
+ code.push(0xa9,1,0x8d,0x16,0x40,0xa9,0,0x8d,0x16,0x40,0xad,port===1?0x16:0x17,0x40,0x29,1,0xf0,4,0xa2,0x7c,0xd0,2,0xa2,0,0xa9,0,0x8d,0x21,0x21,0xa9,0x1f,0x8d,0x22,0x21,0x8e,0x22,0x21,0x4c,loop&255,loop>>8);rom.set(code);return [...rom];
+}
+function mdCartridge(port){
+ const rom=require('./cartridges.cjs').md(),view=new DataView(rom.buffer),code=[0x46fc,0x2700,0x33fc,0x8004,0x00c0,0x0004,0x33fc,0x8144,0x00c0,0x0004,0x33fc,0x8700,0x00c0,0x0004,0x13fc,0x0040,0x00a1,port===1?0x0009:0x000b,0x13fc,0x0040,0x00a1,port===1?0x0003:0x0005],loop=0x200+code.length*2;
+ code.push(0x1039,0x00a1,port===1?0x0003:0x0005,0x0200,0x0010,0x323c,0x00e0,0x4a00,0x6604,0x323c,0x000e,0x23fc,0xc000,0,0x00c0,4,0x33c1,0x00c0,0,0x4ef9,0,loop);code.forEach((w,i)=>view.setUint16(0x200+i*2,w));return [...rom];
+}
+(async()=>{const browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});try{
+ const page=await browser.newPage({serviceWorkers:'block'});await page.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');await page.locator('#add-first').waitFor();
+ for(const system of ['nes','snes','md'])for(const coreKey of ['default','jgenesis'])for(const port of [1,2]){
+  const result=await page.evaluate(async({coreKey,rom,port,system})=>{const {createCore}=await import('./src/core-factory.js'),{coreRegistry}=await import('./src/core-registry.js');const game={system,coreKey:coreKey==='default'?coreRegistry[system][0].key:coreKey,size:rom.length};const core=createCore(document.createElement('div'),game);await core.load(new Uint8Array(rom),game);core.pause(true);
+   const color=()=>{for(let n=0;n<90;n++)core.m._web_frame(core.keys);core.draw();const data=core.canvas.getContext('2d').getImageData(0,0,core.canvas.width,core.canvas.height).data;return [...new Set(new Uint32Array(data.buffer))].slice(0,10);};const idle=color();core.setKeys(system==='nes'?1:2,port===1?1:0);const other=color();core.setKeys(0,0);core.setKeys(0,1);core.setKeys(system==='nes'?1:2,port-1);const pressed=color();core.setKeys(0,port-1);const released=color(),audio=core.m._web_audio_read();core.close();return {idle,other,pressed,released,audio};
+  },{coreKey,port,system,rom:({nes:cartridge,snes:snesCartridge,md:mdCartridge})[system](port)});assert.ok(result.audio>0,system+' audio callback');assert.deepEqual(result.other,result.idle,'Other player is isolated');assert.notDeepEqual(result.pressed,result.idle,system+' reads controller '+port);assert.deepEqual(result.released,result.idle);console.log('PASS',coreKey,system,'controller port',port);
+ }
+ // GB has only one joypad; updating a nonexistent second player must not clear it.
+ const gb=require('./cartridges.cjs').gb();gb.set([0x3e,0x0a,0xea,0,0,0x3e,0x10,0xe0,0,0xf0,0,0xe6,1,0xea,0,0xa0,0x18,0xf7],0x150);
+ const gbInput=await page.evaluate(async rom=>{const {createCore}=await import('./src/core-factory.js'),game={system:'gb',coreKey:'jgenesis',size:rom.length},core=createCore(document.createElement('div'),game);try{await core.load(new Uint8Array(rom),game);core.pause(true);const read=mask=>{for(let i=0;i<30;i++)core.m._web_frame(mask);return [...core.save()];};return {idle:read(0),pressed:read(1),released:read(0)};}finally{core.close();}},[...gb]);assert.notDeepEqual(gbInput.pressed,gbInput.idle,'Single-player GB input survives multiplayer support');assert.deepEqual(gbInput.released,gbInput.idle);
+ const routing=await page.evaluate(async()=>{const {createInputControls,deviceKey}=await import('./src/input-controls.js');const pads=[0,1].map(index=>({index,id:'Identical test pad',connected:true,axes:[0,0],buttons:[{pressed:false},{pressed:false}]}));Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>pads});let state={system:'nes',active:true,paused:false},pressed=new Map(),settings={};const controls=createInputControls({settings,keybits:{a:0,b:1},pressed,getState:()=>state,updateKeys:()=>{}});controls.poll();pads[0].buttons[0].pressed=true;pads[1].buttons[1].pressed=true;controls.poll();const first=[pressed.get('mapped-gamepad'),pressed.get('mapped-gamepad-2')];controls.assignPlayer('nes',deviceKey(pads[0])+':0',2);pads.forEach(p=>p.buttons.forEach(b=>b.pressed=false));controls.poll();pads[0].buttons[0].pressed=true;controls.poll();const reassigned=[pressed.get('mapped-gamepad'),pressed.get('mapped-gamepad-2')];state.system='gba';controls.poll();const single=[pressed.get('mapped-gamepad'),pressed.get('mapped-gamepad-2')];controls.destroy();return {first,reassigned,single,settings};});assert.deepEqual(routing.first,[1,2]);assert.deepEqual(routing.reassigned,[0,1]);assert.deepEqual(routing.single,[1,0]);assert.equal(Object.values(routing.settings.inputControls.players.nes)[0],2);
+ console.log('PASS: NES/SNES/MD ports on both cores, independent masks, identical-device assignment, saved preferences and single-player isolation. '+kind);
+ }finally{await Promise.race([browser.close(),new Promise(resolve=>setTimeout(resolve,2500))]);}})().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});

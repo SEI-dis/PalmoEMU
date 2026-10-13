@@ -1,3 +1,4 @@
+// Modified 2026-10-13: separate 1P/2P input and register callbacks after core initialization; serialized state unchanged.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Original browser frontend for the libretro C API. No RetroArch runtime.
 #include <emscripten.h>
@@ -54,16 +55,16 @@ static void video_callback(const void *data,unsigned w,unsigned h,size_t pitch){
 static size_t audio_batch(const int16_t *data,size_t frames){size_t n=frames;if(n>16384-audio_frames)n=16384-audio_frames;memcpy(audio+audio_frames*2,data,n*4);audio_frames+=n;return frames;}
 static void audio_sample(int16_t l,int16_t r){int16_t data[2]={l,r};audio_batch(data,1);}
 static void input_poll(void){}
-static int16_t input_state(unsigned port,unsigned device,unsigned index,unsigned id){if(port||index||device!=RETRO_DEVICE_JOYPAD)return 0;if(id==RETRO_DEVICE_ID_JOYPAD_MASK)return keys;return id<16?!!(keys&(1u<<id)):0;}
+static int16_t input_state(unsigned port,unsigned device,unsigned index,unsigned id){if(port>1||index||device!=RETRO_DEVICE_JOYPAD)return 0;unsigned input=keys>>(port*16);if(id==RETRO_DEVICE_ID_JOYPAD_MASK)return input&0xffff;return id<16?!!(input&(1u<<id)):0;}
 EXPORT void web_close(void){if(loaded)retro_unload_game();if(initialized)retro_deinit();loaded=initialized=false;free(rom);rom=NULL;free(snapshot);snapshot=NULL;snapshot_size=0;for(unsigned i=0;i<var_count;i++){free(vars[i].key);free(vars[i].value);}var_count=0;}
 EXPORT int web_load(const void *data,size_t size){
  web_close();format=RETRO_PIXEL_FORMAT_0RGB1555;audio_frames=0;keys=0;
- retro_set_environment(environment);retro_set_video_refresh(video_callback);retro_set_audio_sample(audio_sample);retro_set_audio_sample_batch(audio_batch);retro_set_input_poll(input_poll);retro_set_input_state(input_state);retro_init();initialized=true;
+ retro_set_environment(environment);retro_init();initialized=true;retro_set_video_refresh(video_callback);retro_set_audio_sample(audio_sample);retro_set_audio_sample_batch(audio_batch);retro_set_input_poll(input_poll);retro_set_input_state(input_state);
  rom=malloc(size);if(!rom)return 0;memcpy(rom,data,size);
  struct retro_game_info game={"/game." WEB_EXTENSION,rom,size,NULL};
  FILE *file=fopen(game.path,"wb");if(!file)return 0;fwrite(data,1,size,file);fclose(file);
  loaded=retro_load_game(&game);if(!loaded)return 0;
- retro_set_controller_port_device(0,RETRO_DEVICE_JOYPAD);retro_get_system_av_info(&av);width=av.geometry.base_width;height=av.geometry.base_height;return 1;
+ retro_set_controller_port_device(0,RETRO_DEVICE_JOYPAD);retro_set_controller_port_device(1,RETRO_DEVICE_JOYPAD);retro_get_system_av_info(&av);width=av.geometry.base_width;height=av.geometry.base_height;return 1;
 }
 EXPORT void web_frame(unsigned mask){keys=mask;audio_frames=0;if(loaded)retro_run();}
 EXPORT unsigned web_width(void){return width;} EXPORT unsigned web_height(void){return height;}

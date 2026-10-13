@@ -22,6 +22,7 @@ EMSCRIPTEN_KEEPALIVE int web_link_enable(int enable) {
   struct GBA* gba = core->board;
   if (!!enable == linkActive) return 1;
   if (enable) {
+    GBASetOverclock(gba,1);
     if (!linkCallbacksAdded) {
       struct mCoreCallbacks callbacks = {0};
       callbacks.vblankIRQ = linkVblank;

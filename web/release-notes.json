@@ -1,6 +1,75 @@
 {
   "releases": [
     {
+      "version": "0.3.20",
+      "date": "2026-10-13",
+      "changes": [
+        "NDSのDSVセーブを読み込めるよう修正しました。ゲーム内セーブの履歴に、直近5回とは別に5分間隔・最大10回の保存枠を追加しました。",
+        "メニューのコントローラー操作と、NES・SNES・メガドライブの1P／2P割り当てに対応しました。",
+        "LCD・CRT・xBRZフィルター、端末内でのIPS・BPS・UPSパッチ適用、GBAの傾き・回転・太陽センサー設定を追加しました。",
+        "mGBAの処理を最適化し、任意のCPU速度設定を追加しました。標準は1倍、通信中も1倍です。",
+        "SNES標準コアの初期化順を修正し、映像・音声・入力が正しく接続されるようにしました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "修复了NDS DSV存档的导入。除最近5份游戏存档外，另保留最多10份历史存档，相邻历史存档的保存时间至少相隔5分钟。",
+          "支持菜单中的控制器操作，以及NES、SNES和Mega Drive的1P/2P分配。",
+          "增加了LCD、CRT、xBRZ滤镜，设备内IPS、BPS、UPS补丁应用，以及GBA的倾斜、旋转和太阳传感器设置。",
+          "优化了mGBA的处理，并增加了任意CPU速度设置。默认是1倍，通信时也是1倍。",
+          "修正了SNES标准核心的初始化顺序，确保视频、音频和输入正确连接。"
+        ],
+        "zh-Hant": [
+          "修正了NDS DSV存檔的匯入。除了最近5份遊戲存檔，另外保留最多10份歷史存檔，相鄰歷史存檔的儲存時間至少相隔5分鐘。",
+          "支援選單中的控制器操作，以及 NES・SNES・Mega Drive 的 1P／2P 分配。",
+          "新增了 LCD・CRT・xBRZ 過濾器、設備內部的 IPS・BPS・UPS 補丁適用，以及 GBA 的傾斜・旋轉・太陽感應設定。",
+          "優化了 mGBA 的處理，並新增了任意 CPU 速度設定。預設為 1 倍，通訊中也為 1 倍。",
+          "修正了 SNES 標準核心的初始化順序，確保影像、音訊和輸入能正確連接。"
+        ],
+        "ko": [
+          "NDS DSV 세이브 불러오기를 수정했습니다. 최근 게임 내 세이브 5개와 별도로, 최소 5분 간격의 기록을 최대 10개 보관합니다.",
+          "메뉴 컨트롤러 조작과 NES・SNES・메가 드라이브의 1P/2P 할당에 대응했습니다.",
+          "LCD・CRT・xBRZ 필터, 기기 내 IPS・BPS・UPS 패치 적용, GBA 기울기・회전・태양 센서 설정을 추가했습니다.",
+          "mGBA 처리를 최적화하고 임의 CPU 속도 설정을 추가했습니다. 기본값은 1배이며 통신 중에도 1배입니다.",
+          "SNES 표준 코어 초기화 순서를 수정하여 영상・음성・입력이 올바르게 연결되도록 했습니다."
+        ],
+        "es": [
+          "Se ha corregido la importación de partidas DSV de NDS. Además de las 5 versiones más recientes, el historial conserva hasta 10 versiones adicionales con al menos 5 minutos de separación.",
+          "Se ha añadido soporte para la operación del controlador en el menú y asignación de jugador 1/jugador 2 para NES, SNES y Mega Drive.",
+          "Se han añadido filtros LCD, CRT y xBRZ, aplicación de parches IPS, BPS y UPS en el dispositivo, y ajustes de inclinación, rotación y sensor solar para GBA.",
+          "Optimizado el procesamiento de mGBA y se ha añadido un ajuste de velocidad de CPU arbitrario. El predeterminado es 1x, incluso durante la comunicación.",
+          "Corregido el orden de inicialización del núcleo estándar SNES para asegurar conexiones correctas de video, audio e entrada."
+        ],
+        "fr": [
+          "Correction de l’importation des sauvegardes DSV NDS. En plus des 5 versions les plus récentes, l’historique conserve jusqu’à 10 versions supplémentaires espacées d’au moins 5 minutes.",
+          "Prise en charge des commandes de manette dans le menu, ainsi que l'attribution P1/P2 pour NES, SNES et Mega Drive.",
+          "Ajout de filtres LCD・CRT・xBRZ, d'application IPS・BPS・UPS sur l'appareil, et de réglages d'inclinaison・rotation・capteur solaire pour GBA.",
+          "Optimisation du traitement mGBA et ajout de réglages de vitesse CPU arbitraires. La valeur par défaut est 1x, y reste 1x pendant la communication.",
+          "Correction de l'ordre d'initialisation du cœur SNES standard pour assurer une connexion correcte des vidéos, audio et entrées."
+        ],
+        "de": [
+          "Der Import von NDS-DSV-Spielständen wurde korrigiert. Neben den 5 neuesten Versionen bleiben bis zu 10 weitere Versionen mit mindestens 5 Minuten Abstand erhalten.",
+          "Unterstützung für Controller-Bedienung im Menü sowie Zuweisungen für Spieler 1/2 bei NES, SNES und Mega Drive hinzugefügt.",
+          "Hinzugefügte Filter für LCD, CRT und xBRZ, IPS-, BPS- und UPS-Patchen innerhalb des Geräts sowie Einstellungen für Neigung, Drehung und Sonnensensor für GBA.",
+          "Optimierung der mGBA-Verarbeitung und Hinzufügen einer beliebigen CPU-Geschwindigkeitseinstellung. Standard ist 1x, auch während der Kommunikation ist es 1x.",
+          "Korrigierte Initialisierungsreihenfolge des SNES-Standardcores, um eine korrekte Verbindung von Video-, Audio- und Eingabesignalen zu gewährleisten."
+        ],
+        "pt": [
+          "Corrigida a importação de saves DSV do NDS. Além das 5 versões mais recentes, o histórico guarda até 10 versões adicionais com pelo menos 5 minutos de intervalo.",
+          "Suporte para operação com controle no menu e atribuição de jogador 1/2 para NES, SNES e Mega Drive.",
+          "Adicionados filtros LCD・CRT・xBRZ, aplicação de patches IPS・BPS・UPS no dispositivo e configurações de inclinação・rotação・sensor solar para GBA.",
+          "Otimizado o processamento do mGBA e adicionado configuração de velocidade de CPU arbitrária. O padrão é 1x, mesmo durante a comunicação.",
+          "Corrigida a ordem de inicialização do núcleo SNES padrão para garantir conexões corretas de vídeo, áudio e entrada."
+        ]
+      },
+      "changesEn": [
+        "Fixed loading of NDS DSV saves. Game-save history now keeps up to 10 additional versions at least 5 minutes apart, alongside the 5 most recent versions.",
+        "Added support for controller mapping and 1P/2P assignment for NES, SNES, and Mega Drive in the menu.",
+        "Added LCD, CRT and xBRZ filters, local IPS/BPS/UPS ROM patching, and GBA tilt, rotation and sunlight settings.",
+        "Optimized mGBA processing and added optional CPU speed settings. The default remains 1×; link play also uses 1×.",
+        "Corrected the initialization order of the SNES core to ensure proper connection of video, audio, and input."
+      ]
+    },
+    {
       "version": "0.3.19",
       "date": "2026-10-13",
       "changes": [

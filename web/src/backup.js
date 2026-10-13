@@ -13,7 +13,7 @@ import {guardUpdateTask} from './update-activity.js';
 
 export const backupLimits=Object.freeze({file:192*1048576,bytes:128*1048576,games:1000,records:10000});
 const format='PalmoEMU-save-backup',version=1,settingsKey='manic-settings',pendingKey=db.backupMetadataPrefix+'pending';
-const dataStores=['saves','states','backups','recoveries'],gameFields=['id','system','size','preferences','coreKey','cheats','coreCheats','controlLayout','category','favorite'];
+const dataStores=['saves','states','backups','archives','recoveries'],gameFields=['id','system','size','preferences','coreKey','cheats','coreCheats','controlLayout','category','favorite'];
 const validId=id=>typeof id==='string'&&/^[a-f0-9]{64}$/.test(id),validHash=validId;
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x)&&Object.getPrototypeOf(x)===Object.prototype;
 const fail=message=>{throw Error(message||tr('バックアップの形式が正しくありません。'));};
@@ -110,7 +110,7 @@ async function inspect(input){
  const records=[],seen=new Set(),budget={total:0};
  for(const record of archive.records){
   keys(record,['store','key','value']);const core=recordCore(record,byId),token=record.store+':'+record.key;if(seen.has(token))fail(tr('保存先が重複しています。'));seen.add(token);
-  const history=['backups','recoveries'].includes(record.store);if(history&&(!Array.isArray(record.value)||record.value.length>5)||!history&&Array.isArray(record.value))fail(tr('保存履歴の形式が正しくありません。'));
+  const history=['backups','archives','recoveries'].includes(record.store);if(history&&(!Array.isArray(record.value)||record.value.length>(record.store==='archives'?10:5))||!history&&Array.isArray(record.value))fail(tr('保存履歴の形式が正しくありません。'));
   const output=[];for(const item of history?record.value:[record.value]){
    const state=['states','recoveries'].includes(record.store);keys(item,state?['bytes','hash','save','saveHash','at','coreId']:['bytes','hash','at','coreId']);
    if(!validTime(item.at)||!validHash(item.hash)||typeof item.coreId!=='string'||!compatibleState(core.id,item))fail(tr('保存データの日時・ハッシュ・コアが正しくありません。'));

@@ -18,7 +18,7 @@ Upstream: https://github.com/Manic-EMU/ManicEMU/tree/fbaeab79c214d5920bb51afa6f2
 | ASListPage / ASListItemView / ASNavigationView | Shared grouped rows, leading icons, trailing value/switch/chevron, compact navigation tools and close button in native-menu.css, style.css, index.html and src/app.js. |
 | SaveStateListView.getSaveStatesSection / segmented control / editing actions | src/manic-ui.js: stateRow. src/app.js: showStates. Manual/automatic tabs, thumbnail, number, date, Continue button; editing replaces Continue with selection checkboxes. Select-all and confirmed deletion. Automatic tab opens first when no manual state exists. |
 | GameOptionPerform | Browser equivalents for save, quick load, volume, speed, screenshot, skin, cheat, restart and exit actions. |
-| ImportServiceListView / ImportMottoCollectionViewCell / ImportFileCollectionViewCell / ImportServiceListCollectionViewCell / ImportFooterCollectionReusableView | src/app.js and style.css: the top artwork, full-width Files card, two-column local-service cards and dashed drop hint. Skin settings and per-game save import reuse existing local flows. Cloud/LAN/download, clipboard, multi-disc and patching services are omitted. Artwork and vector icons are original Web replacements. Original references and credits are retained. |
+| ImportServiceListView / ImportMottoCollectionViewCell / ImportFileCollectionViewCell / ImportServiceListCollectionViewCell / ImportFooterCollectionReusableView | src/app.js and style.css: the top artwork, full-width Files card, two-column local-service cards and dashed drop hint. Skin settings and per-game save import reuse existing local flows. Cloud/LAN/download, clipboard and multi-disc services are omitted. Local IPS/BPS/UPS patching was added on 2026-10-13. Artwork and vector icons are original Web replacements. Original references and credits are retained. |
 | SettingsListView / SettingItem | General, advanced, support and other groups; appearance controls, automatic states, controller skins and grouped settings rows in src/app.js and style.css. |
 
 UIKit layout and Realm persistence are replaced with HTML/CSS/JavaScript and
@@ -171,3 +171,11 @@ components under src/components. The paths above reflect this organization.
 Retained original authorship/license headers while adding local Japanese/English
 message calls. Storage settings were extracted from the settings view into a
 component; input bindings, save keys and ManicEMU-derived menu semantics remain.
+
+## Additional ports (2026-10-13)
+
+NDSSaveConverter.swift guides footer-aware DSV import in src/nds-save.js. FocusEngine,
+FocusSystem and FocusKeyObserver guide idle/paused UI input routing in src/ui-navigation.js.
+ControllersSettingView guides separate player assignments. RomPatcherView guides the
+local import service; native WebView/server code is replaced by a bounded Web Worker.
+The Web implementation preserves text editing and uses browser permission prompts for sensors.

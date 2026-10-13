@@ -52,3 +52,7 @@ CPUのオーバークロック設定は1倍に固定し、従来の速度を維�
 全配布コアとUI・通信・スキン表示の参照元を再確認しました。[確認結果](UPSTREAM_REVIEW.md)
 Celio新通信形式とFCEUmmのMapper 176修正を採用。mGBA rom64の最新差分はWindows向けREADMEだけのため、
 コアは0ba86121bd92のままです。次回候補ビルドの取得先は現在のpm-start/mGBA_celio_editionへ更新しました。
+
+## 0.3.20の追加
+
+mGBAの採用コミットは0ba86121bd92のまま、pm-start/mgba-celio-web 23235bc6の4ファイルの最適化を移植しました。変更ファイルとハッシュはSOURCES.json、再ビルドはsources/build-evidence.jsonに記録します。CPU速度は標準1倍を維持し、任意設定の2／4／8倍を追加。通信中は1倍へ戻します。候補更新処理は上流素のソースを検査するため、採用時にはこれらの最適化との重複・競合も確認してください。

@@ -1,15 +1,15 @@
 {
   "reviewedOn": "2026-10-13",
   "status": "ready",
-  "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices.",
+  "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices. Version 0.3.20 includes reviewed ManicEMU behavior ports, MPL optimization/effect sources, MIT patcher modules and GPL xBRZ shader source. No additional user data or remote upload service.",
   "openItems": [],
   "note": "Engineering review of pinned dependencies, corresponding source, notices, distribution contents and runtime regression tests. Not a legal opinion or a grant of rights in user ROMs/artwork. iPhone hardware and broad commercial-game compatibility remain unverified; limited local compatibility checks are scoped in RELEASE_VALIDATION.md. Any distribution/workflow change requires renewed review.",
-  "reviewedContentSha256": "ae8c43bb9fa3f5a076d228eb111683abae327581336486a4d76b92bffd701672",
+  "reviewedContentSha256": "f14e76a14e54a4db114590bc4e32a3d8170f706655695be4e367bd042b107456",
   "resolutions": [
     {
       "id": "corresponding-source",
       "evidenceFile": "sources/build-evidence.json",
-      "sha256": "ad7dc3b5dc4043546628060bbd435fbb0c21f675c7eb057c9769a7e53a62a2be"
+      "sha256": "93f1319dc2ec10c0a4a7f73986989ba44a7ffab8329b041a18f4bbf620aff08f"
     },
     {
       "id": "nds-corresponding-source",
@@ -19,32 +19,32 @@
     {
       "id": "noncommercial-core-combination",
       "evidenceFile": "LICENSE_AUDIT.md",
-      "sha256": "a5b912630eb35b1fe8e07c0186d2fd0dbd77aba19a2bc9bd354a122d9d0073cb"
+      "sha256": "375dc8e46e3dbdf0d48056be3eb45858672c6c325ce2a8d0bc6495b838fcebd1"
     },
     {
       "id": "asset-rights",
       "evidenceFile": "NOTICES.md",
-      "sha256": "508c04f3519e8a8e8ca89ef16ba3e6e8625d68140667a15df3928a77a7c98588"
+      "sha256": "c5a9c489006ec65448679c946f947e9c2997b65a77241868f2d011ce8e0e02ba"
     },
     {
       "id": "source-archive-materials",
       "evidenceFile": "SOURCES.json",
-      "sha256": "4dd28b9de1e6507eba04371c9ff0871f02797276f7da9ce567eee4d7b99a9897"
+      "sha256": "3d19bcfbbc314a4ef400a684c84c14f0e681337bf213a99fd8cda9343c97a3b5"
     },
     {
       "id": "external-artwork-policy",
       "evidenceFile": "LICENSE_AUDIT.md",
-      "sha256": "a5b912630eb35b1fe8e07c0186d2fd0dbd77aba19a2bc9bd354a122d9d0073cb"
+      "sha256": "375dc8e46e3dbdf0d48056be3eb45858672c6c325ce2a8d0bc6495b838fcebd1"
     },
     {
       "id": "runtime-validation",
       "evidenceFile": "RELEASE_VALIDATION.md",
-      "sha256": "ec1ed77940d51f8d51b1a2f3912f2dc0c003273ccbe04b24bc6cf6d06315a20d"
+      "sha256": "fb45e3de5a1ead19e2e5bb2b1013d35a83536a6662a22aa34c0df6e386756214"
     },
     {
       "id": "alternate-corresponding-source",
       "evidenceFile": "sources/alternate-build-evidence.json",
-      "sha256": "b276f6652da551330a35af356d1058e7a03ab7f7ddee2bc6f11e36b2d7798150"
+      "sha256": "d948f92e87ae51d27f0c52e22706b4c1362bd4bf32e248fa8ac7a3c2e2e7458b"
     },
     {
       "id": "mgba-save6-update",
@@ -59,7 +59,7 @@
     {
       "id": "upstream-review-0315",
       "evidenceFile": "UPSTREAM_REVIEW.md",
-      "sha256": "4bf3611f4f2770786e5be3396ec80544f19cb5a6aa1d68bf90eb764fc8db2406"
+      "sha256": "d34ef403885a0153e4b4d8abc178659221908fd5f0796e3d44dd7e8cd5afbe46"
     },
     {
       "id": "mobile-input-0316",
@@ -69,7 +69,7 @@
     {
       "id": "localization-and-components-0317",
       "evidenceFile": "ARCHITECTURE.md",
-      "sha256": "ef09d1045afacaf213014c10691547c1fd0e2a2d32f352e926bba093a4142cc7"
+      "sha256": "315a04cf8e538fc51a6ecf5e3856ded4234048424c01886bdd2e74a35bf6a00f"
     },
     {
       "id": "localization-0318",
@@ -80,6 +80,11 @@
       "id": "localization-automation-0319",
       "evidenceFile": "LOCALIZATION_REVIEW.md",
       "sha256": "d716d53fa31a524b4f5687801a435ec9ac9e2c04dcad7fe15fb974e2718ed918"
+    },
+    {
+      "id": "feature-ports-0320",
+      "evidenceFile": "FEATURE_REVIEW.md",
+      "sha256": "1edfa9efa174b2e101b64e9c1fc434c5e77197c4781b7dcf98d201d9772d65e6"
     }
   ],
   "workflows": {

@@ -38,6 +38,10 @@ export function sanitizeInputControls(value){
    const modes={};for(const action of gameInputsFor(system))if(assistModes.some(([id])=>id===assist.modes?.[action])&&assist.modes[action]!=='off')modes[action]=assist.modes[action];
    result.assist[system]={interval,modes};
   }
+ }
+ for(const system of ['nes','snes','md']){const source=value?.players?.[system];if(!source||typeof source!=='object')continue;
+  const choices={};for(const [key,player] of Object.entries(source).slice(0,34))if((['keyboard','touch'].includes(key)||/^pad:[0-9a-f]{8}:\d{1,2}$/.test(key))&&[1,2].includes(player))choices[key]=player;
+  if(Object.keys(choices).length)(result.players??={})[system]=choices;
  }return result;
 }
 export function createInputControls(api){
@@ -88,15 +92,20 @@ export function createInputControls(api){
  function poll(time=performance.now()){
   const s=state(),connected=pads(),ids=connected.map(p=>p.index+':'+deviceKey(p)).join('|');
   if(padIds&&ids!==padIds){release();}padIds=ids;
-  const active=new Set();let mask=0;
+  const active=new Set();let mask=0,second=0;
   for(const pad of connected)for(const code of padInputs(pad,s.deadZone)){
    const token=pad.index+':'+code;active.add(token);if(blockedPads.has(token))continue;
    if(capture&&capture.device!=='keyboard'&&(capture.device==='gamepad'||capture.device===deviceKey(pad))){if(!previousPads.has(token)){finishCapture(code);return;}continue;}
    if(!s.active||s.paused||capture)continue;
-   const action=mapping(s.system,deviceKey(pad))[code];if(specialInputs.includes(action)){if(!previousPads.has(token))runAction(action);}else if(keybits[action]!==undefined)mask|=1<<keybits[action];
+   const action=mapping(s.system,deviceKey(pad))[code];if(specialInputs.includes(action)){if(!previousPads.has(token))runAction(action);}else if(keybits[action]!==undefined){if(player(s.system,deviceKey(pad)+':'+pad.index)===2)second|=1<<keybits[action];else mask|=1<<keybits[action];}
   }
   for(const token of blockedPads)if(!active.has(token))blockedPads.delete(token);previousPads=active;
-  pressed.set('mapped-gamepad',mask);updateKeys(time);
+  pressed.set('mapped-gamepad',mask);pressed.set('mapped-gamepad-2',second);updateKeys(time);
+ }
+ function player(system,device){
+  if(!['nes','snes','md'].includes(system))return 1;
+  const stored=configuration().players?.[system]?.[device];if(stored)return stored;
+  const index=pads().findIndex(p=>deviceKey(p)+':'+p.index===device);return index===1?2:1;
  }
  function finishCapture(code){if(!capture)return;const done=capture.done;capture=null;cancelAnimationFrame(captureFrame);release();updateKeys();done(code);}
  function startCapture(device,done){if(!deviceCode(device))return;finishCapture(null);release();capture={device,done};
@@ -105,7 +114,10 @@ export function createInputControls(api){
  const onBlur=()=>{finishCapture(null);release();updateKeys();},onVisibility=()=>{if(document.hidden)onBlur();};
  window.addEventListener('keydown',keydown,true);window.addEventListener('keyup',keyup,true);window.addEventListener('blur',onBlur);window.addEventListener('gamepaddisconnected',onBlur);document.addEventListener('visibilitychange',onVisibility);
  return {
-  poll,transform,release,capture:startCapture,cancelCapture:()=>finishCapture(null),isCapturing:()=>!!capture,
+  poll,transform,release,player,
+  playerDevices:system=>[{key:'touch',name:tr('画面ボタン')},{key:'keyboard',name:tr('キーボード')},...pads().map(p=>({key:deviceKey(p)+':'+p.index,name:String(p.id||tr('ゲームパッド')).slice(0,100)+' #'+(p.index+1)}))].map(d=>({...d,player:player(system,d.key)})),
+  assignPlayer(system,device,value){if(!['nes','snes','md'].includes(system)||![1,2].includes(value))return;(config.players??={})[system]??={};config.players[system][device]=value;save();},
+  capture:startCapture,cancelCapture:()=>finishCapture(null),isCapturing:()=>!!capture,
   devices:()=>[{key:'keyboard',name:tr('キーボード')},{key:'gamepad',name:tr('ゲームパッド（共通）')},...pads().map(p=>({key:deviceKey(p),name:String(p.id||tr('ゲームパッド')).slice(0,100)})).filter((p,i,list)=>list.findIndex(x=>x.key===p.key)===i)],
   bindings:(system,device)=>mapping(validSystem(system),device),assist:system=>structuredClone(assist(validSystem(system))),
   assign(system,device,action,code){system=validSystem(system);if(!deviceCode(device)||![...gameInputsFor(system),...specialInputs].includes(action)||code!==null&&!(device==='keyboard'?keyboardCode(code):padCode(code)))return false;

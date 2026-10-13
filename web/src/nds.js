@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Adapter for the source-built DeSmuME 2015 core. See sources/nds-web/BUILD.md.
 import {tr} from './i18n/index.js';
+import {normalizeNDSSave} from './nds-save.js';
 import {MGBACore} from './mgba.js';
 import {VideoOutput} from './video.js';
 import {screenBounds} from './control-layout.js';
@@ -39,6 +40,7 @@ export class NDSCore extends MGBACore {
   this.copyIn(bytes,(p,n)=>{if(!this.m._web_load(p,n))throw Error(tr('このNDS ROMを読み込めませんでした。'));});
   this.width=256;this.height=384;this.fps=this.m._web_fps();this.startLoop();
  }
+ restore(bytes){super.restore(normalizeNDSSave(bytes,{maxBytes:this.core.maxSave}));}
  setKeys(mask){const map=[8,0,2,3,7,6,4,5,11,10,9,1];this.keys=map.reduce((out,id,i)=>out|((mask&(1<<i))?1<<id:0),0);}
  setRenderLimit(enabled){if(this.core?.renderLimit===false)return;if(this.renderLimit===enabled)return;this.renderLimit=enabled;this.m?._web_render_limit(enabled?1:0);}
  setLayout(wide,swap=false,rep){
@@ -76,5 +78,5 @@ export class NDSCore extends MGBACore {
   const enabled=list.filter(c=>c.enabled);if(enabled.some(c=>c.code.length>=1024||!/^[\da-fA-F\s+]+$/.test(c.code)))throw Error(tr('NDSはAction Replay形式（16進数、1023文字以内）で入力してください。'));
   this.m._web_cheat_reset();const enc=new TextEncoder();enabled.forEach((c,i)=>this.copyIn(enc.encode(c.code.replace(/\n/g,'+')+'\0'),p=>this.m._web_cheat_set(i,1,p)));
  }
- close(){this.releaseTouch();super.close();this.display.remove();}
+ close(){for(const video of this.videos)video.dispose();this.releaseTouch();super.close();this.display.remove();}
 }

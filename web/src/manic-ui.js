@@ -11,7 +11,7 @@ export const gameOptionGroups=[
  ['cover','skins','category'],
  ['stateList','importSave','shareSave','saveData'],
  ['switchCore'],
- ['cheatCode','manual'],
+ ['cheatCode','manual','cartridge'],
  ['saveState','quickLoadState','volume','volumeLevel','fastForward','preservePitch','shaders','screenShot',
   'rewindEnabled','rewind','haptic','controllerSetting','deadZone','swapScreen','frameLimit','hideControls','screenScaling','showFps','netplay','fullScreen','reload','quit'],
  ['gameOptionSort','gameShortcut'],

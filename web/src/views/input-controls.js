@@ -17,6 +17,7 @@ export function createInputControlsView({controls,sheet,onClose,getSystem=()=> '
     <div class="settings-group">${row(tr('機種'),tr`<select id="input-system" aria-label="機種">${Object.entries(systems).map(([id,s])=>`<option value="${id}" ${system===id?'selected':''}>${s.short}</option>`).join('')}</select>`,'game')}</div>
     <div class="segmented" role="group" aria-label="操作の設定"><button data-input-tab="mapping" aria-pressed="${tab==='mapping'}">ボタン割り当て</button><button data-input-tab="assist" aria-pressed="${tab==='assist'}">連射・押しっぱなし</button></div>
     ${tab==='mapping'?tr`<div class="settings-group">${row(tr('入力機器'),tr`<select id="input-device" aria-label="入力機器">${devices.map(d=>`<option value="${d.key}" ${d.key===device?'selected':''}>${esc(d.name)}</option>`).join('')}</select>`,'game')}</div>
+    ${['nes','snes','md'].includes(system)?tr`<div class="settings-group">${controls.playerDevices(system).map(d=>row(esc(d.name),tr`<select data-player-device="${d.key}" aria-label="プレイヤー"><option value="1" ${d.player===1?'selected':''}>1P</option><option value="2" ${d.player===2?'selected':''}>2P</option></select>`,'game')).join('')}</div><p class="sheet-note">連射・押しっぱなしは1Pに適用します。</p>`:''}
     <p class="sheet-note">変更する操作を選んで、キーやコントローラーのボタンを押してください。同じ機種・入力機器で使用します。</p>
     <div id="input-capture" class="input-capture" hidden><p id="input-capture-status" role="status" aria-live="polite"></p><div class="two"><button class="secondary" id="input-capture-cancel">キャンセル</button><button class="secondary" id="input-capture-clear">割り当てを解除</button></div></div>
     <div class="settings-group">${[...gameInputsFor(system),...specialInputs].map(action=>nativeAction(inputLabels[action],'map-'+action,'game',Object.entries(bindings).filter(([,mapped])=>mapped===action).map(([code])=>inputName(code)).join(' / ')||tr('未設定'))).join('')}</div>
@@ -29,6 +30,7 @@ export function createInputControlsView({controls,sheet,onClose,getSystem=()=> '
    find('#input-system').onchange=e=>{system=e.target.value;render();};
    document.querySelectorAll('[data-input-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.inputTab;render();});
    if(tab==='mapping'){
+    document.querySelectorAll('[data-player-device]').forEach(el=>el.onchange=()=>controls.assignPlayer(system,el.dataset.playerDevice,Number(el.value)));
     find('#input-device').onchange=e=>{device=e.target.value;render();};
     find('#input-reset').onclick=()=>{controls.reset(system,device);render();};
     document.querySelectorAll('[data-action^="map-"]').forEach(button=>button.onclick=()=>{

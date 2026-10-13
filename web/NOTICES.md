@@ -574,3 +574,12 @@ See LOCALIZATION_REVIEW.md for the generation and review process.
 The Acorn source archive is repacked with scripts/prepare-acorn.py. Only the two
 redundant node_modules/acorn workspace symlinks in acorn-loose and acorn-walk
 are omitted; all regular source files, LICENSE and AUTHORS remain unchanged.
+
+## 2026-10-13: upstream feature ports
+
+- ManicEMU (AGPL-3.0-or-later): DSV conversion, FocusKit interaction, controller player assignment and local ROM patch import flow. Original selected Swift references and copyright headers are under sources/manicemu-ui. Browser adapters are marked as modified.
+- pm-start/mgba-celio-web (liru55 and contributors, MPL-2.0), 23235bc6: audio buffer/resampler, ARM and mode-0 renderer optimization backports in the mGBA source archive; packed framebuffer export; LCD/CRT/xBRZ driver adaptation in src/gpu-filter.js. Source files retain notices and dated changes.
+- RomPatcher.js (Marc Robledo), 318388408682: unmodified MIT BinFile, HashCalculator and IPS/BPS/UPS modules in vendor/rom-patcher, including full LICENSE. No artwork is reused. The bounded worker and UI are original AGPL code.
+- xBRZ Freescale Multipass: unmodified GLSL from libretro/glsl-shaders 435612fe4f10, via liru. Hyllian permissive notice and Zenju GPL-3.0/exception text remain in both shaders, with full GPL text in shaders/COPYING.txt. GPL shader terms are retained alongside the AGPL application (GPLv3 section 13 permits the combination). Shader source is served and included in the corresponding Web source ZIP.
+
+Modified 2026-10-13: the original AGPL libretro bridge registers video/audio/input callbacks after retro_init for Mesen-S. The AGPL jgenesis wrapper explicitly connects the second SNES/MD gamepad and combines aliased MD inputs. Core serialization is unchanged.
