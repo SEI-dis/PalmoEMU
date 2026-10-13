@@ -42,7 +42,10 @@ export function createLinkControls({state,setPause,release,applySettings,updateL
           save=new Uint8Array(await file.arrayBuffer());
         }else if(source==='saved'&&previous.save)save=await secondaryProtection.verify(previous.save);
         const rom=await db.get('roms',game.id);if(!rom)throw Error(tr('ROMが見つかりません。'));
-        secondary=new MGBACore(document.createElement('canvas'));await secondary.load(rom);secondary.pause(true);
+        secondary=new MGBACore(document.createElement('canvas'));
+        // Apply this game's clock before 2P executes its first frame.
+        secondary.setCartridgeOptions({rtcMode:core.clockOptions?.mode===1?'offset':'auto',rtcOffset:core.clockOptions?.offset??0});
+        await secondary.load(rom);secondary.pause(true);
         if(save)secondary.restore(save);
         paired=new LocalLinkCore(core,secondary);state.engine=paired;
       }

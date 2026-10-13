@@ -47,6 +47,7 @@ export function sanitizeInputControls(value){
 export function createInputControls(api){
  const {settings,keybits,pressed,updateKeys}=api;
  let held=new Map(),blockedKeys=new Set(),blockedPads=new Set(),previousPads=new Set(),padIds='',capture=null,captureFrame=0,latched=0,previousRaw=0,starts=new Map(),lastSystem='',lastLinked=false,destroyed=false;
+ let lastRumbleTarget=null;
  let config=sanitizeInputControls(settings.inputControls),configSource=settings.inputControls;
  const state=()=>{try{return api.getState();}catch{return {system:'gba',active:false,paused:true};}};
  const configuration=()=>{if(settings.inputControls!==configSource){config=sanitizeInputControls(settings.inputControls);configSource=settings.inputControls;}return config;};
@@ -91,13 +92,14 @@ export function createInputControls(api){
  }
  function poll(time=performance.now()){
   const s=state(),connected=pads(),ids=connected.map(p=>p.index+':'+deviceKey(p)).join('|');
+  if(lastRumbleTarget&&!connected.some(p=>p.index===lastRumbleTarget.index&&p.id===lastRumbleTarget.id))lastRumbleTarget=null;
   if(padIds&&ids!==padIds){release();}padIds=ids;
   const active=new Set();let mask=0,second=0;
   for(const pad of connected)for(const code of padInputs(pad,s.deadZone)){
    const token=pad.index+':'+code;active.add(token);if(blockedPads.has(token))continue;
    if(capture&&capture.device!=='keyboard'&&(capture.device==='gamepad'||capture.device===deviceKey(pad))){if(!previousPads.has(token)){finishCapture(code);return;}continue;}
    if(!s.active||s.paused||capture)continue;
-   const action=mapping(s.system,deviceKey(pad))[code];if(specialInputs.includes(action)){if(!previousPads.has(token))runAction(action);}else if(keybits[action]!==undefined){if(player(s.system,deviceKey(pad)+':'+pad.index)===2)second|=1<<keybits[action];else mask|=1<<keybits[action];}
+   const action=mapping(s.system,deviceKey(pad))[code];if(specialInputs.includes(action)){if(!previousPads.has(token))runAction(action);}else if(keybits[action]!==undefined){if(player(s.system,deviceKey(pad)+':'+pad.index)===2)second|=1<<keybits[action];else{mask|=1<<keybits[action];lastRumbleTarget={index:pad.index,id:pad.id};}}
   }
   for(const token of blockedPads)if(!active.has(token))blockedPads.delete(token);previousPads=active;
   pressed.set('mapped-gamepad',mask);pressed.set('mapped-gamepad-2',second);updateKeys(time);
@@ -112,9 +114,12 @@ export function createInputControls(api){
   const tick=()=>{if(!capture||destroyed)return;if(device!=='keyboard')poll();if(capture)captureFrame=requestAnimationFrame(tick);};captureFrame=requestAnimationFrame(tick);
  }
  const onBlur=()=>{finishCapture(null);release();updateKeys();},onVisibility=()=>{if(document.hidden)onBlur();};
- window.addEventListener('keydown',keydown,true);window.addEventListener('keyup',keyup,true);window.addEventListener('blur',onBlur);window.addEventListener('gamepaddisconnected',onBlur);document.addEventListener('visibilitychange',onVisibility);
+ const onDisconnect=event=>{if(!event.gamepad||event.gamepad.index===lastRumbleTarget?.index)lastRumbleTarget=null;onBlur();};
+ window.addEventListener('keydown',keydown,true);window.addEventListener('keyup',keyup,true);window.addEventListener('blur',onBlur);window.addEventListener('gamepaddisconnected',onDisconnect);document.addEventListener('visibilitychange',onVisibility);
  return {
   poll,transform,release,player,
+  // Send game-driven vibration only to the last pad actually used by 1P.
+  rumbleTarget:()=>{const pad=pads().find(p=>p.index===lastRumbleTarget?.index&&p.id===lastRumbleTarget?.id);return pad&&player(state().system,deviceKey(pad)+':'+pad.index)===1?lastRumbleTarget:null;},
   playerDevices:system=>[{key:'touch',name:tr('画面ボタン')},{key:'keyboard',name:tr('キーボード')},...pads().map(p=>({key:deviceKey(p)+':'+p.index,name:String(p.id||tr('ゲームパッド')).slice(0,100)+' #'+(p.index+1)}))].map(d=>({...d,player:player(system,d.key)})),
   assignPlayer(system,device,value){if(!['nes','snes','md'].includes(system)||![1,2].includes(value))return;(config.players??={})[system]??={};config.players[system][device]=value;save();},
   capture:startCapture,cancelCapture:()=>finishCapture(null),isCapturing:()=>!!capture,
@@ -127,6 +132,6 @@ export function createInputControls(api){
   reset(system,device){if(!deviceCode(device))return;system=validSystem(system);config=configuration();(config.profiles[system]??={})[device]=defaultBindings(system,device);save();},
   setAssist(system,action,mode){system=validSystem(system);if(!gameInputsFor(system).includes(action)||!assistModes.some(([id])=>id===mode))return;config=configuration();const pref=structuredClone(assist(system));if(mode==='off')delete pref.modes[action];else pref.modes[action]=mode;config.assist[system]=pref;save();},
   setInterval(system,interval){if(!Number.isInteger(interval)||interval<50||interval>1000)return;system=validSystem(system);config=configuration();config.assist[system]={...assist(system),interval};save();},
-  destroy(){destroyed=true;finishCapture(null);release();window.removeEventListener('keydown',keydown,true);window.removeEventListener('keyup',keyup,true);window.removeEventListener('blur',onBlur);window.removeEventListener('gamepaddisconnected',onBlur);document.removeEventListener('visibilitychange',onVisibility);}
+  destroy(){destroyed=true;finishCapture(null);release();window.removeEventListener('keydown',keydown,true);window.removeEventListener('keyup',keyup,true);window.removeEventListener('blur',onBlur);window.removeEventListener('gamepaddisconnected',onDisconnect);document.removeEventListener('visibilitychange',onVisibility);}
  };
 }

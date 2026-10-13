@@ -10,6 +10,14 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   page.on('pageerror',e=>errors.push(e.message));
   await context.addInitScript(()=>localStorage.setItem('manic-settings',JSON.stringify({showFps:true})));
   await page.goto(base);
+  // The app shell disables double-tap zoom while preserving panning and pinch.
+  // Standalone documents must be checked in their own page, outside that shell.
+  for(const selector of ['html','body'])assert.equal(await page.locator(selector).evaluate(el=>getComputedStyle(el).touchAction),'manipulation','App shell preserves scrolling/pinch and suppresses double-tap zoom');
+  const documentation=await context.newPage();documentation.on('pageerror',e=>errors.push(e.message));
+  await documentation.goto(new URL('privacy.html',base).href);
+  for(const selector of ['html','body'])assert.equal(await documentation.locator(selector).evaluate(el=>getComputedStyle(el).touchAction),'auto','Standalone documentation keeps browser gestures');
+  assert.doesNotMatch(await documentation.locator('meta[name=viewport]').getAttribute('content'),/user-scalable\s*=\s*(?:no|0)|maximum-scale\s*=/i,'Documentation retains browser zoom');
+  await documentation.close();await page.bringToFront();
   await page.evaluate(async()=>{
    const {MGBACore}=await import('./src/mgba.js'),original=MGBACore.prototype.setKeys;
    window.testKeys=0;window.testKeyHistory=[];
@@ -20,13 +28,13 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await page.evaluate(()=>{
    const status=document.querySelector('#save-status');status.hidden=false;status.textContent='Saved 19:41';
    const nested=document.createElement('span');nested.id='selection-player-child';nested.textContent='Player padding';nested.style.cssText='position:absolute;top:10px;left:10px;z-index:50;padding:10px';document.querySelector('#player').append(nested);
-   const outside=document.createElement('p');outside.id='selection-outside';outside.textContent='Selectable documentation';document.body.append(outside);
+   const outside=document.createElement('p');outside.id='selection-outside';outside.textContent='Selectable non-player text';document.body.append(outside);
   });
   // Check the final cascade: panel styles must not re-enable double-tap zoom
   // on player padding/status, or disable native scrolling inside the panel.
   assert.equal(await page.locator('#player').evaluate(el=>getComputedStyle(el).touchAction),'pan-y');
   for(const selector of ['#skin','.skin-button[aria-label=A]'])assert.equal(await page.locator(selector).evaluate(el=>getComputedStyle(el).touchAction),'none');
-  assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).touchAction),'auto','Ordinary pages keep browser gestures');
+  assert.equal(await page.locator('body').evaluate(el=>getComputedStyle(el).touchAction),'manipulation','Playing retains the app-shell policy outside the player');
   assert.doesNotMatch(await page.locator('meta[name=viewport]').getAttribute('content'),/user-scalable\s*=\s*(?:no|0)|maximum-scale\s*=/i,'Do not disable zoom globally');
   const scale=await page.evaluate(()=>visualViewport.scale);
   await page.locator('#selection-player-child').tap();await page.locator('#selection-player-child').tap();
@@ -45,8 +53,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    if(state.calloutSupported)assert.equal(state.callout,'none',selector+' WebKit callout');
    for(const event of ['contextmenu','selectstart','dragstart'])assert.equal(state.events[event],true,selector+' suppresses '+event);
   }
-  const outside=await inspect('#selection-outside');assert.notEqual(outside.select,'none');assert.ok(Object.values(outside.events).every(value=>!value),'Ordinary page text remains unaffected');
-  console.log('PASS: player selection scope and ordinary text');
+  const outside=await inspect('#selection-outside');assert.notEqual(outside.select,'none');assert.ok(Object.values(outside.events).every(value=>!value),'Non-player text remains unaffected');
+  console.log('PASS: app-shell/document gesture policies, player selection scope and non-player text');
   // Real editable controls inside the protected player must override its policy.
   await page.evaluate(()=>{
    const fixture=document.createElement('div');fixture.id='selection-fields';fixture.style.cssText='position:fixed;top:100px;left:20px;z-index:100;width:300px;background:#111';
@@ -90,6 +98,6 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await page.mouse.move(aPoint.x,aPoint.y);await page.mouse.down();await keys(1);
   await page.evaluate(()=>window.dispatchEvent(new Event('blur')));await keys(0);await page.mouse.up();
   assert.deepEqual(errors,[]);await context.close();
-  console.log('PASS: player double-tap policy, unrestricted page zoom, selection guards, editable exceptions, rapid taps, held/touch input and cancellation; Chromium also checks simultaneous touch. '+kind+'. Physical iPhone gestures not tested.');
+  console.log('PASS: app-shell manipulation and standalone-document auto policies, player double-tap policy, selection guards, editable exceptions, rapid taps, held/touch input and cancellation; Chromium also checks simultaneous touch. '+kind+'. Physical iPhone gestures not tested.');
  }finally{await browser.close();}
 })().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});

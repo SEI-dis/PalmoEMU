@@ -1,6 +1,84 @@
 {
   "releases": [
     {
+      "version": "0.3.22",
+      "date": "2026-10-13",
+      "changes": [
+        "更新が見つかると「アプリの更新」を表示し、ダウンロードと更新を進めます。プレイ・保存中は終了後に更新します。",
+        "ホーム・インポート・設定で、ダブルタップによる意図しない拡大を抑えるようにしました。",
+        "ZIPからゲームを追加できるようになりました。解凍は端末内で行い、追加済みのゲームやセーブは上書きしません。",
+        "DSに「息を吹く」操作と本体の言語設定を追加しました。実際のマイクは使いません。",
+        "mGBAでGB／GBCの傾き操作、ゲーム別の時計調整、対応ゲームパッドへの振動を追加しました。振動は初期設定ではオフです。",
+        "mGBAの映像転送を端末に応じて選ぶようにし、LCD・CRTフィルターの強さを調整できるようにしました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "发现更新后，会显示“应用更新”，并自动进行下载和更新。正在游戏或保存时，会等待这些操作结束后再更新。",
+          "减少了在主页、导入和设置界面中双击造成的意外放大。",
+          "现在可以从ZIP文件添加游戏。应用会在设备内解压，不会覆盖已添加的游戏或存档。",
+          "为DS添加了“吹气”操作和主机语言设置。不使用实际麦克风。",
+          "mGBA增加了GB/GBC倾斜操作、每个游戏独立的时钟调整，以及对兼容手柄的震动支持。震动默认关闭。",
+          "mGBA现在会根据设备自动选择视频传输方式，同时可调整LCD和CRT滤镜的强度。"
+        ],
+        "zh-Hant": [
+          "發現更新後，會顯示「應用程式更新」，並自動進行下載與更新。正在遊戲或儲存時，會等待這些操作結束後再更新。",
+          "減少了在首頁、匯入和設定畫面中雙擊造成的意外放大。",
+          "現在可以從 ZIP 檔案新增遊戲。應用程式會在裝置內解壓縮，不會覆蓋已新增的遊戲或存檔。",
+          "為 DS 新增了「吹氣」操作和主機語言設定。不使用實際麥克風。",
+          "mGBA 新增了 GB/GBC 傾斜操作、各遊戲獨立的時鐘調整，以及對相容手把的震動支援。震動預設為關閉。",
+          "mGBA 現在會依裝置自動選擇影像傳輸方式，同時可調整 LCD 和 CRT 濾鏡的強度。"
+        ],
+        "ko": [
+          "업데이트가 발견되면 “앱 업데이트”가 표시되고 다운로드와 업데이트가 자동으로 진행됩니다. 플레이 또는 저장 중에는 해당 작업이 끝날 때까지 업데이트를 기다립니다.",
+          "홈, 가져오기, 설정 화면에서 두 번 탭하여 실수로 확대되는 현상을 줄였습니다.",
+          "이제 ZIP 파일에서 게임을 추가할 수 있습니다. 앱이 기기 안에서 압축을 해제하며, 이미 추가된 게임이나 세이브를 덮어쓰지 않습니다.",
+          "DS에 “바람 불기” 조작과 본체 언어 설정을 추가했습니다. 실제 마이크는 사용하지 않습니다.",
+          "mGBA에 GB/GBC 기울임 조작, 게임별 시계 조정, 호환 게임패드의 진동 기능을 추가했습니다. 진동은 기본적으로 꺼져 있습니다.",
+          "mGBA가 기기에 맞는 영상 전송 방식을 자동으로 선택하도록 했습니다. LCD와 CRT 필터의 강도도 조절할 수 있습니다."
+        ],
+        "es": [
+          "Cuando se detecta una actualización, se muestra “Actualización de la aplicación” y la descarga y la actualización avanzan automáticamente. Si está jugando o guardando, la actualización espera a que termine.",
+          "Se ha reducido el zoom accidental al tocar dos veces en las pantallas Inicio, Importar y Ajustes.",
+          "Ahora puede añadir juegos desde archivos ZIP. La aplicación los descomprime en el dispositivo sin sobrescribir los juegos ni las partidas guardadas que ya existen.",
+          "Se han añadido el control “Soplar” y los ajustes de idioma del sistema para DS. No se utiliza un micrófono real.",
+          "Se han añadido controles de inclinación para GB/GBC, ajuste del reloj por juego y vibración para mandos compatibles en mGBA. La vibración está desactivada por defecto.",
+          "mGBA ahora selecciona automáticamente el método de transferencia de vídeo adecuado para el dispositivo. También puede ajustar la intensidad de los filtros LCD y CRT."
+        ],
+        "fr": [
+          "Lorsqu’une mise à jour est détectée, « Mise à jour de l’application » s’affiche et le téléchargement et la mise à jour se poursuivent automatiquement. Si vous jouez ou sauvegardez, la mise à jour attend la fin de ces activités.",
+          "Les zooms accidentels par double toucher ont été réduits sur les écrans Accueil, Importer et Réglages.",
+          "Vous pouvez désormais ajouter des jeux depuis des fichiers ZIP. L’application les décompresse sur l’appareil sans écraser les jeux ni les sauvegardes déjà présents.",
+          "Ajout de la commande « Souffler » et du réglage de la langue du système pour la DS. Aucun microphone réel n’est utilisé.",
+          "Ajout dans mGBA des commandes d’inclinaison pour GB/GBC, du réglage de l’horloge par jeu et des vibrations pour les manettes compatibles. Les vibrations sont désactivées par défaut.",
+          "mGBA choisit désormais automatiquement la méthode de transfert vidéo adaptée à l’appareil. Vous pouvez aussi régler l’intensité des filtres LCD et CRT."
+        ],
+        "de": [
+          "Wenn ein Update gefunden wird, erscheint „App-Update“ und Download und Aktualisierung laufen automatisch ab. Während des Spielens oder Speicherns wartet das Update, bis diese Vorgänge beendet sind.",
+          "Unbeabsichtigtes Zoomen durch Doppeltippen auf den Seiten Start, Importieren und Einstellungen wurde reduziert.",
+          "Spiele können jetzt aus ZIP-Dateien hinzugefügt werden. Die App entpackt sie auf dem Gerät, ohne vorhandene Spiele oder Speicherstände zu überschreiben.",
+          "Für DS wurden die Funktion „Pusten“ und die Einstellung der Systemsprache hinzugefügt. Es wird kein echtes Mikrofon verwendet.",
+          "mGBA unterstützt jetzt Neigungseingaben für GB/GBC, die Uhrzeitanpassung pro Spiel und Vibration für kompatible Gamepads. Vibration ist standardmäßig ausgeschaltet.",
+          "mGBA wählt jetzt automatisch die passende Videoübertragungsmethode für das Gerät. Außerdem lässt sich die Stärke der LCD- und CRT-Filter einstellen."
+        ],
+        "pt": [
+          "Quando uma atualização é encontrada, “Atualização do app” é exibido e o download e a atualização avançam automaticamente. Durante o jogo ou o salvamento, a atualização aguarda o fim dessas atividades.",
+          "Reduzimos o zoom acidental por toque duplo nas telas Início, Importar e Configurações.",
+          "Agora é possível adicionar jogos de arquivos ZIP. O app os descompacta no dispositivo sem sobrescrever jogos ou saves existentes.",
+          "Adicionamos o controle “Soprar” e a configuração do idioma do sistema para o DS. Nenhum microfone real é usado.",
+          "Adicionamos ao mGBA controles de inclinação para GB/GBC, ajuste de relógio por jogo e vibração para controles compatíveis. A vibração fica desativada por padrão.",
+          "O mGBA agora seleciona automaticamente o método de transferência de vídeo adequado ao dispositivo. Também é possível ajustar a intensidade dos filtros LCD e CRT."
+        ]
+      },
+      "changesEn": [
+        "When an update is found, “App update” opens and downloading and updating proceed automatically. During gameplay or saving, the update waits until those activities finish.",
+        "Reduced accidental zooming from double-tapping on the Home, Import and Settings screens.",
+        "You can now add games from ZIP files. The app extracts them on your device without overwriting existing games or saves.",
+        "Added a “Blow” control and system language settings for DS. No actual microphone is used.",
+        "Added GB/GBC tilt controls, per-game clock adjustment and rumble for compatible gamepads in mGBA. Rumble is off by default.",
+        "mGBA now automatically selects a video transfer method for your device. You can also adjust the strength of the LCD and CRT filters."
+      ]
+    },
+    {
       "version": "0.3.21",
       "date": "2026-10-13",
       "changes": [

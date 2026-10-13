@@ -16,7 +16,7 @@
     "zh-Hant": "skin=外觀, save state=即時存檔, core=核心",
     "ko": "skin=스킨, save state=상태 저장, core=코어",
     "es": "skin=diseño, save state=estado guardado, core=núcleo",
-    "fr": "skin=habillage, save state=état de sauvegarde, core=cœur",
+    "fr": "skin=habillage, save state=état de sauvegarde, core=cœur; Keep literal units MiB, KiB and MB exactly as written; never replace them with Mio, Kio or Mo.",
     "de": "skin=Skin, save state=Savestate, core=Core",
     "pt": "skin=tema, save state=estado salvo, core=núcleo"
   }

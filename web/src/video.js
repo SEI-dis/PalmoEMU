@@ -19,8 +19,18 @@ function scale2x(src,dst,w,h){
 }
 
 export class VideoOutput {
- constructor(canvas,width,height){this.canvas=canvas;this.width=width;this.height=height;this.setMode('pixel');}
+ constructor(canvas,width,height){this.canvas=canvas;this.width=width;this.height=height;this.strength=.5;this.setMode('pixel');}
+ setStrength(value){
+  if(this.disposed)return;
+  value=typeof value==='number'&&Number.isFinite(value)?Math.max(0,Math.min(1,value)):.5;
+  if(this.strength===value)return;
+  this.strength=value;
+  // A paused live frame updates immediately; a restored screenshot remains the
+  // authoritative preview until a new emulated frame arrives.
+  if(!this.preview&&this.sourceImage&&['lcd','crt'].includes(this.mode))this.draw(this.sourceImage);
+ }
  setMode(mode){
+  if(this.disposed)return;
   mode=videoFilters.some(([id])=>id===mode)?mode:'pixel';
   if(this.mode===mode)return;
   this.gpu?.dispose();this.gpu=null;this.mode=mode;this.gpuMode=['lcd','crt','xbrz'].includes(mode);const n=this.gpuMode?(mode==='xbrz'?4:3):mode==='edge4x'?4:mode==='edge2x'?2:1;
@@ -34,14 +44,15 @@ export class VideoOutput {
   if(this.preview)this.restorePreview(this.preview);else if(this.sourceImage)this.draw(this.sourceImage);
  }
  draw(image){
+  if(this.disposed)return;
   this.preview=null;
   if(this.sourceImage!==image){this.sourceImage=image;this.sourceWords=new Uint32Array(image.data.buffer,image.data.byteOffset,this.width*this.height);}
-  if(this.gpuMode){const filtered=this.gpu.render(image,this.mode);if(filtered)this.ctx.drawImage(filtered,0,0);else{this.fallbackCanvas??=document.createElement('canvas');if(this.fallbackCanvas.width!==this.width)this.fallbackCanvas.width=this.width;if(this.fallbackCanvas.height!==this.height)this.fallbackCanvas.height=this.height;this.fallbackCanvas.getContext('2d').putImageData(image,0,0);this.ctx.imageSmoothingEnabled=false;this.ctx.drawImage(this.fallbackCanvas,0,0,this.canvas.width,this.canvas.height);}this.canvas.dataset.filterFallback=String(this.gpu.failed);present(this.canvas);return;}
+  if(this.gpuMode){const filtered=this.gpu.render(image,this.mode,this.strength);if(filtered)this.ctx.drawImage(filtered,0,0);else{this.fallbackCanvas??=document.createElement('canvas');if(this.fallbackCanvas.width!==this.width)this.fallbackCanvas.width=this.width;if(this.fallbackCanvas.height!==this.height)this.fallbackCanvas.height=this.height;this.fallbackCanvas.getContext('2d').putImageData(image,0,0);this.ctx.imageSmoothingEnabled=false;this.ctx.drawImage(this.fallbackCanvas,0,0,this.canvas.width,this.canvas.height);}this.canvas.dataset.filterFallback=String(this.gpu.failed);present(this.canvas);return;}
   if(!this.enlarged){this.ctx.putImageData(image,0,0);present(this.canvas);return;}
   if(this.intermediate){scale2x(this.sourceWords,this.intermediate,this.width,this.height);scale2x(this.intermediate,this.enlargedWords,this.width*2,this.height*2);}
   else scale2x(this.sourceWords,this.enlargedWords,this.width,this.height);
   this.ctx.putImageData(this.enlarged,0,0);present(this.canvas);
  }
- dispose(){this.gpu?.dispose();this.gpu=null;}
- restorePreview(image){this.preview=image;this.ctx.imageSmoothingEnabled=false;this.ctx.drawImage(image,0,0,this.canvas.width,this.canvas.height);present(this.canvas);}
+ dispose(){this.disposed=true;this.gpu?.dispose();this.gpu=null;this.sourceImage=this.sourceWords=this.preview=this.fallbackCanvas=this.enlarged=this.enlargedWords=this.intermediate=null;}
+ restorePreview(image){if(this.disposed)return;this.preview=image;this.ctx.imageSmoothingEnabled=false;this.ctx.drawImage(image,0,0,this.canvas.width,this.canvas.height);present(this.canvas);}
 }

@@ -23,6 +23,14 @@ cmake --build build --parallel 4
 
 出力は `build/vba-next.js`、`vba-next.wasm`、`melonds.js`、`melonds.wasm` です。配布時は各 `cores/<コア名>/core.js` と `core.wasm` に置きます。読み込み先はWebアダプタが指定します。
 
+### 2026-10-13: DSの疑似息入力と本体言語
+
+NDS専用の `nds-bridge.c` に `web_set_language(-1..5)` と `web_blow(0/1)` を追加します。言語は `web_load` より前に指定し、-1は既存のEnglish既定値、0..5はJapanese / English / French / German / Italian / Spanishです。初期化後の変更は拒否し、ゲームを終了して開き直したときに反映します。
+
+採用中のmelonDS 0.9.3は、libretro L2の押下中だけ `melonds_mic_input=Blow Noise` を入力します。ManicEMUが使う新しいmelonDSDSの `blow` オプションとは異なります。Webアダプタが5秒で解除し、一時停止・再起動・ステート読込・終了でも止めます。Cブリッジも再起動・ステート読込・終了で注入入力を解除します。実マイクの収録や外部送信は行いません。
+
+操作時間は [ManicEMUのsimBlowing](https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/Play/VIewControllers/PlayViewController.swift#L3481) に合わせ、入力ビットと設定名は配布ソースの `melonds/src/libretro/input.cpp` と `libretro.cpp` に合わせています。コア本体、セーブ・ステート形式は変更しません。対応ソースを別ディレクトリへ展開した独立ビルドでJS/WASMの一致を確認しました。自作DSプログラムで言語とSPIマイク標本の変化、旧新版のセーブ・ステート互換、Chromium／WebKitの操作画面を確認しています。実機の性能確認とは区別します。
+
 変更日：2026-10-09。AGPLのWebアダプタを追加し、入力・音声・ステート・端末内セーブを接続しました。melonDSにはROMデータの生存期間を保つアダプタとSRAM入出力を追加し、未実装のチート初期化を使わないようにしました。FreeBIOSのBSD-2-Clause通知も同梱します。
 
 ## jgenesis

@@ -16,7 +16,7 @@ export class JgenesisCore extends MGBACore {
  setKeys(mask,player=0){this.keys=player?(this.keys&0xffff)|((mask&0x3fff)<<16):(this.keys&0xffff0000)|(mask&0x3fff);}
  draw(){
   const w=this.game.width(),h=this.game.height();if(!w||!h)return;
-  if(w!==this.width||h!==this.height){const mode=this.video?.mode;this.width=w;this.height=h;this.video?.dispose();this.video=new VideoOutput(this.canvas,w,h);if(mode)this.video.setMode(mode);this.image=new ImageData(w,h);this.target=new Uint32Array(this.image.data.buffer);}
+  if(w!==this.width||h!==this.height){const mode=this.video?.mode,strength=this.video?.strength;this.width=w;this.height=h;this.video?.dispose();this.video=new VideoOutput(this.canvas,w,h);this.video.setStrength(strength);if(mode)this.video.setMode(mode);this.image=new ImageData(w,h);this.target=new Uint32Array(this.image.data.buffer);}
   const pixels=new Uint32Array(this.wasm.memory.buffer,this.game.pixels_ptr(),w*h);for(let i=0;i<pixels.length;i++)this.target[i]=pixels[i]|0xff000000;
   this.video.draw(this.image);this.presented++;
  }

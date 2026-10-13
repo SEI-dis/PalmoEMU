@@ -63,6 +63,20 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.locator('#input-system').selectOption('gba');await page.locator('[data-input-tab=mapping]').click();await page.locator('#input-reset').click();assert.match(await page.locator('[data-action=map-a]').textContent(),/X/);
   await page.locator('[data-action=map-a]').click();await page.locator('#close-sheet').click();assert.equal(await page.evaluate(()=>testInputs.isCapturing()),false);
   await page.evaluate(()=>{testInputState.paused=false;testInputs.setAssist('gba','a','off');});await page.keyboard.down('x');assert.equal(await page.evaluate(()=>testInputMasks.at(-1)),1);await page.keyboard.up('x');
+  const rumbleTarget=await page.evaluate(()=>{
+   testInputState.system='snes';testInputs.release();testPads=[];testInputs.poll();
+   const make=index=>({index,id:'Same synthetic model',connected:true,buttons:Array.from({length:17},()=>({pressed:false,value:0})),axes:[0,0]});
+   const first=make(0),second=make(1);testPads=[first,second];testInputs.poll();
+   second.buttons[0].pressed=true;testInputs.poll();const two=testInputs.rumbleTarget();second.buttons[0].pressed=false;
+   first.buttons[0].pressed=true;testInputs.poll();const one=testInputs.rumbleTarget();first.buttons[0].pressed=false;testInputs.poll();
+   testPads=[second];testInputs.poll();const gone=testInputs.rumbleTarget();
+   const replacement=make(0);testPads=[replacement,second];testInputs.poll();const reconnected=testInputs.rumbleTarget();
+   replacement.buttons[0].pressed=true;testInputs.poll();const operated=testInputs.rumbleTarget();replacement.buttons[0].pressed=false;testInputs.poll();
+   // A disconnect/reconnect can happen between polls and reuse both id/index.
+   testPads=[second];const event=new Event('gamepaddisconnected');Object.defineProperty(event,'gamepad',{value:replacement});window.dispatchEvent(event);
+   testPads=[make(0),second];testInputs.poll();const betweenPolls=testInputs.rumbleTarget();testPads=[];testInputs.release();
+   return {two,one,gone,reconnected,operated,betweenPolls};
+  });assert.deepEqual(rumbleTarget,{two:null,one:{index:0,id:'Same synthetic model'},gone:null,reconnected:null,operated:{index:0,id:'Same synthetic model'},betweenPolls:null},'Rumble requires new 1P input after a disconnect, including identical id/index reuse between polls');
   assert.ok(await page.evaluate(()=>testInputSaved)>5);await page.evaluate(()=>testInputs.destroy());assert.deepEqual(errors,[]);await context.close();
   console.log('PASS: keyboard/per-device gamepad remapping, special actions/capture, system isolation, touch-mask turbo/hold, link suppression, release/disconnect safety, bounded configuration and settings UI. '+kind);
  }finally{await browser.close();}

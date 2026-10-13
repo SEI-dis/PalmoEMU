@@ -4,7 +4,7 @@
   "emscriptenReleasesCommit": "b412b6307e541b93dd93f01b61181e15c17302ec",
   "cmake": "3.31.6",
   "ninja": "1.11.1",
-  "sourceSelection": "Compiler dependency closure, CMake inputs, required auxiliary source, and license/readme notices. No ROM/test fixtures, native GUI art or fonts. Upstream contents remain unchanged except the documented FCEUmm mapper-176 backport (2026-10-12) and four MPL-2.0 mGBA optimization backports (2026-10-13).",
+  "sourceSelection": "Compiler dependency closure, CMake inputs, required auxiliary source, and license/readme notices. No ROM/test fixtures, native GUI art or fonts. Upstream contents remain unchanged except the documented FCEUmm mapper-176 backport (2026-10-12) and four MPL-2.0 mGBA optimization backports (2026-10-13). The archive version.cmake also rejects unrelated enclosing Git metadata (2026-10-13).",
   "cores": {
     "nes": {
       "js": {
@@ -38,18 +38,18 @@
     },
     "mgba": {
       "js": {
-        "sha256": "9f2ea112049c9248ae3a2db35fe143dee615cffe91e9bf8030e45f318749bbe0",
+        "sha256": "f5fe34cc45c5e8d140a6aba79e0e1c2609543e628ab7b9b7e13979b0e3ada3b0",
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "9b74ba7f2a4f3f7ad0c5f46996138e159a2eaa89c56b5c486109e5434ef3050e",
+        "sha256": "9063e80ab584b08cb70884616572974c12ca772e10fa38a6dac3d18554b53d97",
         "rebuildMatches": true
       }
     }
   },
   "archives": {
     "libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
-    "mgba-celio-rom64-source.tar.gz": "27a1997be81d4df8dfbed1b289a1c2736568fe6d67eafb1d1aa402551abd1b11"
+    "mgba-celio-rom64-source.tar.gz": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16"
   },
   "mgbaUpdatedOn": "2026-10-09",
   "mgbaCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
@@ -89,5 +89,12 @@
       "upstreamSha256": "ecefc48132a467525c700746d1a852d5fd786096e32063146f20012879a6d586",
       "modifiedSha256": "d12ab66f1a7fe182f025491a4cb11286a83f1d2010c5473618bb49419aaacadb"
     }
-  ]
+  ],
+  "peripheralBuildUpdatedOn": "2026-10-13",
+  "peripheralBuildMethod": "Two independent source directories built with Emscripten 4.0.15/CMake 3.31.6/Ninja 1.11.1; JS/WASM match. RTC offset and rumble bridge additions retain save/state layouts. Archive version.cmake ignores unrelated parent Git repositories; native core checkouts retain their own metadata.",
+  "versionMetadataFix": {
+    "file": "mgba/version.cmake",
+    "beforeSha256": "f945337b5a3580ab535a1648e8e4dd294003e4480314c0dddf7ccf1a1bc362d1",
+    "modifiedSha256": "e66695fc2a68cedb43a41e57df7d764619f2d46b384a4312c1aa27d586ab1c07"
+  }
 }

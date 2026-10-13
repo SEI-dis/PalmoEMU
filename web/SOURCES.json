@@ -46,6 +46,11 @@
           "modifiedSha256": "d12ab66f1a7fe182f025491a4cb11286a83f1d2010c5473618bb49419aaacadb"
         }
       ]
+    },
+    "versionMetadataFix": {
+      "file": "mgba/version.cmake",
+      "beforeSha256": "f945337b5a3580ab535a1648e8e4dd294003e4480314c0dddf7ccf1a1bc362d1",
+      "modifiedSha256": "e66695fc2a68cedb43a41e57df7d764619f2d46b384a4312c1aa27d586ab1c07"
     }
   },
   "otherCores": {
@@ -148,12 +153,12 @@
     "cores/jgenesis/core_bg.wasm": "f4de98ee17a437c1190ba1e13a0483a1c0b4c5ff467e20ff248f01a4f368af93",
     "cores/md/core.js": "bb2fab117a8029d064342e6cf8095768514bfe6a9b6f569a9c634faacbc0e300",
     "cores/md/core.wasm": "3877035cbe389b9738a3f617aaeda1e63010d5aff37e2a0e8dced5e24486f091",
-    "cores/melonds/core.js": "a26f04de5eef64a9e9e0884d004a34936f4658c4fc6c88e3c598f0568ff2f6ae",
-    "cores/melonds/core.wasm": "d1cca80bce316ca935e2cbbaebcf65f35fadef0a671b68a87bed79fcdc0f25ba",
-    "cores/mgba/mgba.js": "9f2ea112049c9248ae3a2db35fe143dee615cffe91e9bf8030e45f318749bbe0",
-    "cores/mgba/mgba.wasm": "9b74ba7f2a4f3f7ad0c5f46996138e159a2eaa89c56b5c486109e5434ef3050e",
-    "cores/nds/core.js": "aaa6695c96d20f268d5a5cb7152f76ca793f48414c3d58127f79ac2dbeb6fe5c",
-    "cores/nds/core.wasm": "ea0b03591bedbfd59645b63a74e4d2a87bbfcc93ea92e26307e235fac3845ba5",
+    "cores/melonds/core.js": "799f57665dedca38172921664b76cc67311208f1a1a1c283ba2c9286f2b999fe",
+    "cores/melonds/core.wasm": "392767d97c5209b112f24f7f285e6836401caf0abf5a807d9b3f507ddb106e4b",
+    "cores/mgba/mgba.js": "f5fe34cc45c5e8d140a6aba79e0e1c2609543e628ab7b9b7e13979b0e3ada3b0",
+    "cores/mgba/mgba.wasm": "9063e80ab584b08cb70884616572974c12ca772e10fa38a6dac3d18554b53d97",
+    "cores/nds/core.js": "fb8e297ef7e0acdbf0c7d8e4df4210b539a6310a252fa286b927a5f03002a7db",
+    "cores/nds/core.wasm": "3a760d86d108b1147532b5dacee301679110c002b5d77bcdbd962110657fdeb9",
     "cores/nes/core.js": "cd3799a369fa1b87d6fd085cd8eaecac8289dc4305ec259b21715a60c5f66f67",
     "cores/nes/core.wasm": "72550ad6e81968b6b42cb68cad25f13e4feaab17e826c59b0127cf8284898c9e",
     "cores/snes/core.js": "1f127b5dd1995b8ed505607f98b0fbe3fc349628deff01bfee957be7b1efd814",
@@ -190,15 +195,15 @@
     "licenses/mGBA-compiled-file-notices.txt": "20f30f8ffa667bf9c9be26cd19de280415280e0c62762fbd1b99a8b1f448844d",
     "licenses/melonDS-GPL-3.0.txt": "0b383d5a63da644f628d99c33976ea6487ed89aaa59f0b3257992deac1171e6b",
     "licenses/musl-COPYRIGHT.txt": "f9bc4423732350eb0b3f7ed7e91d530298476f8fec0c6c427a1c04ade22655af",
-    "sources/alternate-build-evidence.json": "d948f92e87ae51d27f0c52e22706b4c1362bd4bf32e248fa8ac7a3c2e2e7458b",
-    "sources/alternate-c-cores-source.tar.gz": "dd336cc35cca5396b00f3c03b4a339ebc004396d80bebcbdf57eefb92efbdc5d",
-    "sources/alternate-web/BUILD.md": "adefe34de7ce6d7d3ecc55b2d90789b02ebd6dbe931ad77f4f91e970f895500a",
+    "sources/alternate-build-evidence.json": "9dc511a61d015cbea1b250d82dfd5eb8b18ed068d85815f28430ab6f8d7fa030",
+    "sources/alternate-c-cores-source.tar.gz": "b3e06d71819d8951148b649093fa3af6f3758b8215f480f5b6dadbe34f992034",
+    "sources/alternate-web/BUILD.md": "41b6ed475c88b814b1bc0e237b6a97168b40ba4b93c623f5da3e228446cc4009",
     "sources/alternate-web/CMakeLists.txt": "aba1bfd8ea89417ea683df247399b9eae5390bc537945d20d67be4418fa1fd67",
     "sources/alternate-web/DEPENDENCIES.json": "6b3746a6f99ece4a2a8f6840ae9e7a189ab3b5e9ae0444205c9d5075c350470e",
     "sources/alternate-web/battery.cpp": "52f9f71d55b34510b9de832dc1c70ccdb471eb73c2077d3c435ef1ac3cdd5982",
     "sources/alternate-web/gba-bridge.c": "a848d45253a7125d6cb645951abde1bd3f91884ae2c8dc7a900182ab285ef785",
-    "sources/alternate-web/nds-bridge.c": "407d4e60405aed164becd864d1ba737272d6fb2c6b3964c4c6870417fe5ba39a",
-    "sources/build-evidence.json": "93f1319dc2ec10c0a4a7f73986989ba44a7ffab8329b041a18f4bbf620aff08f",
+    "sources/alternate-web/nds-bridge.c": "a09f1b43d3a64eb70f6d4a6aba8aa402b75c958686f87f86198f94e4fd8394bb",
+    "sources/build-evidence.json": "f3efc3b214279616a8a10ffafb894bb7d295e511a35df82c149ee90de2549d3f",
     "sources/celio-device-source.tar.gz": "0c0a5e7e2b2ae0626fd011571e73cf4084f01172889e28a17b2f031ff3ded907",
     "sources/celio-server-source.tar.gz": "3297aebba1cce33c696f6e472fb41b437ae0181c329c9fe7f1f44ef9837278e6",
     "sources/celio-web-transport/celio-serial.js": "2562ad97ccde5abbb7a9562d2b62b6e6560ab49084fbe7a4061c0855a119c8ac",
@@ -241,17 +246,17 @@
     "sources/manicemu-ui/SkinCollectionViewCell.swift": "e39d9b5f3564ded34e9299c24a4d55a5c9501890560ddff739b84b7d047355cc",
     "sources/manicemu-ui/SkinPreviewViewController.swift": "759f4e28d567651004c8260f3abc94bf72a0191899a0be32d3a14ee8d7a42cbb",
     "sources/manicemu-ui/SkinSettingsView.swift": "7a66934a6309cfe69bafde672433e1a1080b4308ecc786a7f731884ad2e9e7a7",
-    "sources/mgba-celio-rom64-source.tar.gz": "27a1997be81d4df8dfbed1b289a1c2736568fe6d67eafb1d1aa402551abd1b11",
+    "sources/mgba-celio-rom64-source.tar.gz": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16",
     "sources/mgba-celio-web-source.tar.gz": "7d40fa0d7134ee877a1724de940b59957768fe05cf73c7e9c41b7d4079f566ba",
-    "sources/mgba-web-port/BUILD.md": "e79f809801279612a80167f09451ec972610f24dca53caa264c507454d45bbf1",
+    "sources/mgba-web-port/BUILD.md": "c4a369dc9f35b9322aecc2895c10e33d67c4d4b50a19918d05885aacfe93671b",
     "sources/mgba-web-port/CMakeLists.txt": "43b4e296249f68ed7f4b69176afd59ae1693a109f0c66db91ae5ecd9d0f3fee2",
     "sources/mgba-web-port/bridge.c": "6608d3cc5ab8b5560a20a7ff6681a13acbbd0ab56b08bceb32bc22ae4480cb6e",
     "sources/mgba-web-port/link.h": "afd65148934ff4ed99bb6a45df8400f967d0af02fcc1987de38fd8c86e4ee629",
-    "sources/nds-build-evidence.json": "7cbb452ba776bc5ae35e234286ae472435251e8564fb756b233c23c3b88be090",
-    "sources/nds-web/BUILD.md": "10afc7b31d641b9f7e8c5a29911057fe7d3c1d26bb176d72028fbf57c7f545a1",
+    "sources/nds-build-evidence.json": "9b8431d2a98b35733f4adfaa2cfd0e50a04d3c61c6875d86f4bd2f885b2b0ed8",
+    "sources/nds-web/BUILD.md": "ae80df0f91287de21f700bd95bfe657441c5e01d2e2c73c2a49e0a8eb20177cf",
     "sources/nds-web/CMakeLists.txt": "bd856f7a3f2afc9b56b521a4ad7b24d398da35974ae3dd6bee28b4718cf412eb",
     "sources/nds-web/battery.cpp": "7c8d71adaa2405e908ee653c63463e66c32e90e46eb5c6743e28a30abf740c9d",
-    "sources/nds-web/bridge.c": "4e0b2b0ee88883dbd3908825f90fdb4af63f1634c34dfbd8672f3133f2201651",
+    "sources/nds-web/bridge.c": "319e256bad206edc2c0555a952ae9eb147a99c9a6ead7a946a9c5cf7b1f20248",
     "sources/pdfjs-build.json": "5e1287b2b3024e8088bd83d083c79eb14abaeab0b1a1d33ce5a0526e4363fb08",
     "sources/pdfjs-library-source.tar.gz": "36dd8bf703921388710997aa260b8fdae96696a6ae726864bab4631d0c2cb453",
     "vendor/pdfjs/pdf.mjs": "dd13af821c9c3e1778653340d6539a1ba07bc56cba40073a4c727864cf0c232a",
@@ -276,7 +281,8 @@
     "sources/manicemu-ui/FocusKeyObserver.swift": "a6f88dca19d34d15bdacf5164597d22c57a0f179a96f682e99f9a03b2087e0f7",
     "sources/manicemu-ui/FocusSystem.swift": "6e8e53e50feffaeb99d73da10268c89ac4a7d880b5f5b087de67539d21903768",
     "sources/manicemu-ui/NDSSaveConverter.swift": "ece392b87580d52315ae151b2a82c2ad05b67f72947f0cea43dc095a92b9b48c",
-    "sources/manicemu-ui/RomPatcherView.swift": "e4dc81314bb81750baaefe77889963cde10b8bff5107363471ffd9b89fee16b6"
+    "sources/manicemu-ui/RomPatcherView.swift": "e4dc81314bb81750baaefe77889963cde10b8bff5107363471ffd9b89fee16b6",
+    "src/pixel-transfer.js": "21d6b6646d1111f48f8ace522154ce0e5768e9c7e2c1a4ad3475fdd015edaa45"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",
@@ -658,5 +664,19 @@
       "license": "GPL-3.0 with retained Hyllian permissive notice and Zenju exception",
       "localSource": "shaders"
     }
+  },
+  "pixelTransfer": {
+    "repository": "https://github.com/pm-start/mgba-celio-web",
+    "commit": "23235bc6db1b67009808c0dc7e1f25131eb75e7a",
+    "reference": "web/app.js: choosePixelTransfer/drawFrame",
+    "license": "MPL-2.0; secondary AGPL-3.0-or-later offer under MPL 3.3",
+    "modifiedSource": "src/pixel-transfer.js",
+    "changes": "Bounded startup calibration using an authored no-op cartridge and synthetic pixels, exact pixel comparison, conservative fallback, refreshed WASM memory views. No user ROM/save or networking."
+  },
+  "dsOperations": {
+    "reference": "https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/Play/VIewControllers/PlayViewController.swift#L3481",
+    "authors": "Daiuno / Manic EMU",
+    "license": "AGPL-3.0-or-later",
+    "changes": "Five-second simulated blowing interaction adapted to pinned DeSmuME L3/internal and melonDS L2/Blow Noise interfaces; boot-time firmware language. No microphone recording."
   }
 }

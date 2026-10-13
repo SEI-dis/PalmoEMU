@@ -89,4 +89,4 @@ const kind=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-run
   assert.deepEqual(errors,[]);await context.close();
   console.log(`PASS ${kind}: legacy selections, independent portrait/landscape, per-game inheritance, live rotation/input release, deletion, atomic metadata and ROM retention.`);
  }finally{if(browser)await browser.close();server.closeAllConnections();await new Promise(r=>server.close(r));}
-})().catch(error=>{console.error(error);process.exitCode=1;});
+})().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

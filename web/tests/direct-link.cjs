@@ -52,12 +52,18 @@ const engine=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-r
   await p.evaluate(async()=>{
    const {DirectLink}=await import('./src/direct-link.js'),start=DirectLink.prototype.start;
    DirectLink.prototype.start=async function(...a){window.uiLink=this;return start.apply(this,a);};
+   const {MGBACore}=await import('./src/mgba.js'),startLoop=MGBACore.prototype.startLoop;window.uiCoreClocks=[];
+   MGBACore.prototype.startLoop=function(){uiCoreClocks.push({mode:this.m._web_rtc_mode(),offset:this.m._web_rtc_offset()});return startLoop.call(this);};
    Object.defineProperty(navigator,'serial',{configurable:true,value:undefined});
   });
   await p.locator('#rom-input').setInputFiles({name:'Original direct-link.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,31))});
+  await p.locator('.game-launch').waitFor();
+  await p.evaluate(async()=>{const db=await import('./src/storage.js'),game=(await db.all('library'))[0];await db.setGamePreferences(game.id,{rtcMode:'offset',rtcOffset:3600,gameRumble:true});});
   await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
   await p.locator('#player-link').click();await p.locator('[data-link-mode=usb]').click();assert.equal(await p.locator('#link-usb-start').isDisabled(),true);
   await p.locator('[data-link-mode=local]').click();await p.locator('#link-local-start').click();await p.waitForFunction(()=>window.uiLink?.connected&&!document.querySelector('[data-link-player="1"]').disabled);
+  assert.deepEqual(await p.evaluate(()=>uiCoreClocks),[{mode:1,offset:3600},{mode:1,offset:3600}],'Both local players receive the game clock before their first frame');
+  assert.deepEqual(await p.evaluate(()=>uiLink.paired.cores.map(c=>({mode:c.m._web_rtc_mode(),offset:c.m._web_rtc_offset(),rumble:c.rumble.enabled}))),[{mode:1,offset:3600,rumble:true},{mode:1,offset:3600,rumble:false}],'2P inherits only the clock, without enabling a second rumble controller');
   await p.locator('[data-link-player="1"]').click();assert.equal(await p.evaluate(()=>uiLink.paired.view),1);
   const frames=await p.evaluate(()=>uiLink.paired.cores.map(c=>c.frames));await p.waitForFunction(f=>uiLink.paired.cores.every((c,i)=>c.frames>f[i]+3),frames);
   const dir=path.join(__dirname,'../test-results/direct-link');fs.mkdirSync(dir,{recursive:true});await p.screenshot({path:path.join(dir,engine+'-local.png')});

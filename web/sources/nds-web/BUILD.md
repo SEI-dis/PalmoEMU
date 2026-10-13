@@ -26,11 +26,11 @@ inputs; they are not required at runtime.
 Copy `core.js` and `core.wasm` to `cores/nds/`. `nds-build-evidence.json` records
 the source archive and the second build from its extracted contents.
 
-## Web bridge (modified 2026-10-09)
+## Web bridge (modified 2026-10-09 and 2026-10-13)
 
 `bridge.c` adapts the existing libretro bridge: native 256×192 screens stacked
 in a 256×384 framebuffer, absolute touch coordinates, 1 CPU core, interpreter,
-software rasterizer, Japanese firmware language, no JIT/SIMD/pthreads/COOP/COEP.
+software rasterizer, Japanese firmware language by default, no JIT/SIMD/pthreads/COOP/COEP.
 The core uses its HLE BIOS and generated firmware; no external BIOS is required
 for the direct boot path. Default frameskip 1 limits rendered frames to about
 30fps while logic/audio keep DS timing. The app can disable it for full rendering.
@@ -45,6 +45,33 @@ Unsupported save lengths are rejected before import. States use the core's
 12MiB serialization format and a separate compatibility identifier.
 Disabled cheats are not submitted, and the 1024-byte upstream cheat buffer is
 protected by the JS adapter and C bridge length checks.
+
+## DS operations and firmware language (2026-10-13 implementation)
+
+`web_set_language(-1..5)` chooses the generated firmware language before
+`web_load`/`retro_init`: -1 retains this port's Japanese default, and 0..5 are
+Japanese, English, French, German, Italian and Spanish. Calls after initialization
+are refused without modifying the running game. The Web setting therefore applies
+after exiting and reopening a game, not by resetting the current session. Existing
+states may restore the firmware state that they captured.
+
+`web_blow(1)` drives the DeSmuME 2015 libretro L3 microphone input with
+`desmume_mic_mode=internal` and `desmume_mic_force_enable=disabled`. The Web adapter
+limits each action to five seconds and clears it on pause, reset, state load and
+close. The bridge also clears its injected input on reset, state load and close.
+It does not record device audio, request microphone permission or send audio.
+The pinned core sources are unchanged and save/state layouts are unchanged.
+
+The five-second interaction follows ManicEMU's
+[simBlowing](https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/Play/VIewControllers/PlayViewController.swift#L3481).
+The exact input and option names follow this distribution's DeSmuME 2015
+`src/libretro/libretro.cpp`, not ManicEMU's newer DeSmuME settings. Both new exports
+are detected by the JS adapter so an older cached core remains usable without the
+new controls. An independent archive rebuild matches both distributed JS/WASM.
+Authored ARM9/ARM7 programs verify all six firmware languages, microphone SPI
+samples during simulated blowing, stop/reset/state cleanup and battery/state
+round trips. Old/new distributed cores also accept each other's states. Browser
+menu tests pass on Chromium and desktop WebKit; see RELEASE_VALIDATION.md.
 
 ## Validation and limits
 

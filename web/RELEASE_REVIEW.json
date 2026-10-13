@@ -1,50 +1,50 @@
 {
   "reviewedOn": "2026-10-13",
   "status": "ready",
-  "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices. Version 0.3.20 includes reviewed ManicEMU behavior ports, MPL optimization/effect sources, MIT patcher modules and GPL xBRZ shader source. No additional user data or remote upload service. Version 0.3.21 adjusts original built-in D-pad artwork and direction sectors only; authored/imported skin layouts, safe areas, storage and cores are unchanged.",
+  "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices. Version 0.3.20 includes reviewed ManicEMU behavior ports, MPL optimization/effect sources, MIT patcher modules and GPL xBRZ shader source. No additional user data or remote upload service. Version 0.3.21 adjusts original built-in D-pad artwork and direction sectors only; authored/imported skin layouts, safe areas, storage and cores are unchanged. Version 0.3.22 adds reviewed DS microphone/language controls, bounded local ZIP import, GB/GBC tilt options, game-specific RTC and opt-in gamepad rumble, MPL pixel-transfer calibration and filter strength. It protects home-screen double taps and stages automatic updates with a clear central title while preserving game/save/task/version locks. Pinned mGBA and both DS cores were independently rebuilt and matched. Startup restores validated battery data before running frames. No new third-party artwork, analytics, ROM/save upload or network relay.",
   "openItems": [],
   "note": "Engineering review of pinned dependencies, corresponding source, notices, distribution contents and runtime regression tests. Not a legal opinion or a grant of rights in user ROMs/artwork. iPhone hardware and broad commercial-game compatibility remain unverified; limited local compatibility checks are scoped in RELEASE_VALIDATION.md. Any distribution/workflow change requires renewed review.",
-  "reviewedContentSha256": "b49645848c0e2c7925b9f991679d090e8085e8137e01585539856b175e89a0a2",
+  "reviewedContentSha256": "713fdc9c17b595de69d4078e0aa60615a0d028edef376808d0abedeaf832927b",
   "resolutions": [
     {
       "id": "corresponding-source",
       "evidenceFile": "sources/build-evidence.json",
-      "sha256": "93f1319dc2ec10c0a4a7f73986989ba44a7ffab8329b041a18f4bbf620aff08f"
+      "sha256": "f3efc3b214279616a8a10ffafb894bb7d295e511a35df82c149ee90de2549d3f"
     },
     {
       "id": "nds-corresponding-source",
       "evidenceFile": "sources/nds-build-evidence.json",
-      "sha256": "7cbb452ba776bc5ae35e234286ae472435251e8564fb756b233c23c3b88be090"
+      "sha256": "9b8431d2a98b35733f4adfaa2cfd0e50a04d3c61c6875d86f4bd2f885b2b0ed8"
     },
     {
       "id": "noncommercial-core-combination",
       "evidenceFile": "LICENSE_AUDIT.md",
-      "sha256": "375dc8e46e3dbdf0d48056be3eb45858672c6c325ce2a8d0bc6495b838fcebd1"
+      "sha256": "a967080f6160d7c96ce1860314d7a22d0ece063f8a817c4781337203e727078b"
     },
     {
       "id": "asset-rights",
       "evidenceFile": "NOTICES.md",
-      "sha256": "c5a9c489006ec65448679c946f947e9c2997b65a77241868f2d011ce8e0e02ba"
+      "sha256": "5216defece657e002c652f2d4cdb5e9014d0ce4cd3e93c6b9ccb3094bcd5f080"
     },
     {
       "id": "source-archive-materials",
       "evidenceFile": "SOURCES.json",
-      "sha256": "3d19bcfbbc314a4ef400a684c84c14f0e681337bf213a99fd8cda9343c97a3b5"
+      "sha256": "ed531af1793b4b18e5fd10455abd10a6769cfc15931340dfc9cfd6081af6c854"
     },
     {
       "id": "external-artwork-policy",
       "evidenceFile": "LICENSE_AUDIT.md",
-      "sha256": "375dc8e46e3dbdf0d48056be3eb45858672c6c325ce2a8d0bc6495b838fcebd1"
+      "sha256": "a967080f6160d7c96ce1860314d7a22d0ece063f8a817c4781337203e727078b"
     },
     {
       "id": "runtime-validation",
       "evidenceFile": "RELEASE_VALIDATION.md",
-      "sha256": "5e4de7467c7133e0c8bb0661d143d72d97d26c1e2044a47a8f69ab6639ce6489"
+      "sha256": "2d586f3fa597cfb66c244c75aa6ae0651ce7c4aeda5c947b46ccc0afb859b48c"
     },
     {
       "id": "alternate-corresponding-source",
       "evidenceFile": "sources/alternate-build-evidence.json",
-      "sha256": "d948f92e87ae51d27f0c52e22706b4c1362bd4bf32e248fa8ac7a3c2e2e7458b"
+      "sha256": "9dc511a61d015cbea1b250d82dfd5eb8b18ed068d85815f28430ab6f8d7fa030"
     },
     {
       "id": "mgba-save6-update",
@@ -64,7 +64,7 @@
     {
       "id": "mobile-input-0316",
       "evidenceFile": "MOBILE_INPUT_REVIEW.md",
-      "sha256": "f0f0a49a2f258801633fc5bc79359ebdd11dfaa60327d210acb3c5dd2e78dd7a"
+      "sha256": "21f5efbc6ea89e00bc89295157ba22ca7648099fff3f15527b2dc082cf2c8f00"
     },
     {
       "id": "localization-and-components-0317",
@@ -84,7 +84,12 @@
     {
       "id": "feature-ports-0320",
       "evidenceFile": "FEATURE_REVIEW.md",
-      "sha256": "193fbb32ab642247074991a6953c52f51730c353038707514282326780e6e691"
+      "sha256": "ec4d0372607ed5543140f13b03e1e59965efbf54216636568932a1f4a4444887"
+    },
+    {
+      "id": "feature-ports-and-update-flow-0322",
+      "evidenceFile": "FEATURE_REVIEW.md",
+      "sha256": "ec4d0372607ed5543140f13b03e1e59965efbf54216636568932a1f4a4444887"
     }
   ],
   "workflows": {

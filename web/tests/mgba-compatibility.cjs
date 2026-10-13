@@ -32,7 +32,7 @@ assert.equal(source.split(pinned).length,2);
      window.createMGBA=async options=>{
       const m=await create(options),raw=m._web_load,frame=m._web_frame;let frames=0;
       m._web_frame=keys=>{frames++;return frame(keys);};
-      m._web_load=(p,n)=>{observedLoads.push({byte:m.HEAPU8[p+offset],frames});return raw(p,n);};
+      m._web_load=(p,n)=>{observedLoads.push({n,byte:m.HEAPU8[p+offset],frames});return raw(p,n);};
       return m;
      };
      try{await load.call(this,bytes);window.testCore=this;}finally{window.createMGBA=create;}
@@ -47,7 +47,8 @@ assert.equal(source.split(pinned).length,2);
    },id);
    assert.equal(result.id,id);assert.equal(result.hash,id,'Stored original and save identity stay unchanged');
    assert.equal(result.compatibility,accepted?'expanded-save-detection-v040':null);
-   assert.deepEqual(result.loads,accepted?[{byte:0,frames:0},{byte:1,frames:0}]:[{byte:0,frames:0}]);
+   assert.ok(result.loads.filter(l=>l.n===8192).every(l=>l.frames===0),'Calibration executes no game frames');
+   assert.deepEqual(result.loads.filter(l=>l.n===rom.length).map(({byte,frames})=>({byte,frames})),accepted?[{byte:0,frames:0},{byte:1,frames:0}]:[{byte:0,frames:0}]);
    if(accepted){
     const checks=await page.evaluate(async({id,offset})=>{
      const {loadCompatibleMGBA}=await import('./src/mgba-compatibility.js'),db=await import('./src/storage.js'),original=await db.get('roms',id);

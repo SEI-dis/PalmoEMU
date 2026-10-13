@@ -5,6 +5,7 @@
 import './i18n/page.js';
 import {showROMPatch} from './views/rom-patch.js';
 import {showGBAOptions} from './views/gba-options.js';
+import {showNDSOptions} from './views/nds-options.js';
 import {normalizeNDSSave} from './nds-save.js';
 import {createUINavigation} from './ui-navigation.js';
 import {tr,locale} from './i18n/index.js';
@@ -20,6 +21,7 @@ import {createGamePreferences,hasGamePreferences} from './game-preferences.js';
 import {gamePreferenceSummary,confirmPreferenceReset} from './views/game-preferences.js';
 import {createDiagnosticsView} from './views/diagnostics.js';
 import {importROM} from './rom-import.js';
+import {maxROMZipSize} from './rom-zip.js';
 import {createImportProgress} from './import-progress.js';
 import {systems,detectSystem,escapeHTML as esc,icon,bytesLabel} from './shared.js';
 import * as db from './storage.js';
@@ -29,7 +31,7 @@ import {videoFilters} from './video.js';
 import {setupOffline,offlineStatus} from './offline.js';
 import {startAutoUpdates} from './auto-update.js';
 import {guardUpdateTask} from './update-activity.js';
-let appReady=false;
+let appReady=false,autoUpdates;
 import {supportsHaptics,tapHaptic,stopHaptics} from './haptics.js';
 import {createLinkControls} from './link-controls.js';
 import {SaveProtection} from './save-safety.js';
@@ -51,6 +53,7 @@ import {createGameInfo} from './views/game-info.js';
 import {createLibraryView} from './views/library.js';
 import {floatingPanel} from './floating-panel.js';
 import {row,action} from './components/rows.js';
+import {filterStrengthControl} from './components/filter-strength.js';
 import {createSettingsView,videoFilterNote} from './views/settings.js';
 let link=null,linkMessage='',linkStarting=false,linkSaveBlocked=false,exiting=false,sheetCleanup=()=>{};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
@@ -109,7 +112,7 @@ $('#player-link').innerHTML=icon('wifi');$('#link-panel-icon').innerHTML=icon('w
 $('#player-link').onclick=()=>linkPanel.visible?linkPanel.hide():showLink();
 function toast(text){const el=$('#toast');($('#sheet').open?$('#sheet'):document.body).append(el);el.textContent=text;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3500);}
 function error(e){diagnostics.record(e,'handled');console.error(e);toast(e?.name==='QuotaExceededError'?tr('保存容量が不足しています。セーブをファイルに書き出してください。'):e.message||String(e));}
-function applySettings(){$$('#quick-actions button').forEach(b=>b.disabled=!!link);document.documentElement.dataset.theme=settings.theme==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):settings.theme;$('#screen').className=settings.filter==='smooth'?'smooth':settings.filter==='scanlines'?'scanlines':'';engine?.setVolume(settings.muted?0:settings.volume);$('#screen').dataset.scaling=settings.screenScaling||'fit';engine?.setSpeed(link?1:settings.speed);engine?.setPreservePitch?.(true);updateSpeedButton();updateLinkButton();engine?.setFilter?.(settings.filter);engine?.setCartridgeOptions?.(settings);engine?.setRenderLimit?.(settings.ndsPowerSave!==false);$('#fps-meter').hidden=!settings.showFps;rewindSession.configure(settings.rewindEnabled);preferences.save().catch(()=>{});}
+function applySettings(){$$('#quick-actions button').forEach(b=>b.disabled=!!link);document.documentElement.dataset.theme=settings.theme==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):settings.theme;$('#screen').className=settings.filter==='smooth'?'smooth':settings.filter==='scanlines'?'scanlines':'';engine?.setVolume(settings.muted?0:settings.volume);$('#screen').dataset.scaling=settings.screenScaling||'fit';engine?.setSpeed(link?1:settings.speed);engine?.setPreservePitch?.(true);updateSpeedButton();updateLinkButton();engine?.setFilter?.(settings.filter);engine?.video?.setStrength(settings.filterStrength??.5);engine?.videos?.forEach(video=>video.setStrength(settings.filterStrength??.5));$$('[data-filter-strength]').forEach(el=>el.hidden=!['lcd','crt'].includes(settings.filter));engine?.setCartridgeOptions?.(settings);engine?.setNDSOptions?.(settings);engine?.setRenderLimit?.(settings.ndsPowerSave!==false);$('#fps-meter').hidden=!settings.showFps;rewindSession.configure(settings.rewindEnabled);guardUpdateTask(()=>preferences.save())().catch(()=>{});}
 function bindActions(root,handlers){root.querySelectorAll('[data-action]').forEach(el=>el.onclick=guardUpdateTask(()=>Promise.resolve().then(()=>{if(!rewindSession.busy)return handlers[el.dataset.action]?.();}).catch(error)));}
 function sheet(title,html,resume=false){
  const dialog=$('#sheet');if(gameMenuReturn&&dialog.open&&dialog.classList.contains('game-info'))gameMenuReturn.scrollTop=$('.native-options')?.scrollTop||0;
@@ -162,7 +165,7 @@ function renderImports(){
   <button class="import-file" id="choose-rom"><span class="import-file-icon">${icon('folder')}</span><span><strong>ファイル</strong><small>端末内のROMを追加</small></span></button>
   <div class="import-services"><button class="import-service" id="import-patch"><span class="import-service-icon">${icon('code')}</span><strong>ROMパッチ</strong><small>パッチを適用</small></button><button class="import-service" id="import-skins"><span class="import-service-icon skin-service">${icon('image')}</span><strong>スキン</strong><small>追加・変更</small></button><button class="import-service" id="import-saves" ${library.length?'':'disabled'}><span class="import-service-icon save-service">${icon('saveImport')}</span><strong>セーブデータ</strong><small>${library.length?tr('ゲームを選んで読み込む'):tr('先にゲームを追加')}</small></button></div>
   <div class="import-drop"><span class="import-drop-icon">${icon('import')}</span><span><strong>ドラッグ＆ドロップ</strong><small>ROMをこの画面にドロップ</small></span></div>
-  <details class="import-formats"><summary>対応する形式</summary><p class="sheet-note">${Object.values(systems).map(s=>`${s.short}：${s.ext.map(ext=>'.'+ext).join(' / ')}`).join('<br>')}</p><p class="sheet-note">ZIPは解凍してください。ROMとセーブは端末内に保存します。利用する権利のあるROMを使用してください。</p></details></section>`;
+  <details class="import-formats"><summary>対応する形式</summary><p class="sheet-note">${Object.values(systems).map(s=>`${s.short}：${s.ext.map(ext=>'.'+ext).join(' / ')}`).join('<br>')}</p><p class="sheet-note">ZIPも追加できます。ROMとセーブは端末内に保存します。利用する権利のあるROMを使用してください。</p></details></section>`;
  $('#choose-rom').onclick=()=>$('#rom-input').click();
  $('#import-patch').onclick=()=>showROMPatch({sheet,onClose:fn=>{sheetCleanup=fn;},download,error});
  $('#import-skins').onclick=()=>showSkins();
@@ -172,7 +175,7 @@ function renderImports(){
  };
 }
 
-function bindSettings(root){root.querySelectorAll('[data-setting]').forEach(el=>el.onchange=()=>{settings[el.dataset.setting]=el.type==='checkbox'?(el.dataset.invert?!el.checked:el.checked):['volume','speed','hapticStrength','deadZone'].includes(el.dataset.setting)?Number(el.value):el.value;if(el.dataset.setting==='hapticStrength')settings.haptics=!!settings.hapticStrength;const value=el.closest('.native-select')?.querySelector('.native-value');if(value)value.textContent=el.selectedOptions[0].textContent;applySettings();const scope=$('#game-preferences-mode'),game=current||settingsGame;if(scope&&game){scope.textContent=hasGamePreferences(game)?tr('このゲームの設定'):tr('共通設定を使用');const reset=$('[data-action=resetPreferences]');if(reset)reset.disabled=!hasGamePreferences(game);}if(['haptics','hapticStrength'].includes(el.dataset.setting)){if(settings.haptics)tapHaptic(settings);else stopHaptics();}if($('#video-filter-note'))$('#video-filter-note').hidden=settings.filter!=='edge4x';if(['touchControls','showFps','ndsSwapScreens'].includes(el.dataset.setting))layoutSkin();});}
+function bindSettings(root){root.querySelectorAll('[data-setting]').forEach(el=>el.onchange=()=>{settings[el.dataset.setting]=el.type==='checkbox'?(el.dataset.invert?!el.checked:el.checked):['volume','speed','hapticStrength','deadZone','filterStrength'].includes(el.dataset.setting)?Number(el.value):el.value;if(el.dataset.setting==='hapticStrength')settings.haptics=!!settings.hapticStrength;const value=el.closest('.native-select')?.querySelector('.native-value');if(value)value.textContent=el.selectedOptions[0].textContent;applySettings();const scope=$('#game-preferences-mode'),game=current||settingsGame;if(scope&&game){scope.textContent=hasGamePreferences(game)?tr('このゲームの設定'):tr('共通設定を使用');const reset=$('[data-action=resetPreferences]');if(reset)reset.disabled=!hasGamePreferences(game);}if(['haptics','hapticStrength'].includes(el.dataset.setting)){if(settings.haptics)tapHaptic(settings);else stopHaptics();}if($('#video-filter-note'))$('#video-filter-note').hidden=settings.filter!=='edge4x';if(['touchControls','showFps','ndsSwapScreens'].includes(el.dataset.setting))layoutSkin();});}
 async function importFiles(files){
  if(!files.length)return;
  if(importing){toast(tr('追加が終わるまでお待ちください。'));return;}
@@ -180,18 +183,18 @@ async function importFiles(files){
  try{
   progress=createImportProgress();
   for(const [index,file] of files.entries()){
-   const system=detectSystem(file.name);
-   if(!system){skipped.push(tr`${file.name}: 未対応の形式です。`);continue;}
-   const maxMiB=system==='3ds'?4096:system==='nds'?512:64;
+   const system=detectSystem(file.name),archive=/\.zip$/i.test(file.name);
+   if(!system&&!archive){skipped.push(tr`${file.name}: 未対応の形式です。`);continue;}
+   const maxMiB=archive?maxROMZipSize/1048576:system==='3ds'?4096:system==='nds'?512:64;
    if(file.size>maxMiB*1048576||!file.size){skipped.push(tr`${file.name}: 空のファイル、または${maxMiB}MBを超えるファイルは追加できません。`);continue;}
    progress.start(file,index+1,files.length);
    const result=await importROM(file,system,progress.update);
-   if(result.added)count++;else duplicates++;
+   count+=result.addedCount??(result.added?1:0);duplicates+=result.duplicateCount??(result.added?0:1);
   }
- }catch(e){diagnostics.record(e,'import');failure=e;}
+ }catch(e){count+=e.addedCount||0;duplicates+=e.duplicateCount||0;diagnostics.record(e,'import');failure=e;}
  finally{progress?.close();importing=false;$('#rom-input').value='';}
  try{if(count){setTab('games');libraryView.reset();await refresh();}}catch(e){failure??=e;}
- if(failure)error(failure);
+ if(failure){error(failure);if(count||duplicates)toast([$('#toast').textContent,count?tr`${count}本のゲームを追加しました。`:'',duplicates?tr`${duplicates}本は追加済みです。`:''].filter(Boolean).join(' '));}
  else toast([count?tr`${count}本のゲームを追加しました。`:'',duplicates?tr`${duplicates}本は追加済みです。`:'',...skipped].filter(Boolean).join(' '));
 }
 $('#rom-input').onchange=guardUpdateTask(e=>importFiles([...e.target.files]));
@@ -203,7 +206,7 @@ function menuControlCells(game=current){return {
  volume:nativeToggle(tr('音量'),'muted','volume',!settings.muted,{invert:true}),
  volumeLevel:row(tr('音量レベル'),tr`<input aria-label="音量レベル" data-setting="volume" type="range" min="0" max="1" step=".05" value="${settings.volume}">`,'volume'),
  fastForward:nativeSelect(tr('早送り'),'speed','fast',[[1,tr('通常速度')],...[2,3,4,5].map(n=>[n,n+tr('倍速')])],settings.speed),
- shaders:nativeSelect(tr('シェーダー'),'filter','image',videoFilters,settings.filter)+videoFilterNote(settings.filter),
+ shaders:nativeSelect(tr('シェーダー'),'filter','image',videoFilters,settings.filter)+filterStrengthControl(settings)+videoFilterNote(settings.filter),
  haptic:supportsHaptics()?nativeSelect(tr('触覚'),'hapticStrength','haptic',[[0,tr('オフ')],[8,tr('弱振動')],[20,tr('強振動')]],settings.haptics?(settings.hapticStrength||8):0):nativeAction(tr('触覚'),null,'haptic',tr('このブラウザでは非対応')),
  controllerSetting:nativeAction(tr('コントローラー設定'),'controllers','game'),
  rewindEnabled:game&&supportsRewind(game.system,coreFor(game).key)?nativeToggle(tr('巻き戻しを記録'),'rewindEnabled','history',!!settings.rewindEnabled,{detail:tr('最大10秒・記録用メモリ8 MiBまで。通信中は停止')}):'',
@@ -236,7 +239,9 @@ const protection=new SaveProtection(status=>{
 });
 const stateDialogs=createStateDialogs({runtime,sheet,closeSheet,setPause,persist,launch,showGameMenu,toast,error});
 async function launch(game,{safeMode=false,skipRecovery=false}={}){
- if(engine||launching)return;launching=true;gameMenuReturn=null;current=game;$('#player').hidden=false;$('#loading').hidden=false;$('#loading').textContent=tr('コアを読み込んでいます…');
+ if(engine||launching)return false;launching=true;
+ try{if(await autoUpdates?.beforeLaunch?.()===false){launching=false;setTimeout(()=>autoUpdates?.refresh(),0);return false;}}catch(error){launching=false;throw error;}
+ gameMenuReturn=null;current=game;$('#player').hidden=false;$('#loading').hidden=false;$('#loading').textContent=tr('コアを読み込んでいます…');
  try{
   await preferences.flush();const stored=await db.get('library',game.id);if(!stored)throw new Error(tr('ゲームが見つかりません。'));current=game=stored;settingsGame=null;
   const previous=await protection.open(game,coreFor(game).id);
@@ -244,7 +249,7 @@ async function launch(game,{safeMode=false,skipRecovery=false}={}){
   const bytes=await db.get('roms',game.id);if(!bytes)throw new Error(tr('ROMが見つかりません。もう一度追加してください。'));
   await reloadSkins(false);$('#screen').replaceChildren();
   engine=createCore($('#screen'),game);
-  engine.onKeyboard=showCoreKeyboard;engine.onError=e=>{diagnostics.record(e,'core');setPause(true);void rewindSession.clear({halt:true});error(e);};engine.unlockAudio()?.catch?.(()=>{});await engine.load(bytes,game,systems[game.system]);
+  engine.onKeyboard=showCoreKeyboard;engine.onError=e=>{diagnostics.record(e,'core');setPause(true);void rewindSession.clear({halt:true});error(e);};engine.unlockAudio()?.catch?.(()=>{});engine.setCartridgeOptions?.(settings);engine.setNDSOptions?.(settings);await engine.load(bytes,game,systems[game.system]);engine.pause(true);
   if(previous.save?.bytes)await engine.restore(await protection.verify(previous.save));
   engine.pause(false);
   engine.setCheats?.(safeMode||!coreFor(game).cheats?[]:cheatsFor(game));game.lastPlayed=Date.now();await db.setGameDetails(game.id,{lastPlayed:game.lastPlayed});paused=false;playRunAt=Date.now();$('#resume-game').hidden=true;rewindSession.attach(engine,{...game,coreKey:coreFor(game).key});applySettings();layoutSkin();$('#loading').hidden=true;$('#save-status').hidden=false;engine.unlockAudio()?.catch?.(()=>{});startPadPoll();
@@ -303,7 +308,7 @@ window.addEventListener('resize',scheduleSkinLayout);window.addEventListener('bl
 document.addEventListener('visibilitychange',()=>{if(document.hidden)backgroundPause();else syncResume();});
 window.addEventListener('pagehide',backgroundPause);window.addEventListener('pageshow',event=>{if(event.persisted&&engine)setPause(true);syncResume();});
 document.addEventListener('freeze',backgroundPause);document.addEventListener('resume',syncResume);
-function startPadPoll(){engine.beforeFrame=()=>{inputControls.poll();rewindSession.frame();};}
+function startPadPoll(){engine.beforeFrame=()=>{inputControls.poll();if(engine.rumble?.enabled)engine.rumble.setTarget(inputControls.rumbleTarget());rewindSession.frame();};}
 function persist(options={}){if(!engine||!current||link||linkStarting||linkSaveBlocked||rewindSession.busy)return Promise.resolve();return protection.save(engine,options).catch(e=>{diagnostics.record(e,'save');throw e;});}
 setInterval(()=>{if(engine&&!paused&&(settings.autosave||settings.recovery)){const checkpoint=settings.recovery&&!link&&Date.now()-protection.stateAt>=20000;persist({checkpoint}).catch(error);}},10000);
 // Crash recovery uses the native automatic-save tab, not a separate menu.
@@ -329,7 +334,7 @@ async function showBackups(mode='recent'){
 function showGameMenu(){
  if(!engine||linkStarting||exiting||rewindSession.busy)return;if(link){showConnectedMenu();return;}setPause(true);
  const cells={
-  cartridge:current.system==='gba'&&engine.sensors?nativeAction(tr('GBAカートリッジ'),'cartridge','game'):'',
+  cartridge:current.system==='nds'?nativeAction(tr('DSの操作'),'cartridge','game'):['gb','gbc','gba'].includes(current.system)&&engine.sensors?nativeAction(current.system==='gba'?tr('GBAカートリッジ'):tr('カートリッジ'),'cartridge','game'):'',
   skins:nativeAction(tr('スキン設定'),'skins','shirt'),stateList:nativeAction(tr('セーブステートを確認'),'states','state'),
   importSave:nativeAction(tr('セーブデータをインポート'),'importSave','saveImport'),shareSave:nativeAction(tr('セーブデータをエクスポート'),'export','saveExport'),saveData:nativeAction(tr('セーブデータ・バックアップ'),'saveData','folder'),
   cheatCode:coreFor(current).cheats?nativeAction(tr('チートコード'),'cheats','code'):'',saveState:nativeAction(tr('セーブ'),'newState','save'),quickLoadState:nativeAction(tr('クイックロード'),'quickLoad','history'),
@@ -338,7 +343,7 @@ function showGameMenu(){
   netplay:current.system==='gba'&&coreFor(current).link?nativeAction(tr('通信（実験版）'),'link','wifi'):'',fullScreen:nativeAction(tr('全画面'),'fullscreen','expand'),reload:nativeAction(tr('再起動'),'restart','reload'),quit:nativeAction(tr('終了'),'exit','power','','danger')
  };
  sheet('MENU',gamePreferenceSummary(current)+groupedOptions(cells,settings.menuOrder),true);$('#sheet').classList.add('port-menu','native-menu');$('#close-sheet').dataset.action='play';$('#close-sheet').setAttribute('aria-label',tr('ゲームに戻る'));
- const handlers={cartridge:()=>showGBAOptions({sheet,engine,settings,applySettings,toast,onClose:fn=>{sheetCleanup=fn;}}),rewind:rewindNow,resetPreferences:()=>resetGamePreferences(current,showGameMenu),importSave:()=>chooseSaveImport(current),export:exportGameSave,link:showLink,states:()=>showStates(),newState:()=>confirmStateSave(),quickLoad:showQuickLoad,saveData:showSaveData,cheats:showCheats,skins:()=>showSkins(current.system,current),controllers:()=>{showControllers();dialogResume=true;},
+ const handlers={cartridge:()=>current.system==='nds'?showNDSOptions({sheet,closeSheet,engine,settings,applySettings,toast}):showGBAOptions({sheet,engine,system:current.system,settings,applySettings,toast,onClose:fn=>{sheetCleanup=fn;}}),rewind:rewindNow,resetPreferences:()=>resetGamePreferences(current,showGameMenu),importSave:()=>chooseSaveImport(current),export:exportGameSave,link:showLink,states:()=>showStates(),newState:()=>confirmStateSave(),quickLoad:showQuickLoad,saveData:showSaveData,cheats:showCheats,skins:()=>showSkins(current.system,current),controllers:()=>{showControllers();dialogResume=true;},
   screenshot:()=>{const a=document.createElement('a');a.href=engine.screenshot();a.download=current.name+'.png';a.click();},
   fullscreen:async()=>{if(document.fullscreenElement)await document.exitFullscreen();else if($('#player').requestFullscreen)await $('#player').requestFullscreen();else toast(tr('Safariでは共有メニューからホーム画面に追加すると全画面で開けます。'));},restart:confirmRestart,exit:exitGame};
  bindSettings($('#sheet-body'));bindActions($('#sheet-body'),handlers);menuTools(gameShortcuts.filter(([id])=>!Array.isArray(settings.gameShortcuts)||settings.gameShortcuts.includes(id)),handlers);
@@ -445,6 +450,6 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(set
 setupOffline().catch(e=>console.warn('Offline setup:',e.message));
 function openGameLink(){if(engine||!location.hash.startsWith('#game='))return;const game=library.find(g=>g.id===location.hash.slice(6));if(game)showDetails(game);else toast(tr('このブラウザにゲームがありません。先にROMを追加してください。'));}
 window.addEventListener('hashchange',()=>{if(engine)return;tab=tabFromHash();render();openGameLink();});
-if(await startAutoUpdates(()=>appReady&&!libraryView.selecting&&!engine&&!launching&&!importing&&!exiting&&!link&&!linkStarting&&!saveLock&&tab!=='imports',()=>toast(tr('更新しました。')))!==false){
- applySettings();refresh().then(async()=>{dragDepth=0;document.body.classList.remove('drop-active');await finishStartupInputs({onTab:id=>{setTab(id);render();},onFiles:guardUpdateTask(importFiles)});openGameLink();appReady=true;}).catch(e=>{error(e);$('#content').innerHTML=tr('<div class="empty-library"><h2>保存データを開けませんでした</h2><p>プライベートブラウズを終了するか、ブラウザの保存設定を確認してください。</p></div>');});
+if((autoUpdates=await startAutoUpdates(()=>appReady&&!libraryView.selecting&&!engine&&!launching&&!importing&&!exiting&&!link&&!linkStarting&&!saveLock&&tab!=='imports',()=>toast(tr('更新しました。')),toast))!==false){
+ applySettings();refresh().then(async()=>{dragDepth=0;document.body.classList.remove('drop-active');await finishStartupInputs({onTab:id=>{setTab(id);render();},onFiles:guardUpdateTask(importFiles)});openGameLink();appReady=true;autoUpdates?.refresh();}).catch(e=>{error(e);$('#content').innerHTML=tr('<div class="empty-library"><h2>保存データを開けませんでした</h2><p>プライベートブラウズを終了するか、ブラウザの保存設定を確認してください。</p></div>');});
 }

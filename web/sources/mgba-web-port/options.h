@@ -1,11 +1,19 @@
 /* SPDX-License-Identifier: MPL-2.0
- * Modified 2026-10-13: optional CPU clock and local cartridge sensors.
+ * Modified 2026-10-13: optional CPU clock, local cartridge sensors,
+ * game-clock offset and opt-in gamepad rumble output.
  * mGBA peripheral interfaces and GBA_LUX_LEVELS: Jeffrey Pfau and contributors.
  */
 #include <mgba/gba/interface.h>
 #include <mgba/internal/gba/cart/gpio.h>
+#include <math.h>
 static int32_t tiltX, tiltY, gyroZ;
 static unsigned sunlight;
+static struct mRumbleIntegrator rumble;
+static bool rumbleEnabled;
+static float rumbleStrength;
+static void updateRumble(struct mRumbleIntegrator* source, float value) {
+  rumbleStrength = rumbleEnabled && isfinite(value) ? fmaxf(0.0f, fminf(1.0f, value)) : 0.0f;
+}
 static int32_t readTiltX(struct mRotationSource* source) { return tiltX; }
 static int32_t readTiltY(struct mRotationSource* source) { return tiltY; }
 static int32_t readGyroZ(struct mRotationSource* source) { return gyroZ; }
@@ -16,7 +24,11 @@ static struct mRotationSource rotation = { .readTiltX=readTiltX, .readTiltY=read
 static struct GBALuminanceSource luminance = { .readLuminance=readSunlight };
 static void web_options_init(void) {
   tiltX=tiltY=gyroZ=0; sunlight=0;
+  rumbleEnabled=false; rumbleStrength=0;
+  mRumbleIntegratorInit(&rumble);
+  rumble.setRumble=updateRumble;
   core->setPeripheral(core,mPERIPH_ROTATION,&rotation);
+  core->setPeripheral(core,mPERIPH_RUMBLE,&rumble.d);
   if(core->platform(core)==mPLATFORM_GBA)core->setPeripheral(core,mPERIPH_GBA_LUMINANCE,&luminance);
 }
 EMSCRIPTEN_KEEPALIVE int web_overclock(int multiplier) {
@@ -26,4 +38,31 @@ EMSCRIPTEN_KEEPALIVE int web_overclock(int multiplier) {
 }
 EMSCRIPTEN_KEEPALIVE void web_sensors(int32_t x,int32_t y,int32_t z,unsigned light) {
   tiltX=x;tiltY=y;gyroZ=z;sunlight=light<=10?light:10;
+}
+/* mode: 0 = real clock, 1 = real clock plus whole seconds (at most ten years).
+ * mGBA's existing RTC metadata stores milliseconds; no save/state layout changes.
+ * A loaded state restores its RTC mode, so the frontend reapplies game settings.
+ */
+EMSCRIPTEN_KEEPALIVE int web_rtc_set(int mode, double offsetSeconds) {
+  if(!core || (mode!=0 && mode!=1) || !isfinite(offsetSeconds) ||
+     trunc(offsetSeconds)!=offsetSeconds || fabs(offsetSeconds)>315576000.0)return 0;
+  core->rtc.override=mode ? RTC_WALLCLOCK_OFFSET : RTC_NO_OVERRIDE;
+  core->rtc.value=mode ? (int64_t)offsetSeconds * 1000 : 0;
+  return 1;
+}
+EMSCRIPTEN_KEEPALIVE int web_rtc_mode(void) {
+  return core && core->rtc.override==RTC_WALLCLOCK_OFFSET ? 1 : 0;
+}
+EMSCRIPTEN_KEEPALIVE double web_rtc_offset(void) {
+  return core && core->rtc.override==RTC_WALLCLOCK_OFFSET ? core->rtc.value/1000.0 : 0.0;
+}
+EMSCRIPTEN_KEEPALIVE int web_rumble_enable(int enable) {
+  if(!core || (enable!=0 && enable!=1))return 0;
+  /* Output preference must not erase the cartridge's current motor state. */
+  if(rumbleEnabled != !!enable || !enable)rumbleStrength=0;
+  rumbleEnabled=!!enable;
+  return 1;
+}
+EMSCRIPTEN_KEEPALIVE float web_rumble_strength(void) {
+  return core && rumbleEnabled ? rumbleStrength : 0.0f;
 }

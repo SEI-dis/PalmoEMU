@@ -15,6 +15,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    const problems=await p.locator('#sheet').evaluate(d=>{
     const issues=[],rect=d.getBoundingClientRect();if(d.scrollWidth>d.clientWidth+1)issues.push('dialog overflows');
     for(const el of d.querySelectorAll('.sheet-actions button,.state-continue,.row>span:first-of-type,.sheet-head button')){
+     if(!el.getClientRects().length)continue; // A hidden optional row has no layout box.
      const r=el.getBoundingClientRect();if(r.left<rect.left||r.right>rect.right)issues.push(el.textContent+' outside dialog '+JSON.stringify({viewport:innerWidth,dialog:[rect.left,rect.right],element:[r.left,r.right]}));
      if(el.matches('.row>span')&&r.width<55)issues.push(el.textContent+' label squeezed to '+r.width);
      if(el.matches('.sheet-actions button')&&r.height>70)issues.push(el.textContent+' button too tall');
@@ -43,6 +44,9 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await p.setViewportSize({width:390,height:844});await screenshot('state-list');
   await menu();assert.equal(await p.locator('#sheet-title').textContent(),'MENU');assert.equal(await p.locator('.action-tile,.menu-resume').count(),0);assert.equal(await p.locator('[data-shortcut]').count(),4);
   for(const [width,height] of [[240,844],[280,844],[320,844],[390,844],[844,390],[1024,768]]){await p.setViewportSize({width,height});await fits();if(width===280)await screenshot('game-menu-narrow');if(width===844)await screenshot('game-menu-landscape');}
+  await p.locator('[data-setting=filter]').selectOption('lcd');assert.equal(await p.locator('[data-setting=filterStrength]').isVisible(),true);
+  for(const [width,height]of [[240,844],[844,390]]){await p.setViewportSize({width,height});await fits();}
+  await p.locator('[data-setting=filter]').selectOption('pixel');
   await p.setViewportSize({width:390,height:844});await screenshot('game-menu');
   await p.locator('[data-action=newState]').click();await p.locator('#cancel-state-save').click();assert.equal(await count(),2);await p.locator('[data-action=states]').click();
   await p.locator('#edit-states').click();await p.locator('[data-state-select]').first().check();await p.locator('#delete-selected-states').click();assert.equal(await count(),2);

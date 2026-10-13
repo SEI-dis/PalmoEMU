@@ -5,7 +5,7 @@
     "rust": "Rust 1.99.0 Windows GNU host, wasm32-unknown-unknown / wasm-bindgen 0.2.126 / Emscripten Clang for zstd / LLVM-MinGW 20261006 for host tools"
   },
   "archives": {
-    "sources/alternate-c-cores-source.tar.gz": "dd336cc35cca5396b00f3c03b4a339ebc004396d80bebcbdf57eefb92efbdc5d",
+    "sources/alternate-c-cores-source.tar.gz": "b3e06d71819d8951148b649093fa3af6f3758b8215f480f5b6dadbe34f992034",
     "sources/jgenesis-web-source.tar.gz": "e569f455e12476adaea71447b0c1ce85792c9b72d2510da2337e88b64f1da0c3"
   },
   "cores": {
@@ -21,11 +21,12 @@
     "melonds": {
       "commit": "66b5d2634cd0a79030562811e6e05f5532f800ba",
       "rebuildMatches": true,
-      "method": "Independent rebuild from the distributed compiler-dependency source archive in another directory; Emscripten 4.0.15.",
+      "method": "Independent rebuild from a separately extracted distribution source archive with the updated DS language/microphone Web bridge; Emscripten 4.0.15. Both JS/WASM match.",
       "files": {
-        "core.js": "a26f04de5eef64a9e9e0884d004a34936f4658c4fc6c88e3c598f0568ff2f6ae",
-        "core.wasm": "d1cca80bce316ca935e2cbbaebcf65f35fadef0a671b68a87bed79fcdc0f25ba"
-      }
+        "core.js": "799f57665dedca38172921664b76cc67311208f1a1a1c283ba2c9286f2b999fe",
+        "core.wasm": "392767d97c5209b112f24f7f285e6836401caf0abf5a807d9b3f507ddb106e4b"
+      },
+      "changes": "Boot-time firmware language and five-second simulated blowing via the existing L2 Blow Noise input. Core code, battery and state layouts unchanged."
     },
     "jgenesis": {
       "commit": "6c0933c0d689dce87b32266ee1c4eacf15e105f2",

@@ -5,12 +5,13 @@ import {videoFilters} from './video.js';
 const boolean=v=>typeof v==='boolean';
 const values=list=>v=>list.includes(v);
 const schema={volume:v=>Number.isFinite(v)&&v>=0&&v<=1,speed:values([1,2,3,4,5]),
- muted:boolean,preservePitch:boolean,filter:values(videoFilters.map(([id])=>id)),
+ muted:boolean,preservePitch:boolean,filter:values(videoFilters.map(([id])=>id)),filterStrength:v=>Number.isFinite(v)&&v>=0&&v<=1,
  haptics:boolean,hapticStrength:values([0,8,20]),deadZone:values([.1,.2,.3,.4,.5]),
  screenScaling:values(['fit','stretch','fill']),touchControls:boolean,showFps:boolean,
  overclock:values([1,2,4,8]),sunlight:v=>Number.isInteger(v)&&v>=0&&v<=10,
  tiltX:v=>Number.isFinite(v)&&Math.abs(v)<=1,tiltY:v=>Number.isFinite(v)&&Math.abs(v)<=1,gyro:v=>Number.isFinite(v)&&Math.abs(v)<=1,
- ndsSwapScreens:boolean,ndsPowerSave:boolean,rewindEnabled:boolean};
+ rtcMode:values(['auto','offset']),rtcOffset:v=>Number.isInteger(v)&&Math.abs(v)<=315576000,gameRumble:boolean,
+ ndsLanguage:values(['default','ja','en','fr','de','it','es']),ndsSwapScreens:boolean,ndsPowerSave:boolean,rewindEnabled:boolean};
 export function sanitizeGamePreferences(value){
  const result={};if(!value||typeof value!=='object'||Array.isArray(value))return result;
  for(const [key,valid] of Object.entries(schema))if(Object.hasOwn(value,key)&&valid(value[key]))result[key]=value[key];

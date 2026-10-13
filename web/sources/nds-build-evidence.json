@@ -1,5 +1,5 @@
 {
-  "date": "2026-10-09",
+  "date": "2026-10-13",
   "upstream": "https://github.com/libretro/desmume2015",
   "commit": "422b688009ccb9f2917c086a8fe79c8cecb030ae",
   "toolchain": {
@@ -15,14 +15,14 @@
   "cores": {
     "nds": {
       "js": {
-        "sha256": "aaa6695c96d20f268d5a5cb7152f76ca793f48414c3d58127f79ac2dbeb6fe5c",
+        "sha256": "fb8e297ef7e0acdbf0c7d8e4df4210b539a6310a252fa286b927a5f03002a7db",
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "ea0b03591bedbfd59645b63a74e4d2a87bbfcc93ea92e26307e235fac3845ba5",
+        "sha256": "3a760d86d108b1147532b5dacee301679110c002b5d77bcdbd962110657fdeb9",
         "rebuildMatches": true
       }
     }
   },
-  "method": "Built once from the pinned checkout, then independently from the filtered source archive using the same Web bridge; JS/WASM SHA-256 match."
+  "method": "Independent build from a separately extracted distribution archive and the updated DS bridge using the pinned toolchain; both JS/WASM match. Added boot-time language and simulated microphone APIs without changing serialized state or battery formats."
 }

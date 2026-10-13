@@ -5,6 +5,10 @@
 :root{color-scheme:dark;--bg:#121212;--panel:#1b1b20;--raised:#27272e;--text:#f5f5f7;--secondary:#a2a2ad;--line:#ffffff12;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans JP',sans-serif;font-synthesis:none}
 [data-theme=light]{color-scheme:light;--bg:#f2f2f6;--panel:#fff;--raised:#eee;--text:#17171b;--secondary:#74747d;--line:#00000012}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);-webkit-tap-highlight-color:transparent}button,input,select{font:inherit}button{cursor:pointer;border:0;color:inherit;background:none}button:disabled{opacity:.4;cursor:wait}button:active{transform:scale(.96)}svg{width:24px;height:24px;flex-shrink:0}button svg{pointer-events:none}h1,h2,h3,p{margin:0}a{color:#a5adff}small,.muted{color:var(--secondary)}[hidden]{display:none!important}
+/* App navigation uses single taps; include cards, text, blank areas and dialogs.
+   Manipulation suppresses double-tap zoom while retaining scroll/pinch and native
+   editing. Keep player/editor rules stricter and ordinary document pages unchanged. */
+html.app-shell,html.app-shell>body{touch-action:manipulation}
 /* Contain Android pull-to-refresh/overscroll only while a game is open.
    Keep panel/menu scrolling and normal page zoom available. */
 html:has(> body > #player:not([hidden])),body:has(> #player:not([hidden])){overscroll-behavior:none}
@@ -39,6 +43,7 @@ dialog{border:1px solid var(--line);background:var(--panel);color:var(--text);wi
 .save-details{margin:16px 4px;font-size:12px;line-height:1.6;color:var(--secondary)}.save-details summary{cursor:pointer}.save-details p{margin-top:10px;overflow-wrap:anywhere}.wide-button{width:100%;margin-top:16px}
 dialog.update-progress{position:fixed;inset:0;margin:auto;width:max-content;height:max-content;max-width:calc(100dvw - 32px);max-height:calc(100dvh - 32px);padding:24px;border-radius:18px;font-size:16px;line-height:1.5;outline:0}
 dialog.update-progress[open]{display:flex;align-items:center;justify-content:center;gap:14px}
+.update-copy{display:grid;gap:8px;min-width:0;max-width:280px;overflow-wrap:anywhere}.update-copy strong{font-size:16px}.update-copy [role=status]{font-size:14px}.update-copy button{justify-self:start;min-height:36px;padding:6px 12px;border-radius:9px;background:var(--raised)}
 dialog.update-progress[data-delayed],dialog.update-progress[data-delayed]::backdrop{visibility:hidden}
 .update-spinner{width:24px;height:24px;flex:0 0 24px;border:3px solid var(--line);border-top-color:var(--accent,#fa4454);border-radius:50%;animation:update-spin .8s linear infinite}
 @keyframes update-spin{to{transform:rotate(360deg)}}
@@ -187,4 +192,5 @@ dialog.control-edit{width:min(1000px,calc(100% - 16px - env(safe-area-inset-left
 
 /* Local file and cartridge controls keep readable labels on narrow screens. */
 .row:has(#patch-rom,#patch-file){display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.row:has(#patch-rom,#patch-file)>span{grid-column:1}.row input[type=file]{width:100%;min-width:0;font:inherit;font-size:13px;color:var(--secondary)}.row input[type=file]::file-selector-button{border:0;border-radius:8px;padding:9px 12px;margin-right:8px;background:var(--raised);color:var(--text);font:inherit}
+.row.clock-field{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.clock-field input{width:100%;min-width:0;max-width:100%;font:inherit;color:var(--text);background:var(--raised);border:1px solid var(--line);border-radius:8px;padding:9px}
 .row:has([data-sensor]){display:flex!important;flex-direction:column;align-items:stretch;gap:8px}.row [data-sensor]{width:100%!important;max-width:none!important}

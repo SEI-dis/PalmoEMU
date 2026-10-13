@@ -3,6 +3,7 @@
 // Adapted from pm-start/mgba-celio-web screen-effects.js, 23235bc6 (liru55 and contributors).
 // Modified 2026-10-13: offscreen output, fixed 3x/4x bounds, lifecycle cleanup,
 // local shader loading and pixel fallback. See shaders/COPYING.txt for xBRZ.
+// Modified 2026-10-13: expose the upstream LCD/CRT amount (0..1, default .5).
 export function createGPUFilter(onReady){
  let gl,surface,texture,uniforms,lastImage,failed=false,disposed=false,baseProgram,basePosition,xbrzPrograms,xbrzPending=false,analysisTexture,framebuffer;
  const shaders=[],programs=[],buffers=[];
@@ -81,7 +82,7 @@ export function createGPUFilter(onReady){
     gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,texture);gl.uniform1i(xbrzPrograms[1].uniforms.PassPrev2Texture,1);gl.uniform2f(xbrzPrograms[1].uniforms.PassPrev2TextureSize,lastImage.width,lastImage.height);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);gl.activeTexture(gl.TEXTURE0);
   }
 
- function render(image,effect){
+ function render(image,effect,strength=.5){
   if(failed||disposed)return null;
   try{
    if(!gl)initialize();lastImage=image;
@@ -93,7 +94,8 @@ export function createGPUFilter(onReady){
    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,image.width,image.height,0,gl.RGBA,gl.UNSIGNED_BYTE,image.data);
    if(effect==='xbrz')drawXbrz(w,h,w,h);else{
     gl.useProgram(baseProgram);gl.enableVertexAttribArray(basePosition);gl.vertexAttribPointer(basePosition,2,gl.FLOAT,false,0,0);
-    gl.uniform1i(uniforms.picture,0);gl.uniform2f(uniforms.resolution,image.width,image.height);gl.uniform1f(uniforms.mode,effect==='lcd'?2:3);gl.uniform1f(uniforms.amount,.5);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    const amount=typeof strength==='number'&&Number.isFinite(strength)?Math.max(0,Math.min(1,strength)):.5;
+    gl.uniform1i(uniforms.picture,0);gl.uniform2f(uniforms.resolution,image.width,image.height);gl.uniform1f(uniforms.mode,effect==='lcd'?2:3);gl.uniform1f(uniforms.amount,amount);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
    }
    return surface;
   }catch{failed=true;return null;}

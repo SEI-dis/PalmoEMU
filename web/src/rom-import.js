@@ -10,7 +10,7 @@ export function importROM(file,system,onProgress){
   worker.onmessage=({data})=>{
    if(data.type==='progress')onProgress?.(data);
    else if(data.type==='done')finish(resolve,data);
-   else if(data.type==='error'){const error=new Error(data.message);error.name=data.name;finish(reject,error);}
+   else if(data.type==='error'){const error=new Error(data.message);error.name=data.name;error.addedCount=data.addedCount||0;error.duplicateCount=data.duplicateCount||0;finish(reject,error);}
   };
   worker.onmessageerror=()=>finish(reject,new Error(tr('ゲームの追加処理を読み取れませんでした。')));
   try{worker.postMessage({file,system,language});}catch(error){finish(reject,error);}

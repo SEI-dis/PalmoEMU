@@ -583,3 +583,55 @@ are omitted; all regular source files, LICENSE and AUTHORS remain unchanged.
 - xBRZ Freescale Multipass: unmodified GLSL from libretro/glsl-shaders 435612fe4f10, via liru. Hyllian permissive notice and Zenju GPL-3.0/exception text remain in both shaders, with full GPL text in shaders/COPYING.txt. GPL shader terms are retained alongside the AGPL application (GPLv3 section 13 permits the combination). Shader source is served and included in the corresponding Web source ZIP.
 
 Modified 2026-10-13: the original AGPL libretro bridge registers video/audio/input callbacks after retro_init for Mesen-S. The AGPL jgenesis wrapper explicitly connects the second SNES/MD gamepad and combines aliased MD inputs. Core serialization is unchanged.
+
+Modified 2026-10-13: added DS simulated blowing and boot-time firmware-language
+selection in the AGPL Web adapter and NDS-specific libretro bridges. The five-second
+interaction follows ManicEMU (Copyright © 2026 Manic EMU; Daiuno),
+[PlayViewController.simBlowing at fbaeab79c214d5920bb51afa6f2d786fb2b12a58](https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/Play/VIewControllers/PlayViewController.swift#L3481).
+The implementation uses the public libretro interfaces in the existing pinned
+DeSmuME 2015 and melonDS 0.9.3 sources: DeSmuME L3 with internal microphone noise,
+and melonDS L2 with Blow Noise. Their original source and license notices are
+retained; no emulator-core source or serialized-state layout is modified.
+The generated JS/WASM include the changed frontend bridges. The new settings
+view and synthetic regression fixtures are AGPL-3.0-or-later. Device microphone
+recording, audio transmission, game ROMs, user saves and external firmware are
+not part of this addition. See sources/nds-web/BUILD.md and
+sources/alternate-web/BUILD.md for the exact option names and build inputs.
+
+
+Modified 2026-10-13 (0.3.22): src/pixel-transfer.js adapts
+choosePixelTransfer/drawFrame from liru55 and contributors,
+pm-start/mgba-celio-web web/app.js at 23235bc6db1b67009808c0dc7e1f25131eb75e7a.
+It retains MPL-2.0 and the secondary-license offer documented in
+MPL_SECONDARY_LICENSE.md. This adaptation uses synthetic pixels before any
+user cartridge loads and bounds calibration, memory views and fallback.
+The LCD/CRT strength control exposes the existing upstream effect parameter.
+
+The new ZIP reader/import path, clock/rumble UI and game-rumble adapter are
+original AGPL-3.0-or-later code. sources/mgba-web-port/options.h (MPL-2.0)
+uses the pinned mGBA RTC and rumble APIs, with original upstream notices
+retained. GB/GBC sensor settings reuse the existing mGBA sensor interface.
+No new distributed third-party dependency, network endpoint, user cartridge,
+save, firmware or artwork is included in these additions. Core build and
+verification results are documented in the bridge BUILD.md files and
+FEATURE_REVIEW.md. The changed three cores were independently rebuilt from
+their distribution sources and the resulting JS/WASM hashes match.
+
+Modified 2026-10-13 (0.3.22): scoped the app shell's double-tap zoom
+policy to the library, import/settings views and dialogs with CSS manipulation.
+Scrolling, native text editing and pinch zoom outside play remain available.
+The player-specific gesture guards and separate document pages are unchanged.
+This is original AGPL-3.0-or-later code; the verification scope is recorded in
+MOBILE_INPUT_REVIEW.md.
+
+Modified 2026-10-13 (0.3.22): the MPL-covered mGBA archive version.cmake reads
+Git metadata only when the core source has its own .git entry. Extracted sources
+no longer inherit unrelated parent-application revisions. Source and changed-file
+hashes are in SOURCES.json and sources/build-evidence.json; execution and save
+formats are unchanged. Original upstream license notices are retained.
+
+Modified 2026-10-13 (0.3.22): the original AGPL update coordinator exposes
+update download and activation stages before safe app actions, retaining
+shared version locks and two-phase activation across tabs. No game/save data
+or analytics is transmitted. Game startup pauses emulation until a stored
+save has been verified and restored.

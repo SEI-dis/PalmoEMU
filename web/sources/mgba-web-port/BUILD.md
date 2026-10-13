@@ -1,8 +1,8 @@
 # mGBA Web core build
 
-This is an MPL-2.0 C bridge derived from `liru55/mgba-celio-web`
+This is an MPL-2.0 C bridge derived from `pm-start/mgba-celio-web`
 `de2c446e7369610f3ab402dd775e81d6a1661608`, compiled against
-`onikoro334274-cell/mGBA_celio_edition`
+`pm-start/mGBA_celio_edition`
 `0ba86121bd92aa570d38301086d8e8f584238d62` (`rom64`).
 The core source is in `../mgba-celio-rom64-source.tar.gz`.
 The original bridge source is in `../mgba-celio-web-source.tar.gz`.
@@ -60,3 +60,23 @@ five recovery snapshots. No upload endpoint is added.
 The default clock remains 1. options.h exposes optional 2/4/8 multipliers and local rotation/luminance input. link.h forces clock 1 during link play. bridge.c adds an opaque, tightly packed RGBA output without changing the raw framebuffer ABI, save format or state identifiers.
 The source archive includes four MPL-2.0 optimization backports from pm-start/mgba-celio-web 23235bc6db1b67009808c0dc7e1f25131eb75e7a. Their original and modified hashes are in ../build-evidence.json. Rebuild the updated archive with this bridge, not the unmodified upstream archive; candidate upgrades must review conflicts with these backports. Independent extraction and rebuilding produced identical JS/WASM.
 The Web storage layer separately retains ten 5-minute save generations in addition to the five recent backups and five recovery snapshots. It does not change the native save ABI.
+
+## 2026-10-13 0.3.22 RTC and game-rumble additions
+
+`options.h` adds automatic wall-clock mode and a whole-second wall-clock offset
+(at most plus or minus 315576000 seconds), stored through mGBA's existing RTC
+metadata. It also registers the standard rumble integrator and exposes an
+opt-in intensity poll for one explicitly selected browser gamepad. Existing
+save/state layouts and state identifiers are unchanged.
+
+The updated bridge and distributed source archive were built in two independent
+source/build directories with the pinned toolchain. The JS/WASM hashes match;
+see `../build-evidence.json`. RTC, short rumble pulses, pause/disconnect cleanup
+and save/state round trips are covered by authored tests. Physical gamepad
+vibration remains device-dependent and was not verified on hardware.
+
+The archive version.cmake checks for its own .git entry before reading Git
+metadata. An extracted archive previously picked up an unrelated parent app
+repository revision, changing binary version strings between app commits.
+The archive now reports its core version; native source checkouts retain their
+own Git metadata. No emulator execution or save/state format is changed.

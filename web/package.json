@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.21",
+  "version": "0.3.22",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
@@ -71,7 +71,16 @@
     "i18n:check": "node scripts/check-i18n.mjs",
     "test:localization-pipeline": "node tests/localization-pipeline.cjs",
     "test:upstream-features": "node tests/upstream-features.cjs",
-    "test:two-player": "node tests/two-player.cjs"
+    "test:two-player": "node tests/two-player.cjs",
+    "test:pixel-transfer": "node tests/pixel-transfer.cjs",
+    "test:video-strength": "node tests/video-strength.cjs",
+    "test:game-rumble": "node tests/game-rumble.cjs",
+    "test:mgba-peripherals": "node tests/mgba-peripherals.cjs",
+    "test:cartridge-options": "node tests/cartridge-options.cjs",
+    "test:nds-options": "node tests/nds-options.cjs",
+    "test:nds-options-core": "node tests/nds-options-core.cjs",
+    "test:nds-options-browser": "node tests/nds-options-browser.cjs",
+    "test:rom-zip": "node tests/rom-zip.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

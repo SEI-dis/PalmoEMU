@@ -9,6 +9,21 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   page.on('pageerror',e=>errors.push(e.message));
   await context.route('**/*',route=>{assert.equal(new URL(route.request().url()).origin,new URL(base).origin);assert.equal(route.request().method(),'GET');return route.continue();});
   await page.goto(base);
+  await page.locator('#add-first').waitFor();await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
+  // The root policy covers non-clickable cards/text/blank areas and future
+  // dialogs too. CSS does not cancel editing events or native scrolling.
+  // Desktop WebKit still cannot assert the iOS double-tap recognizer itself.
+  for(const tab of ['games','imports','settings']){
+   await page.locator(`[data-tab="${tab}"]`).tap();
+   assert.deepEqual(await page.evaluate(()=>[document.documentElement,document.body].map(el=>getComputedStyle(el).touchAction)),['manipulation','manipulation'],tab+' blocks double-tap zoom at the app root');
+   const defaults=await page.locator('#content').evaluate(el=>['touchstart','touchmove','touchend','gesturestart','dblclick','copy','paste'].map(type=>{const event=new Event(type,{bubbles:true,cancelable:true});el.dispatchEvent(event);return event.defaultPrevented;}));
+   assert.ok(defaults.every(value=>!value),tab+' retains native scroll, pinch and text operations');
+  }
+  await page.locator('[data-action=video]').tap();await page.locator('#sheet').waitFor({state:'visible'});
+  assert.equal(await page.locator('#sheet').evaluate(el=>el.closest('html').classList.contains('app-shell')),true,'Settings dialogs share the app root policy');
+  await page.locator('#close-sheet').tap();await page.locator('[data-tab=games]').tap();
+  assert.doesNotMatch(await page.locator('meta[name=viewport]').getAttribute('content'),/user-scalable\s*=\s*no|maximum-scale/i,'Do not disable intentional pinch zoom in the viewport');
+
   const overscroll=()=>page.evaluate(()=>[document.documentElement,document.body,document.querySelector('#player')].map(el=>getComputedStyle(el).overscrollBehavior));
   const hasOverscroll=await page.evaluate(()=>CSS.supports('overscroll-behavior','none'));
   if(kind==='chromium')assert.equal(hasOverscroll,true,'Android Chromium regression requires overscroll support');
