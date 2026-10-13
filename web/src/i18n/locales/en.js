@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// Authored app messages only. Keep interpolation slots unchanged.
+// Application text; original license documents remain unchanged.
 export default {
  "保存データを開けませんでした。": "Could not open saved data.",
  "再読み込みして復元を完了": "Reload to finish restoring",
@@ -1036,5 +1036,9 @@ export default {
  "この画面以外のアプリのタブを閉じてください。": "Close other tabs of this app.",
  "ダウンロードに失敗しました。接続を確認してください。": "Download failed. Check your connection.",
  "対応するセーブファイルを選択してください（⟪0⟫）。": "Choose a supported save file (⟪0⟫).",
- "最新の更新": "Latest update"
+ "最新の更新": "Latest update",
+ "ROMをドロップして追加": "Drop ROM to add",
+ "オフライン保存を開始できませんでした。画面を開き直してください。": "Could not start the offline download. Reopen this page.",
+ "Acorn · 開発時の文言解析": "Acorn · Build-time text extraction",
+ "ソースコード": "Source code"
 };

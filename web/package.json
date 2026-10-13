@@ -1,9 +1,9 @@
 {
   "name": "palmoemu",
-  "version": "0.3.18",
+  "version": "0.3.19",
   "private": true,
   "scripts": {
-    "dev": "node scripts/serve.cjs",
+    "dev": "node scripts/develop.mjs",
     "test": "node tests/core.cjs",
     "test:core-upgrade": "node tests/core-upgrade.cjs",
     "test:browser": "node tests/browser.cjs",
@@ -66,7 +66,10 @@
     "test:fceumm-update": "node tests/fceumm-update.cjs",
     "test:i18n": "node tests/i18n.cjs",
     "test:languages": "node tests/languages.cjs",
-    "test:languages-offline": "node tests/languages-offline.cjs"
+    "test:languages-offline": "node tests/languages-offline.cjs",
+    "i18n:sync": "node scripts/sync-i18n.mjs",
+    "i18n:check": "node scripts/check-i18n.mjs",
+    "test:localization-pipeline": "node tests/localization-pipeline.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

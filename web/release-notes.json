@@ -1,6 +1,48 @@
 {
   "releases": [
     {
+      "version": "0.3.19",
+      "date": "2026-10-13",
+      "changes": [
+        "機能や変更通知を更新すると、開発時に全言語の翻訳を更新する仕組みを追加しました。",
+        "未登録の画面文言や古い翻訳を公開前に検出します。ドラッグ操作の案内とオフライン保存のエラーも翻訳しました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "开发时修改功能或更新日志后，系统会自动更新所有语言的翻译。",
+          "发布前会检查未登记的界面文字和过时的翻译。拖放提示和应用离线下载的错误消息也已翻译。"
+        ],
+        "zh-Hant": [
+          "開發時修改功能或更新日誌後，系統會自動更新所有語言的翻譯。",
+          "發布前會檢查未登錄的介面文字和過時的翻譯。拖放提示和應用程式離線下載的錯誤訊息也已翻譯。"
+        ],
+        "ko": [
+          "개발 중 기능이나 업데이트 내역을 변경하면 모든 언어의 번역이 자동으로 갱신됩니다.",
+          "배포 전에 등록되지 않은 화면 문구와 오래된 번역을 검사합니다. 드래그 앤 드롭 안내와 앱의 오프라인 다운로드 오류 메시지도 번역했습니다."
+        ],
+        "es": [
+          "Las traducciones de todos los idiomas se actualizan automáticamente durante el desarrollo al modificar funciones o notas de la versión.",
+          "Se detectan textos de la interfaz sin registrar y traducciones desactualizadas antes de publicar. También se han traducido las indicaciones de arrastrar y soltar y los errores de descarga para uso sin conexión."
+        ],
+        "fr": [
+          "Les traductions sont désormais mises à jour automatiquement pendant le développement lorsque les fonctionnalités ou les notes de version changent.",
+          "Les textes non enregistrés et les traductions obsolètes sont détectés avant la publication. Les indications de glisser-déposer et les erreurs de téléchargement pour une utilisation hors ligne sont également traduites."
+        ],
+        "de": [
+          "Wenn Funktionen oder Versionshinweise geändert werden, werden die Übersetzungen während der Entwicklung automatisch für alle Sprachen aktualisiert.",
+          "Nicht registrierte Oberflächentexte und veraltete Übersetzungen werden vor der Veröffentlichung erkannt. Hinweise zum Ziehen und Ablegen sowie Fehlermeldungen beim Herunterladen für die Offline-Nutzung sind jetzt ebenfalls übersetzt."
+        ],
+        "pt": [
+          "As traduções de todos os idiomas são atualizadas automaticamente durante o desenvolvimento quando recursos ou notas de versão mudam.",
+          "Textos da interface não registrados e traduções desatualizadas são detectados antes da publicação. As instruções de arrastar e soltar e os erros de download para uso offline também foram traduzidos."
+        ]
+      },
+      "changesEn": [
+        "Translations now update during development when features or release notes change.",
+        "Checks catch unregistered UI text and outdated translations before release. Drag-and-drop guidance and offline download errors are also translated."
+      ]
+    },
+    {
       "version": "0.3.18",
       "date": "2026-10-13",
       "changes": [

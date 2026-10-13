@@ -1,12 +1,12 @@
 {
   "schema": 1,
   "purpose": "Exact content inventory; does not certify copyright or license compliance.",
-  "archiveCount": 17,
+  "archiveCount": 18,
   "files": [
     {
       "path": ".gitignore",
-      "bytes": 190,
-      "sha256": "a55a54313f3e0924e60f899a06837e5e2e9117c43b9e7cfa1fff20e05640a741",
+      "bytes": 226,
+      "sha256": "97b25aa43f8baea1bb5cede86babd13311103c0d0ef8fcdbd17d5bc592568d49",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -17,8 +17,8 @@
     },
     {
       "path": "ARCHITECTURE.md",
-      "bytes": 5619,
-      "sha256": "04591a85e088b2a7af44a1fe226104c8af0407ba29ee8345d3b06173ff62b5f4",
+      "bytes": 6338,
+      "sha256": "ef09d1045afacaf213014c10691547c1fd0e2a2d32f352e926bba093a4142cc7",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41,8 +41,8 @@
     },
     {
       "path": "LICENSE_AUDIT.md",
-      "bytes": 24932,
-      "sha256": "ab8b163e7de0e9dae615bf644cddfb1c354499326d620c55ce6bbff354ae1a44",
+      "bytes": 26571,
+      "sha256": "a5b912630eb35b1fe8e07c0186d2fd0dbd77aba19a2bc9bd354a122d9d0073cb",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -53,8 +53,8 @@
     },
     {
       "path": "LOCALIZATION_REVIEW.md",
-      "bytes": 2957,
-      "sha256": "bd56b412c342f768a6e528c809f08e7ad5554bd00cac7a27f89ebac0bd117d1c",
+      "bytes": 8952,
+      "sha256": "d716d53fa31a524b4f5687801a435ec9ac9e2c04dcad7fe15fb974e2718ed918",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -71,26 +71,26 @@
     },
     {
       "path": "NOTICES.md",
-      "bytes": 37521,
-      "sha256": "0644f688726b788bc1ecf8789f21c86f12056c50649aa6a088c848b5c679f836",
+      "bytes": 38600,
+      "sha256": "508c04f3519e8a8e8ca89ef16ba3e6e8625d68140667a15df3928a77a7c98588",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "PRIVACY_AUDIT.md",
-      "bytes": 16959,
-      "sha256": "6e29346af9a832ca99068fa6c300365ffa1404ed0321d9dc7e47c056267e0ae1",
+      "bytes": 17889,
+      "sha256": "b042eac8b416705d2585871c396696c47dc8d78ec39e0af4f16cc02e8acb1066",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "README.md",
-      "bytes": 57261,
-      "sha256": "00859731aee85e1c0e3f5d6572352ab988848f4b18422b253cd1100c6d342ffb",
+      "bytes": 57761,
+      "sha256": "4a12fcb3936ab861a3ef9d1523a1840e78e1b27226d7fdeb835a1e77fae79820",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 69651,
-      "sha256": "bc2abdd3d1b20a9dccd6997e065effc1dc8b525dcb5e702f9a9f5fcf1c0d2cad",
+      "bytes": 72845,
+      "sha256": "ec1ed77940d51f8d51b1a2f3912f2dc0c003273ccbe04b24bc6cf6d06315a20d",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -101,8 +101,8 @@
     },
     {
       "path": "SOURCES.json",
-      "bytes": 38041,
-      "sha256": "5e3859e007a4c0d8bb97a3bcef09239f7bf9837014bb8be206ad679878a5dc47",
+      "bytes": 39138,
+      "sha256": "4dd28b9de1e6507eba04371c9ff0871f02797276f7da9ce567eee4d7b99a9897",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -894,7 +894,7 @@
     {
       "path": "index.html",
       "bytes": 4966,
-      "sha256": "7839540dbf35ad4e768ea2ebf707a075ad1ef8c06e48730186a6048d7e090e92",
+      "sha256": "19c806139f2c918950b5e3edecb35ec85db1e8f3e842a061120bec2b71635607",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -911,9 +911,15 @@
     },
     {
       "path": "licenses.html",
-      "bytes": 18715,
-      "sha256": "41e68c82b1defb82f246621b85d815dcb801d91445e3afe83c6ba1c51cd7a1d3",
+      "bytes": 19693,
+      "sha256": "044712cb8e43e173973e625ca4cffad49208806d9fdf63beaa3a12aac8ffa390",
       "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "licenses/Acorn-MIT.txt",
+      "bytes": 1099,
+      "sha256": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7",
+      "component": "retained-license-notices"
     },
     {
       "path": "licenses/Alternate-C-file-notices.txt",
@@ -1109,8 +1115,8 @@
     },
     {
       "path": "manifest.webmanifest",
-      "bytes": 469,
-      "sha256": "5d7bd63f2b21205842c3284da5cfe08c54c26b282732854d3b82a11fdb5f3fdf",
+      "bytes": 373,
+      "sha256": "adda930aff30d29ecc9e3fd053397fbecf02092301f1e5a20dbe51367e6ce0ca",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1133,14 +1139,14 @@
     },
     {
       "path": "notices.html",
-      "bytes": 23319,
-      "sha256": "410dbf2b62aee0ee29a243836cf825ac172e846b6269e39e4693e033a8313644",
+      "bytes": 26712,
+      "sha256": "44b06b687812de9946b454bf3ac2ac25bd85998e1a9fd671eb511830addcc71d",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "package.json",
-      "bytes": 3593,
-      "sha256": "a54cd6cc3838a3f6bc107f9aecc177a4c76c03a104699637701c789d05170c3f",
+      "bytes": 3768,
+      "sha256": "287a502ab5891a3f8445b222f1cc2210df8d06347c5b5d24054d9aa9124911f4",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1151,14 +1157,14 @@
     },
     {
       "path": "release-notes.json",
-      "bytes": 15911,
-      "sha256": "b156a80ab784b4c5b8959a8cf1584a00beab8fee75cffec2b5b6706d2696dad8",
+      "bytes": 19246,
+      "sha256": "df2d62d29475ca63b1c5da3f179c7ee7cb85cc865049e218dbd56729b0980e75",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "scripts/audit-content.py",
-      "bytes": 7681,
-      "sha256": "dcbfd7512d26e359cb06f604b1310165ca10044060abb4db2615f99ca6bba76e",
+      "bytes": 7785,
+      "sha256": "4205b6a614704be560cacff1ffd1b7b611ecba6148f445a2d176055e70056398",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1181,8 +1187,8 @@
     },
     {
       "path": "scripts/build-offline.cjs",
-      "bytes": 2826,
-      "sha256": "84543a334bd75aca40736bb062cc5dbc80accb8d8c9a1d113ff5bf70e36db3cc",
+      "bytes": 3183,
+      "sha256": "06c15c9a47899540033ca8dd961946d96670c0e21a25c5db190e715a43cfe78c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1199,8 +1205,8 @@
     },
     {
       "path": "scripts/check-i18n.mjs",
-      "bytes": 1541,
-      "sha256": "2090856aafc0e7566cc645c319260eb9f6c824911f51c22fd107bbb251c5c636",
+      "bytes": 2336,
+      "sha256": "73a2770f672c875def6944a700549af6c50d5d63fb9052a2eb9cf2d77a521870",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1222,9 +1228,69 @@
       "component": "web-port-code-and-documentation"
     },
     {
+      "path": "scripts/develop.mjs",
+      "bytes": 1371,
+      "sha256": "690275a53b7d26e5c6ccbe45db265b23fd930269d54135399b3cc9f5b1f98752",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "scripts/i18n/catalogues.mjs",
+      "bytes": 8241,
+      "sha256": "26cfa799f10d3a29f46057258343f9192b061d7cb6b344e0dd2659d59b0f8970",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "scripts/i18n/exclusions.json",
+      "bytes": 1097,
+      "sha256": "07f663f07a8eef428a63741137ba351048709e29abf30fed1901c94d5f25d618",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "scripts/i18n/extract.mjs",
+      "bytes": 8850,
+      "sha256": "94de9ab17ea6bdd7340a597060d53b7deebc27ed32af8246b3f2a00013ffc402",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "scripts/i18n/state.json",
+      "bytes": 132865,
+      "sha256": "8840064208616f2820956f18b52905d41f6490a3fc382fb1ceb0de92554fa5e8",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "scripts/i18n/translator.json",
+      "bytes": 827,
+      "sha256": "1af4739199e671c89e4d030a2f30313e3cd4051289861b6bbd3a7ce4fbd1ef70",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "scripts/i18n/translator.mjs",
+      "bytes": 4642,
+      "sha256": "9b2f4dcd8aa4f6e10c0b26543b9c861891c0779c848d268c9f5786af0c231804",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "scripts/i18n/vendor/acorn.json",
+      "bytes": 982,
+      "sha256": "4036c5331c818ab02c88bb3269eabb3cf006a55aba355a5e881ddc0c42e14bb1",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "scripts/i18n/vendor/acorn.mjs",
+      "bytes": 229792,
+      "sha256": "b4c8c70200e72bae33cf1085e0ecb1e792c1b6924ed50cab817caf14f51bb249",
+      "component": "acorn-mit-development-tool"
+    },
+    {
       "path": "scripts/package_source.py",
       "bytes": 2635,
       "sha256": "102fed006be6ae2ef6896e7942d2d87386f90be44d6a65d8430bbb3bb5e9c6ff",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "scripts/prepare-acorn.py",
+      "bytes": 2207,
+      "sha256": "db27e7769f2ee3abc8b96431b25f2368215bdc6e2874a8ee20d125fd744934c4",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1264,6 +1330,12 @@
       "component": "web-port-code-and-documentation"
     },
     {
+      "path": "scripts/sync-i18n.mjs",
+      "bytes": 1863,
+      "sha256": "dd7ba207092e2f2d159c2296cbf8d8ca3238db5f511eab2abe0e567a22ce5995",
+      "component": "web-port-code-and-documentation"
+    },
+    {
       "path": "scripts/test-all.cjs",
       "bytes": 5535,
       "sha256": "0e4ecab5414f809d954593ff7b28b16afd5b01253a87a49bbcbc3928b8f7c24c",
@@ -1274,6 +1346,756 @@
       "bytes": 2847,
       "sha256": "44bdf5105ba989a7cf84a4185c6429f4a95cd1acb85d212c6697195fdd0e90c1",
       "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz",
+      "bytes": 1229270,
+      "sha256": "d7309bc957be7216d0808e425589b844e0b0ccce69b9d68b712c13c77e27e209",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.editorconfig",
+      "bytes": 99,
+      "sha256": "a87def103e16468cacbeb59fcb71fee7246f9f5823570f7e52bdd049da89c7c8",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.eslintignore",
+      "bytes": 16,
+      "sha256": "527f0427c420e621a08446f5f9636e212dd01f5bf2a669862a2f09d27ae902b5",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.eslintrc.js",
+      "bytes": 1303,
+      "sha256": "378e3c0b2affb81826b6f671a83b53500ab96a688c7dd265b34752b47083f581",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.gitattributes",
+      "bytes": 14,
+      "sha256": "a79691a93b46e49ce460c26ef22afcc03d6eca1e63bf2edbc20e96159510f6c9",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.github/workflows/ci.yml",
+      "bytes": 789,
+      "sha256": "352a30915e32a7eeb9d05ac63e9b4c3cacfff4a4793604faeb36caaa5ead3799",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.gitignore",
+      "bytes": 100,
+      "sha256": "9cd545a3ddbaee15aa2eb13cdffbfbedb50daa5c8b58eb6c431fd706a4ae0be0",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.mailmap",
+      "bytes": 168,
+      "sha256": "c43c7e9aa005e6dfe5695e413a49701870eb878e81b7fed1cf756286cf2bd8b5",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.npmignore",
+      "bytes": 165,
+      "sha256": "ed8b5d9c8ad2a91cd2751f13c0aa4c91612853e2645a63127aaffde2a202bd1c",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.npmrc",
+      "bytes": 19,
+      "sha256": "46d6f65a012ac79f08288b1eb210336d8b308aa73ae4f7213eb4427e69a98f8e",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.nvmrc",
+      "bytes": 3,
+      "sha256": "f14b4987904bcb5814e4459a057ed4d20f58a633152288a761214dcd28780b56",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/.tern-project",
+      "bytes": 63,
+      "sha256": "b98345221db3d27efd022a1fb62834f0b0483b93642a8552667824a313767fd3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/AUTHORS",
+      "bytes": 1826,
+      "sha256": "509b2d8f739a34ab8cf91c5f75653af633b421ca8913162ccad5271277e68c38",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/README.md",
+      "bytes": 3602,
+      "sha256": "c5d62f0a8f3a08cdb41719aeff5a3b2fa5348dff85ecfc23c7994767563942a6",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/.npmignore",
+      "bytes": 30,
+      "sha256": "31b65f2dde4ce35e5d05b57f6f9e387684843a4eabd547b810a5c28a21b5d62d",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/CHANGELOG.md",
+      "bytes": 3052,
+      "sha256": "459394431af1739909039e3559306add7ade79063aaff4eeb6fec217c2aaafca",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/LICENSE",
+      "bytes": 1099,
+      "sha256": "c2d8184ea9becd063aa40be243e8c6ec2c4f72828fdfe4b0752664ef73e96ed3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/README.md",
+      "bytes": 2175,
+      "sha256": "7459bd4178ee2f6d7e2e403daaee314ee4b0be42d7bcdc168fc0635a3282b1a8",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/package.json",
+      "bytes": 1127,
+      "sha256": "9d3e5bf3fd7beb7559dc135fa4e5e5023e480870f7ebbe39e2e8f8374a4c4a23",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/rollup.config.mjs",
+      "bytes": 777,
+      "sha256": "d7512286fde8a8e8229f85c2887429bfb37e5078f5ade110b0bc4e0e28d79a93",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/src/acorn-loose.d.ts",
+      "bytes": 346,
+      "sha256": "738f098ff70bf841000f92b40d2860371b814d80b9baaa8fd02fa73603231e09",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/src/expression.js",
+      "bytes": 21427,
+      "sha256": "a6f6d6106ec239469a485a99cc5d5b15cb70ff39154c0342d9287c694ccb37cd",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/src/index.js",
+      "bytes": 1631,
+      "sha256": "d172d80f06278878225a74c2580b73106ab3091723068800796139f2ae240490",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/src/package.json",
+      "bytes": 23,
+      "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/src/parseutil.js",
+      "bytes": 99,
+      "sha256": "2d81a0faeed9fd28dcb6c8dbe0b8c0a123db924d8920fbf99b26e0d15d329660",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/src/state.js",
+      "bytes": 4329,
+      "sha256": "942e487e5da38cad37525ee58bec2a72adc080dc56df3a5565e544fb565e16f1",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/src/statement.js",
+      "bytes": 20349,
+      "sha256": "86f2468e444daf46135b81cf98f5e2cb47f06aee12de42079f1f22e2538ec884",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-loose/src/tokenize.js",
+      "bytes": 3834,
+      "sha256": "4029fa9903a5b223a3faabee97c638131fb0274c2be8a6ee399d0df512961ed7",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-walk/.npmignore",
+      "bytes": 30,
+      "sha256": "31b65f2dde4ce35e5d05b57f6f9e387684843a4eabd547b810a5c28a21b5d62d",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-walk/CHANGELOG.md",
+      "bytes": 3650,
+      "sha256": "dcc0f6bf5c2baa7fa27dac56879e3b79d34ebda902ce6ed8cf34f42e1d212e78",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-walk/LICENSE",
+      "bytes": 1099,
+      "sha256": "c2d8184ea9becd063aa40be243e8c6ec2c4f72828fdfe4b0752664ef73e96ed3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-walk/README.md",
+      "bytes": 4467,
+      "sha256": "a306fc8c03403c90224ed8a3708d16b7a51c8565f03e4755a34733970e8e2eeb",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-walk/package.json",
+      "bytes": 1074,
+      "sha256": "95f930fb1606221d00cb13f4059d0ead88055192a7c5b703fcf72f2480f1b7d2",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-walk/rollup.config.mjs",
+      "bytes": 638,
+      "sha256": "03572e5805608ddbc37c9fb3fc3af0bb451802d60b78e695727ab0d29af2b670",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-walk/src/index.js",
+      "bytes": 12849,
+      "sha256": "3597ee95af816bc9785220b9277c79a8e971c876a56adc98cbb21ccfa4427c72",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-walk/src/package.json",
+      "bytes": 23,
+      "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn-walk/src/walk.d.ts",
+      "bytes": 5601,
+      "sha256": "18190ee9c0ce0451e8a4bddfdab39d4ce50a22f7be5bfac436da7ee1d2e2cc30",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/.npmignore",
+      "bytes": 30,
+      "sha256": "31b65f2dde4ce35e5d05b57f6f9e387684843a4eabd547b810a5c28a21b5d62d",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/CHANGELOG.md",
+      "bytes": 23249,
+      "sha256": "981f7def585a9b286740a90bc619c3355ff8e132a449c4dbbb78905d3df2198b",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/LICENSE",
+      "bytes": 1099,
+      "sha256": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/README.md",
+      "bytes": 10799,
+      "sha256": "dfbb7699d8b6c7fe0175c59a7e060486c0167625279c178eddac860d479c6450",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/bin/acorn",
+      "bytes": 60,
+      "sha256": "4c3eb6f1d8932790dbff043839f8ee7686bc614a59ef577e96fed618a4a4b1b8",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/package.json",
+      "bytes": 1061,
+      "sha256": "9e422c8225c9cc4c774e9a9392d0ecac7f766b46122ef2db99db0fc4bbedc247",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/rollup.config.mjs",
+      "bytes": 912,
+      "sha256": "837b0e7b8929f562dac4806d478647543822098c8090105251a5fabd44076c51",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/acorn.d.ts",
+      "bytes": 21989,
+      "sha256": "a4abbf5d5ecd7367532921a52e2a2762a6f5f38c3e4ad6c25e6e90152c403804",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/bin/acorn.js",
+      "bytes": 2609,
+      "sha256": "fed84cfdcafcd88e0fcb86604ff0f3254e4f898e3a6bab843c174f582ea4b06d",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/expression.js",
+      "bytes": 44045,
+      "sha256": "45cf2ffef1ada0fc4e9905f70bfe32d721e70f6a2082a0d2edc3e2a6080d6f61",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/generated/astralIdentifierCodes.js",
+      "bytes": 1202,
+      "sha256": "6a9d2a081fc0c1c8fa8130738fcbd2148ad55a982152fc12902d470e73bdfeeb",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/generated/astralIdentifierStartCodes.js",
+      "bytes": 2231,
+      "sha256": "32a63b9b0c93b0d19bc8025df2ddbdd24ba96e43484905e531301b8134786fa0",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/generated/nonASCIIidentifierChars.js",
+      "bytes": 2719,
+      "sha256": "87c5df248e9868865b5a04451c39c9a6c9f70d711818f7a2ad33802d399d2bed",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/generated/nonASCIIidentifierStartChars.js",
+      "bytes": 4338,
+      "sha256": "e1345f48fc3e2ce0cd661277d5cc1db67fff998639e77f694395c1571c3f2054",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/generated/scriptValuesAddedInUnicode.js",
+      "bytes": 274,
+      "sha256": "1b0e0ee3dae8439a99adcf3b5b34fb366053c774312fc7564f777d9129c84af1",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/identifier.js",
+      "bytes": 3322,
+      "sha256": "f85fd1acbab36f4da63c91b5de4a950094ab4e06731cc584a7ac9e5bd7335824",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/index.js",
+      "bytes": 2548,
+      "sha256": "be362c4a96c204578a6345dc64036b55d0eac72f81c07098af97a44c6552ca2b",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/location.js",
+      "bytes": 862,
+      "sha256": "1bf393b7a86bffd7dca85335b303e7bd0e81d6c0d86a765ee85d6436217fed7c",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/locutil.js",
+      "bytes": 978,
+      "sha256": "a546816b2e0936baf39cfee6d5116f62f3b75029780d6c7c64de036c339aba58",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/lval.js",
+      "bytes": 11079,
+      "sha256": "24a316f6d8fcd1373b969214cef84aee8cb7ab458fc5939c242b5ff3e1a0aca6",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/node.js",
+      "bytes": 1361,
+      "sha256": "a8c2c2f43fa3769ba092fcc9c07ae8a2a829148bffc59b10cd95984ac0313182",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/options.js",
+      "bytes": 6842,
+      "sha256": "478e0d1d97e8e6b6ad46da1d0d74848f905d9b03637b0090217f587abaf2aca5",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/package.json",
+      "bytes": 23,
+      "sha256": "3ca9d4afd21425087cf31893b8f9f63c81b0b8408db5e343ca76e5f8aa26ab9a",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/parseutil.js",
+      "bytes": 4878,
+      "sha256": "e2a82da2be8668ed606a0f054d5ba5d7b3153b06247b5425a823a422ba584471",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/regexp.js",
+      "bytes": 40636,
+      "sha256": "1fb13029b518dc33bdf3a947c3739addfa40c54f69925303d734cc09cfd4b596",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/scope.js",
+      "bytes": 3589,
+      "sha256": "ec1da48591d7c0b7040a2d4fab2e980a4cce3c0091ae349b35db72bb28df0001",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/scopeflags.js",
+      "bytes": 962,
+      "sha256": "9217e1f36822d08695d818dd3917989ac4e19e18a865bfb791b1c2794c9c3f6d",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/state.js",
+      "bytes": 5719,
+      "sha256": "72f74597060337792dad544b8f3e2d50a298323772298d24fd394e33ff3cd72d",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/statement.js",
+      "bytes": 42117,
+      "sha256": "2ae513cfef78ac976b95f809fa352c8a9e5327a12f3bb53e09a44f5bf92ef65f",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/tokencontext.js",
+      "bytes": 5231,
+      "sha256": "f7136610ca98f2678927ca99c18520da874ff05bf4fec7fd8e3745a687a547a6",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/tokenize.js",
+      "bytes": 26356,
+      "sha256": "6739ec7a859368496ba59f1816787bb34ddce30d2f535897a0848bf841b186ec",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/tokentype.js",
+      "bytes": 5599,
+      "sha256": "ce3db24844b6fa9450f915851e70280b36e31f0e92e1d89ad7760b52ccff0539",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/unicode-property-data.js",
+      "bytes": 6662,
+      "sha256": "96eb7534cea13b4ce425f2789000c6f2c7db8f0f7ae6332fd84e377cb57659b0",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/util.js",
+      "bytes": 704,
+      "sha256": "2393efd75a970cc835699abbeaae37b5df0cf822a18e9a8008092baf48a1d3b9",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/acorn/src/whitespace.js",
+      "bytes": 737,
+      "sha256": "ea96d1c714abf6865a75d53e2311e1f77d2a80d15079f54dfc21f46c2384bdaa",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/bin/generate-identifier-regex.js",
+      "bytes": 2391,
+      "sha256": "365829a80f833efdb54c095b0a393144b8f16b76e807377cd1e58baa07e995e3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/bin/generate-unicode-script-values.js",
+      "bytes": 1932,
+      "sha256": "66cadfaf9df3bcd6b42014d3a69d52ec77c160cc0e3ec5bf8009bea31ec5bdb3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/bin/run_test262.js",
+      "bytes": 726,
+      "sha256": "8a1f07c5b560936fe55e68f0530886b1db38f92b2b1a1ed8f146577d7e403dd3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/bin/test262.unsupported-features",
+      "bytes": 45,
+      "sha256": "3b463f5f9bd2077f85841a56d52469b58f01e259a9b1034635085b0099b37cf9",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/bin/test262.whitelist",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/bin/update_authors.sh",
+      "bytes": 136,
+      "sha256": "946423e97e34aad8c709b5021dbb50824a74199b69f55bcd13427298c9aa9eb9",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/logo.svg",
+      "bytes": 4287,
+      "sha256": "c2c3d5482167db3cf5aa4bfd9f8f8bac0faf5584c41ebce35ec4276cd4cc9c54",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/package-lock.json",
+      "bytes": 127047,
+      "sha256": "80d5dfd31d9fc535f4e9fb29ea116279eac099cc30419ae6ba0ed59669674ce9",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/package.json",
+      "bytes": 1626,
+      "sha256": "b960215055555ee1db8887146eb6e717999a2dfb8f8807c587b44be708fa23a6",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/common.js",
+      "bytes": 2421,
+      "sha256": "3f561cf8782a6c5662effb03dd20e2393d0b6aea68fb513b69201cc1dd1e15fd",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/fixtures/angular.js",
+      "bytes": 1232632,
+      "sha256": "f9fd278f00bd137213f730cfaf2e43488706752c5061ecc1692b50e0bd1945f5",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/fixtures/backbone.js",
+      "bytes": 72236,
+      "sha256": "24dd2eef4f35014e126628a40f528a1d248193f04d54589313de6a2bef9a07a6",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/fixtures/ember.js",
+      "bytes": 1853763,
+      "sha256": "5b8ecfd4f4e2e84cd837a2d25a8407e4353195378df47b7a71fbf47a12879b4a",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/fixtures/jquery.js",
+      "bytes": 268039,
+      "sha256": "0d9027289ffa5d9f6c8b4e0782bb31bbff2cef5ee3708ccbcb7a22df9128bb21",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/fixtures/react-dom.js",
+      "bytes": 646420,
+      "sha256": "2633da16f1cb9b548de481f3d8fe09d3eac68fc6a3973bac946d37c992c40e85",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/fixtures/react.js",
+      "bytes": 136397,
+      "sha256": "f9ad54de578ea105aefb02e1a73baaf86cf4f1f7a09752199841acf714db9233",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/index.html",
+      "bytes": 4191,
+      "sha256": "92d2fd9daa81231b85d28712e6e8dc6c6495c2f3012a5558c0bf6292bc898518",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/index.js",
+      "bytes": 1316,
+      "sha256": "fd76784d9db18295c250794d6bffdd05144e8170ba207741d6677a5c9fcbcab0",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/package.json",
+      "bytes": 702,
+      "sha256": "ee4d012e0f07780e7116d0ee4fd28cc4c77b3efb2642e66748fe683572417df3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/bench/worker.js",
+      "bytes": 1890,
+      "sha256": "3ba7c8a66b21946a444b44ee1545e54f64be48d493d5828f509e95566c8a7133",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/driver.js",
+      "bytes": 3309,
+      "sha256": "3f7c8391aba328c6e26332a0b838f67537b87f9fdf2b5413d14a421af10bf742",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/run.js",
+      "bytes": 3696,
+      "sha256": "25e9a3dd4908ce6848bd3fd1e114a78309b05c5720a613dfa3301cf83e7558c9",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-async-iteration.js",
+      "bytes": 61702,
+      "sha256": "bc3f1fc2d5639f4a095dca21338b40174bdf2e145739e737226459d13f687483",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-asyncawait.js",
+      "bytes": 109824,
+      "sha256": "741c68e1a42d66b284f21ccd59f88840ae2fe7cbff47e22c24dd554103b00438",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-await-top-level.js",
+      "bytes": 1744,
+      "sha256": "73256a5fb70566724d5ef46334cc01f6a7394c835327b023399bb7b72aa53bf3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-bigint.js",
+      "bytes": 4698,
+      "sha256": "88e5454fb44135caee28c55cf036b8a069f9e6f395aba6adf7def112ce7ba6c7",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-class-features-2022.js",
+      "bytes": 163041,
+      "sha256": "6ec8096a4eee0dc6223df4b82f403ac787f0ab02f1c37d7380ebb267e5ac975d",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-directive.js",
+      "bytes": 33893,
+      "sha256": "35199fd166a986a251412014120f06d70541bbb180741612df1389ac51ab1d09",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-dynamic-import.js",
+      "bytes": 5469,
+      "sha256": "22f097b9eb6a5dcad801b74177a0720055fe19453dc2b01f956893e14ae3694b",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-es7.js",
+      "bytes": 8394,
+      "sha256": "1f0a64d9c6006e4d5d58a8837bbc8a75eaa570c6d962ce5b46a9334974cbbb43",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-export-all-as-ns-from-source.js",
+      "bytes": 2740,
+      "sha256": "53849d57280cd8e54a855b7a7ec2fc44f60dd833500e797ea5e4ec9eafdf81b7",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-export-named.js",
+      "bytes": 5174,
+      "sha256": "37fdd90a12c1e355b8b0f8b23e59bb10a314571293c98a3b068d20cdf09fc564",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-harmony.js",
+      "bytes": 404570,
+      "sha256": "faaee708d5de901988dab4141f2a58e8106110b0e4ad713a0de16cc20961cd59",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-import-attributes.js",
+      "bytes": 18218,
+      "sha256": "a655ac7515e3d370e8cdf1728d638fb753cef0cc5c9baecdc43f8437e8043b0d",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-import-meta.js",
+      "bytes": 3497,
+      "sha256": "9736b31806b4cdf932bfaa77acb95ec49b8e6d916916bed893ce648f36985c17",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-json-superset.js",
+      "bytes": 553,
+      "sha256": "563eace285505f73c02c26783b923b94678bf54eae7c6de2d85391a95fda4b1b",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-logical-assignment-operators.js",
+      "bytes": 3965,
+      "sha256": "a61376e0ac0e87559a6ccb6333dda8a974e44391fe9794c82f648070e5e78ded",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-module-string-names.js",
+      "bytes": 7812,
+      "sha256": "dfdd97f5051341f1c0fa655e23c1c2b7a16bb0909cd05c095e66d753348be2c4",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-nullish-coalescing.js",
+      "bytes": 12320,
+      "sha256": "f4bb2ff979900bb0fb3f3a22b1bcbed8dfcf7cca520ad819b22d266ac76d52cc",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-numeric-separators.js",
+      "bytes": 4038,
+      "sha256": "8e6cb4b7d100496de30c06e828f6829293565eaa16f4b8d86e86c5712315f374",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-optional-catch-binding.js",
+      "bytes": 640,
+      "sha256": "c6953e04a1d4c356c82ff55a6011e32bb8d4f8ca745cdfa57a9c50df9e9f4414",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-optional-chaining.js",
+      "bytes": 33504,
+      "sha256": "85dbeef4be08018ef30c2f625fc3f1e4ec884b5861a3c04140872d311a97ab1a",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-regexp-2018.js",
+      "bytes": 12008,
+      "sha256": "ac30f3565c7cea6f4e0fd00998b19bcb8419b2022c99d80d724e921a9ec09cec",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-regexp-2020.js",
+      "bytes": 1075,
+      "sha256": "95196a015598c3b534e4f6e7658ec844301874a08749cff4767e1bf55d586ba0",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-regexp-2022.js",
+      "bytes": 315,
+      "sha256": "ea4f9f99818bc404f251636f7505e9ed76c0e73e6f0b24a0f35eba3e1458cb8a",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-regexp-2024.js",
+      "bytes": 6473,
+      "sha256": "fcec25c1ecd729947e0d07aea66f5de98c6736892f5a28f4eb01cdf20ececf87",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-regexp-2025.js",
+      "bytes": 4022,
+      "sha256": "dcd58e3a9142e7d35cc81d9954b4697607aabc85fdf5b69dc7493c3e69561358",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-regexp.js",
+      "bytes": 77261,
+      "sha256": "a22fcae2211044951bec2508bc09e3e4efc81910458a3ecfc6c450aa4e68034e",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-rest-spread-properties.js",
+      "bytes": 38315,
+      "sha256": "978ab67f212d638ee67c2745704b24576270e6131cec873b1ad2a250f95b7a96",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-template-literal-revision.js",
+      "bytes": 11530,
+      "sha256": "02a9e1ff13ac505e7d147409afe908ca4140e2bd04db0db43583cab8c5f8f9c3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-trailing-commas-in-func.js",
+      "bytes": 20034,
+      "sha256": "44051309dbcafeb323ad4c2df9565df0d3fb91b83fdd23a952835e5aaa4d6bb3",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests-using.js",
+      "bytes": 60647,
+      "sha256": "db23146516e7e5b46a0e74b9e609380ab9a31a1c0190b14077429a6ffa1f9a0e",
+      "component": "acorn-mit-development-tool"
+    },
+    {
+      "path": "sources/acorn-source.tar.gz!acorn-8.15.0/test/tests.js",
+      "bytes": 560138,
+      "sha256": "c3dfd3ece58cd4a1237f141720256b6714d7336c4fc6e1f17b8429a621d7e46e",
+      "component": "acorn-mit-development-tool"
     },
     {
       "path": "sources/alternate-build-evidence.json",
@@ -39605,8 +40427,8 @@
     },
     {
       "path": "src/app.js",
-      "bytes": 58477,
-      "sha256": "d18fc6a76ecb82df74761d3780ae69cf2392af0d863af857ec7aff8d486b7c06",
+      "bytes": 58548,
+      "sha256": "bfa1fb4a2561d3a6da84842a4195c9b5169cd234be3f9110397a15ff48bbd830",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -39731,8 +40553,8 @@
     },
     {
       "path": "src/i18n/format.js",
-      "bytes": 1684,
-      "sha256": "c29fa43b73f8f4d2a14d18fad1cff861ca14123fb84bc36789d9349825c68250",
+      "bytes": 1752,
+      "sha256": "ed1903ca54b1705bf676c21204ec9f56ec08bd539ba0d9c1d94827fbcacb97d2",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -39749,50 +40571,50 @@
     },
     {
       "path": "src/i18n/locales/de.js",
-      "bytes": 115822,
-      "sha256": "7216f9eb98a77f20aef1ee50b4a0f39a272acc34031da0fcafd1730108718453",
+      "bytes": 116210,
+      "sha256": "9f4f06e1f78b76d53754dd1d5a4249da1197c3f20192c73f61ffa6117120fe7a",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/en.js",
-      "bytes": 104563,
-      "sha256": "dbc5f08ad9b5150c424fdb1da8b661245dc813f6670329837ad58a02f3b7a715",
+      "bytes": 104895,
+      "sha256": "e49e474a9b4ef3592b635bbf310ea4d7a97cdd0d1183b16d67d04a6648cc2311",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/es.js",
-      "bytes": 115870,
-      "sha256": "ab6a09ead292bf07b794436941b0254c040261f223c799422788bf785a1fa275",
+      "bytes": 116249,
+      "sha256": "66614f62ed9239f04e08f051fb663e95b510d7414459c57525a811c9500282c6",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/fr.js",
-      "bytes": 118986,
-      "sha256": "7221ddd333f0e7195ed2f1815d5531a4e44d1a9a4793e200c13ebe7d72d1d987",
+      "bytes": 119379,
+      "sha256": "b70157e3a928a058189ae7aca356be575168010b37add3e626b248b350c7a1a2",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/ko.js",
-      "bytes": 118276,
-      "sha256": "52cab4f6bc141a0012dc759a5c0d0589db6fcfca4152961043a2b670657c0449",
+      "bytes": 118684,
+      "sha256": "3cf64da890b5e8306e6b59306ce9dd520dccbbe7c4d704fbec0298aea48deb7b",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/pt.js",
-      "bytes": 113528,
-      "sha256": "94204a7463fd673bb9a02a36676262247e0482b37702fb89ff6d4450c8ddd593",
+      "bytes": 113909,
+      "sha256": "43960ec07907e176fd48fd3358c7352def6b6293b144855e2088e60a659c46ec",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/zh-Hans.js",
-      "bytes": 103160,
-      "sha256": "20dd528d34521a66279aaeaf5f0a0b3590520fa510fa131965a9e5cccb707776",
+      "bytes": 103494,
+      "sha256": "afc007fe95dbadf272ba2d2f11a854969ac665b7ae792ba6e2eb5a8fb80e7ad3",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/zh-Hant.js",
-      "bytes": 103388,
-      "sha256": "ea38664bf8f36abaf6f32418979984e1d7a30aa9dab649758ad502739f89b50e",
+      "bytes": 103736,
+      "sha256": "64f4c83183e9e8ca0f59c5f0a809b8061774c3ff6176355046b2226459334211",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40133,14 +40955,14 @@
     },
     {
       "path": "style.css",
-      "bytes": 32594,
-      "sha256": "1ad08fe0dff5ffbd82dee4316f051f9306a1fc33d131ca197ed33c67f496f572",
+      "bytes": 32583,
+      "sha256": "edc382e1c91d1c93f2220e08481ed71cf3ac5b82719eec2a72024caea195d8af",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "sw.js",
-      "bytes": 4084,
-      "sha256": "6966f3bb1b2a5f7beda15037d14c8c402c0ca0b477929605425a933b845b285b",
+      "bytes": 4181,
+      "sha256": "16a7c7656388c574cbf2a3607c8c8d9b755ee419e4f1754d71dc8571a3981c71",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40295,8 +41117,8 @@
     },
     {
       "path": "tests/languages.cjs",
-      "bytes": 7254,
-      "sha256": "2fe066f70afcc6f7f2a1c58bd6d4debfd7afafc4b30975f915e101b47421f8f5",
+      "bytes": 7697,
+      "sha256": "05782f57265b552edde8faa1253344d9eacdf860a7bf21742888b0a84f02eec0",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40333,6 +41155,12 @@
       "path": "tests/link.cjs",
       "bytes": 5373,
       "sha256": "ae2e7d4d30985b18dbabc067b9e9f9c1c0c6b7892514133dc37bcc86e0002dfe",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/localization-pipeline.cjs",
+      "bytes": 14767,
+      "sha256": "5fede61fd21b77312d7cedd65c5c977944368d3558b22765abc852e8ca6ff92e",
       "component": "web-port-code-and-documentation"
     },
     {

@@ -22,6 +22,7 @@ def check_name(name):
         raise ValueError('Unsafe archive path: ' + name)
 
 def component(path):
+    if path.startswith(('scripts/i18n/vendor/', 'sources/acorn')): return 'acorn-mit-development-tool'
     if path.startswith(('sources/alternate','sources/jgenesis','cores/jgenesis/','cores/melonds/','cores/vba-next/')): return 'source-built-alternate-cores'
     if path.startswith(('assets/skins/manic/', 'sources/manic-skins/')): return 'manic-standard-skins-cc-by-4.0'
     if path.startswith('assets/') or path.startswith('sources/skins/'): return 'original-web-artwork'

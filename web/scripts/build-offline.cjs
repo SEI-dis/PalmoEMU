@@ -2,6 +2,9 @@
 // Only application resources are listed. ROMs, saves and source archives are excluded.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const root=path.resolve(__dirname,'..'),files=[];
+// Translation runs only while developing/building; --check never contacts a model.
+const localization=require('node:child_process').spawnSync(process.execPath,[path.join(__dirname,'sync-i18n.mjs'),...(process.argv.includes('--check')?['--check']:[])],{stdio:'inherit',windowsHide:true});
+if(localization.status!==0)process.exit(localization.status||1);
 require('./build-release-notes.cjs').buildReleaseNotes(root,{check:process.argv.includes('--check')});
 function walk(dir){for(const e of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,e.name),rel=path.relative(root,p).split(path.sep).join('/');if(e.isDirectory()){if(!['sources','scripts','tests','node_modules','.git','test-results','playwright-report'].includes(e.name))walk(p);}else if((/\.(js|mjs|css|html|json|png|svg|wasm|data|webmanifest|txt|md)$/.test(e.name)||e.name==='LICENSE')&&!['offline-manifest.js','sw.js','RELEASE_CONTENT.json','RELEASE_REVIEW.json'].includes(rel))files.push(rel);}}
 walk(root);files.sort();const buildTag=/<meta name="app-build" content="[^"]*">/,placeholder='<meta name="app-build" content="0000000000000000">',versionTag=/<meta name="app-version" content="[^"]*">/;

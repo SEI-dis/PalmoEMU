@@ -1,6 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {createPlan,assertCurrent,hash} from './i18n/catalogues.mjs';
+assertCurrent(createPlan());
+const parser=JSON.parse(fs.readFileSync(new URL('./i18n/vendor/acorn.json',import.meta.url)));
+const sources=JSON.parse(fs.readFileSync(new URL('../SOURCES.json',import.meta.url)));
+assert.deepEqual(sources.developmentTools.acorn,parser,'Acorn provenance matches the distribution record');
+assert.equal(hash(fs.readFileSync(new URL('./i18n/vendor/acorn.mjs',import.meta.url))),parser.sha256,'Reviewed Acorn parser');
+assert.equal(hash(fs.readFileSync(new URL('../licenses/Acorn-MIT.txt',import.meta.url))),parser.licenseSha256,'Acorn license retained');
+assert.equal(hash(fs.readFileSync(new URL('../'+parser.archive,import.meta.url))),parser.archiveSha256,'Acorn corresponding source retained');
 import {languages} from '../src/i18n/languages.js';
 import english from '../src/i18n/locales/en.js';
 const keys=Object.keys(english).sort();

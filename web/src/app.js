@@ -188,6 +188,7 @@ async function importFiles(files){
  else toast([count?tr`${count}本のゲームを追加しました。`:'',duplicates?tr`${duplicates}本は追加済みです。`:'',...skipped].filter(Boolean).join(' '));
 }
 $('#rom-input').onchange=guardUpdateTask(e=>importFiles([...e.target.files]));
+document.body.dataset.dropLabel=tr('ROMをドロップして追加');
 let dragDepth=0;window.addEventListener('dragenter',e=>{if(e.dataTransfer.types.includes('Files')){e.preventDefault();dragDepth++;document.body.classList.add('drop-active');}});window.addEventListener('dragover',e=>e.preventDefault());window.addEventListener('dragleave',()=>{if(--dragDepth<=0)document.body.classList.remove('drop-active');});window.addEventListener('drop',e=>{e.preventDefault();dragDepth=0;document.body.classList.remove('drop-active');if(!engine)importFiles([...e.dataTransfer.files]);});
 function menuControlCells(game=current){return {
  swapScreen:dualScreen(game?.system)?nativeToggle(tr('画面切り替え'),'ndsSwapScreens','layers',!!settings.ndsSwapScreens):'',

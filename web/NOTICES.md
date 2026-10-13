@@ -558,3 +558,19 @@ selection, lazy-loaded catalogues and offline switching. Translated summaries
 do not replace the original license texts, copyright notices or corresponding
 source. No translation model, service or runtime dependency is distributed.
 See LOCALIZATION_REVIEW.md for the localization scope and maintenance process.
+
+Modified 2026-10-13 (0.3.19): added development-time local translation and
+source extraction, source-hash tracking, missing/stale/unregistered text checks,
+and development-server synchronization. New code is AGPL-3.0-or-later.
+Acorn 8.15.0 is distributed as a development parser under MIT: Copyright (C)
+2012-2022 by various contributors (see AUTHORS). Its unmodified parser, MIT
+license, upstream source archive and fixed provenance are retained in
+scripts/i18n/vendor/, licenses/Acorn-MIT.txt, sources/acorn-source.tar.gz and
+SOURCES.json. The archive includes AUTHORS. No Acorn code, translation model or
+translation endpoint is loaded by the browser application. Ollama and Gemma
+remain optional local developer prerequisites, not distributed components.
+See LOCALIZATION_REVIEW.md for the generation and review process.
+
+The Acorn source archive is repacked with scripts/prepare-acorn.py. Only the two
+redundant node_modules/acorn workspace symlinks in acorn-loose and acorn-walk
+are omitted; all regular source files, LICENSE and AUTHORS remain unchanged.

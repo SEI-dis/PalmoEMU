@@ -17,3 +17,6 @@
 node_modules/
 playwright-report/
 test-results/
+
+scripts/i18n/.sync.lock
+*.i18n-tmp

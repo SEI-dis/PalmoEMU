@@ -575,5 +575,22 @@
     ],
     "dataScope": "Classification/favorites stay in local library metadata and explicit local backups. Sort/group preferences stay in localStorage. No ROM/save upload, remote cover lookup, new native runtime, binary or third-party artwork."
   },
-  "upstreamReview": "UPSTREAM_REVIEW.md"
+  "upstreamReview": "UPSTREAM_REVIEW.md",
+  "developmentTools": {
+    "acorn": {
+      "name": "Acorn",
+      "version": "8.15.0",
+      "source": "https://github.com/acornjs/acorn/tree/8.15.0",
+      "tarball": "https://registry.npmjs.org/acorn/-/acorn-8.15.0.tgz",
+      "integrity": "sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==",
+      "sha256": "b4c8c70200e72bae33cf1085e0ecb1e792c1b6924ed50cab817caf14f51bb249",
+      "licenseSha256": "76a876cf886ff9be2a8b5e2e86514fed06223c8c9f0c1e9ee9606e93841e00b7",
+      "commit": "6dc537416ad628b3959b3ff963fbdcfdb380e0a3",
+      "archive": "sources/acorn-source.tar.gz",
+      "archiveSha256": "d7309bc957be7216d0808e425589b844e0b0ccce69b9d68b712c13c77e27e209",
+      "annotatedTag": "b63a4e15ce4ca3d4c85025f7e25cd83337198f78",
+      "originalArchiveSha256": "490d0185fa6e0a3016a298ecb9397878cf7257f4cf790651e32c8b394bcc2ec3",
+      "archiveChanges": "Removed only acorn-loose/node_modules/acorn and acorn-walk/node_modules/acorn symlinks; regular source files unchanged. Reproduce with scripts/prepare-acorn.py."
+    }
+  }
 }

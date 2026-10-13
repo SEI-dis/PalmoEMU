@@ -18,6 +18,9 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
    const {default:catalogue}=await import(pathToFileURL(path.join(__dirname,`../src/i18n/locales/${code}.js`)));
    await page.goto(base+'index.html#settings');await page.locator('#app-language').waitFor();
    assert.equal(await page.locator('html').getAttribute('lang'),code);assert.equal(await page.locator('h1').textContent(),catalogue['設定']);
+   assert.equal(await page.locator('body').getAttribute('data-drop-label'),catalogue['ROMをドロップして追加']);
+   const dropText=await page.evaluate(()=>{document.body.classList.add('drop-active');const text=getComputedStyle(document.body,'::after').content;document.body.classList.remove('drop-active');return text;});
+   assert.ok(dropText.includes(catalogue['ROMをドロップして追加']),code+' drag overlay is translated');
    assert.equal(await page.locator('#app-language').inputValue(),'auto');assert.deepEqual(await page.locator('#app-language option').evaluateAll(options=>options.slice(1).map(o=>o.textContent)),languages.map(item=>item.name));
    for(const width of [320,390,844]){
     await page.setViewportSize({width,height:width===844?390:844});

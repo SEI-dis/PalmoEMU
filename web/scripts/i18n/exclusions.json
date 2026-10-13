@@ -1,0 +1,37 @@
+[
+  {
+    "file": "src/i18n/languages.js",
+    "text": "日本語",
+    "reason": "Native language names must stay recognizable in every locale."
+  },
+  {
+    "file": "src/i18n/languages.js",
+    "text": "简体中文",
+    "reason": "Native language names must stay recognizable in every locale."
+  },
+  {
+    "file": "src/i18n/languages.js",
+    "text": "繁體中文",
+    "reason": "Native language names must stay recognizable in every locale."
+  },
+  {
+    "file": "src/i18n/index.js",
+    "text": "tr(node.nodeValue)",
+    "reason": "Static authored HTML is extracted independently from root HTML files."
+  },
+  {
+    "file": "src/i18n/index.js",
+    "text": "tr(element.getAttribute(name))",
+    "reason": "Static HTML accessibility attributes are extracted independently."
+  },
+  {
+    "file": "src/offline.js",
+    "text": "tr(e.data.error)",
+    "reason": "Only Service Worker message keys; sw.js is scanned at build time."
+  },
+  {
+    "file": "src/update.js",
+    "text": "tr(event.data.error)",
+    "reason": "Only Service Worker message keys; sw.js is scanned at build time."
+  }
+]

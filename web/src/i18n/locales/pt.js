@@ -1036,5 +1036,9 @@ export default {
  "この画面以外のアプリのタブを閉じてください。": "Feche outras abas deste aplicativo.",
  "ダウンロードに失敗しました。接続を確認してください。": "Falha no download. Verifique sua conexão.",
  "対応するセーブファイルを選択してください（⟪0⟫）。": "Escolha um arquivo salvo suportado (⟪0⟫).",
- "最新の更新": "Última atualização"
+ "最新の更新": "Última atualização",
+ "ROMをドロップして追加": "Soltar ROM para adicionar",
+ "オフライン保存を開始できませんでした。画面を開き直してください。": "Não foi possível iniciar o download para uso offline. Abra esta tela novamente.",
+ "Acorn · 開発時の文言解析": "Acorn · Análise de texto de desenvolvimento",
+ "ソースコード": "Código-fonte"
 };

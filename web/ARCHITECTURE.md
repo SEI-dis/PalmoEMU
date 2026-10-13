@@ -9,6 +9,8 @@
 | `web/src/components/` | ManicEMU由来の共通行・選択欄、言語設定、保存容量の部品 |
 | `web/src/i18n/` | 言語判定、翻訳、静的ページへの適用 |
 | `web/src/i18n/locales/` | 各表示言語の翻訳辞書 |
+| `web/scripts/i18n/` | Acornによる文言抽出、原文ハッシュ、翻訳差分、端末内の翻訳モデルへの接続。ブラウザからは読み込まない |
+| `web/scripts/develop.mjs` | 開発時の変更監視・翻訳生成・プレビュー |
 | `web/src/` のその他のモジュール | コアの接続、保存、入力、通信、レイアウトなど。画面の移動と一緒に保存キーや通信形式を変更しない |
 | `web/cores/`・`web/vendor/` | 固定した版から取得・ビルドした配布物。手作業で書き換えない |
 | `web/assets/` | アイコンとスキン。第三者素材の通知を保持する |
@@ -34,9 +36,10 @@
 ## 変更時の確認
 
 - `node web/scripts/check-modules.cjs`：移動したファイルの読み込み先。
-- `node web/scripts/check-i18n.mjs`：全辞書のキー、空訳、差し込み位置と変更履歴の言語を確認。新しい文言は全言語へ追加する。
+- `node web/scripts/check-i18n.mjs`：全辞書のキー、空訳、差し込み位置と変更履歴の言語を確認。原文の変更、未登録文言、欠落・空訳を検出する。
 - `node web/tests/languages.cjs`と`languages-offline.cjs`：追加言語・地域判定・遅延読み込み・ワーカー・オフライン切り替え。
 - `node web/tests/i18n.cjs`：別途起動した検証サーバーに対する言語・保存・画面の検査。`TEST_URL`、`BROWSER_ENGINE`、`PLAYWRIGHT_MODULE` は他のブラウザ検証と共通。
 - `node web/scripts/test-all.cjs --serve` と `--webkit`：既存機能の回帰検査。既存の日本語UI検査は明示した日本語のブラウザ設定を使い、言語検査は英語・日本語・未対応言語を個別に指定。
-- `release-notes.json`は同じ版の`changes`（日本語）・`changesEn`・`translations`（追加言語のコード別配列）を追加。公開検査は言語・件数の欠落を拒否。HTMLはこの1つのデータから生成し、別々に翻訳し直さない。
+- `release-notes.json`には同じ版の日本語の`changes`を追加・編集。`npm --prefix web run dev`または`node web/scripts/build-offline.cjs`が英語・追加言語を生成する。原文が変わらない手修正の訳は保持する。公開検査は生成せず、不足・古い原文ハッシュ・未登録文言を拒否する。HTMLもこの1つのデータから生成する。
+- `scripts/i18n/state.json`は翻訳済み原文のハッシュ。生成器が更新するため手で承認しない。`exclusions.json`は翻訳不要な固定値の完全一致と理由だけを保持し、未使用の例外も拒否する。詳細は[翻訳手順](LOCALIZATION_REVIEW.md)を参照。
 - 配布生成・ソースZIP・監査記録・CI・公開の順序は [公開手順](../deployment/README.md) を使用。ROMや実際のセーブを検証成果物へ入れない。

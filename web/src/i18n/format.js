@@ -10,10 +10,10 @@ export function messageKey(text) {
 }
 export function mapSource(source,translate) {
  // Authored HTML/SVG only; interpolation markers cannot contain HTML syntax.
- const tag=/<\/?[a-zA-Z!][^>]*>/g;let result='',from=0,html=false;
+ const tag=/<\/?[a-zA-Z!](?:"[^"]*"|'[^']*'|[^'">])*>/g;let result='',from=0,html=false;
  for(const match of source.matchAll(tag)){
   html=true;result+=translate(source.slice(from,match.index),'html');
-  result+=match[0].replace(/\b(aria-label|title|alt|placeholder)="([^"]*)"/g,(_,name,text)=>`${name}="${translate(text,'attribute')}"`);
+  result+=match[0].replace(/\b(aria-label|title|alt|placeholder)=("[^"]*"|'[^']*')/g,(_,name,quoted)=>`${name}=${quoted[0]}${translate(quoted.slice(1,-1),'attribute')}${quoted[0]}`);
   from=match.index+match[0].length;
  }
  return result+translate(source.slice(from),html?'html':'text');

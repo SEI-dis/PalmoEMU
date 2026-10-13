@@ -1036,5 +1036,9 @@ export default {
  "この画面以外のアプリのタブを閉じてください。": "Fermez les autres onglets de cette application.",
  "ダウンロードに失敗しました。接続を確認してください。": "Échec du téléchargement. Veuillez vérifier votre connexion.",
  "対応するセーブファイルを選択してください（⟪0⟫）。": "Choisissez un fichier de sauvegarde pris en charge (⟪0⟫).",
- "最新の更新": "Dernière mise à jour"
+ "最新の更新": "Dernière mise à jour",
+ "ROMをドロップして追加": "Déposer une ROM pour ajouter",
+ "オフライン保存を開始できませんでした。画面を開き直してください。": "Impossible de lancer le téléchargement pour une utilisation hors ligne. Rouvrez cette page.",
+ "Acorn · 開発時の文言解析": "Acorn · Analyse du texte de développement",
+ "ソースコード": "Code source"
 };

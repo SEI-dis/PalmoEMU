@@ -1,0 +1,23 @@
+{
+  "model": "gemma4:e4b",
+  "digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+  "languages": {
+    "en": "English",
+    "zh-Hans": "Simplified Chinese",
+    "zh-Hant": "Traditional Chinese (Taiwan)",
+    "ko": "Korean",
+    "es": "Spanish",
+    "fr": "French",
+    "de": "German",
+    "pt": "Brazilian Portuguese"
+  },
+  "glossary": {
+    "zh-Hans": "skin=皮肤, save state=即时存档, core=核心",
+    "zh-Hant": "skin=外觀, save state=即時存檔, core=核心",
+    "ko": "skin=스킨, save state=상태 저장, core=코어",
+    "es": "skin=diseño, save state=estado guardado, core=núcleo",
+    "fr": "skin=habillage, save state=état de sauvegarde, core=cœur",
+    "de": "skin=Skin, save state=Savestate, core=Core",
+    "pt": "skin=tema, save state=estado salvo, core=núcleo"
+  }
+}
