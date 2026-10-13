@@ -168,16 +168,23 @@ function renderGames(){libraryView.render();}
 function renderImports(){
  $('#content').innerHTML=tr`<section class="page import-page" aria-label="インポート"><header class="import-hero"><img src="assets/icon.svg" alt=""></header>
   <button class="import-file" id="choose-rom"><span class="import-file-icon">${icon('folder')}</span><span><strong>ファイル</strong><small>端末内のROMを追加</small></span></button>
-  <div class="import-services"><button class="import-service" id="import-saves" ${library.length?'':'disabled'}><span class="import-service-icon save-service">${icon('saveImport')}</span><strong>セーブデータ</strong><small>${library.length?tr('ゲームを選んで読み込む'):tr('先にゲームを追加')}</small></button><button class="import-service" id="import-skins"><span class="import-service-icon skin-service">${icon('image')}</span><strong>スキン</strong><small>追加・変更</small></button><button class="import-service" id="import-patch"><span class="import-service-icon">${icon('code')}</span><strong>ROMパッチ</strong><small>パッチを適用</small></button></div>
+  <div class="import-services"><button class="import-service" id="import-saves" ${library.length?'':'disabled'}><span class="import-service-icon save-service">${icon('saveImport')}</span><strong>セーブデータ</strong><small>${library.length?tr('ゲームを選んで読み込む'):tr('先にゲームを追加')}</small></button><button class="import-service" id="import-skins"><span class="import-service-icon skin-service">${icon('image')}</span><strong>スキン</strong><small>追加・変更</small></button><button class="import-service" id="import-update-rom" ${library.length?'':'disabled'}><span class="import-service-icon">${icon('reload')}</span><strong>ROMを更新</strong><small>${library.length?tr('セーブを引き継ぐ'):tr('先にゲームを追加')}</small></button><button class="import-service" id="import-patch"><span class="import-service-icon">${icon('code')}</span><strong>ROMパッチ</strong><small>パッチを適用</small></button></div>
   <div class="import-drop"><span class="import-drop-icon">${icon('import')}</span><span><strong>ドラッグ＆ドロップ</strong><small>ROMをこの画面にドロップ</small></span></div>
   <details class="import-formats"><summary>対応する形式</summary><p class="sheet-note">${Object.values(systems).map(s=>`${s.short}：${s.ext.map(ext=>'.'+ext).join(' / ')}`).join('<br>')}</p><p class="sheet-note">ZIPも追加できます。ROMとセーブは端末内に保存します。利用する権利のあるROMを使用してください。</p></details></section>`;
  $('#choose-rom').onclick=()=>$('#rom-input').click();
  $('#import-patch').onclick=()=>showROMPatch({sheet,onClose:fn=>{sheetCleanup=fn;},download,error});
  $('#import-skins').onclick=()=>showSkins();
+ $('#import-update-rom').onclick=showROMUpdatePicker;
  $('#import-saves').onclick=()=>{
   sheet(tr('セーブデータ'),tr('<p class="sheet-note">読み込み先のゲームを選んでください。</p><div class="settings-group">')+library.map(game=>`<button class="row" data-import-save="${esc(game.id)}">${icon('game')}<span>${esc(game.name)}</span>${icon('chevron')}</button>`).join('')+'</div>');
   $$('[data-import-save]').forEach(button=>button.onclick=()=>{const game=library.find(game=>game.id===button.dataset.importSave);if(game)chooseSaveImport(game);});
  };
+}
+
+function showROMUpdatePicker(){
+ if(!library.length)return;
+ sheet(tr('ROMを更新'),tr('<p class="sheet-note">更新するゲームを選んでください。</p><div class="settings-group">')+library.map(game=>`<button class="row" data-update-rom="${esc(game.id)}">${icon('game')}<span>${esc(game.name)}</span>${icon('chevron')}</button>`).join('')+'</div>');
+ $$('[data-update-rom]').forEach(button=>button.onclick=()=>{const game=library.find(game=>game.id===button.dataset.updateRom);if(game)gameInfo.updateROM(game,{onBack:showROMUpdatePicker});});
 }
 
 function bindSettings(root){root.querySelectorAll('[data-setting]').forEach(el=>el.onchange=()=>{settings[el.dataset.setting]=el.type==='checkbox'?(el.dataset.invert?!el.checked:el.checked):['volume','speed','hapticStrength','deadZone','filterStrength'].includes(el.dataset.setting)?Number(el.value):el.value;if(el.dataset.setting==='hapticStrength')settings.haptics=!!settings.hapticStrength;const value=el.closest('.native-select')?.querySelector('.native-value');if(value)value.textContent=el.selectedOptions[0].textContent;applySettings();const scope=$('#game-preferences-mode'),game=current||settingsGame;if(scope&&game){scope.textContent=hasGamePreferences(game)?tr('このゲームの設定'):tr('共通設定を使用');const reset=$('[data-action=resetPreferences]');if(reset)reset.disabled=!hasGamePreferences(game);}if(['haptics','hapticStrength'].includes(el.dataset.setting)){if(settings.haptics)tapHaptic(settings);else stopHaptics();}if($('#video-filter-note'))$('#video-filter-note').hidden=settings.filter!=='edge4x';if(['touchControls','showFps','ndsSwapScreens','showCamera'].includes(el.dataset.setting))layoutSkin();});}

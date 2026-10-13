@@ -8,6 +8,10 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),page=await context.newPage(),requests=[],errors=[];
   context.on('request',r=>requests.push(r));page.on('pageerror',e=>errors.push(e.message));
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';await page.goto(base);
+  await page.locator('[data-tab="imports"]').click();
+  assert.deepEqual(await page.locator('.import-services > button').evaluateAll(buttons=>buttons.map(button=>button.id)),['import-saves','import-skins','import-update-rom','import-patch']);
+  assert.equal(await page.locator('#import-update-rom').isDisabled(),true);
+  await page.locator('[data-tab="games"]').click();
   const result=await page.evaluate(async()=>{
    const db=await import('./src/storage.js'),{importROM}=await import('./src/rom-import.js'),{prepareROMUpdate,readROMUpdateBackup}=await import('./src/rom-update.js'),{hash}=await import('./src/shared.js');
    const file=n=>new File([new Uint8Array([n,2,3,4])],`Version ${n}.gba`),old=file(1),next=file(2);
@@ -60,6 +64,30 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
   await page.locator('#rom-update-compatible').check();assert.equal(await page.locator('#rom-update-confirm').isEnabled(),true);
   await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
   if(process.env.SCREENSHOT_DIR){const fs=require('node:fs'),path=require('node:path');fs.mkdirSync(process.env.SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,'rom-update-complete.png')});}
+  // Both entry points use the same protected update flow. Choosing/backing out
+  // must not write anything; choosing another game must copy that game's save.
+  await page.goto(base+'index.html#imports');await page.locator('#import-update-rom').waitFor();
+  const snapshot=()=>page.evaluate(async()=>{const db=await import('./src/storage.js');return JSON.stringify(await Promise.all(['library','roms','saves','states','recoveries','coverCatalogs'].map(store=>db.all(store))));});
+  const beforePicking=await snapshot();
+  for(const width of [320,390,844]){
+   await page.setViewportSize({width,height:width===844?390:844});
+   const boxes=await page.locator('.import-services > button').evaluateAll(buttons=>buttons.map(button=>{const r=button.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right};}));
+   assert.equal(boxes[0].y,boxes[1].y);assert.equal(boxes[2].y,boxes[3].y);assert.ok(boxes[2].y>boxes[0].y&&boxes[0].x===boxes[2].x&&boxes[1].x===boxes[3].x);
+   assert.ok(boxes.every(box=>box.x>=0&&box.right<=width));
+   if(process.env.SCREENSHOT_DIR)await page.screenshot({path:require('node:path').join(process.env.SCREENSHOT_DIR,`rom-update-imports-${width}.png`),fullPage:true});
+  }
+  await page.setViewportSize({width:390,height:844});await page.locator('#import-update-rom').click();
+  await page.locator(`[data-update-rom="${result.sourceId}"]`).click();
+  await page.locator('#rom-update-file').setInputFiles({name:'Cancel.gba',mimeType:'application/octet-stream',buffer:Buffer.from([4,2,3,4])});
+  await page.locator('#rom-update-confirm').waitFor();await page.locator('#rom-update-back').click();await page.locator('#rom-update-back').click();
+  await page.locator(`[data-update-rom="${result.targetId}"]`).waitFor();assert.equal(await snapshot(),beforePicking);
+  await page.locator('#close-sheet').click();assert.equal(await page.locator('#sheet').isVisible(),false);
+  await page.locator('#import-update-rom').click();await page.locator(`[data-update-rom="${result.targetId}"]`).click();
+  await page.locator('#rom-update-file').setInputFiles({name:'From Imports.gba',mimeType:'application/octet-stream',buffer:Buffer.from([5,2,3,4])});
+  await page.locator('#rom-update-confirm').waitFor();assert.equal(await page.locator('#rom-update-confirm').isDisabled(),true);
+  await page.locator('#rom-update-compatible').check();await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
+  const imported=await page.evaluate(async({sourceId,targetId})=>{const db=await import('./src/storage.js'),games=await db.all('library'),game=games.find(g=>g.name==='From Imports');return {previous:game.romUpdate.previousId,copied:[...(await db.get('saves',game.id)).bytes],selected:[...(await db.get('saves',targetId)).bytes],other:[...(await db.get('saves',sourceId)).bytes],states:(await db.stateEntries(game.id)).length};},result);
+  assert.deepEqual(imported,{previous:result.targetId,copied:[99],selected:[99],other:[7,8,9],states:0});
   assert.deepEqual(errors,[]);assert.ok(requests.filter(r=>/^https?:/.test(r.url())).every(r=>new URL(r.url()).origin===new URL(base).origin&&['GET','HEAD'].includes(r.method())&&!r.postData()));
   await context.close();console.log('PASS: ROM update copies battery saves atomically, retains originals/snapshots, rejects stale/occupied/active targets, keeps states separate; ROM detach/reimport and confirmation UI. '+kind);
  }finally{await browser.close();}

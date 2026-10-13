@@ -1240,5 +1240,6 @@ export default {
  "ダウンロードを開始しました。": "Download iniciado.",
  "約20秒ごとに保存（最大5回分）": "A cada ~20 segundos (até 5 estados)",
  "：ゲームの「レポート」などで保存した内容です。自動保存では約10秒ごとに端末へ保存し、変更前の内容を最大5回分、さらに5分間隔で最大10回分残します。レポート操作を自動で行う機能ではありません。": ": Dados salvos pelo comando de salvar do próprio jogo. O salvamento automático grava esses dados no dispositivo a cada 10 segundos aproximadamente e mantém até 5 versões anteriores, além de até 10 versões em intervalos de 5 minutos. Ele não executa o comando de salvar do jogo por você.",
- "：プレイ中の状態を丸ごと保存したものです。自動保存をオンにすると約20秒ごとに保存し、最大5回分を残します。保存する数はデータの大きさによって変わります。異常終了後の復旧に使えます。通信中は保存しません。": ": Uma captura do estado completo do jogo em execução. O salvamento automático cria uma aproximadamente a cada 20 segundos e mantém até 5, conforme o tamanho. Elas podem ajudar a retomar após uma falha. Não são criadas durante partidas por conexão."
+ "：プレイ中の状態を丸ごと保存したものです。自動保存をオンにすると約20秒ごとに保存し、最大5回分を残します。保存する数はデータの大きさによって変わります。異常終了後の復旧に使えます。通信中は保存しません。": ": Uma captura do estado completo do jogo em execução. O salvamento automático cria uma aproximadamente a cada 20 segundos e mantém até 5, conforme o tamanho. Elas podem ajudar a retomar após uma falha. Não são criadas durante partidas por conexão.",
+ "更新するゲームを選んでください。": "Selecione o jogo para atualizar."
 };

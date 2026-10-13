@@ -74,5 +74,5 @@ export function createGameInfo(api){
   bind({updateROM:()=>romDialog.open(game),restoreROM:()=>romDialog.open(game,{reattach:true}),detachROM:()=>romDialog.detach(game),previousROM:()=>romDialog.previous(game),exportPrevious:()=>romDialog.exportPrevious(game),category:()=>api.showCategory(game),resetPreferences:()=>api.resetPreferences?.(game),switchCore:()=>chooseCore(game),play:()=>{api.closeSheet({dismiss:true});return api.launch(game);},safeMode:()=>safeMode(game),rename:()=>rename(game),cover:()=>coverDialog.open(game),gameSkin:()=>api.showSkins(game.system,game),states:()=>api.showStates(game),importSave:()=>api.importSave(game),exportSaved:()=>exportSave(game),cheats:()=>api.showCheats(game),controllers:api.showControllers,optionOrder:()=>sortOptions(game,cells),shortcuts:()=>shortcuts(game),copyLink:()=>copyLink(game),delete:()=>remove(game)});
   $('.native-options').scrollTop=scrollTop;
  }
- return {show};
+ return {show,updateROM:romDialog.open};
 }

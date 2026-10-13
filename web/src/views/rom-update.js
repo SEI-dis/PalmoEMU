@@ -16,10 +16,10 @@ export function createROMUpdateDialog(api){
   const buttons=[...$('#sheet-body').querySelectorAll('button,input')],disabled=buttons.map(b=>b.disabled);buttons.forEach(b=>b.disabled=true);
   try{return await action();}finally{busy=false;$('#close-sheet').disabled=false;buttons.forEach((b,i)=>b.disabled=disabled[i]);}
  }
- function open(game,{reattach=false}={}){
+ function open(game,{reattach=false,onBack=()=>api.showGame(game)}={}){
   const title=reattach?tr('ROMを追加'):tr('ROMを更新');
   api.sheet(title,tr`<p class="sheet-note">${reattach?tr('取り外したものと同じROMを選ぶと、残してあるセーブから遊べます。'):tr('新版のROMへゲーム内セーブをコピーします。旧ROM・旧セーブ・ステートは残ります。')}</p><button id="rom-update-choose" class="primary wide-button">ファイルを選択</button><input id="rom-update-file" type="file" hidden><p id="rom-update-status" class="sheet-note" role="status"></p><button id="rom-update-back" class="secondary wide-button">戻る</button>`);
-  bind('#rom-update-back',()=>api.showGame(game));bind('#rom-update-choose',()=>$('#rom-update-file').click());
+  bind('#rom-update-back',onBack);bind('#rom-update-choose',()=>$('#rom-update-file').click());
   $('#rom-update-file').onchange=guardUpdateTask(async event=>{
    const input=event.currentTarget,file=input.files?.[0];input.value='';if(!file||busy)return;
    try{
@@ -31,14 +31,14 @@ export function createROMUpdateDialog(api){
      await work(async()=>{await importROM(file,system,null,{expectedId:game.id});await api.refresh();api.showGame(await db.get('library',game.id));api.toast(tr('ROMを追加しました。'));});return;
     }
     let plan,target;await work(async()=>{target=(await importROM(file,system,null,{inspectOnly:true})).game;plan=await prepareROMUpdate(game.id,target);});
-    confirm(game,file,target,plan);
+    confirm(game,file,target,plan,onBack);
    }catch(e){$('#rom-update-status').textContent='';api.error(e);}
   });
  }
- function confirm(game,file,target,plan){
+ function confirm(game,file,target,plan,onBack){
   api.sheet(tr('セーブを引き継ぐ'),tr`<div class="settings-group"><p class="sheet-note">${esc(game.name)} → ${esc(target.name)}<br>${bytesLabel(target.size)}</p></div><p class="sheet-note">引き継ぐのはゲーム内セーブだけです。ステートは新版に使いません。</p><label class="row"><input type="checkbox" id="rom-update-compatible"><span>ゲーム作者の案内でセーブの互換性を確認しました</span></label><p class="sheet-note">旧版は削除しません。新版で保存した内容は旧版へ戻せません。</p><p class="sheet-note" id="rom-update-status" role="status"></p><div class="sheet-actions"><button id="rom-update-back" class="secondary">戻る</button><button id="rom-update-confirm" class="primary" disabled>引き継ぐ</button></div>`);
   $('#rom-update-compatible').onchange=()=>$('#rom-update-confirm').disabled=!$('#rom-update-compatible').checked;
-  bind('#rom-update-back',()=>open(game));
+  bind('#rom-update-back',()=>open(game,{onBack}));
   bind('#rom-update-confirm',async()=>{
    if(!$('#rom-update-compatible').checked)return;
    $('#rom-update-status').textContent=tr('セーブをコピー中…');

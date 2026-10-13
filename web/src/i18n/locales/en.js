@@ -1240,5 +1240,6 @@ export default {
  "ダウンロードを開始しました。": "Download started.",
  "約20秒ごとに保存（最大5回分）": "Every ~20 seconds (up to 5 snapshots)",
  "：ゲームの「レポート」などで保存した内容です。自動保存では約10秒ごとに端末へ保存し、変更前の内容を最大5回分、さらに5分間隔で最大10回分残します。レポート操作を自動で行う機能ではありません。": ": Data saved using the game’s own save command. About every 10 seconds, automatic saving writes it to your device and keeps up to 5 previous versions, plus up to 10 versions at 5-minute intervals. It does not perform the game’s save command for you.",
- "：プレイ中の状態を丸ごと保存したものです。自動保存をオンにすると約20秒ごとに保存し、最大5回分を残します。保存する数はデータの大きさによって変わります。異常終了後の復旧に使えます。通信中は保存しません。": ": A snapshot of the entire running game. Automatic saving takes one about every 20 seconds and keeps up to 5 snapshots, depending on their size. They can help you recover after a crash. Snapshots are not taken during link play."
+ "：プレイ中の状態を丸ごと保存したものです。自動保存をオンにすると約20秒ごとに保存し、最大5回分を残します。保存する数はデータの大きさによって変わります。異常終了後の復旧に使えます。通信中は保存しません。": ": A snapshot of the entire running game. Automatic saving takes one about every 20 seconds and keeps up to 5 snapshots, depending on their size. They can help you recover after a crash. Snapshots are not taken during link play.",
+ "更新するゲームを選んでください。": "Select a game to update."
 };
