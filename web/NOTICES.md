@@ -665,3 +665,13 @@ ManicEMU attribution. Captured images are downloaded locally; no user
 image, ROM or save is uploaded. Imported skin assets are not modified.
 
 0.3.24では保存履歴の合計サイズ制限と、IndexedDBの同期書き込み失敗時の全体取消を追加しました。既存の保存形式・コア形式を変えないオリジナルのWeb側修正です。
+
+Modified 2026-10-13 (0.3.25): the trainer card adapts SettingsAdventureCardView
+(Daiuno, Copyright © 2026 Manic EMU); default-off quick start follows Settings
+and Game.handleTapAction (Daiuno / Max, Copyright © 2025 Manic EMU), all from
+the pinned fbaeab79c214d5920bb51afa6f2d786fb2b12a58 source under AGPL-3.0-or-later.
+Original reference files and headers are retained in sources/manicemu-ui.
+The Web version uses its existing original app icon instead of the native mascot.
+Per-ROM cumulative statistics, version-grouped rankings and browser date fallback
+are original AGPL adaptations. No new artwork, core binary, dependency or network
+service is added; profile and gameplay metadata remain on the device.

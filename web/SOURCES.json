@@ -3,7 +3,7 @@
     "repository": "https://github.com/Manic-EMU/ManicEMU",
     "commit": "fbaeab79c214d5920bb51afa6f2d786fb2b12a58",
     "license": "AGPL-3.0-or-later",
-    "changes": "Web port of library/navigation, GameInfoView/detail/navigation/cover, GameOptionsView, SaveStateListView, ImportServiceListView and its motto/file/service/footer cells, SettingsListView/SettingItem and FlexSkinSettingViewController/FlexItemView layout editing. SkinSettingsView, SkinCollectionViewCell, AddSkinCollectionViewCell and SkinPreviewViewController guide the persistent skin library and separate preview. New browser storage/runtime adapters. Artwork is separately scoped: only the CC BY 4.0 skin allowlist under bundledSkins is included; other native artwork/logos are excluded. Modified 2026-10-13: NDSSaveConverter, FocusKit, ControllersSettingView and RomPatcherView interaction ports; original notices retained. Modified 2026-10-13 (0.3.24): individual state import/export follows SaveStateListView; DS lid interaction follows PlayViewController simLid at the same pinned commit. Original browser-only ROM migration, selective restoration and input-inspection modules retain AGPL licensing.",
+    "changes": "Web port of library/navigation, GameInfoView/detail/navigation/cover, GameOptionsView, SaveStateListView, ImportServiceListView and its motto/file/service/footer cells, SettingsListView/SettingItem and FlexSkinSettingViewController/FlexItemView layout editing. SkinSettingsView, SkinCollectionViewCell, AddSkinCollectionViewCell and SkinPreviewViewController guide the persistent skin library and separate preview. New browser storage/runtime adapters. Artwork is separately scoped: only the CC BY 4.0 skin allowlist under bundledSkins is included; other native artwork/logos are excluded. Modified 2026-10-13: NDSSaveConverter, FocusKit, ControllersSettingView and RomPatcherView interaction ports; original notices retained. Modified 2026-10-13 (0.3.24): individual state import/export follows SaveStateListView; DS lid interaction follows PlayViewController simLid at the same pinned commit. Original browser-only ROM migration, selective restoration and input-inspection modules retain AGPL licensing. Modified 2026-10-13 (0.3.25): SettingsAdventureCardView nickname editing, local join date and card layout; Settings.quickGame and Game.handleTapAction default-off quick start. Original Web metadata-only version-grouped play records. No native avatar/artwork added.",
     "referenceSource": "sources/manicemu-ui"
   },
   "mgba": {
@@ -251,7 +251,7 @@
     "sources/manicemu-ui/ImportMottoCollectionViewCell.swift": "39813a3f4a68f19adcc2372d6f5f756ff5308fdab6909a1c04300dab32de9472",
     "sources/manicemu-ui/ImportServiceListCollectionViewCell.swift": "2f89cd4ea298870fcd15ced37392d87880193a066cd0a18f5401aa2ef701c680",
     "sources/manicemu-ui/ImportServiceListView.swift": "bb41fa0242aee3bdfcdb53fdabba8d21aa8402bae5c44e4db8c9d3308d5012a9",
-    "sources/manicemu-ui/README.md": "853b504381ffeef304f8c1b636d0c9dffd50c7e09a08edf890413a13d5930450",
+    "sources/manicemu-ui/README.md": "bb183a5bcf50b9049dcc3a3911a967bbf3839de2411be6af820650aa3ef2845f",
     "sources/manicemu-ui/SaveStateListView.swift": "9748278a90767e5950be547b51fac9ed33a958d048ba9453e5e219a7a6ca3f7f",
     "sources/manicemu-ui/SettingItem.swift": "261e78b05f7cb93ba1fecc8f911b518b9686eacd8bfd86ccd2a0f12374af52ac",
     "sources/manicemu-ui/SettingsListView.swift": "f066b02851a495021c23adfb297145b2c2932f54e06829c4068ef5308c99d3f9",
@@ -298,7 +298,9 @@
     "sources/nds-web/lid.cpp": "9f6fff1656520afba496c2b454f7c7819a9dc2120c89781339191e49514b1127",
     "sources/alternate-web/lid.cpp": "fcd916c8c502c6e4da54a41c7ebbc063aeb706bfd6ef8830a79b868fbaa8752c",
     "sources/mgba-web-port/options.h": "c5c975d07444f6073d93a9536f94e7510ca9dced790a84bb49832b8be84f537a",
-    "sources/mgba-web-port/gb-link.h": "11794818a31e6a9328aa880f2d306b1038c46f9b83f67abb40793f68c87b258f"
+    "sources/mgba-web-port/gb-link.h": "11794818a31e6a9328aa880f2d306b1038c46f9b83f67abb40793f68c87b258f",
+    "sources/manicemu-ui/Settings.swift": "ceac976e6d415dae2bfe16f1d72f08b5f543c40391738c52841e38c8212e03e8",
+    "sources/manicemu-ui/SettingsAdventureCardView.swift": "6ef39d04ad4ed3f6bb4adfe29a9147452c5ddbd2706fedb2ad37d5b243190eb6"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",

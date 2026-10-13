@@ -94,7 +94,10 @@
     "test:camera": "node tests/camera.cjs",
     "test:save-byte-comparison": "node tests/save-byte-comparison.cjs",
     "test:save-worker": "node tests/save-worker.cjs",
-    "test:save-worker-fence": "node tests/save-worker-fence.cjs"
+    "test:save-worker-fence": "node tests/save-worker-fence.cjs",
+    "test:trainer-profile": "node tests/trainer-profile.cjs",
+    "test:trainer-card": "node tests/trainer-card.cjs",
+    "test:quick-start": "node tests/quick-start.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

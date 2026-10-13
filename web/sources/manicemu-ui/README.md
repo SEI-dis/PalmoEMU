@@ -10,7 +10,7 @@ Upstream: https://github.com/Manic-EMU/ManicEMU/tree/fbaeab79c214d5920bb51afa6f2
 
 | Upstream source | Web implementation |
 | --- | --- |
-| GameListView.shouldSelectItemAt / Game.handleTapAction / GameInfoDetailView.startGameButton | src/app.js: library and history selection share showDetails; src/views/game-info.js: explicit Play starts the core. The Web UI always uses the details-first route requested for this port. Selecting/closing a game does not load its core or change save sessions/playtime. |
+| GameListView.shouldSelectItemAt / Game.handleTapAction / GameInfoDetailView.startGameButton | src/views/library.js and src/app.js: default-off quick start follows Settings.quickGame. Ordinary selection opens details unless enabled; the ellipsis, history and missing-ROM entries always open details. Selection mode never starts a core. |
 | FlexSkinSettingViewController / FlexItemView / SkinSettingsView | src/control-editor.js, src/control-layout.js, style.css and src/app.js: separate screen/button editing modes, inactive-layer dimming, drag/pinch, aspect-preserving corner resize, reset and skin-settings entry. Web slider, keyboard access and explicit save/cancel retain draft persistence. |
 | GameInfoView / GameInfoNavigationView / GameInfoDetailView / GameInfoCoverView | src/views/game-info.js, src/manic-ui.js, native-menu.css and index.html: game-detail sheet, info/more tools, cover, editable title, played time, fixed play/safe-mode header and independently scrolling options. |
 | GameOption.defaultGroupAndSort | src/manic-ui.js: gameOptionGroups preserves the source group/order after unsupported entries are removed. src/app.js: showGameMenu supplies the available controls. |
@@ -101,14 +101,40 @@ The selection/start split was rechecked against the same pinned revision:
 calls `game.handleTapAction()` for normal selection;
 [Game.swift](https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/Play/Models/Game.swift)
 opens GameInfoView unless quick-start is enabled/forced. GameInfoDetailView's Play
-button explicitly passes `forceQuick: true`. This port always opens details from
-library/history selection; Play, safe-mode Play and state Continue remain explicit
-launch actions. There is no quick-start preference in this Web version.
+button explicitly passes `forceQuick: true`. As of 0.3.25, this port includes the
+default-off quick-start switch. Enabled ordinary library selections start through
+the existing protected launch path. The ellipsis, history and missing-ROM entries
+still open details. Bulk selection never starts gameplay.
 
 The retained GameOptionsView `.gameInfo` / `.gaming` scene split and
 GameOption.defaultGroupAndSort / availableOptions were also rechecked. The Web
 port shares grouped-option components between the two scenes, includes only the
 available core/browser controls, and retains the separate title/play section.
+
+## Trainer card (modified 2026-10-13, 0.3.25)
+
+SettingsAdventureCardView.swift (Daiuno, Copyright © 2026 Manic EMU) and
+Settings.swift (Daiuno, Copyright © 2025 Manic EMU) are retained unmodified from
+the same pinned revision, with their original headers and AGPL license.
+src/components/trainer-card.js ports the grouped title, accented information
+rows, nickname tap-to-edit (30 characters) and rounded avatar arrangement.
+The original PalmoEMU icon replaces the native mascot; no native avatar is copied.
+
+Upstream resolvedJoinDate uses stored metadata, otherwise the earlier of sandbox
+creation and oldest import. Browsers cannot recover a past sandbox creation date:
+existing installations use the oldest remaining valid game import date, or the
+date recording begins when no import remains. Fresh databases record creation.
+The displayed label is simply 参加日; internal provenance is retained and the
+stored date does not change when ROMs are updated or deleted. This is local usage
+metadata, not an account-registration date or a claim to know deleted history.
+
+The lightweight per-ROM ledger, explicit update graph and ranking are original
+AGPL Web adaptations. Each ROM's own duration is counted once; related versions
+are aggregated only for display. Deletion retains metadata, re-import restores
+that ROM's own counter, and unrelated games with similar names are not merged.
+Game save payloads and core formats are unchanged. Profile and play records stay
+local and are excluded from the existing save-backup format; their failed writes
+must not prevent read-only access to the library and save-export tools.
 
 ## Publication audit (2026-10-09)
 

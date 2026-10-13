@@ -35,8 +35,8 @@
     },
     {
       "path": "FEATURE_REVIEW.md",
-      "bytes": 19319,
-      "sha256": "d5f7727168265990702008e83e32775cd7537024ab8f959a6e25a71979ff1b8c",
+      "bytes": 21174,
+      "sha256": "03b0b36bc69160619f717186d1403a37ee1cebc70e670bde926bf44103aa5fde",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -77,8 +77,8 @@
     },
     {
       "path": "NOTICES.md",
-      "bytes": 45698,
-      "sha256": "823b4287041ecdc640de0d0f72703923c1b7284561955ec05b6a99b85984381a",
+      "bytes": 46422,
+      "sha256": "1eb8640091d6111a252bd45189bef883be1021c23be6b42c110b446a16b7c7a6",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -89,14 +89,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 70639,
-      "sha256": "e2c9d1181f4c418b302173084f215bc4f4db91e56c4f66e4429ece1b75bd562b",
+      "bytes": 72406,
+      "sha256": "66590ff8aedd8d99237a63c4f9c501b88f993ac3ac1f532d072ec3426976b2bb",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 103563,
-      "sha256": "f5c283350791cf21646a93de997436aed87c40a31214276338fe5b53a8011637",
+      "bytes": 105543,
+      "sha256": "de853cbf28a00268d59a4afbb5026a0d2ff68b2dbad57f4bb632fa49db7a80d4",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -107,8 +107,8 @@
     },
     {
       "path": "SOURCES.json",
-      "bytes": 47007,
-      "sha256": "efc0359f8d1e78199094c64d09b3c04be488a71b8ff02025e6edaba79f7af9b0",
+      "bytes": 47511,
+      "sha256": "7a4454ef73feaeb04b68e5489fa0936af0b3389eb9e2b0af911dcaaeca97103f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -899,8 +899,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 7135,
-      "sha256": "7a1d3de1231f1fe04d694cb77b129e03ff4e87c6ffc84fb9eb4be18f2d801092",
+      "bytes": 9967,
+      "sha256": "33c9b760a4c2805bf91e4a5c8ec540434c151182d1ca2ec11f793a9a0479b6a1",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -917,8 +917,8 @@
     },
     {
       "path": "licenses.html",
-      "bytes": 18777,
-      "sha256": "7dcd3a6c91d3759cede6037c74fdb709eeea3d0c665ee440e635fa601682cf17",
+      "bytes": 21609,
+      "sha256": "0f7cc794ab97bd4137a96fb89d5c1524fb2169d83c5ab9e6af1d44c4e8f0c029",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1145,14 +1145,14 @@
     },
     {
       "path": "notices.html",
-      "bytes": 62414,
-      "sha256": "cae3f49c667a97d81676acde9307f69eb79b91451d3a1267d01a5ade86e3e58e",
+      "bytes": 65246,
+      "sha256": "368fa872f5035098382c16b7b08a2cb1add53be10fc03fe538cd9dd0a72f0145",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "package.json",
-      "bytes": 5275,
-      "sha256": "5fa73c8939c87352d3f049f4b41120717b34dc6613ae2d401a81429665970906",
+      "bytes": 5450,
+      "sha256": "427d3f2004eec786aad25cd220229146410935fe4797971a8d84ded33205ba9c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1163,8 +1163,8 @@
     },
     {
       "path": "release-notes.json",
-      "bytes": 52916,
-      "sha256": "2bdcd51b3f068f373e0b1247d1a38ba1c5798192ef3e1894ea985f68e312d787",
+      "bytes": 55506,
+      "sha256": "571879c883ec4359cad7c68fc331ae5d05456fe38a68868228e00c6cc6daa689",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1259,8 +1259,8 @@
     },
     {
       "path": "scripts/i18n/state.json",
-      "bytes": 159625,
-      "sha256": "554a0e996752830c40f3924f3e376a14f7b2dd6cf723d55bc5f327121e4c8fe3",
+      "bytes": 161260,
+      "sha256": "f4fe964105e612ce6c7ec17dcd02036b01ef843149ed694b6b9c9edfafd38239",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1343,8 +1343,8 @@
     },
     {
       "path": "scripts/test-all.cjs",
-      "bytes": 5854,
-      "sha256": "361435e14f16bde8214abce14840fd6650831f680c20946b8f3ded2df0138c99",
+      "bytes": 5883,
+      "sha256": "fdbd234dbc09c63213b983f2135214f1ebb6834891bc56a90d419406f7a4ce5b",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -36011,8 +36011,8 @@
     },
     {
       "path": "sources/manicemu-ui/README.md",
-      "bytes": 14331,
-      "sha256": "853b504381ffeef304f8c1b636d0c9dffd50c7e09a08edf890413a13d5930450",
+      "bytes": 16023,
+      "sha256": "bb183a5bcf50b9049dcc3a3911a967bbf3839de2411be6af820650aa3ef2845f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -36031,6 +36031,18 @@
       "path": "sources/manicemu-ui/SettingItem.swift",
       "bytes": 12837,
       "sha256": "261e78b05f7cb93ba1fecc8f911b518b9686eacd8bfd86ccd2a0f12374af52ac",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "sources/manicemu-ui/Settings.swift",
+      "bytes": 6896,
+      "sha256": "ceac976e6d415dae2bfe16f1d72f08b5f543c40391738c52841e38c8212e03e8",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "sources/manicemu-ui/SettingsAdventureCardView.swift",
+      "bytes": 11168,
+      "sha256": "6ef39d04ad4ed3f6bb4adfe29a9147452c5ddbd2706fedb2ad37d5b243190eb6",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40517,8 +40529,8 @@
     },
     {
       "path": "src/app.js",
-      "bytes": 66523,
-      "sha256": "093dba1d505ce5496d2cfa0697df692dcffa05090d64294ecbc9eb6f88ff6915",
+      "bytes": 67211,
+      "sha256": "be02dc3bb9096e3873615b350684ddbd627dbdc45874cde1f4ac0dd92f7751e4",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40535,8 +40547,8 @@
     },
     {
       "path": "src/backup.js",
-      "bytes": 17933,
-      "sha256": "dee843846ad85cb7d58075812596b2c7dcda4f678599ce2395f77b7b4c7b90d1",
+      "bytes": 17946,
+      "sha256": "e3f1636ac57595384ab7f96b3f873c5e9570df9bbadc91ee868fb94ab3d963e8",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40585,6 +40597,12 @@
       "path": "src/components/storage-settings.js",
       "bytes": 3910,
       "sha256": "e7b2ce90d9d662bf8f4811d608e8bc1f43b79c1a2a227c4a55622d68a8d77675",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "src/components/trainer-card.js",
+      "bytes": 3694,
+      "sha256": "90cee6c909a61ae4367562b84024297743b84ad9553d21a53a413ebed6c28451",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40697,50 +40715,50 @@
     },
     {
       "path": "src/i18n/locales/de.js",
-      "bytes": 141799,
-      "sha256": "c52913f36e56ebe8a577447fd8ec05536dd1ba0cdfacca3dfc2aad9ea102c16b",
+      "bytes": 142782,
+      "sha256": "5cae98e5b9e99ddeb5af9c485e84ec2c0537124f3664fd1ce583cee9da06bbfd",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/en.js",
-      "bytes": 127308,
-      "sha256": "bfab4d45e6e60d8688303f3a6b60c6954b10f2d27d6a1011d67ab4320413a23d",
+      "bytes": 128188,
+      "sha256": "1902f0395aa117c20a755ec4572779eaedf0bc456e566760686ee1956949fb6a",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/es.js",
-      "bytes": 140995,
-      "sha256": "e43868fabb38cf857077c0ea5971f8f867397576a04abeb21a17137021cd671e",
+      "bytes": 141957,
+      "sha256": "32b390fa485701534075c54fc998b6f012e484d38747ad71a2696ab2b72862e2",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/fr.js",
-      "bytes": 144977,
-      "sha256": "cde770946b84e7688779bd72ffc9db5496df69bc8708989f8a64ce5a6f872232",
+      "bytes": 145972,
+      "sha256": "e7d2807825effdd4a9cd71660497ae16b1aead1947dfc8b98569eeff1fd92451",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/ko.js",
-      "bytes": 143719,
-      "sha256": "865879190edba51e7ebeeb2a7829d48633e1b4c29133a69b735714bb3dfe61e7",
+      "bytes": 144693,
+      "sha256": "912cbefec8c47b3d44159dbbe6a2a9f51abe9308b8968a9035eb0ff7368d8492",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/pt.js",
-      "bytes": 137981,
-      "sha256": "ce40555ac893fd45df11906f8c8d6af0a0826b71de9e7a4d388bedb9eba6cb19",
+      "bytes": 138946,
+      "sha256": "e09ba0874651ba4156209d8f50b4316f42f7d594e3ac7e246270dbdeb52a3dcb",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/zh-Hans.js",
-      "bytes": 124930,
-      "sha256": "4a59664917b268e489a4bbdeb14401f2d229451642b8ec079e4390578f733e72",
+      "bytes": 125821,
+      "sha256": "f5892267e99f057076ed6e444ff958aa54ac74c8aaaa535900970e9a655a79d1",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/i18n/locales/zh-Hant.js",
-      "bytes": 125315,
-      "sha256": "bf81b55c84130de604b03967f9294d2232166c0e9290c427a018a38f9fe9f47b",
+      "bytes": 126205,
+      "sha256": "40b7675061158f146f46c472bfd25ae289bb9b7eb6230a3a71481067579962f9",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41039,8 +41057,8 @@
     },
     {
       "path": "src/storage.js",
-      "bytes": 35382,
-      "sha256": "352802fd1094aa1333405b39a507a16f40b7c86efd5d3c6bbbb4c5a5b612c5cf",
+      "bytes": 38582,
+      "sha256": "d4140dab9afc4ee694b4e59bba06a768e7e23bad40cb0a216c009c6b6479b2ef",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41071,6 +41089,12 @@
       "path": "src/touch-targets.js",
       "bytes": 1862,
       "sha256": "37f72005438fed8302114898418b2f77866300b0ad48134d0827df0a839dc845",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "src/trainer-profile.js",
+      "bytes": 5330,
+      "sha256": "001f0bf4cd9eb9b02e8af858dd77ed0c825cdfc9daf808fe29c5a31b642678c5",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41147,8 +41171,8 @@
     },
     {
       "path": "src/views/library.js",
-      "bytes": 11849,
-      "sha256": "62ecff969b97028e53518d5ea1b0b31156379d16e1b2c213af3dded3c597bdb9",
+      "bytes": 12129,
+      "sha256": "10b7e4b711eda3d763e587b4c62ff8afdba90fc3adda57033990480993c4bd42",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41171,8 +41195,8 @@
     },
     {
       "path": "src/views/settings.js",
-      "bytes": 7345,
-      "sha256": "5606e2135eaa27aad83082abf7d778f983b9be19678ed44c694b4bbc61ee52b1",
+      "bytes": 7695,
+      "sha256": "2a1707ba95fb28c9a15045c891924edb50207984c81c13114a35cba0fceb9da8",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41195,8 +41219,8 @@
     },
     {
       "path": "style.css",
-      "bytes": 36076,
-      "sha256": "2095b9e43a613fb312fa80ec8bd74efafc9fe469ed655a75de6ae8d037328256",
+      "bytes": 38521,
+      "sha256": "5e9550e38e5e9def2eda1fe09fc0ad20225a16341bcb9a6d2d6b62ca7224dd12",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41572,6 +41596,12 @@
       "component": "web-port-code-and-documentation"
     },
     {
+      "path": "tests/quick-start.cjs",
+      "bytes": 8743,
+      "sha256": "03d62dc9b69b498d1ba3be6976bbc2d985f77136ca952f836886dc07f736255e",
+      "component": "web-port-code-and-documentation"
+    },
+    {
       "path": "tests/release-notice.cjs",
       "bytes": 16697,
       "sha256": "44a6efed21ed5eeba46d14b4e657cd05c0de67011c8c8de30f4a158aa877d108",
@@ -41731,6 +41761,18 @@
       "path": "tests/touch-recovery.cjs",
       "bytes": 8256,
       "sha256": "85e4a5a4039fb198d29bae62eb53be636f97ad3d4deb34b6033fb3847cd23d1c",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/trainer-card.cjs",
+      "bytes": 8078,
+      "sha256": "ed031adc4be78302e692dd80203a0b9f029ac1953a1bb5ee78f3761e851278f4",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/trainer-profile.cjs",
+      "bytes": 5734,
+      "sha256": "c64b73b140e6ce901a4e795bcabc87ba17928a4e8141c1f865de36105dd1e2e7",
       "component": "web-port-code-and-documentation"
     },
     {

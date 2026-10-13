@@ -1241,5 +1241,21 @@ export default {
  "約20秒ごとに保存（最大5回分）": "Cada ~20 segundos (hasta 5 estados)",
  "：ゲームの「レポート」などで保存した内容です。自動保存では約10秒ごとに端末へ保存し、変更前の内容を最大5回分、さらに5分間隔で最大10回分残します。レポート操作を自動で行う機能ではありません。": ": Datos guardados con la función de guardado del propio juego. El guardado automático los escribe en el dispositivo aproximadamente cada 10 segundos y conserva hasta 5 versiones anteriores, además de hasta 10 versiones a intervalos de 5 minutos. No ejecuta por ti la función de guardado del juego.",
  "：プレイ中の状態を丸ごと保存したものです。自動保存をオンにすると約20秒ごとに保存し、最大5回分を残します。保存する数はデータの大きさによって変わります。異常終了後の復旧に使えます。通信中は保存しません。": ": Una instantánea del estado completo del juego en ejecución. El guardado automático crea una aproximadamente cada 20 segundos y conserva hasta 5, según su tamaño. Pueden servir para recuperar la partida tras un cierre inesperado. No se crean durante el juego por enlace.",
- "更新するゲームを選んでください。": "Seleccione el juego a actualizar."
+ "更新するゲームを選んでください。": "Seleccione el juego a actualizar.",
+ "⟪0⟫時間⟪1⟫分": "⟪0⟫ h ⟪1⟫ min",
+ "⟪0⟫分": "⟪0⟫ min",
+ "かけだしトレーナー": "Entrenador principiante",
+ "トレーナーカード": "Tarjeta de entrenador",
+ "ニックネームを変更": "Cambiar apodo",
+ "ニックネーム": "Apodo",
+ "プレイ時間": "Tiempo de juego",
+ "参加日": "Fecha de incorporación",
+ "よく遊ぶゲーム": "Juegos más jugados",
+ "すべて見る ⟪0⟫": "Ver todo ⟪0⟫",
+ "プレイ記録": "Historial de juego",
+ "プレイ記録を保存できませんでした。": "No se pudo guardar el historial de juego.",
+ "ニックネームは30文字以内で入力してください。": "El apodo debe tener un máximo de 30 caracteres.",
+ "ニックネームを保存できませんでした。": "No se pudo guardar el apodo.",
+ "クイックスタート": "Inicio rápido",
+ "ゲームをタップしてすぐにプレイ": "Toque un juego para empezar a jugar"
 };

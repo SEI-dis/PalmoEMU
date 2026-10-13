@@ -8,10 +8,12 @@ import {escapeHTML as esc,icon} from '../shared.js';
 import {supportsHaptics,hapticNote} from '../haptics.js';
 import {videoFilters} from '../video.js';
 import {createStorageSettings} from '../components/storage-settings.js';
+import {createTrainerCard} from '../components/trainer-card.js';
 export function videoFilterNote(filter){return tr`<p class="sheet-note" id="video-filter-note" ${filter==='edge4x'?'':'hidden'}>輪郭補正4倍は、元の色を保ちながら斜めの線や角を細かく整えます。処理負荷が増えるため、動作が重い場合は2倍やピクセルに戻してください。</p>`;}
 export function createSettingsView(api){
  const {settings,applySettings,bindSettings,bindActions,sheet,showSkins,showOffline}=api;
  const showStorage=createStorageSettings(api);
+ const trainerCard=createTrainerCard({...api,render:renderSettings});
  const $=selector=>document.querySelector(selector),$$=selector=>[...document.querySelectorAll(selector)];
 // SettingsListView / SettingItem port: Daiuno, Copyright 2025 Manic EMU, AGPL-3.0-or-later.
 function renderSettings(){
@@ -22,6 +24,7 @@ function renderSettings(){
  const general=settingsGroup(tr('一般'),[
   languageSetting(),
   row(tr('外観'),appearance,'image'),
+  detail(tr('クイックスタート'),tr('ゲームをタップしてすぐにプレイ'),switchControl('quickStart',settings.quickStart===true),'play'),
   detail(tr('自動ステート保存'),tr('約20秒ごとに保存（最大5回分）'),switchControl('recovery',settings.recovery),'save'),
   action(tr('スキン'),'skins','game')
  ]);
@@ -45,7 +48,8 @@ function renderSettings(){
  ].map(([href,label,ic])=>`<a class="row" href="${href}">${icon(ic)}<span>${label}</span>${icon('chevron')}</a>`));
  // Describe the loaded distribution, including while offline or an update waits.
  const version=$('meta[name=app-version]').content,build=$('meta[name=app-build]').content;
- $('#content').innerHTML=tr`<div class="page settings-page"><h1>設定</h1><p class="sheet-note">ゲームで変更した項目には、そのゲームの個別設定を使います。</p>${general}${advanced}${support}${links}<p class="settings-footer" title="ビルド ${esc(build)}">PalmoEMU · ${esc(version)} (${esc(build.slice(0,8))})</p></div>`;
+ $('#content').innerHTML=tr`<div class="page settings-page"><h1>設定</h1>${trainerCard.html()}<p class="sheet-note">ゲームで変更した項目には、そのゲームの個別設定を使います。</p>${general}${advanced}${support}${links}<p class="settings-footer" title="ビルド ${esc(build)}">PalmoEMU · ${esc(version)} (${esc(build.slice(0,8))})</p></div>`;
+ trainerCard.bind($('#content'));
  bindSettings($('#content'));bindActions($('#content'),{controllers:showControllers,skins:()=>showSkins(),storage:showStorage,offline:showOffline,video:showVideoSettings,audio:showAudioSettings,saveHelp:showSaveHelp,diagnostics:api.showDiagnostics,backup:api.showBackup});
  $$('[data-theme-choice]').forEach(b=>b.onclick=()=>{settings.theme=b.dataset.themeChoice;applySettings();renderSettings();});
  bindLanguageSetting($('#content'),{canChange:api.canChangeLanguage,onError:api.toast});

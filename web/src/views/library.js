@@ -14,6 +14,7 @@ export function createLibraryView(api){
  let selecting=false,busy=false;
  const selected=new Set();
  const shown=()=>visibleGames(api.games(),state);
+ const quickStart=game=>api.quickStart?.()===true&&!game.romMissing;
  const options=(values,current)=>values.map(([value,label])=>`<option value="${esc(value)}" ${current===value?'selected':''}>${esc(label)}</option>`).join('');
  function saveDisplay(){try{localStorage.setItem(displayKey,JSON.stringify(libraryDisplay(state)));}catch{api.toast(tr('表示設定はこのタブ内でのみ保持されます。'));}}
  function clearSelection(){selected.clear();}
@@ -49,8 +50,9 @@ export function createLibraryView(api){
   for(const id of ['category','favorite','delete'])$('#library-'+id).disabled=!selected.size||busy;
  }
  function card(game){
-  const system=systems[game.system],isSelected=selected.has(game.id);
-  return `<article class="game-card ${selecting?'is-selectable':''} ${isSelected?'is-selected':''}"><button class="game-launch" data-game="${esc(game.id)}" aria-label="${esc(game.name)}${selecting?tr('を選択'):tr('の設定を開く')}" ${selecting?`aria-pressed="${isSelected}"`:'aria-haspopup="dialog"'}><div class="cover ${game.cover?'':'empty-cover'}" style="--system-color:${system.color}"><img src="${esc(game.cover||'assets/controller.svg')}" alt=""><span class="badge">${game.romMissing?tr('ROM未追加'):game.size===67108864&&game.system==='gba'?'64 MB':system.short}</span>${game.favorite?`<span class="heart-mark">${icon('heart')}</span>`:''}${selecting?`<span class="library-check" aria-hidden="true">${isSelected?icon('check'):''}</span>`:''}</div><h3 class="game-name">${esc(game.name)}</h3>${categoryOf(game)?`<span class="game-category">${categoryLabel(game)}</span>`:''}</button>${selecting?'':tr`<button class="game-options" data-details="${esc(game.id)}" aria-label="${esc(game.name)}のメニュー">${icon('more')}</button>`}</article>`;
+  const system=systems[game.system],isSelected=selected.has(game.id),quick=!selecting&&quickStart(game);
+  const label=quick?`${esc(tr('プレイ'))} · ${esc(game.name)}`:`${esc(game.name)}${selecting?tr('を選択'):tr('の設定を開く')}`;
+  return `<article class="game-card ${selecting?'is-selectable':''} ${isSelected?'is-selected':''}"><button class="game-launch" data-game="${esc(game.id)}" aria-label="${label}" ${selecting?`aria-pressed="${isSelected}"`:quick?'':'aria-haspopup="dialog"'}><div class="cover ${game.cover?'':'empty-cover'}" style="--system-color:${system.color}"><img src="${esc(game.cover||'assets/controller.svg')}" alt=""><span class="badge">${game.romMissing?tr('ROM未追加'):game.size===67108864&&game.system==='gba'?'64 MB':system.short}</span>${game.favorite?`<span class="heart-mark">${icon('heart')}</span>`:''}${selecting?`<span class="library-check" aria-hidden="true">${isSelected?icon('check'):''}</span>`:''}</div><h3 class="game-name">${esc(game.name)}</h3>${categoryOf(game)?`<span class="game-category">${categoryLabel(game)}</span>`:''}</button>${selecting?'':tr`<button class="game-options" data-details="${esc(game.id)}" aria-label="${esc(game.name)}のメニュー" aria-haspopup="dialog">${icon('more')}</button>`}</article>`;
  }
  function renderListing(){
   const games=shown();selectionSummary(games);
@@ -59,7 +61,7 @@ export function createLibraryView(api){
   $('#library').querySelectorAll('[data-game],[data-details]').forEach(button=>button.onclick=()=>{
    const id=button.dataset.game||button.dataset.details;
    if(selecting){if(selected.has(id))selected.delete(id);else selected.add(id);renderListing();[...$('#library').querySelectorAll('[data-game]')].find(el=>el.dataset.game===id)?.focus({preventScroll:true});}
-   else {const game=api.games().find(game=>game.id===id);if(game)api.showGame(game);}
+   else {const game=api.games().find(game=>game.id===id);if(game)return button.dataset.game&&quickStart(game)?api.startGame(game):api.showGame(game);}
   });
  }
  function showDisplay(){

@@ -35,7 +35,7 @@ function layout(value){
 export function sanitizeBackupSettings(value){
  const result=sanitizeGamePreferences(value);if(!plain(value))return result;
  if(['dark','light','auto'].includes(value.theme))result.theme=value.theme;
- for(const key of ['autosave','recovery'])if(typeof value[key]==='boolean')result[key]=value[key];
+ for(const key of ['autosave','recovery','quickStart'])if(typeof value[key]==='boolean')result[key]=value[key];
  if(value.inputControls)result.inputControls=sanitizeInputControls(value.inputControls);
  if(plain(value.controlLayouts))result.controlLayouts=Object.fromEntries(Object.keys(coreRegistry).filter(s=>plain(value.controlLayouts[s])).map(s=>[s,layout(value.controlLayouts[s])]));
  if(Array.isArray(value.menuOrder)){const allowed=new Set(gameOptionGroups.flat());result.menuOrder=value.menuOrder.filter(Array.isArray).slice(0,32).map(g=>[...new Set(g.filter(id=>allowed.has(id)))].slice(0,64));}

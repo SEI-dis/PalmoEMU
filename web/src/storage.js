@@ -5,10 +5,11 @@ import {guardUpdateTask} from './update-activity.js';
 import {coreRegistry,supportsGame,coreFor,saveKey} from './core-registry.js';
 import {withSkinChoice,withoutSkinChoice} from './skin-selection.js';
 import {sanitizeGamePreferences} from './game-preferences.js';
+import {trainerProfileKey,playRecordPrefix,playRecord,initialTrainerProfile} from './trainer-profile.js';
 const stores=['library','roms','saves','states','backups','archives','recoveries','sessions','skins','coverCatalogs'];
 const database=new Promise((resolve,reject)=>{
  const r=indexedDB.open('manicemu-web',5);let blocked=false;
- r.onupgradeneeded=()=>{for(const s of stores)if(!r.result.objectStoreNames.contains(s))r.result.createObjectStore(s);};
+ r.onupgradeneeded=event=>{for(const s of stores)if(!r.result.objectStoreNames.contains(s))r.result.createObjectStore(s);if(event.oldVersion===0)r.transaction.objectStore('coverCatalogs').put(initialTrainerProfile([],{fresh:true}),trainerProfileKey);};
  r.onblocked=()=>{blocked=true;reject(new Error(tr('保存機能の更新が必要です。このアプリのほかのタブを閉じ、このページを開き直してください。サイトデータは削除しないでください。')));};
  r.onsuccess=()=>{if(blocked){r.result.close();return;}r.result.onversionchange=()=>r.result.close();resolve(r.result);};r.onerror=()=>reject(r.error);
 });
@@ -24,20 +25,49 @@ export async function skinCatalog(){const db=await database;return new Promise((
 });}
 async function put(store,key,data){const db=await database;return new Promise((resolve,reject)=>{const tx=write(db,store);tx.objectStore(store).put(data,key);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error||new Error(tr('保存が中断されました。')));tx.onerror=()=>{};});}
 async function remove(store,key){const db=await database;return new Promise((resolve,reject)=>{const tx=write(db,store);tx.objectStore(store).delete(key);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error);});}
+// Statistics contain metadata only. Merge each ROM's own cumulative duration,
+// never copy a previous ROM's time into a new ROM's counter.
+function rememberPlayRecord(tx,game,{restore=false}={}){
+ const store=tx.objectStore('coverCatalogs'),request=store.get(playRecordPrefix+game.id);
+ request.onsuccess=()=>{try{
+  const record=playRecord(game,request.result);if(JSON.stringify(record)!==JSON.stringify(request.result))store.put(record,playRecordPrefix+game.id);
+  if(restore&&record.playDuration>(game.playDuration||0)){game.playDuration=record.playDuration;tx.objectStore('library').put(game,game.id);}
+ }catch{tx.abort();}};
+}
+async function readTrainerCard(readOnly=false){const db=await database;return new Promise((resolve,reject)=>{
+ const tx=readOnly?db.transaction(['library','coverCatalogs']):write(db,['library','coverCatalogs']),store=tx.objectStore('coverCatalogs');let profile,games,records,pending=3,failure;
+ const done=()=>{if(--pending)return;try{
+  if(!profile){profile=initialTrainerProfile(games);if(!readOnly)store.put(profile,trainerProfileKey);}
+  if(!readOnly)for(const game of games)rememberPlayRecord(tx,game,{restore:true});
+ }catch(e){failure=e;tx.abort();}};
+ const p=store.get(trainerProfileKey);p.onsuccess=()=>{profile=p.result;done();};
+ const g=tx.objectStore('library').getAll();g.onsuccess=()=>{games=g.result;done();};
+ // Do not read the large immutable save snapshots kept under another prefix.
+ const r=store.getAll(IDBKeyRange.bound(playRecordPrefix,playRecordPrefix+'\uffff'));r.onsuccess=()=>{records=r.result;done();};
+ tx.oncomplete=()=>resolve({profile,games,records});tx.onabort=()=>reject(failure||tx.error||Error(tr('プレイ記録を保存できませんでした。')));tx.onerror=()=>{};
+}).catch(error=>{if(readOnly)throw error;return readTrainerCard(true);});}
+async function setTrainerNickname(nickname){
+ if(typeof nickname!=='string'||Array.from(nickname.trim()).length>30)throw Error(tr('ニックネームは30文字以内で入力してください。'));
+ const db=await database;return new Promise((resolve,reject)=>{
+  const tx=write(db,'coverCatalogs'),store=tx.objectStore('coverCatalogs');let profile,failure;
+  const request=store.get(trainerProfileKey);request.onsuccess=()=>{try{profile={...(request.result||initialTrainerProfile([])),nickname:nickname.trim()};store.put(profile,trainerProfileKey);}catch(e){failure=e;tx.abort();}};
+  tx.oncomplete=()=>resolve(profile);tx.onabort=()=>reject(failure||tx.error||Error(tr('ニックネームを保存できませんでした。')));tx.onerror=()=>{};
+ });
+}
 // Commit a confirmed selection of this game's manual states as one operation.
 async function removeStates(id,keys){
  if(!keys.length||keys.some(key=>typeof key!=='string'||!key.startsWith(id+':')))throw new Error(tr('削除するステートを確認してください。'));
  const db=await database;return new Promise((resolve,reject)=>{const tx=write(db,'states');for(const key of new Set(keys))tx.objectStore('states').delete(key);tx.oncomplete=resolve;tx.onabort=()=>reject(tx.error||new Error(tr('削除できませんでした。')));});
 }
 async function addGame(game,bytes){const db=await database;return new Promise((resolve,reject)=>{
- const tx=write(db,['library','roms']);let failure;
+ const tx=write(db,['library','roms','coverCatalogs']);let failure;
  tx.oncomplete=resolve;tx.onabort=()=>reject(failure||tx.error||new Error(tr('ゲームの保存が中断されました。')));tx.onerror=()=>{};
  const abort=e=>{failure=e;tx.abort();};
  try{
   // Preserve existing metadata when repairing a missing ROM or importing in
   // two tabs. A synchronous clone/quota error must roll back both stores.
   const library=tx.objectStore('library'),request=library.get(game.id);
-  request.onsuccess=()=>{try{if(!request.result)library.put(game,game.id);else if(request.result.romMissing){const restored={...request.result};delete restored.romMissing;delete restored.romDetachedAt;library.put(restored,game.id);}}catch(e){abort(e);}};
+  request.onsuccess=()=>{try{if(!request.result){library.put(game,game.id);rememberPlayRecord(tx,game,{restore:true});}else if(request.result.romMissing){const restored={...request.result};delete restored.romMissing;delete restored.romDetachedAt;library.put(restored,game.id);}}catch(e){abort(e);}};
   tx.objectStore('roms').put(bytes,game.id);
  }catch(e){abort(e);}
 });}
@@ -112,14 +142,14 @@ async function setGameCheats(id,coreKey,next){
 async function patchLibrary(ids,changes,message){
  const db=await database;
  return new Promise((resolve,reject)=>{
-  const tx=write(db,'library'),store=tx.objectStore('library'),result=new Array(ids.length);let pending=ids.length,failure;
+  const tx=write(db,['library','coverCatalogs']),store=tx.objectStore('library'),result=new Array(ids.length);let pending=ids.length,failure;
   const abort=e=>{failure=e;try{tx.abort();}catch{}};
   tx.oncomplete=()=>resolve(result);tx.onabort=()=>reject(failure||tx.error||Error(message));tx.onerror=()=>{};
   for(const [i,id] of ids.entries()){
    const request=store.get(id);request.onsuccess=()=>{try{
     const game=request.result;if(!game||game.id!==id)throw Error(tr('ゲーム一覧が変わりました。対象を選び直してください。'));result[i]=game;
     if(--pending)return;
-    for(const row of result){for(const [field,value] of Object.entries(typeof changes==='function'?changes(row):changes)){if(field==='category'&&value==='')delete row.category;else row[field]=value;}store.put(row,row.id);}
+    for(const row of result){for(const [field,value] of Object.entries(typeof changes==='function'?changes(row):changes)){if(field==='category'&&value==='')delete row.category;else row[field]=value;}store.put(row,row.id);rememberPlayRecord(tx,row,{restore:true});}
    }catch(e){abort(e);}};
   }
  });
@@ -156,6 +186,7 @@ async function deleteGames(ids){const db=await database;return new Promise((reso
  tx.oncomplete=()=>resolve(ids.length);tx.onabort=()=>reject(failure||tx.error||Error(tr('削除が中断されました。元のゲームと保存データは残っています。')));tx.onerror=()=>{};
  for(const id of ids){const request=tx.objectStore('library').get(id);request.onsuccess=()=>{try{
   if(!request.result||request.result.id!==id)throw Error(tr('ゲーム一覧が変わりました。対象を選び直してください。'));
+  rememberPlayRecord(tx,request.result);
   if(--pending)return;
   for(const selected of ids){
    tx.objectStore('coverCatalogs').delete(romUpdateMetadataPrefix+selected);
@@ -323,11 +354,11 @@ async function commitGameROMUpdate({source,game,rom,save}){
   const done=()=>{if(--pending)return;try{
    result={...(existing||game),coreKey:coreFor(source).key,romUpdate:{previousId:source.id,previousName:source.name,at:Date.now(),coreKey:coreFor(source).key}};
    delete result.romMissing;delete result.romDetachedAt;
-   tx.objectStore('library').put(result,result.id);tx.objectStore('roms').put(rom,result.id);
+   tx.objectStore('library').put(result,result.id);tx.objectStore('roms').put(rom,result.id);rememberPlayRecord(tx,result,{restore:true});
    tx.objectStore('saves').add({...save},saveKey(result));
    tx.objectStore('coverCatalogs').add({sourceId:source.id,targetId:result.id,sourceName:source.name,system:source.system,coreKey:coreFor(source).key,save,at:result.romUpdate.at},romUpdateMetadataPrefix+result.id);
   }catch(e){abort(e);}};
-  const previous=tx.objectStore('library').get(source.id);previous.onsuccess=()=>{try{const row=previous.result;if(!row||row.system!==source.system||row.size!==source.size||coreFor(row).key!==coreFor(source).key)throw Error(tr('元のゲームの設定が変わりました。やり直してください。'));done();}catch(e){abort(e);}};
+  const previous=tx.objectStore('library').get(source.id);previous.onsuccess=()=>{try{const row=previous.result;if(!row||row.system!==source.system||row.size!==source.size||coreFor(row).key!==coreFor(source).key)throw Error(tr('元のゲームの設定が変わりました。やり直してください。'));rememberPlayRecord(tx,row);done();}catch(e){abort(e);}};
   const saved=tx.objectStore('saves').get(saveKey(source));saved.onsuccess=()=>{if(saved.result?.at!==save.at||!equal(saved.result?.bytes,save.bytes)){abort(Error(tr('元のセーブが変わりました。内容を確認してやり直してください。')));return;}done();};
   const target=tx.objectStore('library').get(game.id);target.onsuccess=()=>{existing=target.result;if(existing&&(existing.system!==game.system||existing.size!==game.size)){abort(Error(tr('追加先のゲーム情報が一致しません。')));return;}done();};
   for(const name of ['saves','states','backups','archives','recoveries','sessions'])for(const range of [game.id,IDBKeyRange.bound(game.id+'@',game.id+'@\uffff'),IDBKeyRange.bound(game.id+':',game.id+':\uffff')]){
@@ -338,6 +369,7 @@ async function commitGameROMUpdate({source,game,rom,save}){
 }
 
 // Keep storage work inside the update barrier, including waits for IndexedDB/locks.
+export const trainerCard=guardUpdateTask(readTrainerCard),saveTrainerNickname=guardUpdateTask(setTrainerNickname);
 const hasWithActivity=guardUpdateTask(has);
 const getWithActivity=guardUpdateTask(get);
 const allWithActivity=guardUpdateTask(all);

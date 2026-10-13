@@ -59,9 +59,11 @@ import {floatingPanel} from './floating-panel.js';
 import {row,action} from './components/rows.js';
 import {filterStrengthControl} from './components/filter-strength.js';
 import {createSettingsView,videoFilterNote} from './views/settings.js';
+import {trainerStats} from './trainer-profile.js';
 let link=null,linkMessage='',linkStarting=false,linkSaveBlocked=false,exiting=false,sheetCleanup=()=>{};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let library=[],tab=tabFromHash(),engine=null,current=null,skinPair=null,paused=false,toastTimer,saveLock=null,launching=false,importing=false,dialogResume=false;
+let trainer={profile:null,total:0,rankings:[]};
 const finishStartupInputs=holdStartupInputs();
 const releaseNotice=createReleaseNotice({sheet,closeSheet,onClose:cleanup=>{sheetCleanup=cleanup;},canShow:()=>!libraryView.selecting&&!engine&&!launching&&!importing&&!exiting&&!saveLock&&!link&&!linkStarting});
 try{await applyPendingBackupSettings();}catch(e){diagnostics.record(e,'startup');const message=document.createElement('p');message.textContent=e.message||tr('保存データを開けませんでした。');$('#content').replaceChildren(message);const retry=document.createElement('button');retry.className='primary';retry.textContent=tr('再読み込みして復元を完了');retry.onclick=()=>location.reload();$('#content').append(retry);throw e;}
@@ -69,7 +71,7 @@ let savedSettings={};try{savedSettings=JSON.parse(localStorage.getItem('manic-se
 // Pitch preservation is standard playback behavior; legacy preferences are ignored.
 delete savedSettings?.preservePitch;
 let settingsGame=null,gameMenuReturn=null;
-const preferences=createGamePreferences({theme:'dark',volume:.7,speed:1,autosave:true,recovery:true,haptics:true,filter:'pixel',showFps:false,touchControls:true,showCamera:true,rewindEnabled:false,...touchInputDefaults,...savedSettings},{getGame:()=>current||settingsGame,saveGame:(id,value)=>db.setGamePreferences(id,value),onError:error});
+const preferences=createGamePreferences({theme:'dark',volume:.7,speed:1,autosave:true,recovery:true,quickStart:false,haptics:true,filter:'pixel',showFps:false,touchControls:true,showCamera:true,rewindEnabled:false,...touchInputDefaults,...savedSettings},{getGame:()=>current||settingsGame,saveGame:(id,value)=>db.setGamePreferences(id,value),onError:error});
 const settings=preferences.settings;delete settings.autoCovers;
 diagnostics.setContext(()=>{
  const core=current?coreFor(current):null;
@@ -81,6 +83,7 @@ const showBackup=createBackupView({sheet,download,toast,settings:preferences.glo
 const showDiagnostics=createDiagnosticsView({sheet,download,toast});
 const {renderSettings,showVideoSettings,showAudioSettings,showSaveHelp,showControllers,showStorage}=createSettingsView({
  canChangeLanguage:()=>!engine&&!launching&&!importing&&!exiting,
+ trainer:()=>trainer,saveNickname:async value=>{trainer.profile=await db.saveTrainerNickname(value);},closeSheet,error,
  settings,applySettings,bindSettings,bindActions,sheet,toast,showSkins,showOffline,showDiagnostics,showBackup,showInputControls:()=>{if(engine)setPause(true);showInputControls();},onClose:cleanup=>{sheetCleanup=cleanup;}
 });
 const runtime={get busy(){return rewindSession.busy;},invalidateHistory:()=>rewindSession.clear(),get engine(){return engine;},get current(){return current;},get link(){return link;},get protection(){return protection;},set cleanup(value){sheetCleanup=value;}};
@@ -158,9 +161,9 @@ function setTab(id){
  history.replaceState(history.state,'',url);
 }
 for(const [id,ic,label] of [['games','game',tr('ゲーム')],['imports','import',tr('インポート')],['settings','settings',tr('設定')]]){const b=$(`[data-tab="${id}"]`);b.innerHTML=icon(ic)+`<span>${label}</span>`;b.onclick=()=>{libraryView.leave();setTab(id);render();};}
-async function refresh(){library=await db.all('library');render();}
+async function refresh(){const data=await db.trainerCard();library=data.games;trainer={profile:data.profile,...trainerStats(data.records,library)};render();}
 function render(){if(engine)return;settingsGame=gameMenuReturn?.game||null;$$('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false');});if(tab==='games')renderGames();else if(tab==='imports')renderImports();else renderSettings();}
-const libraryView=createLibraryView({games:()=>library,showGame:showDetails,add:()=>$('#rom-input').click(),sheet,closeSheet,refresh,toast,error});
+const libraryView=createLibraryView({games:()=>library,showGame:showDetails,quickStart:()=>settings.quickStart===true,startGame:game=>guardUpdateTask(()=>launch(game).catch(error))(),add:()=>$('#rom-input').click(),sheet,closeSheet,refresh,toast,error});
 function renderGames(){libraryView.render();}
 // ManicEMU ImportServiceListView and its motto, file, service and footer cells.
 // Copyright © 2025–2026 Manic EMU. Daiuno / Max. Ported 2026-10-09.
@@ -259,6 +262,8 @@ async function launch(game,{safeMode=false,skipRecovery=false}={}){
   await preferences.flush();const stored=await db.get('library',game.id);if(!stored)throw new Error(tr('ゲームが見つかりません。'));current=game=stored;settingsGame=null;
   const bytes=await db.get('roms',game.id);if(!bytes)throw new Error(tr('ROMが見つかりません。もう一度追加してください。'));
   const previous=await protection.open(game,coreFor(game).id);
+  // The game lock now protects this baseline from another tab's final write.
+  const lockedGame=await db.get('library',game.id);if(!lockedGame)throw new Error(tr('ゲームが見つかりません。'));game.playDuration=lockedGame.playDuration||0;
   if(previous.interrupted)diagnostics.record(null,'previous-session');
   await reloadSkins(false);$('#screen').replaceChildren();
   engine=createCore($('#screen'),game);
