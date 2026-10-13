@@ -1,0 +1,9 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+.screenshot-preview{position:fixed;z-index:26;top:max(50px,calc(env(safe-area-inset-top) + 42px));right:max(12px,env(safe-area-inset-right));width:min(280px,calc(100vw - 24px));max-height:calc(100dvh - 70px - env(safe-area-inset-bottom));overflow:auto;overscroll-behavior:contain;padding:12px;border:1px solid var(--line);border-radius:18px;background:var(--panel);color:var(--text);box-shadow:0 12px 40px #0007;touch-action:pan-y}
+.screenshot-preview header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;font-size:14px}
+.screenshot-preview header strong{overflow-wrap:anywhere;min-width:0}
+.screenshot-preview header button{flex-shrink:0;width:36px;height:36px}
+.screenshot-preview img{display:block;width:100%;height:auto;max-height:35dvh;object-fit:contain;border-radius:8px;background:#000;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.screenshot-actions{display:flex;gap:8px;margin-top:10px}
+.screenshot-actions button{flex:1;min-width:0;padding:11px 8px;font-size:13px;overflow-wrap:anywhere}
+.screenshot-preview .sheet-note{font-size:11px;line-height:1.5;margin:10px 0 0}

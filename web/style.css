@@ -60,6 +60,8 @@ dialog.states-view[open]{display:flex;flex-direction:column}
 .states-view #sheet-body{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .states-view .state-scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-gutter:stable}
 .states-view .state-edit-tools{bottom:0}
+.states-view .state-footer{flex-shrink:0;padding-top:12px;border-top:1px solid var(--line)}
+.states-view .state-footer .wide-button{margin:0;min-height:44px}
 .backup-entry{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
 
 .appearance-control{display:flex;gap:2px;border-radius:10px;padding:3px;background:var(--raised)}.appearance-control button{font-size:11px;padding:9px 7px;border-radius:8px}.appearance-control button[aria-pressed=true]{background:var(--panel);box-shadow:0 1px 5px #0003}.settings-page .row>svg:first-child{color:#b592f2}.settings-page .row:has([data-setting=recovery])>svg{color:#6fdcb0}.settings-page [data-action=skins]>svg:first-child{color:#f399bf}
@@ -162,10 +164,15 @@ dialog{width:min(480px,calc(100% - 24px));max-height:calc(100dvh - 24px);padding
 .trainer-field{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;min-height:48px;padding:8px 10px;text-align:start;border-inline-start:3px solid #efa923;border-radius:5px;background:linear-gradient(90deg,var(--raised),transparent)}
 .trainer-field>span{min-width:0;overflow-wrap:anywhere}.trainer-field small{display:block;font-size:11px;margin-bottom:3px}.trainer-field strong,.trainer-field time{font-size:14px;font-weight:500}.trainer-field svg{width:16px;height:16px;color:var(--secondary)}
 .trainer-avatar{display:block;width:80px;height:80px;object-fit:cover;border-radius:50%;border:1px solid var(--line);background:var(--bg)}
+.trainer-avatar-button{position:relative;padding:0;justify-self:center;border-radius:50%}.trainer-avatar-button>svg{position:absolute;right:0;bottom:0;width:25px;height:25px;padding:5px;border-radius:50%;background:var(--accent);color:#fff}.trainer-avatar-button:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.trainer-avatar.trainer-avatar-preview{width:128px;height:128px;margin:0 auto 20px}.trainer-avatar-actions{display:flex;gap:12px;flex-wrap:wrap}.trainer-avatar-actions button{flex:1;min-height:44px}
 .trainer-ranking{padding:0 16px 12px}.trainer-ranking h3{font-size:12px;font-weight:500;color:var(--secondary);margin:0 0 4px}
 .trainer-games{margin:0;padding:0;list-style:none;counter-reset:rank}.trainer-games li{counter-increment:rank;display:grid;grid-template-columns:20px minmax(0,1fr) auto;align-items:baseline;gap:8px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.trainer-games li:before{content:counter(rank);color:var(--secondary);font-variant-numeric:tabular-nums}.trainer-games li>span{overflow-wrap:anywhere}.trainer-games small{font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .trainer-more{display:flex;align-items:center;justify-content:center;gap:4px;min-height:44px;width:100%;font-size:13px;color:var(--secondary)}.trainer-more svg{width:16px;height:16px}
 .trainer-name-label{display:block;font-size:13px;color:var(--secondary);margin-bottom:8px}.trainer-name-input{display:block;width:100%;min-width:0;padding:12px;font-size:16px;border-radius:12px;border:1px solid var(--line);background:var(--raised);color:var(--text)}
+/* Fit editing sheets above software keyboards, including taller third-party
+   keyboards. Keep native selection/composition and scroll inside short screens. */
+#sheet[data-input-viewport]{position:fixed;top:calc(var(--input-viewport-top) + max(12px,env(safe-area-inset-top)));bottom:calc(100% - var(--input-viewport-bottom) + max(12px,env(safe-area-inset-bottom)));margin:auto auto 0;height:max-content;max-height:calc(var(--input-viewport-height) - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom)));overflow:auto;overscroll-behavior:contain}
 @media(max-width:350px){.trainer-summary{grid-template-columns:minmax(0,1fr) 56px;gap:8px;padding:12px}.trainer-avatar{width:56px;height:56px}.trainer-ranking{padding-inline:12px}}
 .row>span,.sheet-note{overflow-wrap:anywhere}
 @container app (max-width:360px){.toolbar .search{flex-basis:100%}.toolbar select{flex:1;max-width:none}}

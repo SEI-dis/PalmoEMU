@@ -6,7 +6,7 @@ import {coreFor,saveKey,supportsGame} from './core-registry.js';
 import {hash} from './shared.js';
 import * as db from './storage.js';
 
-async function sourceSave(id){
+export async function sourceSave(id){
  const game=await db.get('library',id);if(!game)throw Error(tr('元のゲームが見つかりません。'));
  const core=coreFor(game),save=await db.get('saves',saveKey(game));
  if(!save?.bytes?.length)throw Error(tr('先に元のゲームでセーブしてください。ステートは引き継げません。'));
@@ -22,7 +22,7 @@ export async function prepareROMUpdate(sourceId,target){
  return {sourceId:game.id,sourceName:game.name,sourceCore:core.key,sourceHash:digest,sourceAt:save.at,targetId:target.id,targetSize:target.size};
 }
 // Called inside the import worker after it has re-hashed the selected file.
-export async function finishROMUpdate(plan,game,rom){
+export async function finishROMUpdate(plan,game,rom,onProgress){
  if(!plan||game.id!==plan.targetId||game.size!==plan.targetSize)throw Error(tr('選択したROMが変わりました。やり直してください。'));
  if(!navigator.locks)throw Error(tr('保存を保護するため、最新版のブラウザを使用してください。'));
  const ids=[plan.sourceId,game.id].sort();
@@ -31,7 +31,22 @@ export async function finishROMUpdate(plan,game,rom){
   const {game:source,save,digest}=await sourceSave(plan.sourceId);
   if(coreFor(source).key!==plan.sourceCore||digest!==plan.sourceHash||save.at!==plan.sourceAt)throw Error(tr('元のセーブまたはコアが変わりました。内容を確認してやり直してください。'));
   if(source.id===game.id||source.system!==game.system||!supportsGame(coreFor(source),game))throw Error(tr('更新するROMを確認してください。'));
-  return db.commitROMUpdate({source,game,rom,save});
+  let targetSave=save,migration;
+  if(plan.startCopy){
+   const {identifyStartROM,inspectStartUpdate,START_MIGRATION_VERSION}=await import('./start-save-migration.js');
+   if(source.system!=='gba'||coreFor(source).key!=='mgba'||identifyStartROM(rom)?.version!==START_MIGRATION_VERSION||inspectStartUpdate(save.bytes,plan.startCopy.from).compatibility.status!=='compatible')throw Error(tr('セーブの互換性を確認できませんでした。内容を確認してやり直してください。'));
+  }
+  if(plan.startMigration){
+   const {identifyStartROM,migrateStartSave,inspectStartUpdate,START_MIGRATION_VERSION}=await import('./start-save-migration.js');
+   if(source.system!=='gba'||coreFor(source).key!=='mgba'||identifyStartROM(rom)?.version!==START_MIGRATION_VERSION)throw Error(tr('PokemonStart 0.42.3のROMを確認できませんでした。変換セーブの書き出しを使用してください。'));
+   const compatibility=inspectStartUpdate(save.bytes,plan.startMigration.from).compatibility;
+   if(compatibility.status==='compatible')throw Error(tr('このセーブは変換せずに引き継げます。'));
+   if(compatibility.status==='unknown'&&plan.startMigration.allowUnverified!==true)throw Error(tr('変換の必要性が未確認です。内容を確認してください。'));
+   const converted=await migrateStartSave(save.bytes,{from:plan.startMigration.from,onProgress});
+   targetSave={bytes:converted.bytes,hash:await hash(converted.bytes),at:Date.now()};
+   migration={kind:'start',from:plan.startMigration.from,to:START_MIGRATION_VERSION};
+  }
+  return db.commitROMUpdate({source,game,rom,save,targetSave,migration});
  }
  return next(0);
 }

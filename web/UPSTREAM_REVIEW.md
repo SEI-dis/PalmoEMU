@@ -4,6 +4,16 @@
 最新版への一括差し替えは行わず、互換性修正を取り込み、既存の保存データを検査しています。
 これは公開コードの確認記録です。公開Celioサーバーがどのコミットを実行しているかを示すものではありません。
 
+## rom64-netlink-7の追加確認（2026-10-13）
+
+[Windows版netlink7](https://github.com/pm-start/mGBA_celio_edition/releases/tag/rom64-netlink-7)のタグと`rom64`の先端は`507d4411574be5932edd4e01274aba326eafb4d6`です。[現採用`0ba86121…`からの比較](https://github.com/pm-start/mGBA_celio_edition/compare/0ba86121bd92aa570d38301086d8e8f584238d62...507d4411574be5932edd4e01274aba326eafb4d6)は3コミット・6ファイルで、READMEとQt版のCelioNet／通信設定／Windowの変更です。Web版へ組み込むWASMコアの変更はありません。
+
+- [参加通知の重複修正](https://github.com/pm-start/mGBA_celio_edition/commit/229f94c32f665b5d1d48f383308a8672ce0e57f3)：本版の`src/room-link.js`は、接続済みの`partnerJoined`でデバイスを再初期化せず、重複通知にもACKを返します。上流の修正対象だったQt版の遅延リセットも使用していません。既存`tests/room-link.cjs`に、参加通知のACKを落として再送させる検査があります。今回はコード比較での確認で、通信試験は再実行していません。
+- [通信サーバーの選択・設定保持](https://github.com/pm-start/mGBA_celio_edition/commit/507d4411574be5932edd4e01274aba326eafb4d6)：Web版は固定WSSを継続します。任意サーバーの選択は未実装の追加機能で、互換性のための必須修正ではありません。導入する場合は通信UI・設定・CSP・プライバシー説明の変更が必要です。
+- Windowsのportable設定説明はWeb版に影響しません。Windows ZIPは実行・同梱していません。
+
+今回は上流比較記録だけを追加し、`SOURCES.json`の採用コミット、WASM、既存のライセンス・作者表記を維持します。下表の2026-10-12時点の確認結果は履歴として残します。
+
 ## 反映した変更
 
 - **Celio通信**：旧サーバー `d19ad22a0c6a11467c9234c6cacd291eb0f15dbd` と

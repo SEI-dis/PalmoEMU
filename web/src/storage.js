@@ -5,7 +5,8 @@ import {guardUpdateTask} from './update-activity.js';
 import {coreRegistry,supportsGame,coreFor,saveKey} from './core-registry.js';
 import {withSkinChoice,withoutSkinChoice} from './skin-selection.js';
 import {sanitizeGamePreferences} from './game-preferences.js';
-import {trainerProfileKey,playRecordPrefix,playRecord,initialTrainerProfile} from './trainer-profile.js';
+import {trainerProfileKey,playRecordPrefix,playRecord,initialTrainerProfile,validTrainerAvatar} from './trainer-profile.js';
+import {inheritedROMCover,repairROMUpdateCovers} from './rom-update-artwork.js';
 const stores=['library','roms','saves','states','backups','archives','recoveries','sessions','skins','coverCatalogs'];
 const database=new Promise((resolve,reject)=>{
  const r=indexedDB.open('manicemu-web',5);let blocked=false;
@@ -38,7 +39,7 @@ async function readTrainerCard(readOnly=false){const db=await database;return ne
  const tx=readOnly?db.transaction(['library','coverCatalogs']):write(db,['library','coverCatalogs']),store=tx.objectStore('coverCatalogs');let profile,games,records,pending=3,failure;
  const done=()=>{if(--pending)return;try{
   if(!profile){profile=initialTrainerProfile(games);if(!readOnly)store.put(profile,trainerProfileKey);}
-  if(!readOnly)for(const game of games)rememberPlayRecord(tx,game,{restore:true});
+  if(!readOnly){for(const game of repairROMUpdateCovers(games))tx.objectStore('library').put(game,game.id);for(const game of games)rememberPlayRecord(tx,game,{restore:true});}
  }catch(e){failure=e;tx.abort();}};
  const p=store.get(trainerProfileKey);p.onsuccess=()=>{profile=p.result;done();};
  const g=tx.objectStore('library').getAll();g.onsuccess=()=>{games=g.result;done();};
@@ -48,10 +49,17 @@ async function readTrainerCard(readOnly=false){const db=await database;return ne
 }).catch(error=>{if(readOnly)throw error;return readTrainerCard(true);});}
 async function setTrainerNickname(nickname){
  if(typeof nickname!=='string'||Array.from(nickname.trim()).length>30)throw Error(tr('ニックネームは30文字以内で入力してください。'));
+ return patchTrainerProfile({nickname:nickname.trim()});
+}
+async function setTrainerAvatar(avatar){
+ if(avatar!==''&&!validTrainerAvatar(avatar))throw Error(tr('画像の変換に失敗しました。'));
+ return patchTrainerProfile({avatar});
+}
+async function patchTrainerProfile(patch){
  const db=await database;return new Promise((resolve,reject)=>{
   const tx=write(db,'coverCatalogs'),store=tx.objectStore('coverCatalogs');let profile,failure;
-  const request=store.get(trainerProfileKey);request.onsuccess=()=>{try{profile={...(request.result||initialTrainerProfile([])),nickname:nickname.trim()};store.put(profile,trainerProfileKey);}catch(e){failure=e;tx.abort();}};
-  tx.oncomplete=()=>resolve(profile);tx.onabort=()=>reject(failure||tx.error||Error(tr('ニックネームを保存できませんでした。')));tx.onerror=()=>{};
+  const request=store.get(trainerProfileKey);request.onsuccess=()=>{try{profile={...(request.result||initialTrainerProfile([])),...patch};store.put(profile,trainerProfileKey);}catch(e){failure=e;tx.abort();}};
+  tx.oncomplete=()=>resolve(profile);tx.onabort=()=>reject(failure||tx.error||Error(tr('保存できませんでした。もう一度お試しください。')));tx.onerror=()=>{};
  });
 }
 // Commit a confirmed selection of this game's manual states as one operation.
@@ -236,11 +244,15 @@ async function commitProtectionBatch(entries){
   // save too, preserving both the previous save and its recovery generations.
   const safely=callback=>()=>{try{callback();}catch(e){abort(e);}};
   tx.oncomplete=resolve;tx.onabort=()=>reject(failure||tx.error||new Error(tr('保存が中断されました。以前の保存データは残っています。')));tx.onerror=()=>{};
-  for(const {id,sessionId,save,recovery,clean=false} of entries){
+  for(const {id,sessionId,save,recovery,clean=false,resetRecovery=false} of entries){
   const sessions=tx.objectStore('sessions'),request=sessions.get(id);
   request.onsuccess=safely(()=>{
    const session=request.result;
    if(!session||session.id!==sessionId)throw new Error(tr('別のタブで保存中のため、このタブでの保存を中止しました。'));
+   // Imported battery data supersedes automatic checkpoints paired with the
+   // previous save. Clear them only with the successful save transaction;
+   // manual states, battery backups and archives remain available explicitly.
+   if(resetRecovery){if(!byteView(save?.bytes)?.length)throw new Error(tr('保存データがありません。'));tx.objectStore('recoveries').delete(id);}
    if(byteView(save?.bytes)?.length){
     const saves=tx.objectStore('saves'),old=saves.get(id);
     old.onsuccess=safely(()=>{
@@ -345,20 +357,23 @@ export const romUpdateMetadataPrefix='\u0001palmo-rom-update:';
 // Both game locks are held by the caller. Check the exact source bytes again
 // inside the transaction; a concurrent save import must never be silently lost.
 // New ROM, copied save and a permanent pre-update snapshot commit together.
-async function commitGameROMUpdate({source,game,rom,save}){
+async function commitGameROMUpdate({source,game,rom,save,targetSave=save,migration}){
  if(source.id===game.id||source.system!==game.system||!save?.bytes?.length)throw Error(tr('更新するROMとセーブを確認してください。'));
  const db=await database;return new Promise((resolve,reject)=>{
   const names=['library','roms','saves','states','backups','archives','recoveries','sessions','coverCatalogs'],tx=write(db,names);
-  let failure,pending=3+6*3,existing,result;
+  let failure,pending=3+6*3,existing,result,freshSource;
   const abort=e=>{failure=e;try{tx.abort();}catch{}};
   const done=()=>{if(--pending)return;try{
    result={...(existing||game),coreKey:coreFor(source).key,romUpdate:{previousId:source.id,previousName:source.name,at:Date.now(),coreKey:coreFor(source).key}};
+   Object.assign(result,inheritedROMCover(result,freshSource));
    delete result.romMissing;delete result.romDetachedAt;
+   if(!targetSave?.bytes?.length||targetSave.bytes.length>coreFor(result).maxSave)throw Error(tr('セーブファイルのサイズを確認してください。'));
+   if(migration)result.romUpdate.migration=migration;
    tx.objectStore('library').put(result,result.id);tx.objectStore('roms').put(rom,result.id);rememberPlayRecord(tx,result,{restore:true});
-   tx.objectStore('saves').add({...save},saveKey(result));
+   tx.objectStore('saves').add({...targetSave},saveKey(result));
    tx.objectStore('coverCatalogs').add({sourceId:source.id,targetId:result.id,sourceName:source.name,system:source.system,coreKey:coreFor(source).key,save,at:result.romUpdate.at},romUpdateMetadataPrefix+result.id);
   }catch(e){abort(e);}};
-  const previous=tx.objectStore('library').get(source.id);previous.onsuccess=()=>{try{const row=previous.result;if(!row||row.system!==source.system||row.size!==source.size||coreFor(row).key!==coreFor(source).key)throw Error(tr('元のゲームの設定が変わりました。やり直してください。'));rememberPlayRecord(tx,row);done();}catch(e){abort(e);}};
+  const previous=tx.objectStore('library').get(source.id);previous.onsuccess=()=>{try{const row=previous.result;if(!row||row.system!==source.system||row.size!==source.size||coreFor(row).key!==coreFor(source).key)throw Error(tr('元のゲームの設定が変わりました。やり直してください。'));freshSource=row;rememberPlayRecord(tx,row);done();}catch(e){abort(e);}};
   const saved=tx.objectStore('saves').get(saveKey(source));saved.onsuccess=()=>{if(saved.result?.at!==save.at||!equal(saved.result?.bytes,save.bytes)){abort(Error(tr('元のセーブが変わりました。内容を確認してやり直してください。')));return;}done();};
   const target=tx.objectStore('library').get(game.id);target.onsuccess=()=>{existing=target.result;if(existing&&(existing.system!==game.system||existing.size!==game.size)){abort(Error(tr('追加先のゲーム情報が一致しません。')));return;}done();};
   for(const name of ['saves','states','backups','archives','recoveries','sessions'])for(const range of [game.id,IDBKeyRange.bound(game.id+'@',game.id+'@\uffff'),IDBKeyRange.bound(game.id+':',game.id+':\uffff')]){
@@ -369,7 +384,7 @@ async function commitGameROMUpdate({source,game,rom,save}){
 }
 
 // Keep storage work inside the update barrier, including waits for IndexedDB/locks.
-export const trainerCard=guardUpdateTask(readTrainerCard),saveTrainerNickname=guardUpdateTask(setTrainerNickname);
+export const trainerCard=guardUpdateTask(readTrainerCard),saveTrainerNickname=guardUpdateTask(setTrainerNickname),saveTrainerAvatar=guardUpdateTask(setTrainerAvatar);
 const hasWithActivity=guardUpdateTask(has);
 const getWithActivity=guardUpdateTask(get);
 const allWithActivity=guardUpdateTask(all);

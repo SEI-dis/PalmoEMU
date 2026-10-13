@@ -22,6 +22,7 @@ def check_name(name):
         raise ValueError('Unsafe archive path: ' + name)
 
 def component(path):
+    if path.startswith('vendor/start-save-migrate/'): return 'start-save-migrate-user-supplied-license-unspecified'
     if path.startswith('vendor/rom-patcher/'): return 'rompatcher-mit'
     if path.startswith('shaders/'): return 'xbrz-gpl-3.0-with-permissive-notices'
     if path == 'src/gpu-filter.js': return 'celio-screen-effects-mpl-2.0'

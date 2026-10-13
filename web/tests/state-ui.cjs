@@ -85,6 +85,29 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(base);await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.getByRole('heading',{name:'前回のプレイを復旧'}).waitFor();
   const recoveryBounds=await stateBounds();await p.locator('[data-state-mode=manual]').click();await p.locator('#edit-states').waitFor();
   assert.equal(await p.locator('#sheet-title').textContent(),'前回のプレイを復旧');assert.equal(await p.locator('#continue-save').count(),1);assert.deepEqual(await stateBounds(),recoveryBounds,'Recovery guidance and frame persist across tabs');
+  const normalStartBounds=async()=>{
+   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   return p.locator('#continue-save').evaluate(button=>{
+    const r=button.getBoundingClientRect(),sheet=document.querySelector('#sheet').getBoundingClientRect(),list=document.querySelector('.state-scroll').getBoundingClientRect();
+    return {x:r.x,y:r.y,width:r.width,height:r.height,visible:r.top>=0&&r.bottom<=innerHeight&&r.left>=sheet.left&&r.right<=sheet.right&&r.bottom<=sheet.bottom,outsideList:!button.closest('.state-scroll')&&r.top>=list.bottom,clickable:button.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))};
+   });
+  };
+  for(const [width,height]of [[240,568],[320,720],[390,844],[844,390]]){
+   await p.setViewportSize({width,height});let bounds;
+   for(const mode of ['auto','manual']){
+    await p.locator('[data-state-mode='+mode+']').click();await p.locator('[data-state-mode='+mode+'][aria-pressed=true]').waitFor();
+    const current=await normalStartBounds();assert.ok(current.visible&&current.outsideList&&current.clickable&&current.height>=44,'Normal launch must be visible without scrolling at '+width+'x'+height);
+    if(bounds)assert.deepEqual(current,bounds,'Normal launch stays fixed across manual/automatic tabs');else bounds=current;
+    if(mode==='auto'){await p.locator('.save-details summary').click();assert.deepEqual(await normalStartBounds(),bounds,'Expanded save status cannot push normal launch away');}
+    await p.locator('.state-scroll').evaluate(list=>{list.scrollTop=list.scrollHeight;});assert.deepEqual(await normalStartBounds(),bounds,'Scrolling only moves the state list');
+   }
+   if(width===320||width===844)await screenshot('recovery-normal-start-'+width);
+  }
+  await p.setViewportSize({width:390,height:844});
+  const beforeNormal=await p.evaluate(async id=>{const db=await import('./src/storage.js');return JSON.stringify([await db.get('saves',id),await db.get('recoveries',id)]);},before.id);
+  await p.locator('#continue-save').click();await p.locator('#sheet').waitFor({state:'hidden'});assert.equal(await p.locator('#resume-game').isVisible(),false,'Normal launch resumes the loaded game');
+  assert.equal(await p.evaluate(async id=>{const db=await import('./src/storage.js');return JSON.stringify([await db.get('saves',id),await db.get('recoveries',id)]);},before.id),beforeNormal,'Normal launch does not restore or replace save data');
+  await p.close();p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(base);await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.getByRole('heading',{name:'前回のプレイを復旧'}).waitFor();
   await p.locator('[data-state-mode=auto]').click();await p.locator('[data-recover]').first().click();await p.locator('#sheet').waitFor({state:'hidden'});
   await menu();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
   await p.locator('[data-tab=settings]').click();await p.locator('[data-theme-choice=auto]').click();await screenshot('settings-menu');assert.deepEqual(errors,[]);

@@ -1,6 +1,102 @@
 {
   "releases": [
     {
+      "version": "0.3.26",
+      "date": "2026-10-14",
+      "changes": [
+        "カメラボタンからゲーム音付きの動画を録画できるようになりました。スクリーンショットもプレビューから保存・共有できます。",
+        "PokemonStartの0.42.3への更新で、元の版とセーブを調べて変換の要否を案内します。必要な変換から引き継ぎまで、アプリ内で進められます。",
+        "通常セーブと自動ステートの保存間隔を約2分に調整し、保存中の重複処理や失敗時の連続再試行を抑えました。容量不足時は通常セーブの保存を優先します。",
+        "トレーナーカードのアイコンを端末の画像へ変更できるようにし、iPhoneでニックネーム入力欄がキーボードに隠れる問題を修正しました。",
+        "ROM更新時に設定済みのカバー画像を新版へ引き継ぐようにしました。",
+        "PokemonStartの「ぼうけんのしょ2」の拡張セーブ誤判定への対処を改善しました。版番号ではなく対象処理の構造とコアの対応能力を確認して補正します。",
+        "復旧画面の「通常どおり起動」を下部に常時表示し、ROMを開き直す際に前回の一時停止表示が一瞬残る問題を修正しました。",
+        "アプリ更新の長い待機や失敗時の案内を改善しました。「新版をプレイ」などの起動操作を更新後も引き継ぎ、「今は続ける」でも選んだゲームへ進みます。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "现在可以通过相机按钮录制含游戏音频的视频。截图也可以预览、保存和分享。",
+          "将PokemonStart更新至0.42.3时，应用会检查原版本和存档，说明是否需要转换。转换和存档迁移可在应用内完成。",
+          "游戏存档和自动即时存档的保存间隔调整为约2分钟，减少重复保存和失败后的连续重试。存储空间不足时优先保存游戏存档。",
+          "现在可以将本地图片设为训练家卡图标，并修复了iPhone键盘遮挡昵称输入框的问题。",
+          "更新ROM时，已设置的封面图片会继承到新版本。",
+          "改进了PokemonStart中“冒险之书2”的扩展存档支持误判修正。根据相关代码结构和核心能力进行检查，而非依赖版本号。",
+          "恢复界面的“正常启动”按钮现在固定显示在底部，并修复了重新打开ROM时短暂显示上次暂停画面的问题。",
+          "改进了应用更新等待过久或失败时的提示。更新后会继续执行“游玩新版本”等启动操作，选择“暂时继续”也会启动所选游戏。"
+        ],
+        "zh-Hant": [
+          "現在可透過相機按鈕錄製含遊戲音訊的影片。截圖也可以預覽、儲存和分享。",
+          "將PokemonStart更新至0.42.3時，應用程式會檢查原版本與存檔，說明是否需要轉換。轉換與存檔移轉可在應用程式內完成。",
+          "遊戲存檔與自動即時存檔的儲存間隔調整為約2分鐘，減少重複儲存及失敗後的連續重試。儲存空間不足時優先儲存遊戲存檔。",
+          "現在可以將本機圖片設為訓練家卡圖示，並修正了iPhone鍵盤遮住暱稱輸入欄的問題。",
+          "更新ROM時，已設定的封面圖片會沿用至新版本。",
+          "改善了PokemonStart中「冒險之書2」的擴充存檔支援誤判修正。依相關程式碼結構與核心能力進行檢查，而非依賴版本號碼。",
+          "復原畫面的「正常啟動」按鈕現在固定顯示於底部，並修正了重新開啟ROM時短暫顯示上次暫停畫面的問題。",
+          "改善了應用程式更新等待過久或失敗時的提示。更新後會繼續執行「遊玩新版本」等啟動操作，選擇「暫時繼續」也會啟動所選遊戲。"
+        ],
+        "ko": [
+          "카메라 버튼으로 게임 소리가 포함된 동영상을 녹화할 수 있습니다. 스크린샷도 미리 본 후 저장하거나 공유할 수 있습니다.",
+          "PokemonStart를 0.42.3으로 업데이트할 때 기존 버전과 세이브를 확인해 변환 필요 여부를 안내합니다. 변환부터 세이브 이전까지 앱 안에서 진행할 수 있습니다.",
+          "게임 세이브와 자동 상태 저장 간격을 약 2분으로 조정하고, 중복 저장과 실패 후 연속 재시도를 줄였습니다. 저장 공간이 부족하면 게임 세이브 저장을 우선합니다.",
+          "기기의 이미지로 트레이너 카드 아이콘을 바꿀 수 있습니다. iPhone 키보드 뒤에 닉네임 입력란이 가려지는 문제를 수정했습니다.",
+          "ROM 업데이트 시 설정한 커버 이미지를 새 버전에도 유지합니다.",
+          "PokemonStart의 모험의 서 2에서 확장 세이브 지원을 잘못 판정하는 문제의 보정을 개선했습니다. 버전 번호 대신 해당 코드 구조와 코어 기능을 확인합니다.",
+          "복구 화면 하단에 일반 시작 버튼이 항상 표시됩니다. ROM을 다시 열 때 이전 일시 정지 화면이 잠깐 보이던 문제를 수정했습니다.",
+          "앱 업데이트가 오래 걸리거나 실패할 때의 안내를 개선했습니다. 새 버전 플레이 등의 실행 요청은 업데이트 후에도 이어지며, 지금은 계속을 선택해도 해당 게임이 시작됩니다."
+        ],
+        "es": [
+          "El botón de cámara permite grabar vídeo con el audio del juego. Las capturas también se pueden previsualizar, guardar y compartir.",
+          "Al actualizar PokemonStart a 0.42.3, la aplicación comprueba la versión de origen y la partida para indicar si hace falta convertirla. La conversión y la transferencia se realizan dentro de la aplicación.",
+          "Los intervalos de guardado de partida y de estado automático pasan a unos dos minutos. Se reducen los guardados duplicados y los reintentos continuos tras fallos. Si falta espacio, se prioriza la partida.",
+          "Ahora puedes usar una imagen local como icono de la tarjeta de entrenador. Se corrigió que el teclado del iPhone ocultara el campo del apodo.",
+          "Al actualizar una ROM, la portada configurada se conserva en la nueva versión.",
+          "Se mejoró la corrección de la detección errónea de guardado ampliado del Libro de aventuras 2 de PokemonStart. Se comprueban la estructura del código y las capacidades del núcleo en vez del número de versión.",
+          "Iniciar normalmente permanece visible al pie de la pantalla de recuperación. Se corrigió la aparición momentánea de la pausa anterior al volver a abrir una ROM.",
+          "Se mejoraron los avisos de esperas largas y fallos de actualización. Las solicitudes de jugar, incluida Jugar a la nueva versión, continúan tras actualizar; Continuar por ahora también inicia el juego elegido."
+        ],
+        "fr": [
+          "Le bouton appareil photo permet désormais de filmer avec le son du jeu. Les captures peuvent aussi être prévisualisées, enregistrées et partagées.",
+          "Lors de la mise à jour de PokemonStart vers 0.42.3, la version d’origine et la sauvegarde sont vérifiées pour indiquer si une conversion est nécessaire. La conversion et le transfert se font dans l’application.",
+          "Les sauvegardes de partie et d’état automatiques sont espacées d’environ deux minutes. Les opérations en double et les tentatives répétées après échec sont limitées. En cas de manque d’espace, la sauvegarde de partie est prioritaire.",
+          "Une image locale peut maintenant servir d’icône de Carte de Dresseur. Le champ du pseudonyme ne se cache plus derrière le clavier de l’iPhone.",
+          "La mise à jour d’une ROM conserve désormais la couverture choisie dans la nouvelle version.",
+          "La correction de la détection erronée des sauvegardes étendues du Livre d’aventure 2 de PokemonStart a été améliorée. Elle vérifie la structure du code et les capacités du cœur plutôt que le numéro de version.",
+          "Démarrer normalement reste visible en bas de l’écran de récupération. L’ancien écran de pause n’apparaît plus brièvement à la réouverture d’une ROM.",
+          "Les indications lors des attentes prolongées ou des échecs de mise à jour ont été améliorées. Les demandes de lancement reprennent après la mise à jour ; Continuer pour le moment lance aussi le jeu choisi."
+        ],
+        "de": [
+          "Über die Kamerataste lassen sich jetzt Videos mit Spielton aufnehmen. Screenshots können in der Vorschau angesehen, gespeichert und geteilt werden.",
+          "Beim Update von PokemonStart auf 0.42.3 prüft die App Ausgangsversion und Spielstand und zeigt an, ob eine Konvertierung nötig ist. Konvertierung und Übertragung erfolgen direkt in der App.",
+          "Spielstände und automatische Speicherzustände werden etwa alle zwei Minuten gespeichert. Doppelte Vorgänge und ständige Wiederholungen nach Fehlern werden vermieden. Bei Platzmangel hat der Spielstand Vorrang.",
+          "Ein lokales Bild kann jetzt als Symbol der Trainerkarte verwendet werden. Das Spitznamenfeld wird nicht mehr von der iPhone-Tastatur verdeckt.",
+          "Beim ROM-Update wird das eingestellte Cover in die neue Version übernommen.",
+          "Die Korrektur der fehlerhaften Erkennung erweiterter Speicherstände für Abenteuerbuch 2 in PokemonStart wurde verbessert. Geprüft werden Codestruktur und Core-Fähigkeiten statt Versionsnummern.",
+          "Normal starten bleibt unten im Wiederherstellungsfenster sichtbar. Die alte Pausenanzeige erscheint beim erneuten Öffnen einer ROM nicht mehr kurzzeitig.",
+          "Hinweise bei langen Update-Wartezeiten und Fehlern wurden verbessert. Spielstart-Anforderungen werden nach dem Update fortgesetzt; Vorerst fortfahren startet ebenfalls das ausgewählte Spiel."
+        ],
+        "pt": [
+          "O botão da câmera agora grava vídeos com o áudio do jogo. As capturas de tela também podem ser visualizadas, salvas e compartilhadas.",
+          "Ao atualizar PokemonStart para 0.42.3, o aplicativo verifica a versão de origem e o save para informar se é necessária uma conversão. A conversão e a transferência são feitas dentro do aplicativo.",
+          "Os intervalos de gravação do save e do estado automático passaram a cerca de dois minutos. Foram reduzidas operações duplicadas e tentativas contínuas após falhas. Quando falta espaço, o save do jogo tem prioridade.",
+          "Agora é possível usar uma imagem local como ícone do Cartão de Treinador. Foi corrigido o campo de apelido que ficava escondido atrás do teclado do iPhone.",
+          "Ao atualizar uma ROM, a capa configurada é mantida na nova versão.",
+          "Foi melhorada a correção da detecção incorreta de saves ampliados no Livro de Aventuras 2 de PokemonStart. São verificadas a estrutura do código e as capacidades do núcleo, em vez do número da versão.",
+          "Iniciar normalmente fica sempre visível no rodapé da tela de recuperação. Foi corrigida a exibição momentânea da pausa anterior ao reabrir uma ROM.",
+          "Foram melhorados os avisos de espera prolongada e falha na atualização. Os pedidos para jogar continuam após a atualização; Continuar por enquanto também inicia o jogo escolhido."
+        ]
+      },
+      "changesEn": [
+        "The camera button now records video with game audio. Screenshots can also be previewed, saved and shared.",
+        "When updating PokemonStart to 0.42.3, the app checks the source version and save to explain whether conversion is needed. Conversion and transfer can be completed within the app.",
+        "Adjusted battery-save and automatic-state intervals to about two minutes, avoiding duplicate saves and repeated retries after failures. Battery saves take priority when storage is full.",
+        "You can now use a local image as your Trainer Card icon. Fixed nickname fields being hidden behind the iPhone keyboard.",
+        "ROM updates now carry the configured cover image over to the new version.",
+        "Improved the workaround for PokemonStart incorrectly detecting extended-save support for Adventure Book 2. It checks the relevant code structure and core capabilities rather than version numbers.",
+        "The recovery screen now keeps Start normally visible at the bottom. Fixed the previous paused overlay briefly appearing when reopening a ROM.",
+        "Improved guidance for long app-update waits and failures. Play requests, including Play new version, continue after the update; Continue for now also starts the selected game."
+      ]
+    },
+    {
       "version": "0.3.25",
       "date": "2026-10-13",
       "changes": [

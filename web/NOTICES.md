@@ -6,6 +6,63 @@ Current bundled-artwork exception: seven ManicEMU standard skins under CC BY 4.0
 with separate attribution below and in sources/manic-skins/README.md. Earlier
 entries describing no third-party skins refer to the distribution at that change.
 
+Modified 2026-10-13: added original browser-only trainer-avatar editing and
+screenshot/video review modules. Game recording uses the browser's Canvas,
+Web Audio and MediaRecorder APIs; no external encoder, artwork or native
+recording source was incorporated. These Web additions are AGPL-3.0-or-later.
+
+Modified 2026-10-13: incorporated the migration portion of **START Save Migrate
+1.0.5**, by **くりーぱー** (Discord handle **ajillo0112**, identified by the
+user-provided author screenshot). The source is the user-supplied attachment
+`START-Save-Migrate.html`, SHA-256
+`6b3aece19d09e42dff7242924db19de0b654924b8b907de91a796d833d04e4e8`,
+whose destination-version metadata is 0.42.3. There is no independently
+verified public repository or upstream license statement for this attachment.
+The user's explicit request to incorporate and fix it is recorded as project
+provenance; it is not presented as an author-issued general redistribution
+license. The derived files in `vendor/start-save-migrate/` are not relabeled
+AGPL, MIT or another license by this project. The original author attribution
+and this distinction must be retained separately from the Web application's
+AGPL notices.
+
+Game attribution: [PokemonStart](https://github.com/pm-start/PokemonStart) developer
+**[onikoro334274-cell](https://github.com/onikoro334274-cell)**, separately
+from the migration-tool author くりーぱー. This credit does not establish a new
+license or make the game developer the author of the migration tool.
+
+Modified 2026-10-13: added an original save-update policy separating documented
+direct compatibility, legacy conversion and unverified combinations. The policy
+for target 0.42.3 cites PokemonStart's CHANGELOG.md at
+7563326f48f795d89b726a05ca1455d5bf9d7217. A successful format/version inspection
+is required before selecting an action. Compatible saves are copied unchanged;
+an unverified conversion requires an explicit choice. This integration does not
+modify or relicense the supplied conversion engine.
+
+The user subsequently supplied Browser and Source ZIP packages. The Browser
+HTML is byte-identical to the original attachment above. Concatenating the
+Source package's engine files in its `build.py` order reproduces the embedded
+ENGINE exactly, and its manifest also matches. The ZIP SHA-256 values are:
+
+- Browser ZIP: `b40f08152d94ba7197da3fd4b28295d8b41983b4347dfa51ab631112c27b9e6c`.
+- Source ZIP: `d231361de0613d4d6c57bcfc4d3c088b59d81fb2ca8498e292d6357c8bd1bd6b`.
+
+These are source-identity checks, not independent reproduction of the
+verification reports supplied with the source. Descriptions of real-save or
+native-game checks in those reports are the tool author's reported results;
+PalmoEMU's own synthetic tests and modifications are documented separately.
+These source-identity checks do not establish a general license grant, and
+the supplied code is not relabeled under the Web application's license.
+
+The adaptation extracts the migration engine and required format/version
+metadata, removes the standalone editor and unused names, statistics, sprites
+and icon decoding, and rejects inconsistent legacy save-bank sections.
+No original attachment artwork, ROM or user save is bundled. Original Web
+integration code retains its own AGPL notice; that notice does not relicense
+the imported engine. See [the component provenance and change record](vendor/start-save-migrate/README.md)
+for the exact scope and upstream verification limitations. The release content
+inventory pins these files as a separate, license-unspecified component;
+that inventory is not a grant of redistribution rights.
+
 Modified 2026-10-09: removed native file-picker extension filters for ROMs,
 controller skins and saves because iOS file providers may disable supported
 custom extensions. Format and size checks remain local; skin/save extensions
@@ -32,8 +89,11 @@ Layout editing now follows FlexSkinSettingViewController / FlexItemView's screen
 and button modes, drag/pinch and corner resizing (Daiuno, © 2025–2026 Manic EMU).
 Web adaptations include size sliders, aspect-ratio limits, keyboard controls and
 separate draft/save/cancel behavior. Unmodified Swift references are retained.
-The Web UI and modifications are AGPL-3.0-or-later, without warranty. Recipients
-may use, modify and redistribute under that license. See LICENSE and licenses.html.
+The Web UI and its AGPL-covered modifications are AGPL-3.0-or-later, without
+warranty. Recipients may use, modify and redistribute those parts under that
+license. Separately identified third-party components retain their stated
+terms; no blanket license is assigned to components with unspecified terms.
+See LICENSE and licenses.html.
 
 ManicEMU: https://github.com/Manic-EMU/ManicEMU at
 fbaeab79c214d5920bb51afa6f2d786fb2b12a58.
@@ -486,6 +546,22 @@ save capability. Only a temporary execution copy is changed; the stored original
 ROM and save identity are preserved. No ROM, game source, save, or game artwork
 is included in the distribution or CI. Existing core binaries and third-party
 licenses are unchanged. See src/mgba-compatibility.js and RELEASE_VALIDATION.md.
+
+Modified 2026-10-13: extended that correction to the separately reviewed
+PokemonStart v0.42.3 ROM hash and instruction location. The same full-hash,
+instruction and 6MiB core-capability checks apply independently to each version.
+The local diagnostic used synthetic flash reads to inspect the game's capability
+function; no user save was read or modified. No ROM or extracted game code is
+distributed. This change does not alter or relicense the save migration tool.
+
+Modified 2026-10-13: replaced the per-ROM digest allowlist with an original
+Thumb instruction/control-flow recognizer in src/mgba-save-probe.js. It locates
+the same extended-flash alias test after code/literal relocation, validates the
+cartridge signatures, sector pairs, comparison loop, flash read and bank-select
+paths, and rejects ambiguous or shared comparison helpers. The loaded core must
+still support 6MiB saves. Unknown instruction structures are left unchanged.
+Authored assembly fixtures are used in regression tests; no game ROM or user
+save is distributed. Existing core and third-party license notices are retained.
 
 Modified 2026-10-12: shared game-control pointer lifetime handling between built-in
 and imported skins, including the separately attributed bundled ManicEMU skins.

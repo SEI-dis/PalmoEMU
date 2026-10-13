@@ -63,6 +63,48 @@ const runtime=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||
     check(e.name===fault&&e.message==='synthetic '+fault&&e.saveOutcomeUnknown===false,fault+' is a definite abort');
     check(JSON.stringify(await snapshot(id))===JSON.stringify(before),fault+' rolls back all five stores');
    }
+   // A known quota abort of an automatic checkpoint may rescue its ordinary
+   // save once. Do not delete old recoveries or capture a different snapshot.
+   const {SaveProtection}=await import('./src/save-safety.js');
+   for(const useWorker of [false,true]){
+    const id='quota-rescue-'+useWorker,statuses=[],protection=new SaveProtection(s=>statuses.push(s),{useWorker:false});
+    await protection.open({id,system:'gba'},'synthetic');
+    await protection.save({save:()=>new Uint8Array([1]),state:()=>new Uint8Array([11])},{checkpoint:true});
+    const previousRecovery=await hash((await db.get('recoveries',id))[0].bytes),previousStateAt=protection.stateAt;
+    await protection.writer.close();
+    const writer=createSaveWriter({useWorker,createWorker:()=>new Worker(new URL('./src/save-worker.js?fault=QuotaExceededError',location.href),{type:'module'})});
+    let commits=0,captures=0,stateCaptures=0;const entries=[],rawCommit=writer.commit;
+    writer.commit=entry=>{commits++;entries.push({save:entry.save,hasRecovery:!!entry.recovery,clean:entry.clean});return rawCommit(entry);};protection.writer=writer;
+    const put=IDBObjectStore.prototype.put;
+    if(!useWorker)IDBObjectStore.prototype.put=function(...args){if(this.name==='recoveries')throw new DOMException('synthetic checkpoint quota','QuotaExceededError');return put.apply(this,args);};
+    let failure;
+    try{failure=await rejected(protection.save({save:()=>{captures++;return new Uint8Array(1048576).fill(2);},state:()=>{stateCaptures++;return new Uint8Array(1048576).fill(12);}},{checkpoint:true,clean:true,reason:'exit'}));}
+    finally{IDBObjectStore.prototype.put=put;}
+    check(failure.name==='QuotaExceededError'&&failure.saveCommitted===true&&failure.message.includes('ゲーム内セーブは保存しました'),'Partial success preserves quota classification and explanation');
+    check(commits===2&&captures===1&&stateCaptures===1&&entries[0].save===entries[1].save,'Exactly one retry uses the same captured snapshot');
+    check(entries[0].hasRecovery&&!entries[1].hasRecovery&&entries[1].clean===false,'Retry omits checkpoint and retains dirty marker');
+    check((await db.get('saves',id)).bytes[0]===2&&(await db.get('saves',id)).reason==='exit','Current battery snapshot persisted');
+    const histories=await db.get('backups',id),recoveries=await db.get('recoveries',id);
+    check(histories.length===1&&histories[0].bytes[0]===1,'Aborted first transaction creates no duplicate history');
+    check(recoveries.length===1&&await hash(recoveries[0].bytes)===previousRecovery,'Earlier checkpoint is retained unchanged');
+    check((await db.get('sessions',id)).dirty&&protection.stateAt===previousStateAt&&statuses.at(-1).error.includes('ゲーム内セーブは保存しました'),'Failed checkpoint stays explicit, dirty, and does not advance its timestamp');
+    await protection.close();
+   }
+   // A failed battery-only retry leaves all previous stores intact. Other
+   // failures and ambiguous acknowledgements must never trigger quota rescue.
+   for(const kind of ['quota-both','clone','unknown']){
+    const id='quota-negative-'+kind,protection=new SaveProtection(()=>{},{useWorker:false});await protection.open({id,system:'gba'},'synthetic');
+    await protection.save({save:()=>new Uint8Array([3]),state:()=>new Uint8Array([13])},{checkpoint:true});
+    const before=await snapshot(id);let commits=0;const actual=protection.writer.commit;
+    protection.writer.commit=entry=>{commits++;if(kind==='unknown'){const e=new DOMException('synthetic missing acknowledgment','QuotaExceededError');e.saveOutcomeUnknown=true;return Promise.reject(e);}return actual(entry);};
+    const put=IDBObjectStore.prototype.put;
+    if(kind!=='unknown')IDBObjectStore.prototype.put=function(...args){if(this.name===(kind==='clone'?'recoveries':'saves'))throw new DOMException('synthetic failure',kind==='clone'?'DataCloneError':'QuotaExceededError');return put.apply(this,args);};
+    let failure;try{failure=await rejected(protection.save({save:()=>new Uint8Array([4]),state:()=>new Uint8Array([14])},{checkpoint:true,clean:true}));}finally{IDBObjectStore.prototype.put=put;}
+    check(!failure.saveCommitted&&commits===(kind==='quota-both'?2:1),'No hidden success or unbounded/unsafe retries: '+kind);
+    const after=await snapshot(id);check(JSON.stringify(before.slice(0,4))===JSON.stringify(after.slice(0,4)),'All saved bytes/history retained after failure: '+kind);
+    if(kind==='unknown')check(failure.saveOutcomeUnknown&&protection.id!==before[4][0].id,'Unknown commit is fenced instead of replayed');
+    await protection.close();
+   }
    class FakeWorker{
     constructor(onPost){this.onPost=onPost;this.sent=[];this.terminated=0;}
     postMessage(message){this.sent.push({type:message.type,id:message.id});this.onPost(message,this);}

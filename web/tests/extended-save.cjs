@@ -19,8 +19,8 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   const bytes=Buffer.alloc(6*1048576,0xff);bytes[0]=0x41;bytes[bytes.length-1]=0x27;
   await page.locator('#save-input').setInputFiles({name:'Authored-flash.sav',mimeType:'application/octet-stream',buffer:bytes});
   await page.getByText('セーブを読み込みました。ゲームを再起動します。',{exact:true}).waitFor();
-  const result=await page.evaluate(async id=>{const db=await import('./src/storage.js'),save=await db.get('saves',id),backups=await db.get('backups',id)||[],states=await db.get('recoveries',id)||[];return {length:save.bytes.length,last:save.bytes.at(-1),backup:backups.some(s=>s.bytes.length===6*1048576&&s.bytes[0]===0x5a),recovery:states.some(s=>s.bytes.length>22*1048576)};},saved.id);
-  assert.deepEqual(result,{length:6*1048576,last:0x27,backup:true,recovery:true});
+  const result=await page.evaluate(async id=>{const db=await import('./src/storage.js'),save=await db.get('saves',id),backups=await db.get('backups',id)||[],states=await db.get('recoveries',id)||[],manual=await db.stateEntries(id);return {length:save.bytes.length,last:save.bytes.at(-1),backup:backups.some(s=>s.bytes.length===6*1048576&&s.bytes[0]===0x5a),recovery:states.some(s=>s.bytes.length>22*1048576),manual:manual.some(s=>s.value.bytes.length>22*1048576)};},saved.id);
+  assert.deepEqual(result,{length:6*1048576,last:0x27,backup:true,recovery:false,manual:true});
   assert.deepEqual(errors,[]);assert.ok(requests.every(r=>r.method()==='GET'&&!r.postData()&&new URL(r.url()).origin===new URL(base).origin));
   await context.close();console.log('PASS: 6 MiB UI import, manual state, paired recovery, retained battery backup and no uploads.');
   // Five minutes at the app's ten-second save interval. This second context

@@ -2,6 +2,9 @@
 // Lightweight local statistics only. ROM/save payloads never enter this model.
 export const trainerProfileKey='\u0001palmo-trainer-profile';
 export const playRecordPrefix='\u0001palmo-play-record:';
+// Only small, re-encoded local PNGs may be used as profile images.
+export const validTrainerAvatar=value=>typeof value==='string'&&value.length<=512*1024&&/^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/.test(value);
+export const trainerAvatarSource=value=>validTrainerAvatar(value)?value:'assets/icon.svg';
 const identity=value=>value&&typeof value.id==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(value.id)&&typeof value.system==='string'&&/^[a-z0-9-]{1,32}$/.test(value.system);
 const duration=value=>Number.isSafeInteger(value)&&value>=0?value:0;
 const timestamp=(value,now)=>Number.isSafeInteger(value)&&value>0&&value<=now?value:0;

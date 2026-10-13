@@ -50,11 +50,11 @@ export function bindCameraButton(button,capture,{beginMove}={}){
    if(event.clientX<0||event.clientY<0||event.clientX>innerWidth||event.clientY>innerHeight){active.move.cancel();return;}
    active.move.update(event.clientX-active.x,event.clientY-active.y);busy=true;button.setAttribute('aria-busy','true');
    Promise.resolve().then(()=>active.move.commit()).catch(()=>active.move.cancel()).finally(()=>{busy=false;button.removeAttribute('aria-busy');});
-  }else{const r=button.getBoundingClientRect();if(!active.long&&!active.moved&&Math.hypot(event.clientX-active.x,event.clientY-active.y)<=12&&event.clientX>=r.left&&event.clientX<=r.right&&event.clientY>=r.top&&event.clientY<=r.bottom)capture();}
+  }else{const r=button.getBoundingClientRect();if(!active.long&&!active.moved&&Math.hypot(event.clientX-active.x,event.clientY-active.y)<=12&&event.clientX>=r.left&&event.clientX<=r.right&&event.clientY>=r.top&&event.clientY<=r.bottom)capture(event);}
  };
  button.onpointercancel=cancel;button.onlostpointercapture=cancel;
- button.onclick=event=>{event.preventDefault();if(event.detail===0&&!pointer&&!busy)capture();};
- button.onkeydown=event=>{if(['Enter','Space'].includes(event.code)){event.preventDefault();event.stopPropagation();if(!event.repeat&&!pointer&&!busy)capture();}};
+ button.onclick=event=>{event.preventDefault();if(event.detail===0&&!pointer&&!busy)capture(event);};
+ button.onkeydown=event=>{if(['Enter','Space'].includes(event.code)){event.preventDefault();event.stopPropagation();if(!event.repeat&&!pointer&&!busy)capture(event);}};
  button.onkeyup=event=>{if(['Enter','Space'].includes(event.code)){event.preventDefault();event.stopPropagation();}};
  const visibility=()=>{if(document.hidden)cancel();};
  window.addEventListener('blur',cancel);window.addEventListener('resize',cancel);document.addEventListener('visibilitychange',visibility);

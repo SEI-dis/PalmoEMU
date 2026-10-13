@@ -6,8 +6,10 @@ import {importROM} from '../rom-import.js';
 import {prepareROMUpdate,readROMUpdateBackup} from '../rom-update.js';
 import {guardUpdateTask} from '../update-activity.js';
 import * as db from '../storage.js';
+import {createStartSaveDialog} from './start-save-migrate.js';
 
 export function createROMUpdateDialog(api){
+ const startDialog=createStartSaveDialog(api);
  const $=s=>document.querySelector(s);
  let busy=false;
  const bind=(selector,action)=>$(selector).onclick=guardUpdateTask(async()=>{if(busy)return;try{await action();}catch(e){api.error(e);}});
@@ -19,6 +21,11 @@ export function createROMUpdateDialog(api){
  function open(game,{reattach=false,onBack=()=>api.showGame(game)}={}){
   const title=reattach?tr('ROMを追加'):tr('ROMを更新');
   api.sheet(title,tr`<p class="sheet-note">${reattach?tr('取り外したものと同じROMを選ぶと、残してあるセーブから遊べます。'):tr('新版のROMへゲーム内セーブをコピーします。旧ROM・旧セーブ・ステートは残ります。')}</p><button id="rom-update-choose" class="primary wide-button">ファイルを選択</button><input id="rom-update-file" type="file" hidden><p id="rom-update-status" class="sheet-note" role="status"></p><button id="rom-update-back" class="secondary wide-button">戻る</button>`);
+  if(!reattach&&game.system==='gba'&&coreFor(game).key==='mgba'){
+   const button=document.createElement('button');button.id='rom-update-start';button.className='secondary wide-button';button.textContent=tr('PokemonStartのセーブを変換');
+   const details=document.createElement('details'),summary=document.createElement('summary');details.className='sheet-note';summary.textContent=tr('詳細');details.append(summary,button);$('#rom-update-back').before(details);
+   button.onclick=guardUpdateTask(()=>startDialog.open(game,{onBack:()=>open(game,{onBack}),target:game.romUpdate?game:undefined}));
+  }
   bind('#rom-update-back',onBack);bind('#rom-update-choose',()=>$('#rom-update-file').click());
   $('#rom-update-file').onchange=guardUpdateTask(async event=>{
    const input=event.currentTarget,file=input.files?.[0];input.value='';if(!file||busy)return;
@@ -30,13 +37,29 @@ export function createROMUpdateDialog(api){
     if(reattach){
      await work(async()=>{await importROM(file,system,null,{expectedId:game.id});await api.refresh();api.showGame(await db.get('library',game.id));api.toast(tr('ROMを追加しました。'));});return;
     }
-    let plan,target;await work(async()=>{target=(await importROM(file,system,null,{inspectOnly:true})).game;plan=await prepareROMUpdate(game.id,target);});
-    confirm(game,file,target,plan,onBack);
-   }catch(e){$('#rom-update-status').textContent='';api.error(e);}
+    let plan,target,startROM,existing;await work(async()=>{
+     const inspected=await importROM(file,system,null,{inspectOnly:true});({game:target,startROM}=inspected);
+     existing=await db.get('library',target.id);
+     if(!(startROM?.version==='0.42.3'&&core.key==='mgba'&&existing&&(target.id!==game.id||game.romUpdate)))plan=await prepareROMUpdate(game.id,target);
+    });
+    if(startROM?.version==='0.42.3'&&core.key==='mgba'){
+     if(existing&&coreFor(existing).key!=='mgba')throw Error(tr('この変換はGBAのPokemonStart用です。mGBAコアを選択してください。'));
+     const same=target.id===game.id;
+     await startDialog.open(game,{previous:same&&!!game.romUpdate,onBack:()=>open(game,{onBack}),target:existing,onCopy:same?undefined:async(inspected,compatible)=>{
+      const copyPlan=await prepareROMUpdate(game.id,target);
+      if(copyPlan.sourceHash!==inspected.hash||copyPlan.sourceAt!==inspected.at)throw Error(tr('元のセーブが変わりました。内容を確認してやり直してください。'));
+      if(compatible)copyPlan.startCopy={from:inspected.version};
+      confirm(game,file,target,copyPlan,onBack,compatible);
+     },apply:existing?undefined:async(from,onProgress,options)=>{
+      await importROM(file,system,onProgress,{updatePlan:{...plan,startMigration:{from,...options}}});await api.refresh();complete(await db.get('library',target.id));
+     }});
+    }else confirm(game,file,target,plan,onBack);
+   }catch(e){if($('#rom-update-status'))$('#rom-update-status').textContent='';api.error(e);}
   });
  }
- function confirm(game,file,target,plan,onBack){
-  api.sheet(tr('セーブを引き継ぐ'),tr`<div class="settings-group"><p class="sheet-note">${esc(game.name)} → ${esc(target.name)}<br>${bytesLabel(target.size)}</p></div><p class="sheet-note">引き継ぐのはゲーム内セーブだけです。ステートは新版に使いません。</p><label class="row"><input type="checkbox" id="rom-update-compatible"><span>ゲーム作者の案内でセーブの互換性を確認しました</span></label><p class="sheet-note">旧版は削除しません。新版で保存した内容は旧版へ戻せません。</p><p class="sheet-note" id="rom-update-status" role="status"></p><div class="sheet-actions"><button id="rom-update-back" class="secondary">戻る</button><button id="rom-update-confirm" class="primary" disabled>引き継ぐ</button></div>`);
+ function confirm(game,file,target,plan,onBack,compatible=false){
+  api.sheet(tr('セーブを引き継ぐ'),tr`<div class="settings-group"><p class="sheet-note">${esc(game.name)} → ${esc(target.name)}<br>${bytesLabel(target.size)}</p></div><p class="sheet-note">ゲーム内セーブとカバー画像を引き継ぎます。ステートは新版に使いません。</p><label class="row"><input type="checkbox" id="rom-update-compatible"><span>ゲーム作者の案内でセーブの互換性を確認しました</span></label><p class="sheet-note">旧版は削除しません。新版で保存した内容は旧版へ戻せません。</p><p class="sheet-note" id="rom-update-status" role="status"></p><div class="sheet-actions"><button id="rom-update-back" class="secondary">戻る</button><button id="rom-update-confirm" class="primary" disabled>引き継ぐ</button></div>`);
+  if(compatible){$('#rom-update-compatible').checked=true;$('#rom-update-compatible').closest('label').hidden=true;$('#rom-update-status').textContent=tr('このセーブは変換せずに引き継げます。');$('#rom-update-confirm').disabled=false;}
   $('#rom-update-compatible').onchange=()=>$('#rom-update-confirm').disabled=!$('#rom-update-compatible').checked;
   bind('#rom-update-back',()=>open(game,{onBack}));
   bind('#rom-update-confirm',async()=>{

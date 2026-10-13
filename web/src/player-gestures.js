@@ -4,7 +4,7 @@
 export function guardPlayerGestures(player){
  const targetOf=event=>{
   const target=event.target instanceof Element?event.target:event.target?.parentElement;
-  if(!target||target.closest('#link-panel,input,textarea,select')||target.isContentEditable)return null;
+  if(!target||target.closest('#link-panel,#capture-menu,#recording-preview,#screenshot-preview,input,textarea,select')||target.isContentEditable)return null;
   return target;
  };
  const cancelGesture=event=>{if(targetOf(event)&&event.cancelable)event.preventDefault();};

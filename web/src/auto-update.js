@@ -5,7 +5,7 @@ import {updateTasksPending} from './update-activity.js';
 
 // Every app page holds a shared version lock. The waiting worker can take the
 // exclusive lock only after every known page has agreed and frozen its UI.
-export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=>{}){
+export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=>{},{beforeReload=()=>{},onContinue=()=>{}}={}){
  if(!navigator.serviceWorker||!navigator.locks||!isSecureContext)return;
  const name='local-play-version:'+new URL('../',import.meta.url).pathname;
  let releaseLease,lease,registration,prepared=null,lastInput=Date.now(),checking=false,lastCheck=0,indicatorTimer,reloading=false;
@@ -16,7 +16,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  indicator.innerHTML='<span class="update-spinner" aria-hidden="true"></span><div class="update-copy"><strong hidden></strong><span role="status"></span><a class="primary update-manual" hidden></a><button type="button" hidden></button></div>';
  const title=indicator.querySelector('strong'),status=indicator.querySelector('[role=status]'),continueButton=indicator.querySelector('button'),manual=indicator.querySelector('a');
  manual.textContent=tr('手動で更新');manual.href=new URL('../update.html',import.meta.url).href;
- manual.onclick=event=>{if(updateTasksPending()||pickers.size||!canUpdate()){event.preventDefault();closeStage(true);}};
+ manual.onclick=event=>{if(updateTasksPending()||pickers.size||!canUpdate()){event.preventDefault();closeStage(true);}else beforeReload();};
  title.textContent=tr('アプリの更新');continueButton.textContent=tr('今は続ける');
  continueButton.onclick=()=>closeStage(true);
  indicator.addEventListener('cancel',event=>{event.preventDefault();if(!prepared&&!continueButton.hidden)closeStage(true);});document.body.append(indicator);
@@ -40,6 +40,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
   // Respect Continue for this visit, including a replacement worker whose
   // registration attributes have not reached this page yet. Reload retries.
   if(defer)deferred=true;staging=null;failed=false;missingCandidateAt=null;clearTimeout(stageTimer);unfreeze();lastInput=Date.now();
+  if(defer)setTimeout(onContinue,0);
  }
  function showFailure(reason){
   const detail={name:reason==='offline'?'NetworkError':'Error',reason,phase:indicator.dataset.phase,worker:staging?.state,online:navigator.onLine};
@@ -95,6 +96,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  function reloadUpdated(){
   if(reloading)return;reloading=true;
   try{sessionStorage.setItem(noticeKey,JSON.stringify({from:build,at:Date.now()}));}catch{}
+  beforeReload();
   location.reload();
  }
  // Capture before the app's handlers. Download staging keeps its shared lock
