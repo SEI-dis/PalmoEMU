@@ -41795,8 +41795,8 @@
     },
     {
       "path": "tests/rom-update.cjs",
-      "bytes": 11123,
-      "sha256": "7d311acc38549baee226d7bffc0b6a8f7d0f3348b0128694dcdc41971a1ddbd6",
+      "bytes": 11302,
+      "sha256": "ad5c4beb7d5960ca5289d3ff48671ff99461b8763ee9b37899742004e994135f",
       "component": "web-port-code-and-documentation"
     },
     {
