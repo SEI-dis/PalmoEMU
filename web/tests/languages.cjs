@@ -47,7 +47,8 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
      await page.screenshot({path:path.join(output,code+'-notices.png'),fullPage:true});
     }
    }
-   assert.deepEqual(errors,[]);assert.deepEqual(requests.filter(([method,url])=>method!=='GET'||!url.startsWith(base)),[],'Only own static files');
+   // WebKit reports reads of local thumbnail/avatar Blob URLs as requests.
+   assert.deepEqual(errors,[]);assert.deepEqual(requests.filter(([method,url])=>method!=='GET'||(!url.startsWith(base)&&!url.startsWith('blob:'+base))),[],'Only local static or in-memory resources read');
    const fetched=requests.map(([,url])=>url).filter(url=>/\/locales\//.test(url));assert.ok(fetched.some(url=>url.endsWith('/'+code+'.js')));assert.ok(fetched.every(url=>url.endsWith('/en.js')||url.endsWith('/'+code+'.js')),'Only selected catalogue is loaded');
    await context.close();
   }

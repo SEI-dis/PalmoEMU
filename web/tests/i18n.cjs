@@ -14,7 +14,12 @@ const japanese=/[ぁ-んァ-ヶ一-龯]/;
  try{
   const context=await browser.newContext({locale:'en-US',viewport:{width:390,height:844},serviceWorkers:'block'}),page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push([r.method(),r.url()]));
-  const clean=async label=>{const text=await page.locator('body').innerText();assert.ok(!japanese.test(text.replaceAll('日本語','').replaceAll('简体中文','').replaceAll('繁體中文','').replaceAll('保存','')),label+': '+text);};
+  const clean=async label=>{
+   let text=await page.locator('body').innerText();
+   // Authors' names are deliberately preserved, including Japanese names.
+   for(const name of await page.locator('[translate=no]').allInnerTexts())if(name)text=text.replaceAll(name,'');
+   assert.ok(!japanese.test(text.replaceAll('日本語','').replaceAll('简体中文','').replaceAll('繁體中文','').replaceAll('保存','')),label+': '+text);
+  };
   await page.goto(base+'index.html#settings');await page.locator('#app-language').waitFor();
   assert.equal(await page.locator('html').getAttribute('lang'),'en');assert.equal(await page.locator('#app-language').inputValue(),'auto');assert.equal(await page.locator('h1').textContent(),'Settings');
   const pictures=path.join(__dirname,'../test-results/i18n-'+kind);fs.mkdirSync(pictures,{recursive:true});
@@ -50,6 +55,7 @@ const japanese=/[ぁ-んァ-ヶ一-龯]/;
   await page.setViewportSize({width:320,height:568});
   for(const name of ['privacy','licenses','notices','update']){
    await page.goto(base+name+'.html');await page.waitForFunction(()=>document.documentElement.lang==='en');await clean(name);
+   if(name==='licenses')assert.equal(await page.locator('#start-save-migrate [translate=no]').first().textContent(),'くりーぱー（Discord: ajillo0112）','Author credit stays verbatim');
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),name+' fits narrow screen');
    if(name==='notices')await page.screenshot({path:path.join(pictures,'notices.png'),fullPage:true});
   }

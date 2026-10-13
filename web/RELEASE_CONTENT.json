@@ -95,8 +95,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 136073,
-      "sha256": "f9d86c4a7aaec86eeb86382a9d6aef99d2570bb3dd8960bd45401503ca3d89ef",
+      "bytes": 137523,
+      "sha256": "1e685f36c861f31d2ae5ed5aa71f7d4265d4e570d98bf0055f8b2b1d6c05acd9",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 11047,
-      "sha256": "7183029c74b8f96b37adf604fc245d3b636fe3ab638ede4109a8a443eaa0e497",
+      "sha256": "7711bcdc49e1eafb5c1768145064e62ac683ee29a34e6cadf56d999ba1487dca",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1205,8 +1205,8 @@
     },
     {
       "path": "scripts/build-offline.cjs",
-      "bytes": 3188,
-      "sha256": "5727657283f431e519965ba5544be788ae9884d5d631ffc94d671843f037bf30",
+      "bytes": 3478,
+      "sha256": "014c5eb13341e82b511dd8ab9f3b0de7fdc56b80fbf5d26431512e7c3ead3842",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41519,8 +41519,8 @@
     },
     {
       "path": "tests/i18n.cjs",
-      "bytes": 8882,
-      "sha256": "3ee0246ee31c5a1c7c426dc05485d3c71a9e2a020cdbb96d5d4d5b20e4292343",
+      "bytes": 9271,
+      "sha256": "608fc3ced9be4e957e360b7730ab0f8340468920ad15a2f5fb4fe2e7a1995e98",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41543,14 +41543,14 @@
     },
     {
       "path": "tests/languages-offline.cjs",
-      "bytes": 3355,
-      "sha256": "d5224335be7aa699a8c8a1c5b47ad70a58e0770b08f21a66f712aa8c02db8333",
+      "bytes": 3858,
+      "sha256": "39ad7c747dd8d798b5027c63daeb533568baff37d49102fc98a601e1d555ab2e",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "tests/languages.cjs",
-      "bytes": 7864,
-      "sha256": "c00356e45e6084e7f1e85c22328eda205fe527f82b2488e2e6307cb83856895f",
+      "bytes": 7997,
+      "sha256": "47a3974bfaa1b8005b2cd76e7c35b72f69b022d253e2e0ceac9057b1f4d31446",
       "component": "web-port-code-and-documentation"
     },
     {
