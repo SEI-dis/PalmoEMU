@@ -380,7 +380,7 @@ $('#save-input').onchange=guardUpdateTask(async e=>{
    if(current?.id!==game.id)throw Error(tr('プレイ中のゲームを終了してから読み込んでください。'));
    await persist({reason:'before-import'});await rewindSession.clear();await engine.restore(bytes);await persist({reason:'import'});await rewindSession.clear();await engine.reset();closeSheet();toast(tr('セーブを読み込みました。ゲームを再起動します。'));
   }else{
-   temporaryProtection=new SaveProtection(()=>{});await temporaryProtection.open(game,coreFor(game).id);
+   temporaryProtection=new SaveProtection(()=>{},{useWorker:false});await temporaryProtection.open(game,coreFor(game).id);
    const rom=await db.get('roms',game.id);if(!rom)throw Error(tr('ROMが見つかりません。'));
    temporaryCore=createCore(document.createElement('div'),game);
    await temporaryCore.load(rom,game);temporaryCore.pause(true);await temporaryCore.restore(bytes);

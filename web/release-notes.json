@@ -12,7 +12,8 @@
         "セーブ・ステート・設定を残してROMだけを取り外せるようになりました。同じROMを追加すると再開できます。",
         "インポート画面の順番を、セーブデータ・スキン・ROMパッチに変更しました。",
         "ゲーム映像だけを撮れるスクリーンショットボタンを追加しました。長押しで移動でき、表示も切り替えられます。",
-        "大きな自動ステートで保存が止まる不具合を修正し、保存履歴の容量を制限しました。"
+        "大きな自動ステートで保存が止まる不具合を修正し、保存履歴の容量を制限しました。",
+        "大きなセーブや自動ステートの保存処理を見直し、保存中の画面や操作の引っかかりを減らしました。"
       ],
       "translations": {
         "zh-Hans": [
@@ -24,7 +25,8 @@
           "现在可以保留游戏存档、即时存档和设置，只移除ROM。添加相同的ROM即可继续游戏。",
           "导入界面的顺序已更改为：存档数据 > 皮肤 > ROM补丁。",
           "新增仅截取游戏画面的截图按钮。长按拖动即可调整位置，也可在设置中隐藏。",
-          "修复了自动即时存档过大导致保存停止的问题，并限制了存档历史记录的总大小。"
+          "修复了自动即时存档过大导致保存停止的问题，并限制了存档历史记录的总大小。",
+          "优化了大型存档和自动即时存档的处理，减少了存档过程中的卡顿和操作不流畅感。"
         ],
         "zh-Hant": [
           "現已支援將遊戲內存檔複製至新版 ROM，同時保留舊 ROM 和存檔。",
@@ -35,7 +37,8 @@
           "現在可以保留遊戲存檔、即時存檔和設定，只移除 ROM。新增相同的 ROM 即可繼續遊戲。",
           "匯入畫面的順序已改為：存檔資料、外觀、ROM修補程式。",
           "新增僅擷取遊戲畫面的截圖按鈕。長按拖曳即可調整位置，也可在設定中隱藏。",
-          "修正自動即時存檔過大導致儲存停止的問題，並限制存檔歷史記錄的總大小。"
+          "修正自動即時存檔過大導致儲存停止的問題，並限制存檔歷史記錄的總大小。",
+          "改善大型遊戲存檔和自動即時存檔的處理，減少儲存時的畫面和操作卡頓。"
         ],
         "ko": [
           "기존 ROM과 세이브를 유지한 채 신규 버전 ROM으로 게임 내 세이브를 이월할 수 있게 되었습니다.",
@@ -46,7 +49,8 @@
           "세이브・상태 저장・설정을 남기고 ROM만 분리할 수 있게 되었습니다. 동일한 ROM을 추가하면 재개할 수 있습니다.",
           "임포트 화면 순서를 세이브 데이터・스킨・ROM 패치로 변경했습니다.",
           "게임 화면만 캡처하는 스크린샷 버튼을 추가했습니다. 길게 눌러 드래그하면 이동할 수 있고, 설정에서 숨길 수도 있습니다.",
-          "자동 저장 상태가 커서 저장이 중단되는 문제를 수정하고 저장 이력의 용량을 제한했습니다."
+          "자동 저장 상태가 커서 저장이 중단되는 문제를 수정하고 저장 이력의 용량을 제한했습니다.",
+          "대용량 세이브 및 자동 상태 저장 처리 방식을 개선하여, 저장 중 화면 끊김이나 조작 불편함을 줄였습니다."
         ],
         "es": [
           "Ahora puedes copiar la partida guardada a una nueva versión de la ROM y conservar la ROM anterior y sus partidas.",
@@ -57,7 +61,8 @@
           "Quita solo la ROM y conserva las partidas, los estados de guardado y los ajustes. Añade la misma ROM para continuar.",
           "La pantalla de importación ahora muestra: Datos guardados, Skins y Parches de ROM.",
           "Añadimos un botón para capturar solo la imagen del juego. Mantén pulsado y arrastra para moverlo, o escóndelo en los ajustes.",
-          "Se corrigió el fallo que detenía el guardado al crear estados automáticos grandes y se limitó el tamaño del historial de guardado."
+          "Se corrigió el fallo que detenía el guardado al crear estados automáticos grandes y se limitó el tamaño del historial de guardado.",
+          "Se ha mejorado el procesamiento de partidas guardadas grandes y estados automáticos para reducir las pausas en la imagen y los controles al guardar."
         ],
         "fr": [
           "Copiez la sauvegarde du jeu vers une nouvelle version de la ROM tout en conservant l’ancienne ROM et ses sauvegardes.",
@@ -68,7 +73,8 @@
           "Retirez une ROM tout en conservant ses sauvegardes, ses états et ses paramètres. Ajoutez la même ROM pour reprendre.",
           "Nouvel ordre dans l’écran d’importation : Sauvegardes, Habillages, puis Patchs ROM.",
           "Ajout d’un bouton pour capturer uniquement l’image du jeu. Maintenez-le appuyé puis faites-le glisser pour le déplacer, ou masquez-le dans les paramètres.",
-          "Correction du blocage des sauvegardes avec de grands états automatiques et limitation de la taille de l’historique des sauvegardes."
+          "Correction du blocage des sauvegardes avec de grands états automatiques et limitation de la taille de l’historique des sauvegardes.",
+          "Le traitement des grosses sauvegardes de jeu et des états automatiques a été amélioré pour réduire les saccades de l’image et les interruptions des commandes pendant la sauvegarde."
         ],
         "de": [
           "Spielstände lassen sich in eine neue ROM-Version kopieren. Die alte ROM und ihre Spielstände bleiben erhalten.",
@@ -79,7 +85,8 @@
           "Entferne nur die ROM und behalte Spielstände, Speicherzustände und Einstellungen. Füge dieselbe ROM wieder hinzu, um weiterzuspielen.",
           "Die Reihenfolge im Importbildschirm wurde geändert zu: Speicherstände > Skins > ROM-Patches.",
           "Eine Screenshot-Taste nimmt nur das Spielbild auf. Halte sie gedrückt und ziehe sie an die gewünschte Position. In den Einstellungen kannst du sie ausblenden.",
-          "Ein Fehler, der das Speichern bei großen automatischen Speicherzuständen stoppte, wurde behoben. Die Größe des Speicherverlaufs wird nun begrenzt."
+          "Ein Fehler, der das Speichern bei großen automatischen Speicherzuständen stoppte, wurde behoben. Die Größe des Speicherverlaufs wird nun begrenzt.",
+          "Große Spielstände und automatische Speicherzustände werden effizienter verarbeitet, um Bildruckler und Eingabeverzögerungen beim Speichern zu reduzieren."
         ],
         "pt": [
           "Copie os saves do jogo para uma nova versão da ROM, mantendo a ROM antiga e seus saves.",
@@ -90,7 +97,8 @@
           "Remova apenas a ROM e mantenha os saves, estados salvos e configurações. Adicione a mesma ROM para continuar.",
           "A tela de importação agora segue esta ordem: Dados salvos, Skins e Patches de ROM.",
           "Adicionamos um botão para capturar apenas a imagem do jogo. Segure e arraste para movê-lo, ou oculte-o nas configurações.",
-          "Corrigimos a interrupção do salvamento ao criar estados automáticos grandes e limitamos o tamanho do histórico de salvamento."
+          "Corrigimos a interrupção do salvamento ao criar estados automáticos grandes e limitamos o tamanho do histórico de salvamento.",
+          "Melhoramos o processamento de saves grandes e estados automáticos para reduzir pausas na imagem e na resposta dos controles ao salvar."
         ]
       },
       "changesEn": [
@@ -102,7 +110,8 @@
         "Remove a ROM while keeping its saves, save states, and settings. Add the same ROM again to resume.",
         "Reordered the import screen: Save Data, Skins, then ROM Patches.",
         "Added a screenshot button to capture only the game image. Hold and drag to move it, or hide it in settings.",
-        "Fixed saving stopping with large automatic save states, and limited the size of save histories."
+        "Fixed saving stopping with large automatic save states, and limited the size of save histories.",
+        "Improved handling of large in-game saves and automatic save states to reduce pauses in video and controls while saving."
       ]
     },
     {

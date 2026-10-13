@@ -13,7 +13,8 @@ function pdf(){let s='%PDF-1.4\n',offset=[0];const stream='0.1 0.2 0.3 rg 0 0 39
  const firstId=await p.locator('#skin-grid').getAttribute('data-selection');
  const importAgain=async(name,gameTypeIdentifier=info.gameTypeIdentifier)=>{const bytes=zip({'info.json':JSON.stringify({...info,name,gameTypeIdentifier}),'controller.pdf':pdf()});await p.locator('#import-skin').click();await p.locator('#skin-input').setInputFiles({name:'another.deltaskin',mimeType:'application/zip',buffer:bytes});await p.locator('.skin-card-name',{hasText:name}).waitFor();await p.locator('#skin-preview .skin-mini').waitFor();return p.locator('#skin-grid').getAttribute('data-selection');};
  const secondId=await importAgain('Second original fixture');
- assert.equal(await p.locator('.skin-standard-options').isVisible(),false,'Imported skins do not expose standard-only options');
+ assert.equal(await p.locator('#skin-palette').isVisible(),false,'Imported skins do not expose standard-only colors');
+ assert.equal(await p.locator('#edit-controls').innerText(),'スクリーンショットボタン','Imported skins expose only the screenshot layout entry');
  await p.locator('[data-skin-choice^="builtin:"]').click({position:{x:15,y:15}});
  await p.locator('#skin-palette').waitFor();
  await p.locator('[data-skin-color=classic]').click();await p.waitForFunction(()=>document.querySelector('#skin-grid').dataset.selection==='builtin:classic');
@@ -36,7 +37,7 @@ function pdf(){let s='%PDF-1.4\n',offset=[0];const stream='0.1 0.2 0.3 rg 0 0 39
  assert.equal(await p.evaluate(async()=>(await(await import('./src/storage.js')).all('skins')).length),2,'The other platform also retains its imported skin');
  for(const system of ['gb','gbc','gba','nes','snes','md','nds']){
   await p.locator('#skin-system').selectOption(system);await p.locator('[data-skin-choice^="builtin:"]').click({position:{x:15,y:15}});
-  await p.locator('#edit-controls').waitFor();
+  await p.waitForFunction(()=>document.querySelector('#skin-grid')?.dataset.effective?.startsWith('builtin:'));
   assert.equal(await p.locator('#skin-palette').isVisible(),system!=='nds',system+' palette follows actual body-color support');
  }
  const wrongGame=await p.evaluate(async bytes=>{const{importSkin}=await import('./src/skins.js');try{await importSkin(new File([new Uint8Array(bytes)],'wrong-game.deltaskin'),'snes');return false;}catch(e){return e.message==='このゲーム用のスキンではありません。';}},[...payload]);assert.equal(wrongGame,true);

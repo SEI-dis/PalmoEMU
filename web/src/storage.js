@@ -164,11 +164,38 @@ async function deleteGames(ids){const db=await database;return new Promise((reso
   }
  }catch(e){abort(e);}};}
 });}
-const equal=(a,b)=>!!a&&!!b&&a.length===b.length&&a.every((v,i)=>v===b[i]);
+// Compare the visible byte ranges without copying large battery saves. Keep
+// exact comparison even when stored hashes agree: hashes are metadata, not trust.
+function byteView(value){
+ if(value instanceof Uint8Array)return value;
+ if(ArrayBuffer.isView(value))return new Uint8Array(value.buffer,value.byteOffset,value.byteLength);
+ if(value instanceof ArrayBuffer)return new Uint8Array(value);
+ // Preserve the legacy numeric-array representation when reading old records.
+ return Array.isArray(value)?new Uint8Array(value):null;
+}
+function equal(a,b){
+ a=byteView(a);b=byteView(b);if(!a||!b||a.length!==b.length)return false;
+ for(let i=0;i<a.length;i++)if(a[i]!==b[i])return false;
+ return true;
+}
 // Save, retained generations and crash marker commit together, or none do.
 // No asynchronous hashing/network calls are allowed inside this transaction.
 async function commitProtection(id,sessionId,save,recovery,clean=false){
  return commitProtectionBatch([{id,sessionId,save,recovery,clean}]);
+}
+// Serialize with every save transaction on the sessions store. Once this
+// commits, a delayed write carrying the old owner can no longer commit.
+async function rotateSaveSession(id,expectedSessionId){
+ const db=await database;return new Promise((resolve,reject)=>{
+  const tx=write(db,'sessions'),store=tx.objectStore('sessions'),request=store.get(id);let failure,nextId;
+  tx.oncomplete=()=>resolve(nextId);
+  tx.onabort=()=>reject(failure||tx.error||new Error(tr('保存が中断されました。以前の保存データは残っています。')));tx.onerror=()=>{};
+  request.onsuccess=()=>{try{
+   const session=request.result;
+   if(!session||session.id!==expectedSessionId)throw new Error(tr('別のタブで保存中のため、このタブでの保存を中止しました。'));
+   nextId=crypto.randomUUID();store.put({...session,id:nextId,dirty:true,checkedAt:Date.now()},id);
+  }catch(e){failure=e;try{tx.abort();}catch{}}};
+ });
 }
 async function commitProtectionBatch(entries){
  const db=await database;return new Promise((resolve,reject)=>{
@@ -183,10 +210,10 @@ async function commitProtectionBatch(entries){
   request.onsuccess=safely(()=>{
    const session=request.result;
    if(!session||session.id!==sessionId)throw new Error(tr('別のタブで保存中のため、このタブでの保存を中止しました。'));
-   if(save?.bytes?.length){
+   if(byteView(save?.bytes)?.length){
     const saves=tx.objectStore('saves'),old=saves.get(id);
     old.onsuccess=safely(()=>{
-     if(old.result?.bytes?.length&&!equal(new Uint8Array(old.result.bytes),new Uint8Array(save.bytes))){
+     if(byteView(old.result?.bytes)?.length&&!equal(old.result.bytes,save.bytes)){
       const history=tx.objectStore('backups'),r=history.get(id);
       r.onsuccess=safely(()=>history.put(retainHistory([old.result,...(r.result||[])],5),id));
      }
@@ -301,7 +328,7 @@ async function commitGameROMUpdate({source,game,rom,save}){
    tx.objectStore('coverCatalogs').add({sourceId:source.id,targetId:result.id,sourceName:source.name,system:source.system,coreKey:coreFor(source).key,save,at:result.romUpdate.at},romUpdateMetadataPrefix+result.id);
   }catch(e){abort(e);}};
   const previous=tx.objectStore('library').get(source.id);previous.onsuccess=()=>{try{const row=previous.result;if(!row||row.system!==source.system||row.size!==source.size||coreFor(row).key!==coreFor(source).key)throw Error(tr('元のゲームの設定が変わりました。やり直してください。'));done();}catch(e){abort(e);}};
-  const saved=tx.objectStore('saves').get(saveKey(source));saved.onsuccess=()=>{if(saved.result?.at!==save.at||!equal(new Uint8Array(saved.result?.bytes||[]),new Uint8Array(save.bytes))){abort(Error(tr('元のセーブが変わりました。内容を確認してやり直してください。')));return;}done();};
+  const saved=tx.objectStore('saves').get(saveKey(source));saved.onsuccess=()=>{if(saved.result?.at!==save.at||!equal(saved.result?.bytes,save.bytes)){abort(Error(tr('元のセーブが変わりました。内容を確認してやり直してください。')));return;}done();};
   const target=tx.objectStore('library').get(game.id);target.onsuccess=()=>{existing=target.result;if(existing&&(existing.system!==game.system||existing.size!==game.size)){abort(Error(tr('追加先のゲーム情報が一致しません。')));return;}done();};
   for(const name of ['saves','states','backups','archives','recoveries','sessions'])for(const range of [game.id,IDBKeyRange.bound(game.id+'@',game.id+'@\uffff'),IDBKeyRange.bound(game.id+':',game.id+':\uffff')]){
    const r=tx.objectStore(name).count(range);r.onsuccess=()=>{if(r.result){abort(Error(tr('新版には保存データがあります。上書きを避けるため引き継ぎを中止しました。')));return;}done();};
@@ -336,4 +363,6 @@ const stateEntriesWithActivity=guardUpdateTask(stateEntries);
 export const addState=guardUpdateTask(addImportedState);
 export const detachROM=guardUpdateTask(detachGameROM);
 export const commitROMUpdate=guardUpdateTask(commitGameROMUpdate);
+export const rotateSaveSessionWithActivity=guardUpdateTask(rotateSaveSession);
+export {rotateSaveSessionWithActivity as rotateSaveSession};
 export {hasWithActivity as has, commitProtectionBatchWithActivity as commitProtectionBatch, getWithActivity as get, allWithActivity as all, putWithActivity as put, removeWithActivity as remove, removeStatesWithActivity as removeStates, addGameWithActivity as addGame, setGameCoverWithActivity as setGameCover, setGameSkinWithActivity as setGameSkin, setGameControlsWithActivity as setGameControls, removeSkinWithActivity as removeSkin, removeGameWithActivity as removeGame, setGameCoreWithActivity as setGameCore, commitProtectionWithActivity as commitProtection, stateEntriesWithActivity as stateEntries};

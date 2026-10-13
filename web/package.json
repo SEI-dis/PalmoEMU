@@ -91,7 +91,10 @@
     "test:input-test": "node tests/input-test.cjs",
     "test:nds-lid-core": "node tests/nds-lid-core.cjs",
     "test:nds-lid-browser": "node tests/nds-lid-browser.cjs",
-    "test:camera": "node tests/camera.cjs"
+    "test:camera": "node tests/camera.cjs",
+    "test:save-byte-comparison": "node tests/save-byte-comparison.cjs",
+    "test:save-worker": "node tests/save-worker.cjs",
+    "test:save-worker-fence": "node tests/save-worker-fence.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

@@ -23,7 +23,8 @@ const manifest=require('../BUNDLED_SKINS.json');
    await page.locator('#skin-system').selectOption(skin.system);
    const choice=page.locator(`[data-skin-choice="${skin.id}"]`);await choice.click({position:{x:15,y:15}});
    await page.waitForFunction(id=>document.querySelector('#skin-grid')?.dataset.effective===id,skin.id);
-   assert.equal(await page.locator('#edit-controls').isVisible(),false);
+   assert.equal(await page.locator('#skin-palette').isVisible(),false);
+   assert.equal(await page.locator('#edit-controls').innerText(),'スクリーンショットボタン');
    assert.equal(await page.locator(`[data-delete-skin="${skin.id}"]`).count(),0);
    assert.ok(await page.locator('a[href="licenses.html#skins"]').isVisible());
    for(const orientation of ['portrait','landscape']){

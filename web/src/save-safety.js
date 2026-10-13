@@ -4,17 +4,22 @@ import * as db from './storage.js';
 import {saveKey,coreFor,compatibleState} from './core-registry.js';
 import {hash} from './shared.js';
 import {assertHistoryRecord} from './save-history.js';
+import {createSaveWriter} from './save-writer.js';
+import {guardUpdateTask} from './update-activity.js';
+const interrupted=()=>new Error(tr('保存が中断されました。以前の保存データは残っています。'));
 export class SaveProtection {
- constructor(onStatus){this.onStatus=onStatus;this.queue=Promise.resolve();this.stateAt=0;}
+ constructor(onStatus,{useWorker=true}={}){this.onStatus=onStatus;this.useWorker=useWorker;this.queue=Promise.resolve();this.stateAt=0;this.openGeneration=0;this.accepting=false;}
  async open(game,coreId){
+  if(this.opening||this.game||this.closeTask)throw interrupted();
   if(!navigator.locks)throw new Error(tr('このブラウザは保存に必要な機能に対応していません。最新版を使用してください。'));
+  this.opening=true;let finishOpening;this.openingTask=new Promise(resolve=>{finishOpening=resolve;});
+  try{
   await new Promise((resolve,reject)=>{
    this.lockTask=navigator.locks.request('local-game:'+game.id,{ifAvailable:true},async lock=>{
     if(!lock){reject(new Error(tr('このゲームは別のタブで開いています。そちらを終了してから開いてください。')));return;}
     await new Promise(done=>{this.release=done;resolve();});
    });this.lockTask.catch(reject);
   });
-  try{
    const fresh=await db.get('library',game.id);if(fresh&&coreFor(fresh).key!==coreFor(game).key)throw Error(tr('コア設定が変更されました。ゲームを開き直してください。'));
    if(fresh?.romMissing)throw Error(tr('ROMが取り外されています。同じROMを追加してください。'));
    this.game=game;this.storageKey=saveKey(game);this.coreId=coreId;this.id=crypto.randomUUID();this.stateAt=0;
@@ -22,16 +27,35 @@ export class SaveProtection {
    const recoveries=await db.get('recoveries',this.storageKey)||[];
    await db.put('sessions',this.storageKey,{id:this.id,dirty:true,startedAt:Date.now(),coreId});
    const save=await db.get('saves',this.storageKey);
+   this.writer=createSaveWriter({useWorker:this.useWorker});this.openGeneration++;this.accepting=!this.closeTask;
    this.status={at:save?.at||0,stateAt:recoveries[0]?.at||0};this.onStatus(this.status);
    return {save,interrupted:!!previous?.dirty,recoveries};
-  }catch(e){this.release?.();this.release=null;await this.lockTask?.catch(()=>{});this.lockTask=null;throw e;}
+  }catch(e){this.accepting=false;await this.writer?.close();this.writer=null;this.release?.();this.release=null;await this.lockTask?.catch(()=>{});this.lockTask=null;this.game=null;this.id=null;throw e;}
+  finally{this.opening=false;finishOpening();this.openingTask=null;}
+ }
+ beginFence(sessionId){
+  if(this.fence)return;
+  const fence={sessionId};
+  // A failed fencing attempt must keep updates blocked even after the save's
+  // promise rejects. Only a completed transaction releases this activity hold.
+  fence.activity=guardUpdateTask(()=>new Promise(resolve=>{fence.releaseActivity=resolve;}))();
+  this.fence=fence;
+ }
+ async resolveFence(){
+  const fence=this.fence;if(!fence)return;
+  const nextId=await db.rotateSaveSession(this.storageKey,fence.sessionId);
+  this.id=nextId;this.fence=null;fence.releaseActivity();
  }
  save(core,{checkpoint=false,clean=false,reason='auto'}={}){
-  const game=this.game,session=this.id,coreId=this.coreId,storageKey=this.storageKey;
-  const next=this.queue.catch(()=>{}).then(async()=>{
-   if(!game||this.id!==session)return;
+  if(!this.accepting||!this.game)return Promise.reject(interrupted());
+  const generation=this.openGeneration,coreId=this.coreId,storageKey=this.storageKey;
+  const next=guardUpdateTask(()=>this.queue.catch(()=>{}).then(async()=>{
+   if(this.openGeneration!==generation)throw interrupted();
    this.onStatus({...this.status,busy:true});
    try{
+    // Obtain the current owner only after any earlier ambiguous commit has
+    // been fenced. Already queued saves remain valid within this open session.
+    await this.resolveFence();const session=this.id;
     const captured=checkpoint&&core.checkpoint?await core.checkpoint():null;
     const raw=captured?captured.save:await core.save(),bytes=raw?.length?new Uint8Array(raw):null,at=Date.now();
     let state=null,stateError=null;
@@ -42,14 +66,22 @@ export class SaveProtection {
     // An unsupported oversized checkpoint must not block the game's ordinary
     // battery save, nor replace a previously usable recovery record.
     if(recovery){try{assertHistoryRecord(recovery);}catch(e){stateError=e;recovery=null;}}
-    await db.commitProtection(storageKey,session,save,recovery,clean&&!stateError);
+    try{await this.writer.commit({id:storageKey,sessionId:session,save,recovery,clean:clean&&!stateError});}
+    catch(error){
+     if(error.saveOutcomeUnknown){
+      this.beginFence(session);
+      try{await this.resolveFence();}catch(fenceError){error.fenceError=fenceError;}
+     }
+     // Never resend an ambiguous snapshot: it may already have committed.
+     throw error;
+    }
     if(recovery)this.stateAt=at;
     this.status={at:save?at:this.status?.at||0,stateAt:recovery?at:this.status?.stateAt||0};
     if(stateError)throw new Error(tr('ゲーム内セーブは保存しましたが、中断状態の保存に失敗しました：')+stateError.message);
     this.onStatus(this.status);
     return {save,recovery};
    }catch(e){this.onStatus({...this.status,error:e.name==='QuotaExceededError'?tr('容量不足で保存できません。セーブを書き出してください。'):e.message});throw e;}
-  });this.queue=next;return next;
+  }))();this.queue=next;return next;
  }
  async verify(record){if(!record?.bytes?.length)throw new Error(tr('保存データがありません。'));if(record.hash&&await hash(new Uint8Array(record.bytes))!==record.hash)throw new Error(tr('保存データに破損が見つかりました。別のバックアップを選んでください。'));return new Uint8Array(record.bytes);}
  compatible(record){return compatibleState(this.coreId,record);}
@@ -60,10 +92,21 @@ export class SaveProtection {
   await core.loadState(bytes);if(record.save?.length&&!core.stateIncludesSave)await core.restore(new Uint8Array(record.save));
   await core.restorePreview?.(record.image);
  }
- async close(){
-  await this.queue.catch(()=>{});this.release?.();this.release=null;this.id=null;this.game=null;
+ close(){
+  if(this.closeTask)return this.closeTask;
+  this.accepting=false;
+  const task=guardUpdateTask(async()=>{
+  await this.openingTask;this.accepting=false;
+  await this.queue.catch(()=>{});
+  // A rejection alone never authorizes releasing an unresolved old writer.
+  // If this retry fails, retain the game, session, lock and activity hold.
+  await this.resolveFence();await this.writer?.close();this.writer=null;
+  this.release?.();this.release=null;this.id=null;this.game=null;this.openGeneration++;
   // Resolving the callback only requests release. Wait for Web Locks to finish
   // releasing it before allowing an awaited close/open cycle to continue.
   await this.lockTask?.catch(()=>{});this.lockTask=null;
+  this.queue=Promise.resolve();
+  })();
+  this.closeTask=task.finally(()=>{this.closeTask=null;});return this.closeTask;
  }
 }
