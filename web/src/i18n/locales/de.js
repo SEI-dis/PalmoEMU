@@ -1257,5 +1257,8 @@ export default {
  "ニックネームは30文字以内で入力してください。": "Bitte geben Sie einen Nicknamen mit maximal 30 Zeichen ein.",
  "ニックネームを保存できませんでした。": "Nickname konnte nicht gespeichert werden.",
  "クイックスタート": "Schnellstart",
- "ゲームをタップしてすぐにプレイ": "Tippen Sie auf das Spiel, um sofort zu spielen."
+ "ゲームをタップしてすぐにプレイ": "Tippen Sie auf das Spiel, um sofort zu spielen.",
+ "手動で更新": "Manuell aktualisieren",
+ "あとで": "Später",
+ "更新できませんでした。": "Update fehlgeschlagen."
 };

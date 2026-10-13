@@ -9,15 +9,17 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  if(!navigator.serviceWorker||!navigator.locks||!isSecureContext)return;
  const name='local-play-version:'+new URL('../',import.meta.url).pathname;
  let releaseLease,lease,registration,prepared=null,lastInput=Date.now(),checking=false,lastCheck=0,indicatorTimer,reloading=false;
- let staging=null,deferred=null,stageTimer,updateCheck=null,launchCheck=false;
+ let staging=null,deferred=false,stageTimer,updateCheck=null,launchCheck=false,failed=false,missingCandidateAt=null;
  const noticeKey='local-play-updated:'+new URL('../',import.meta.url).pathname;
  const pickers=new Set();
  const indicator=document.createElement('dialog');indicator.className='update-progress';
- indicator.innerHTML='<span class="update-spinner" aria-hidden="true"></span><div class="update-copy"><strong hidden></strong><span role="status"></span><button type="button" hidden></button></div>';
- const title=indicator.querySelector('strong'),status=indicator.querySelector('[role=status]'),continueButton=indicator.querySelector('button');
+ indicator.innerHTML='<span class="update-spinner" aria-hidden="true"></span><div class="update-copy"><strong hidden></strong><span role="status"></span><a class="primary update-manual" hidden></a><button type="button" hidden></button></div>';
+ const title=indicator.querySelector('strong'),status=indicator.querySelector('[role=status]'),continueButton=indicator.querySelector('button'),manual=indicator.querySelector('a');
+ manual.textContent=tr('手動で更新');manual.href=new URL('../update.html',import.meta.url).href;
+ manual.onclick=event=>{if(updateTasksPending()||pickers.size||!canUpdate()){event.preventDefault();closeStage(true);}};
  title.textContent=tr('アプリの更新');continueButton.textContent=tr('今は続ける');
  continueButton.onclick=()=>closeStage(true);
- indicator.addEventListener('cancel',event=>{event.preventDefault();if(staging&&!prepared&&indicator.dataset.phase==='waiting')closeStage(true);});document.body.append(indicator);
+ indicator.addEventListener('cancel',event=>{event.preventDefault();if(!prepared&&!continueButton.hidden)closeStage(true);});document.body.append(indicator);
  function acquire(){
   if(releaseLease)return Promise.resolve();
   return new Promise((resolve,reject)=>{lease=navigator.locks.request(name,{mode:'shared'},()=>new Promise(release=>{releaseLease=release;resolve();}));lease.catch(reject);});
@@ -25,29 +27,45 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  function release(){releaseLease?.();releaseLease=null;}
  function freeze(label=tr('更新中…'),delay=0,{update=false,canContinue=false,phase='startup'}={}){
   clearTimeout(indicatorTimer);document.documentElement.dataset.updating='true';indicator.toggleAttribute('data-delayed',!!delay);
-  title.hidden=!update;continueButton.hidden=!canContinue;indicator.dataset.phase=phase;
+  title.hidden=!update;continueButton.hidden=!canContinue;continueButton.textContent=phase==='failed'?tr('あとで'):tr('今は続ける');manual.hidden=phase!=='failed';indicator.dataset.phase=phase;
   indicator.setAttribute('aria-label',update?tr('アプリの更新'):label);status.textContent=label;if(!indicator.open)indicator.showModal();
   if(delay)indicatorTimer=setTimeout(()=>indicator.removeAttribute('data-delayed'),delay);
  }
  function unfreeze(){clearTimeout(indicatorTimer);indicator.close();indicator.removeAttribute('data-delayed');delete document.documentElement.dataset.updating;}
  function safe(){return navigator.onLine&&!updateTasksPending()&&!pickers.size&&canUpdate()&&![...document.querySelectorAll('dialog[open]')].some(dialog=>dialog!==indicator)&&!document.activeElement?.matches('input:not([type=checkbox]):not([type=radio]):not([type=button]):not([type=file]),textarea,select,[contenteditable="true"]');}
- function ready(){return !prepared&&!launchCheck&&registration?.waiting!==deferred&&(staging||Date.now()-lastInput>=2000)&&safe();}
- function candidate(){const worker=registration?.waiting||registration?.installing;return registration?.active&&worker&&!['redundant','activated'].includes(worker.state)?worker:null;}
- function closeStage(defer=false,notify=false){
+ function ready(){return !prepared&&!failed&&!launchCheck&&!deferred&&(staging||Date.now()-lastInput>=2000)&&safe();}
+ function candidate(){return registration?.active?[registration.waiting,registration.installing].find(worker=>worker&&!['redundant','activated'].includes(worker.state))||null:null;}
+ function closeStage(defer=false){
   if(prepared)return;
-  if(defer)deferred=staging;staging=null;clearTimeout(stageTimer);unfreeze();lastInput=Date.now();
-  if(notify)onDeferred(tr('更新を完了できませんでした。現在のバージョンで続けられます。'));
+  // Respect Continue for this visit, including a replacement worker whose
+  // registration attributes have not reached this page yet. Reload retries.
+  if(defer)deferred=true;staging=null;failed=false;missingCandidateAt=null;clearTimeout(stageTimer);unfreeze();lastInput=Date.now();
  }
- function stageLabel(){return registration?.waiting===staging?tr('更新中…'):tr('ダウンロード中…');}
+ function showFailure(reason){
+  const detail={name:reason==='offline'?'NetworkError':'Error',reason,phase:indicator.dataset.phase,worker:staging?.state,online:navigator.onLine};
+  closeStage();failed=true;freeze(tr('更新できませんでした。'),0,{update:true,canContinue:true,phase:'failed'});onDeferred(detail);
+ }
+ function stageLabel(){return registration?.waiting===staging?tr('準備中…'):tr('ダウンロード中…');}
  function showStage(){
   freeze(stageLabel(),0,{update:true,phase:registration?.waiting===staging?'ready':'downloading'});
-  clearTimeout(stageTimer);stageTimer=setTimeout(()=>closeStage(true,true),60000);
+  // A slow download or another busy tab is not an installation failure.
+  // Let the user leave a long wait, but keep applying automatically if they stay.
+  clearTimeout(stageTimer);stageTimer=setTimeout(()=>{if(staging&&!prepared)continueButton.hidden=false;},60000);
  }
  function refresh(){
-  if(prepared||launchCheck)return;
+  if(prepared||failed||launchCheck)return;
   const worker=candidate();
-  if(staging&&(!navigator.onLine||worker!==staging)){const failed=!navigator.onLine||staging.state==='redundant';closeStage(false,failed);}
-  if(!staging&&worker!==deferred&&worker&&!document.hidden&&safe()){staging=worker;showStage();}
+  // Registration attributes and worker state are delivered in separate tasks.
+  // Retain the version lease and recheck before declaring a missing successor.
+  if(navigator.onLine&&staging?.state==='redundant'&&!worker){missingCandidateAt??=performance.now();if(performance.now()-missingCandidateAt<750)return;}
+  else missingCandidateAt=null;
+  if(staging&&(!navigator.onLine||worker!==staging)){
+   // A newer candidate can replace a waiting worker. Continue with it instead
+   // of reporting the superseded worker as a failed installation.
+   const reason=!navigator.onLine?'offline':staging.state==='redundant'&&!worker?'worker-redundant':null;
+   if(reason){showFailure(reason);return;}closeStage();
+  }
+  if(!staging&&!deferred&&worker&&!document.hidden&&safe()){staging=worker;showStage();}
   if(staging&&registration?.waiting===staging&&indicator.dataset.phase==='downloading')showStage();
   void tryApply();
  }
@@ -83,7 +101,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  // and can be dismissed; only the two-phase prepare releases that lock.
  const inputs=['click','pointerdown','keydown','input','change','drop','submit'];
  for(const type of inputs)window.addEventListener(type,event=>{
-  if(prepared||launchCheck||(staging&&!indicator.contains(event.target))){event.preventDefault();event.stopImmediatePropagation();return;}
+  if(prepared||launchCheck||((staging||failed)&&!indicator.contains(event.target))){event.preventDefault();event.stopImmediatePropagation();return;}
   lastInput=Date.now();
   if(event.target?.matches?.('input[type=file]')){if(type==='click')pickers.add(event.target);if(type==='change')pickers.delete(event.target);}
  },{capture:true});
@@ -129,12 +147,12 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  // Return before applying an update: the caller must release its task guard
  // and launch flag before the existing coordinator can prepare this page.
  async function beforeLaunch(){
-  if(prepared||staging||launchCheck)return false;
-  if(!navigator.onLine)return true;
+  if(prepared||staging||failed||launchCheck)return false;
+  if(!navigator.onLine||deferred)return true;
   launchCheck=true;freeze(tr('準備中…'),300);let timer;
   try{await Promise.race([check(),new Promise(resolve=>{timer=setTimeout(resolve,800);})]);}
   finally{clearTimeout(timer);launchCheck=false;unfreeze();}
-  const worker=candidate();return !worker||worker===deferred||!navigator.onLine;
+  const worker=candidate();return !worker||deferred||!navigator.onLine;
  }
  registration.addEventListener('updatefound',watch);watch();
  setInterval(refresh,500);setInterval(check,300000);

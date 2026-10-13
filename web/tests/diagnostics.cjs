@@ -63,6 +63,15 @@ function privateFree(value){
   assert.equal(bounded.reports.length,5,'Keep only the latest five distinct reports');assert.equal(bounded.stored.reports.length,5);privateFree(bounded.snapshot);
   for(const report of bounded.reports){assert.ok(report.frames.length<=8);assert.ok(report.frames.every(f=>Object.keys(f).every(k=>['file','line','column','wasmFunction','offset'].includes(k))));}
   const latest=bounded.reports.find(r=>r.frames.some(f=>f.line===206));assert.ok(latest,'The newest error is retained');
+  const updateReports=await page.evaluate(marker=>{
+   diagnostics.record({name:'NetworkError',reason:'offline',phase:'ready',worker:'installed',online:false,message:marker},'update');
+   diagnostics.record({name:'Error',reason:marker,phase:marker,worker:marker,online:marker,message:marker},'update');
+   return diagnostics.list().filter(report=>report.source==='update');
+  },marker);
+  assert.deepEqual(updateReports.map(report=>report.error),[
+   {name:'NetworkError',category:'update',reason:'offline',phase:'ready',worker:'installed',online:false},
+   {name:'Error',category:'update',reason:'unknown',phase:'unknown',worker:'unknown',online:null}
+  ]);privateFree(updateReports);
   // Corrupt or older browser storage is untrusted too. Re-sanitize it before
   // display/export; never spread unknown fields from a stored report.
   await page.evaluate(({key,marker})=>{

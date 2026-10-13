@@ -5,7 +5,10 @@ import {coreRegistry} from './core-registry.js';
 import {videoFilters} from './video.js';
 
 const key='palmo-diagnostics-v1',limit=5,frameLimit=8;
-const sources=new Set(['handled','global-error','unhandled-rejection','core','startup','import','save','previous-session']);
+const sources=new Set(['handled','global-error','unhandled-rejection','core','startup','import','save','previous-session','update']);
+const updateReasons=new Set(['offline','worker-redundant']);
+const updatePhases=new Set(['startup','downloading','ready','waiting','applying']);
+const workerStates=new Set(['parsed','installing','installed','activating','activated','redundant']);
 const phases=new Set(['idle','importing','launching','playing','paused','exiting']);
 const links=new Set(['none','online','local','usb']),filters=new Set(videoFilters.map(([id])=>id));
 const cores=Object.values(coreRegistry).flat(),systems=new Set(Object.keys(coreRegistry));
@@ -69,6 +72,7 @@ function frames(error){
 function safeError(value,source){
  if(source==='previous-session')return {name:'SessionInterruption',category:'interrupted-session'};
  const name=member(field(value,'name'),errorNames,'Error');
+ if(source==='update')return {name,category:'update',reason:member(field(value,'reason'),updateReasons,'unknown'),phase:member(field(value,'phase'),updatePhases,'unknown'),worker:member(field(value,'worker'),workerStates,'unknown'),online:typeof field(value,'online')==='boolean'?field(value,'online'):null};
  const category=({QuotaExceededError:'storage-quota',DataCloneError:'storage-clone',NotReadableError:'file-read',AbortError:'aborted',SecurityError:'permission',NotAllowedError:'permission',NetworkError:'network',RuntimeError:'wasm',CompileError:'wasm',LinkError:'wasm',RangeError:'range',TypeError:'type'})[name]||'runtime';
  return {name,category};
 }

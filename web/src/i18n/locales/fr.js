@@ -1257,5 +1257,8 @@ export default {
  "ニックネームは30文字以内で入力してください。": "Veuillez entrer un pseudonyme de 30 caractères maximum.",
  "ニックネームを保存できませんでした。": "Impossible de sauvegarder le pseudonyme.",
  "クイックスタート": "Démarrage rapide",
- "ゲームをタップしてすぐにプレイ": "Appuyez sur le jeu pour jouer immédiatement"
+ "ゲームをタップしてすぐにプレイ": "Appuyez sur le jeu pour jouer immédiatement",
+ "手動で更新": "Mettre à jour manuellement",
+ "あとで": "Plus tard",
+ "更新できませんでした。": "Impossible de mettre à jour."
 };

@@ -493,6 +493,6 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(set
 setupOffline().catch(e=>console.warn('Offline setup:',e.message));
 function openGameLink(){if(engine||!location.hash.startsWith('#game='))return;const game=library.find(g=>g.id===location.hash.slice(6));if(game)showDetails(game);else toast(tr('このブラウザにゲームがありません。先にROMを追加してください。'));}
 window.addEventListener('hashchange',()=>{if(engine||!appReady)return;tab=tabFromHash();render();openGameLink();});
-if((autoUpdates=await startAutoUpdates(()=>appReady&&!libraryView.selecting&&!engine&&!launching&&!importing&&!exiting&&!link&&!linkStarting&&!saveLock&&tab!=='imports',()=>{updateCompleted=true;},toast))!==false){
+if((autoUpdates=await startAutoUpdates(()=>appReady&&!libraryView.selecting&&!engine&&!launching&&!importing&&!exiting&&!link&&!linkStarting&&!saveLock&&tab!=='imports',()=>{updateCompleted=true;},detail=>diagnostics.record(detail,'update')))!==false){
  applySettings();refresh().then(async()=>{dragDepth=0;document.body.classList.remove('drop-active');await preferences.flush();await releaseNotice.start({updated:updateCompleted,existing:library.length>0});await finishStartupInputs({onTab:id=>{setTab(id);render();},onFiles:guardUpdateTask(importFiles)});openGameLink();appReady=true;autoUpdates?.refresh();}).catch(e=>{error(e);$('#content').innerHTML=tr('<div class="empty-library"><h2>保存データを開けませんでした</h2><p>プライベートブラウズを終了するか、ブラウザの保存設定を確認してください。</p></div>');});
 }

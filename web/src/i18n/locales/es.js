@@ -1257,5 +1257,8 @@ export default {
  "ニックネームは30文字以内で入力してください。": "El apodo debe tener un máximo de 30 caracteres.",
  "ニックネームを保存できませんでした。": "No se pudo guardar el apodo.",
  "クイックスタート": "Inicio rápido",
- "ゲームをタップしてすぐにプレイ": "Toque un juego para empezar a jugar"
+ "ゲームをタップしてすぐにプレイ": "Toque un juego para empezar a jugar",
+ "手動で更新": "Actualizar manualmente",
+ "あとで": "Más tarde",
+ "更新できませんでした。": "No se pudo actualizar."
 };

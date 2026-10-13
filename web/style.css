@@ -45,6 +45,8 @@ dialog.release-notice{position:fixed;inset:0;margin:auto;width:min(440px,calc(10
 .release-notice .sheet-handle{display:none}.release-notice .sheet-head{margin-bottom:4px}.release-notice .update-note-version{font-size:13px;color:var(--secondary);margin:0 0 18px}.release-notice ul{padding-left:1.35em;margin:0 0 20px;line-height:1.7}.release-notice li+li{margin-top:10px}.release-notice p:has(a){margin:0 0 20px}.release-notice a{text-underline-offset:3px}.release-notice #release-notice-done{min-height:44px}
 dialog.update-progress{position:fixed;inset:0;margin:auto;width:max-content;height:max-content;max-width:calc(100dvw - 32px);max-height:calc(100dvh - 32px);padding:24px;border-radius:18px;font-size:16px;line-height:1.5;outline:0}
 dialog.update-progress[open]{display:flex;align-items:center;justify-content:center;gap:14px}
+dialog.update-progress[data-phase=failed] .update-spinner{display:none}
+.update-manual{display:block;margin-top:8px;min-height:44px;padding:10px 16px;border-radius:12px;font-size:14px;text-align:center;text-decoration:none;font-weight:700}
 .update-copy{display:grid;gap:8px;min-width:0;max-width:280px;overflow-wrap:anywhere}.update-copy strong{font-size:16px}.update-copy [role=status]{font-size:14px}.update-copy button{justify-self:start;min-height:36px;padding:6px 12px;border-radius:9px;background:var(--raised)}
 dialog.update-progress[data-delayed],dialog.update-progress[data-delayed]::backdrop{visibility:hidden}
 .update-spinner{width:24px;height:24px;flex:0 0 24px;border:3px solid var(--line);border-top-color:var(--accent,#fa4454);border-radius:50%;animation:update-spin .8s linear infinite}
