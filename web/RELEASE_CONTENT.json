@@ -95,8 +95,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 79684,
-      "sha256": "2d586f3fa597cfb66c244c75aa6ae0651ce7c4aeda5c947b46ccc0afb859b48c",
+      "bytes": 79883,
+      "sha256": "ff609fd8e0eb9a7745e41f303a91a46c66e5911e038e6370a1cafdd40f6ba70b",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -900,7 +900,7 @@
     {
       "path": "index.html",
       "bytes": 4984,
-      "sha256": "ece54022a46f03c6c5b094a7f6dae2d6f88e87b3a1a6b8a43996278c0203322b",
+      "sha256": "50ef1fce1c5fb3322bff34020bcbf90b9d7feb188aef149ae59b6bd14ce6d72c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41291,8 +41291,8 @@
     },
     {
       "path": "tests/languages.cjs",
-      "bytes": 7697,
-      "sha256": "05782f57265b552edde8faa1253344d9eacdf860a7bf21742888b0a84f02eec0",
+      "bytes": 7864,
+      "sha256": "c00356e45e6084e7f1e85c22328eda205fe527f82b2488e2e6307cb83856895f",
       "component": "web-port-code-and-documentation"
     },
     {

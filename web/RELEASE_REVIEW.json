@@ -4,7 +4,7 @@
   "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices. Version 0.3.20 includes reviewed ManicEMU behavior ports, MPL optimization/effect sources, MIT patcher modules and GPL xBRZ shader source. No additional user data or remote upload service. Version 0.3.21 adjusts original built-in D-pad artwork and direction sectors only; authored/imported skin layouts, safe areas, storage and cores are unchanged. Version 0.3.22 adds reviewed DS microphone/language controls, bounded local ZIP import, GB/GBC tilt options, game-specific RTC and opt-in gamepad rumble, MPL pixel-transfer calibration and filter strength. It protects home-screen double taps and stages automatic updates with a clear central title while preserving game/save/task/version locks. Pinned mGBA and both DS cores were independently rebuilt and matched. Startup restores validated battery data before running frames. No new third-party artwork, analytics, ROM/save upload or network relay.",
   "openItems": [],
   "note": "Engineering review of pinned dependencies, corresponding source, notices, distribution contents and runtime regression tests. Not a legal opinion or a grant of rights in user ROMs/artwork. iPhone hardware and broad commercial-game compatibility remain unverified; limited local compatibility checks are scoped in RELEASE_VALIDATION.md. Any distribution/workflow change requires renewed review.",
-  "reviewedContentSha256": "713fdc9c17b595de69d4078e0aa60615a0d028edef376808d0abedeaf832927b",
+  "reviewedContentSha256": "28dae7ee7984c3f36a42bc5f147ba2b0cd5629a0a620d6bd741c25e293800747",
   "resolutions": [
     {
       "id": "corresponding-source",
@@ -39,7 +39,7 @@
     {
       "id": "runtime-validation",
       "evidenceFile": "RELEASE_VALIDATION.md",
-      "sha256": "2d586f3fa597cfb66c244c75aa6ae0651ce7c4aeda5c947b46ccc0afb859b48c"
+      "sha256": "ff609fd8e0eb9a7745e41f303a91a46c66e5911e038e6370a1cafdd40f6ba70b"
     },
     {
       "id": "alternate-corresponding-source",

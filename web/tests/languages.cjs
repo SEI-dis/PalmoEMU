@@ -34,7 +34,9 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
    }
    const local=await page.evaluate(async()=>{const {tr}=await import('./src/i18n/index.js');return {plain:tr('保存'),dynamic:tr`「${'保存 <b>test</b>⟪0⟫'}」の${2}行目を読み込めません。`};});
    assert.equal(local.plain,catalogue['保存']);assert.ok(local.dynamic.includes('保存 <b>test</b>⟪0⟫'),'User text remains literal');assert.ok(local.dynamic.includes('2'));
-   await page.locator('#app-language').selectOption(code);await page.waitForFunction(code=>localStorage.getItem('palmo-language')===code,code);await page.locator('#app-language').waitFor();
+   // The setting triggers a reload; storage and the old select can be ready before navigation finishes.
+   await Promise.all([page.waitForNavigation({waitUntil:'load'}),page.locator('#app-language').selectOption(code)]);
+   await page.waitForFunction(code=>localStorage.getItem('palmo-language')===code,code);await page.locator('#app-language').waitFor();
    await page.reload();await page.locator('#app-language').waitFor();assert.equal(await page.locator('#app-language').inputValue(),code);
    for(const name of ['notices','privacy','licenses','update']){
     await page.goto(base+name+'.html');await page.waitForFunction(code=>document.documentElement.lang===code,code);
