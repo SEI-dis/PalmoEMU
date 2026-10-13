@@ -60,7 +60,7 @@ export class ThreeDSCore extends NDSCore {
  setVolume(value){super.setVolume(value);this.send('volume',{value});}
  setCheats(list){if(list?.some(c=>c.enabled))throw Error(tr('この3DSコアはチートに対応していません。'));}
  setRenderLimit(){}
- presentScreens(){this.rawScreens.forEach((c,i)=>{const video=this.videos[i];if(video.enlarged)video.draw(c.getContext('2d').getImageData(0,0,c.width,c.height));else video.restorePreview(c);});}
+ presentScreens(){this.rawScreens.forEach((c,i)=>{const video=this.videos[i];if(video.enlarged||video.gpuMode)video.draw(c.getContext('2d').getImageData(0,0,c.width,c.height));else video.restorePreview(c);});}
  drawBitmap(bitmap){this.rawScreens.forEach((c,i)=>c.getContext('2d').drawImage(bitmap,i?40:0,i?240:0,c.width,240,0,0,c.width,240));this.presentScreens();}
  setFilter(mode){super.setFilter(mode);this.presentScreens();}
  save(){return this.call('save');}
@@ -74,7 +74,7 @@ export class ThreeDSCore extends NDSCore {
   if(typeof url!=='string'||!url.startsWith('data:image/png;base64,')||url.length>8*1048576)return;
   try{const image=new Image();image.src=url;await image.decode();if(!this.closed&&this.paused)this.drawBitmap(image);}catch{}
  }
- async close(){this.video?.dispose();
+ async close(){this.videos.forEach(video=>video.dispose());
   if(this.closed)return;this.pause(true);cancelAnimationFrame(this.raf);
   const flags=this.keyboard&&new Int32Array(this.keyboard,0,4);if(flags){Atomics.store(flags,0,2);Atomics.notify(flags,0);}
   try{await Promise.race([this.call('close'),new Promise(r=>setTimeout(r,3000))]);}finally{

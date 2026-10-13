@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MPL-2.0
+// Also offered under AGPL-3.0-or-later for this combination; see ../MPL_SECONDARY_LICENSE.md.
 // Adapted from pm-start/mgba-celio-web screen-effects.js, 23235bc6 (liru55 and contributors).
 // Modified 2026-10-13: offscreen output, fixed 3x/4x bounds, lifecycle cleanup,
 // local shader loading and pixel fallback. See shaders/COPYING.txt for xBRZ.

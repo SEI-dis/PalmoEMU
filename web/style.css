@@ -182,3 +182,7 @@ dialog.control-edit{width:min(1000px,calc(100% - 16px - env(safe-area-inset-left
 @media(orientation:landscape) and (max-height:600px){.import-hero{min-height:100px;background:var(--panel);border-radius:20px}.import-hero:before{display:none}.import-hero img{width:72px;height:72px;border-radius:16px}.import-service{min-height:138px}}
 
 .controller-focus:focus{outline:3px solid var(--accent,#ff3966);outline-offset:3px}
+
+/* Local file and cartridge controls keep readable labels on narrow screens. */
+.row:has(#patch-rom,#patch-file){display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.row:has(#patch-rom,#patch-file)>span{grid-column:1}.row input[type=file]{width:100%;min-width:0;font:inherit;font-size:13px;color:var(--secondary)}.row input[type=file]::file-selector-button{border:0;border-radius:8px;padding:9px 12px;margin-right:8px;background:var(--raised);color:var(--text);font:inherit}
+.row:has([data-sensor]){display:flex!important;flex-direction:column;align-items:stretch;gap:8px}.row [data-sensor]{width:100%!important;max-width:none!important}

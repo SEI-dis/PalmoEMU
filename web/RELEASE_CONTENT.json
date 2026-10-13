@@ -35,8 +35,8 @@
     },
     {
       "path": "FEATURE_REVIEW.md",
-      "bytes": 7207,
-      "sha256": "1edfa9efa174b2e101b64e9c1fc434c5e77197c4781b7dcf98d201d9772d65e6",
+      "bytes": 7638,
+      "sha256": "193fbb32ab642247074991a6953c52f51730c353038707514282326780e6e691",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -71,8 +71,8 @@
     },
     {
       "path": "MPL_SECONDARY_LICENSE.md",
-      "bytes": 1503,
-      "sha256": "b612089dcc1bb7eb66195deb0b402871ea9834e345c83015a6d2bd36a7929ab8",
+      "bytes": 1556,
+      "sha256": "92a0424013e300d099500e240f0ed29b84d8122b8a85acd2b19edeeabb86df28",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -900,7 +900,7 @@
     {
       "path": "index.html",
       "bytes": 4966,
-      "sha256": "c9354369960fa69542529e129daf19b9a609e828fcb55ece2c5be44c49a7b834",
+      "sha256": "26136dbef49cf53725a5796677803655d2559c4174f632f0ecf39cd222e29d97",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40625,8 +40625,8 @@
     },
     {
       "path": "src/gpu-filter.js",
-      "bytes": 8899,
-      "sha256": "542a20c1b87b48a81920db4ebc321810329245eb3b7f2a511daef717541a00d2",
+      "bytes": 8995,
+      "sha256": "1bd89ca8d5bc88644bf05780eb7b30a5fe84acabe8932c7250ba906bd3f19269",
       "component": "celio-screen-effects-mpl-2.0"
     },
     {
@@ -40973,8 +40973,8 @@
     },
     {
       "path": "src/three-ds.js",
-      "bytes": 6708,
-      "sha256": "0589e00debc100c56697cc30fdeae7978b8d87a0bfb550c14c30a42e44894a16",
+      "bytes": 6745,
+      "sha256": "cd3bf33eb90876971123a82a2eec2f4c293623a1c26b322ae9c2209862438939",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41039,8 +41039,8 @@
     },
     {
       "path": "src/views/gba-options.js",
-      "bytes": 2145,
-      "sha256": "b738262f51a5f324d773f33386ad313a30744d2a53e3f090fb2ce92a9ac10386",
+      "bytes": 2209,
+      "sha256": "9d7ee61de48eb5ad65079cd2d7a4419d18f8e0186edb87878ea4b7c5dedd823e",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41081,8 +41081,8 @@
     },
     {
       "path": "style.css",
-      "bytes": 32670,
-      "sha256": "b5e391f3f618bec52fbaa576c2e5f7e46e62e7aae05b50a46d3a919949a0942a",
+      "bytes": 33318,
+      "sha256": "b7cba5d41ddbcef18b643603acc0059f1db2967c774429551e69e3776611cb3a",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41261,8 +41261,8 @@
     },
     {
       "path": "tests/library-bulk.cjs",
-      "bytes": 11011,
-      "sha256": "3fde1a69ad6ebbe6d8445bcfd7617c74c0d48c4fd9507d6f47099b12f6250352",
+      "bytes": 11031,
+      "sha256": "e358a81f32360a39e8897081f99224ad350293dfd5ee94ccec440ac7d9aff233",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41483,8 +41483,8 @@
     },
     {
       "path": "tests/upstream-features.cjs",
-      "bytes": 14343,
-      "sha256": "845c7fecc8f4742eebd1e87cd3934779c7bce86d82bca23f28ba5892e6489dcf",
+      "bytes": 14914,
+      "sha256": "5d63c3b13d021873a110ff75520c8f5e23ddf0500b0be56db9135f2291e8771f",
       "component": "web-port-code-and-documentation"
     },
     {
