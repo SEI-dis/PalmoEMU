@@ -1,6 +1,39 @@
 {
   "releases": [
     {
+      "version": "0.3.21",
+      "date": "2026-10-13",
+      "changes": [
+        "標準スキンの十字キーを押しやすく調整しました。指の位置が少しずれても、上下左右を入力しやすくなります。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "调整了标准皮肤的十字键，使其更易按。即使手指位置有轻微偏差，也能更容易地输入上下左右方向。"
+        ],
+        "zh-Hant": [
+          "已調整標準外觀的十字鍵，讓操作更輕鬆。即使手指位置稍有偏移，也更容易輸入上下左右方向。"
+        ],
+        "ko": [
+          "기본 스킨의 방향키를 누르기 쉽게 조정했습니다. 손가락 위치가 약간 벗어나도 상하좌우 입력을 하기 쉬워졌습니다."
+        ],
+        "es": [
+          "Ajustamos la cruceta del tema predeterminado para facilitar su uso. Ahora es más fácil pulsar arriba, abajo, izquierda o derecha aunque el dedo se desvíe un poco."
+        ],
+        "fr": [
+          "La croix directionnelle du skin par défaut est plus facile à utiliser. Les directions haut, bas, gauche et droite sont plus faciles à saisir, même si le doigt est légèrement décalé."
+        ],
+        "de": [
+          "Das Steuerkreuz des Standard-Skins lässt sich leichter bedienen. Auch wenn der Finger etwas verrutscht, lassen sich die vier Hauptrichtungen leichter eingeben."
+        ],
+        "pt": [
+          "Ajustamos o direcional do tema padrão para facilitar o uso. Agora é mais fácil pressionar para cima, para baixo, para a esquerda e para a direita mesmo quando o dedo fica um pouco fora do centro."
+        ]
+      },
+      "changesEn": [
+        "Adjusted the D-pad on the default skin to make directional inputs easier, even when your finger is slightly off-center."
+      ]
+    },
+    {
       "version": "0.3.20",
       "date": "2026-10-13",
       "changes": [

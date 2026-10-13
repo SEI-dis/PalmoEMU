@@ -62,11 +62,13 @@ dialog.states-view[open]{display:flex;flex-direction:column}
 .skin-button{min-width:0;min-height:0;aspect-ratio:auto;box-sizing:border-box}
 /* Keep the directional hit area stable. Shade only the active part of its art. */
 .skin-button.dpad:active,.skin-button.dpad.pressed{filter:none;transform:none}
-.dpad-direction{position:absolute;inset:0;pointer-events:none;background-image:inherit;background-size:100% 100%;background-repeat:no-repeat;filter:brightness(.65)}
-.dpad-direction[data-direction=up]{clip-path:inset(0 0 66.6667% 0)}
-.dpad-direction[data-direction=down]{clip-path:inset(66.6667% 0 0 0)}
-.dpad-direction[data-direction=left]{clip-path:inset(0 66.6667% 0 0)}
-.dpad-direction[data-direction=right]{clip-path:inset(0 0 0 66.6667%)}
+.dpad-direction{--dpad-cut:66.6667%;position:absolute;inset:0;pointer-events:none;background-image:inherit;background-size:100% 100%;background-repeat:no-repeat;filter:brightness(.65)}
+/* The original single-screen cross has wider arms; keep adjacent arms unshaded. */
+#player[data-builtin=true]:not([data-system=nds]):not([data-system="3ds"]) .dpad-direction{--dpad-cut:70.833333%}
+.dpad-direction[data-direction=up]{clip-path:inset(0 0 var(--dpad-cut) 0)}
+.dpad-direction[data-direction=down]{clip-path:inset(var(--dpad-cut) 0 0 0)}
+.dpad-direction[data-direction=left]{clip-path:inset(0 var(--dpad-cut) 0 0)}
+.dpad-direction[data-direction=right]{clip-path:inset(0 0 0 var(--dpad-cut))}
 /* Some imported skins paint controls into the case instead of separate assets. */
 .dpad-direction.baked{background-image:none;filter:none;backdrop-filter:brightness(.65)}
 #quick-actions{display:contents}

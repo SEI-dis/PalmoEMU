@@ -1,10 +1,10 @@
 {
   "reviewedOn": "2026-10-13",
   "status": "ready",
-  "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices. Version 0.3.20 includes reviewed ManicEMU behavior ports, MPL optimization/effect sources, MIT patcher modules and GPL xBRZ shader source. No additional user data or remote upload service.",
+  "scope": "This exact static Web distribution, pinned core sources and manually dispatched deployment. The 3DS host adapter is disabled in the static distribution; Azahar binaries are excluded and their distribution audit is separate. No user ROM/save or extracted commercial BIOS is included. Third-party artwork is limited to the seven explicitly reviewed CC BY 4.0 ManicEMUSkins standard skins pinned in BUNDLED_SKINS.json; newer System.core assets and unrelated skins are excluded. Open-source replacement implementations retain their notices. Version 0.3.20 includes reviewed ManicEMU behavior ports, MPL optimization/effect sources, MIT patcher modules and GPL xBRZ shader source. No additional user data or remote upload service. Version 0.3.21 adjusts original built-in D-pad artwork and direction sectors only; authored/imported skin layouts, safe areas, storage and cores are unchanged.",
   "openItems": [],
   "note": "Engineering review of pinned dependencies, corresponding source, notices, distribution contents and runtime regression tests. Not a legal opinion or a grant of rights in user ROMs/artwork. iPhone hardware and broad commercial-game compatibility remain unverified; limited local compatibility checks are scoped in RELEASE_VALIDATION.md. Any distribution/workflow change requires renewed review.",
-  "reviewedContentSha256": "8b7ba411a1c22b5ec765de2b94cfa5ff5ec580466fe04815c26c7378aeb48721",
+  "reviewedContentSha256": "b49645848c0e2c7925b9f991679d090e8085e8137e01585539856b175e89a0a2",
   "resolutions": [
     {
       "id": "corresponding-source",
@@ -39,7 +39,7 @@
     {
       "id": "runtime-validation",
       "evidenceFile": "RELEASE_VALIDATION.md",
-      "sha256": "fb45e3de5a1ead19e2e5bb2b1013d35a83536a6662a22aa34c0df6e386756214"
+      "sha256": "5e4de7467c7133e0c8bb0661d143d72d97d26c1e2044a47a8f69ab6639ce6489"
     },
     {
       "id": "alternate-corresponding-source",
@@ -64,7 +64,7 @@
     {
       "id": "mobile-input-0316",
       "evidenceFile": "MOBILE_INPUT_REVIEW.md",
-      "sha256": "accba381ae4ffaff78475477af777bf37240a15e8322df65949255b556a72101"
+      "sha256": "f0f0a49a2f258801633fc5bc79359ebdd11dfaa60327d210acb3c5dd2e78dd7a"
     },
     {
       "id": "localization-and-components-0317",
