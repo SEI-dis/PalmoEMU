@@ -1,6 +1,39 @@
 {
   "releases": [
     {
+      "version": "0.3.28",
+      "date": "2026-10-14",
+      "changes": [
+        "PokemonStartのROM更新で、ROM内の互換性条件からセーブ変換の要否を判定するよう修正しました。0.35.0→0.42.5も変換して更新できます。"
+      ],
+      "changesEn": [
+        "PokemonStart ROM updates now read compatibility conditions from the ROM to determine whether save conversion is needed. Updating from 0.35.0 to 0.42.5 with conversion is supported."
+      ],
+      "translations": {
+        "zh-Hans": [
+          "修复了PokemonStart的ROM更新流程，现在根据ROM内的兼容条件判断是否需要转换存档。也可将0.35.0的存档转换后更新至0.42.5。"
+        ],
+        "zh-Hant": [
+          "修正PokemonStart的ROM更新流程，現在依據ROM內的相容條件判斷是否需要轉換存檔。也可將0.35.0的存檔轉換後更新至0.42.5。"
+        ],
+        "ko": [
+          "PokemonStart ROM 업데이트 시 ROM 내부의 호환 조건으로 세이브 변환 필요 여부를 판단하도록 수정했습니다. 0.35.0에서 0.42.5로도 변환하여 업데이트할 수 있습니다."
+        ],
+        "es": [
+          "Las actualizaciones de ROM de PokemonStart ahora comprueban las condiciones de compatibilidad de la propia ROM para determinar si es necesario convertir la partida. También se puede convertir al actualizar de 0.35.0 a 0.42.5."
+        ],
+        "fr": [
+          "Les mises à jour de ROM PokemonStart utilisent désormais les conditions de compatibilité de la ROM pour déterminer si la sauvegarde doit être convertie. La mise à jour de 0.35.0 vers 0.42.5 avec conversion est également prise en charge."
+        ],
+        "de": [
+          "Bei PokemonStart-ROM-Updates wird anhand der Kompatibilitätsbedingungen in der ROM geprüft, ob der Spielstand konvertiert werden muss. Auch das Update von 0.35.0 auf 0.42.5 mit Konvertierung ist möglich."
+        ],
+        "pt": [
+          "As atualizações de ROM do PokemonStart agora verificam as condições de compatibilidade da própria ROM para determinar se é preciso converter o save. Também é possível converter ao atualizar de 0.35.0 para 0.42.5."
+        ]
+      }
+    },
+    {
       "version": "0.3.27",
       "date": "2026-10-14",
       "changes": [

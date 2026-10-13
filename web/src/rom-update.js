@@ -5,6 +5,7 @@ import {tr} from './i18n/index.js';
 import {coreFor,saveKey,supportsGame} from './core-registry.js';
 import {hash} from './shared.js';
 import * as db from './storage.js';
+import {isStartName} from './start-save-version.js';
 
 export async function sourceSave(id){
  const game=await db.get('library',id);if(!game)throw Error(tr('元のゲームが見つかりません。'));
@@ -32,19 +33,29 @@ export async function finishROMUpdate(plan,game,rom,onProgress){
   if(coreFor(source).key!==plan.sourceCore||digest!==plan.sourceHash||save.at!==plan.sourceAt)throw Error(tr('元のセーブまたはコアが変わりました。内容を確認してやり直してください。'));
   if(source.id===game.id||source.system!==game.system||!supportsGame(coreFor(source),game))throw Error(tr('更新するROMを確認してください。'));
   let targetSave=save,migration;
-  if(plan.startCopy){
-   const {identifyStartROM,inspectStartUpdate,START_MIGRATION_VERSION}=await import('./start-save-migration.js');
-   if(source.system!=='gba'||coreFor(source).key!=='mgba'||identifyStartROM(rom)?.version!==START_MIGRATION_VERSION||inspectStartUpdate(save.bytes,plan.startCopy.from).compatibility.status!=='compatible')throw Error(tr('セーブの互換性を確認できませんでした。内容を確認してやり直してください。'));
-  }
-  if(plan.startMigration){
+  if(source.system==='gba'&&coreFor(source).key==='mgba'){
    const {identifyStartROM,migrateStartSave,inspectStartUpdate,START_MIGRATION_VERSION}=await import('./start-save-migration.js');
-   if(source.system!=='gba'||coreFor(source).key!=='mgba'||identifyStartROM(rom)?.version!==START_MIGRATION_VERSION)throw Error(tr('PokemonStart 0.42.3のROMを確認できませんでした。変換セーブの書き出しを使用してください。'));
-   const compatibility=inspectStartUpdate(save.bytes,plan.startMigration.from).compatibility;
-   if(compatibility.status==='compatible')throw Error(tr('このセーブは変換せずに引き継げます。'));
-   if(compatibility.status==='unknown'&&plan.startMigration.allowUnverified!==true)throw Error(tr('変換の必要性が未確認です。内容を確認してください。'));
-   const converted=await migrateStartSave(save.bytes,{from:plan.startMigration.from,onProgress});
-   targetSave={bytes:converted.bytes,hash:await hash(converted.bytes),at:Date.now()};
-   migration={kind:'start',from:plan.startMigration.from,to:START_MIGRATION_VERSION};
+   const {canApplyStartMigration}=await import('./start-save-compatibility.js'),target=identifyStartROM(rom);
+   const operation=plan.startCopy||plan.startMigration;
+   // Recheck the actual selected bytes at commit time. A stale/generic UI must
+   // not bypass migration by sending a plain copy plan for PokemonStart.
+   if(target||operation||isStartName(source.filename,source.name,game.filename,game.name)){
+    if(!target||!operation||!!plan.startCopy===!!plan.startMigration)throw Error(tr('セーブの互換性を確認できませんでした。内容を確認してやり直してください。'));
+    const compatibility=inspectStartUpdate(save.bytes,operation.from,target);
+    const status=compatibility.compatibility.status;
+    if(plan.startCopy){
+     if(status!=='compatible'&&!(status==='unknown'&&operation.allowUnverified===true&&canApplyStartMigration(target)))throw Error(tr('セーブの互換性を確認できませんでした。内容を確認してやり直してください。'));
+    }else{
+     if(!canApplyStartMigration(target))throw Error(tr('このROMへのセーブ変換には未対応です。元のデータは変更していません。'));
+     if(status==='compatible')throw Error(tr('このセーブは変換せずに引き継げます。'));
+     if(status==='unknown'&&operation.allowUnverified!==true)throw Error(tr('変換の必要性が未確認です。内容を確認してください。'));
+     const converted=await migrateStartSave(save.bytes,{from:operation.from,onProgress});
+     targetSave={bytes:converted.bytes,hash:await hash(converted.bytes),at:Date.now()};
+     migration={kind:'start',from:operation.from,to:target.version,...(target.version!==START_MIGRATION_VERSION?{via:START_MIGRATION_VERSION}:{})};
+    }
+   }
+  }else if(plan.startCopy||plan.startMigration){
+   throw Error(tr('この変換はGBAのPokemonStart用です。mGBAコアを選択してください。'));
   }
   return db.commitROMUpdate({source,game,rom,save,targetSave,migration});
  }

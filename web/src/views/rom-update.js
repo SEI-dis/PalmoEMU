@@ -7,6 +7,7 @@ import {prepareROMUpdate,readROMUpdateBackup} from '../rom-update.js';
 import {guardUpdateTask} from '../update-activity.js';
 import * as db from '../storage.js';
 import {createStartSaveDialog} from './start-save-migrate.js';
+import {isStartName} from '../start-save-version.js';
 
 export function createROMUpdateDialog(api){
  const startDialog=createStartSaveDialog(api);
@@ -39,16 +40,17 @@ export function createROMUpdateDialog(api){
     }
     let plan,target,startROM,existing;await work(async()=>{
      const inspected=await importROM(file,system,null,{inspectOnly:true});({game:target,startROM}=inspected);
+     if(!startROM&&system==='gba'&&isStartName(game.filename,game.name,target.filename,target.name))startROM={version:null,unverified:true};
      existing=await db.get('library',target.id);
-     if(!(startROM?.version==='0.42.3'&&core.key==='mgba'&&existing&&(target.id!==game.id||game.romUpdate)))plan=await prepareROMUpdate(game.id,target);
+     if(!(startROM&&core.key==='mgba'&&existing&&(target.id!==game.id||game.romUpdate)))plan=await prepareROMUpdate(game.id,target);
     });
-    if(startROM?.version==='0.42.3'&&core.key==='mgba'){
+    if(startROM&&core.key==='mgba'){
      if(existing&&coreFor(existing).key!=='mgba')throw Error(tr('この変換はGBAのPokemonStart用です。mGBAコアを選択してください。'));
      const same=target.id===game.id;
-     await startDialog.open(game,{previous:same&&!!game.romUpdate,onBack:()=>open(game,{onBack}),target:existing,onCopy:same?undefined:async(inspected,compatible)=>{
+     await startDialog.open(game,{previous:same&&!!game.romUpdate,onBack:()=>open(game,{onBack}),target:existing,targetProfile:startROM,onCopy:same?undefined:async(inspected,compatible)=>{
       const copyPlan=await prepareROMUpdate(game.id,target);
       if(copyPlan.sourceHash!==inspected.hash||copyPlan.sourceAt!==inspected.at)throw Error(tr('元のセーブが変わりました。内容を確認してやり直してください。'));
-      if(compatible)copyPlan.startCopy={from:inspected.version};
+      copyPlan.startCopy={from:inspected.version,allowUnverified:!compatible};
       confirm(game,file,target,copyPlan,onBack,compatible);
      },apply:existing?undefined:async(from,onProgress,options)=>{
       await importROM(file,system,onProgress,{updatePlan:{...plan,startMigration:{from,...options}}});await api.refresh();complete(await db.get('library',target.id));

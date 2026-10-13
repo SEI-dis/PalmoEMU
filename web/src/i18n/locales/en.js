@@ -1341,5 +1341,6 @@ export default {
  "変換せずに引き継ぐ": "Transfer without conversion",
  "この組み合わせで変換が必要かは未確認です。元のバージョンと作者の案内を確認してください。": "Whether this combination requires conversion has not been verified. Check the original version and the author’s instructions.",
  "この旧版のセーブは、そのままでは新版で続きから遊べないため、変換して更新します。": "This save from an older version cannot be used as is to continue in the new version. It will be converted and updated.",
- "ダウンロード一覧を確認": "Check downloads"
+ "ダウンロード一覧を確認": "Check downloads",
+ "このROMへのセーブ変換には未対応です。元のデータは変更していません。": "Save conversion for this ROM is not supported. Your original data has not been changed."
 };

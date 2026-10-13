@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.27",
+  "version": "0.3.28",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
@@ -109,7 +109,9 @@
     "test:save-import-recovery": "node tests/save-import-recovery.cjs",
     "test:save-apply": "node tests/save-apply.cjs",
     "test:mgba-save-probe": "node tests/mgba-save-probe.cjs",
-    "test:start-save-compatibility": "node tests/start-save-compatibility.cjs"
+    "test:start-save-compatibility": "node tests/start-save-compatibility.cjs",
+    "test:start-rom-profile": "node tests/start-rom-profile.cjs",
+    "test:start-save-update-range": "node tests/start-save-update-range.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

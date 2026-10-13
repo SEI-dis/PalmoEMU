@@ -3,9 +3,11 @@
 // this module's license does not relicense ../vendor/start-save-migrate/.
 import {MANIFEST,inspectInput,migrateSave,normalizeVersion,readSave,getVariable} from '../vendor/start-save-migrate/engine.js';
 import {tr} from './i18n/index.js';
-import {startSaveCompatibility} from './start-save-compatibility.js';
+import {startSaveCompatibility,START_MIGRATION_VERSION} from './start-save-compatibility.js';
+import {startVersionNumber,startVersionFromStamp} from './start-save-version.js';
+import {readStartROMProfile,isStartROMFamily} from './start-rom-profile.js';
 
-export const START_MIGRATION_VERSION='0.42.3';
+export {START_MIGRATION_VERSION};
 export const START_SOURCE_VERSIONS=Object.freeze(MANIFEST.versions.map(source=>Object.freeze({version:source.version,sampleTested:source.saveSampleTested===true,boxes:source.boxes,encrypted:source.encrypted,crc32:source.crc32??null})));
 const sizes=new Set([131072,131088,1048576,1048592,6291456,6291472]),maxSaveBytes=6291472;
 const sources=new Map(MANIFEST.versions.map(source=>[source.version,source]));
@@ -26,14 +28,16 @@ const crcTable=Uint32Array.from({length:256},(_,value)=>{for(let bit=0;bit<8;bit
 export function identifyStartROM(value){
  const bytes=view(value);if(bytes.length<192||bytes.length>64*1048576)return null;
  let crc=0xffffffff;for(const byte of bytes)crc=crcTable[(crc^byte)&255]^(crc>>>8);crc=(crc^0xffffffff)>>>0;
- const matches=START_SOURCE_VERSIONS.filter(source=>source.crc32===crc);if(!matches.length)return null;
+ const profile=readStartROMProfile(bytes);if(profile)return {...profile,crc32:crc};
+ const matches=START_SOURCE_VERSIONS.filter(source=>source.crc32===crc);
+ if(!matches.length)return isStartROMFamily(bytes)?{version:null,minimumSaveVersion:null,unverified:true,crc32:crc}:null;
  return matches.length===1?{version:matches[0].version,crc32:crc}:{version:null,versions:matches.map(source=>source.version),crc32:crc};
 }
 
 function inspect(bytes,source){
- const slots=inspectInput(bytes,source.version).map(slot=>{
+ const slots=inspectInput(bytes,source.inspectionVersion||source.version).map(slot=>{
   if(!slot.valid)return {slot:slot.slot,valid:false};
-  const state=readSave(bytes,slot.slot),stamp=getVariable(state,0x50ef),detectedVersion=stamps.get(stamp)||null;
+  const state=readSave(bytes,slot.slot),stamp=getVariable(state,0x50ef),detectedVersion=stamps.get(stamp)||(state.version===23&&state.encrypted&&state.boxCount===50?startVersionFromStamp(stamp):null);
   // Early releases do not define a stamp. Only known stamps are identification
   // evidence; zero/unrecognised old fields must not masquerade as a version.
   if(detectedVersion&&detectedVersion!==source.version)fail('mismatch');
@@ -43,11 +47,25 @@ function inspect(bytes,source){
  return {sourceVersion:source.version,targetVersion:START_MIGRATION_VERSION,sampleTested:source.saveSampleTested===true,slots};
 }
 export function inspectStartSave(value,from){return inspect(copySave(value),sourceVersion(from));}
-export function inspectStartUpdate(value,from){
- const source=sourceVersion(from),info=inspectStartSave(value,from);
+export function detectStartSaveVersion(value){
+ const bytes=copySave(value),versions=[];
+ for(let slot=0;slot<(bytes.length>=6291456?2:1);slot++){
+  let state;try{state=readSave(bytes,slot);}catch{continue;}
+  versions.push(state.version===23&&state.encrypted&&state.boxCount===50?startVersionFromStamp(getVariable(state,0x50ef)):null);
+ }
+ // A converted save may still carry the bridge stamp until the new game saves.
+ // Do not guess when slots disagree or an older slot has no version stamp.
+ return versions.length&&versions[0]&&versions.every(version=>version===versions[0])?versions[0]:null;
+}
+export function inspectStartUpdate(value,from,target=START_MIGRATION_VERSION){
+ const number=startVersionNumber(from);
+ // New releases can retain the existing serialized layout. Only inspect them;
+ // the old converter must never rewrite a source it does not understand.
+ const source=sources.get(normalizeVersion(from))||(number>startVersionNumber(START_MIGRATION_VERSION)?{...sources.get(START_MIGRATION_VERSION),version:from,inspectionVersion:START_MIGRATION_VERSION,saveVersionStamp:number,saveSampleTested:false}:sourceVersion(from));
+ const info=inspect(copySave(value),source);
  // A filename or ROM revision alone cannot establish the actual save format.
  if(info.slots.some(slot=>slot.valid&&(slot.boxes!==source.boxes||slot.encrypted!==source.encrypted)))fail('mismatch');
- return {...info,compatibility:startSaveCompatibility(source.version,START_MIGRATION_VERSION)};
+ return {...info,compatibility:startSaveCompatibility(source.version,target)};
 }
 
 export async function migrateStartSave(value,{from,onProgress,signal,selection='all'}={}){

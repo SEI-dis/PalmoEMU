@@ -1,18 +1,25 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import {MANIFEST} from '../vendor/start-save-migrate/manifest.js';
+import {startVersionNumber} from './start-save-version.js';
 
-// Evidence: PokemonStart CHANGELOG.md, v0.42.3 (0.38.x+ can be read directly)
-// and v0.40.0 (saves older than 0.36.2 cannot continue).
-// https://github.com/pm-start/PokemonStart/blob/7563326f48f795d89b726a05ca1455d5bf9d7217/CHANGELOG.md
-// Conversion coverage is not proof that conversion is necessary. Do not extend
-// this policy to future targets just because the converter manifest grows.
-const versions=MANIFEST.versions.map(entry=>entry.version);
-export function startSaveCompatibility(from,to='0.42.3'){
- const index=versions.indexOf(from);
+// The converter's output version is a bridge, not an exact destination-ROM gate.
+export const START_MIGRATION_VERSION='0.42.3';
+// Changelog evidence for known ROMs; newer ROMs supply their own validated
+// native minimum-save-version gate. Never infer that gate from a filename.
+// https://github.com/pm-start/PokemonStart/blob/a9848a797893f909d7f2c50f3bc4ea5ce71fc804/CHANGELOG.md
+export function startSaveCompatibility(from,target=START_MIGRATION_VERSION){
+ const to=typeof target==='object'?target?.version:target;
+ const source=startVersionNumber(from),destination=startVersionNumber(to);
+ const nativeMinimum=typeof target==='object'?startVersionNumber(target?.minimumSaveVersion):null;
  let status='unknown';
- if(to==='0.42.3'&&index>=0){
-  if(index>=versions.indexOf('0.38.0')&&index<=versions.indexOf('0.42.3'))status='compatible';
-  else if(index<versions.indexOf('0.36.2'))status='convert';
+ if(!target?.unverified&&source!==null&&destination!==null&&source<=destination){
+  if(nativeMinimum!==null)status=source<nativeMinimum?'convert':'compatible';
+  else if(!Object.hasOwn(target||{},'minimumSaveVersion')&&destination>=0x2701&&destination<=0x2a05){
+   if(source<0x2402)status='convert';
+   else if(source>=0x2600)status='compatible';
+  }
  }
  return {status,from:from||null,to};
+}
+export function canApplyStartMigration(target){
+ return startSaveCompatibility(START_MIGRATION_VERSION,target).status==='compatible';
 }

@@ -1341,5 +1341,6 @@ export default {
  "変換せずに引き継ぐ": "Transferir sin convertir",
  "この組み合わせで変換が必要かは未確認です。元のバージョンと作者の案内を確認してください。": "No se ha verificado si esta combinación requiere conversión. Comprueba la versión original y las instrucciones del autor.",
  "この旧版のセーブは、そのままでは新版で続きから遊べないため、変換して更新します。": "Esta partida guardada de una versión anterior no permite continuar en la nueva versión tal como está. Se convertirá y actualizará.",
- "ダウンロード一覧を確認": "Consulta las descargas"
+ "ダウンロード一覧を確認": "Consulta las descargas",
+ "このROMへのセーブ変換には未対応です。元のデータは変更していません。": "No se admite la conversión de partidas para esta ROM. Los datos originales no se han modificado."
 };

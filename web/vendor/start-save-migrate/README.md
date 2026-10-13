@@ -28,3 +28,16 @@ PalmoEMU changes (2026-10-13):
 The original metadata reports sample saves tested for 0.18–0.42.3, no sample coverage for 0.1–0.17, and **no complete gameplay verification**. These are upstream statements, not independently verified claims. PalmoEMU tests use synthetic fixtures only. CRC32 is a compatibility hint, not an authenticity or security guarantee.
 
 Compatibility updates intentionally change save-version variables, newly introduced variables and resume/warp fields. Structural checksums and preservation tests cannot prove that every game event remains playable. The original input must remain separately recoverable; do not overwrite it automatically.
+
+## Destination compatibility (2026-10-14)
+
+The tool still emits 0.42.3-format saves; the host no longer equates that with
+an exact destination ROM version. `src/start-rom-profile.js` reads the native
+version writer and minimum-save gate, using the provided Source package's
+`analysis/extract-compat.py` as identification evidence. Actual local 0.42.3
+and 0.42.5 ROMs were inspected read-only: both reject save versions below
+0.36.2. Compatible newer targets can receive the intermediate output; a
+changed/unreadable gate or a minimum above that output prevents application.
+Tests contain only authored instructions and synthetic save layouts. They
+cover both slots, RTC, original backups, future boundary changes and generic
+copy bypass rejection. The supplied conversion engine has not been changed.

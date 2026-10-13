@@ -38,6 +38,17 @@ is required before selecting an action. Compatible saves are copied unchanged;
 an unverified conversion requires an explicit choice. This integration does not
 modify or relicense the supplied conversion engine.
 
+Modified 2026-10-14: removed the exact destination-ROM version restriction.
+The original PalmoEMU ROM-profile reader validates the PokemonStart cartridge
+header and native save-version writer / Continue gate, reading the minimum
+accepted save version from the ROM. The supplied Source ZIP's
+analysis/extract-compat.py informed identification of variable 0x50EF and the
+VarSet ABI. The conversion engine is unchanged: its 0.42.3 output is applied
+only when the destination accepts that intermediate version. The current
+PokemonStart CHANGELOG.md at a9848a797893f909d7f2c50f3bc4ea5ce71fc804
+also documents compatibility for 0.42.4 and 0.42.5. No game ROM, save,
+artwork or game-code binary is included in these modules or their tests.
+
 The user subsequently supplied Browser and Source ZIP packages. The Browser
 HTML is byte-identical to the original attachment above. Concatenating the
 Source package's engine files in its `build.py` order reproduces the embedded
