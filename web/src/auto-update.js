@@ -9,7 +9,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  if(!navigator.serviceWorker||!navigator.locks||!isSecureContext)return;
  const name='local-play-version:'+new URL('../',import.meta.url).pathname;
  let releaseLease,lease,registration,prepared=null,lastInput=Date.now(),checking=false,lastCheck=0,indicatorTimer,reloading=false;
- let staging=null,deferred=false,stageTimer,updateCheck=null,launchCheck=false,failed=false,missingCandidateAt=null;
+ let staging=null,deferred=false,stageTimer,updateCheck=null,launchCheck=false,failed=false,missingCandidateAt=null,restorePending=false;
  const noticeKey='local-play-updated:'+new URL('../',import.meta.url).pathname;
  const pickers=new Set();
  const indicator=document.createElement('dialog');indicator.className='update-progress';
@@ -55,6 +55,9 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  }
  function refresh(){
   if(prepared||failed||launchCheck)return;
+  // A restored page may need a new worker/build, but gameplay, unsaved clips
+  // and in-flight file operations still own their in-memory state.
+  if(restorePending){if(!document.hidden&&safe()){restorePending=false;beforeReload();location.reload();}return;}
   const worker=candidate();
   // Registration attributes and worker state are delivered in separate tasks.
   // Retain the version lease and recheck before declaring a missing successor.
@@ -108,7 +111,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
   if(event.target?.matches?.('input[type=file]')){if(type==='click')pickers.add(event.target);if(type==='change')pickers.delete(event.target);}
  },{capture:true});
  window.addEventListener('cancel',event=>{if(event.target?.matches?.('input[type=file]'))pickers.delete(event.target);},{capture:true});
- window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});
+ window.addEventListener('pageshow',event=>{if(event.persisted){restorePending=true;refresh();}});
  async function cancel(token){
   if(prepared?.token!==token)return;
   const old=prepared;clearTimeout(old.timer);old.port.close();
@@ -149,7 +152,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  // Return before applying an update: the caller must release its task guard
  // and launch flag before the existing coordinator can prepare this page.
  async function beforeLaunch(){
-  if(prepared||staging||failed||launchCheck)return false;
+  if(prepared||staging||failed||launchCheck||restorePending)return false;
   if(!navigator.onLine||deferred)return true;
   launchCheck=true;freeze(tr('準備中…'),300);let timer;
   try{await Promise.race([check(),new Promise(resolve=>{timer=setTimeout(resolve,800);})]);}

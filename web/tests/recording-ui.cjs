@@ -77,7 +77,7 @@ function cartridge(){
  for(const [width,height]of [[320,568],[844,390]]){await page.setViewportSize({width,height});const box=await preview.boundingBox();assert.ok(box.x>=0&&box.x+box.width<=width+1&&box.y>=0&&box.y+box.height<=height+1);assert.equal(await preview.evaluate(el=>el.scrollWidth<=el.clientWidth+1),true);}
  await page.setViewportSize({width:390,height:844});
  // A blocked download and cancelled share retain the only in-memory clip.
- await page.evaluate(()=>{const click=HTMLAnchorElement.prototype.click;HTMLAnchorElement.prototype.click=function(){if(this.download.endsWith('.mp4')||this.download.endsWith('.webm')){window.recordingExportConnected=this.isConnected;if(window.blockRecordingExport)throw new DOMException('Synthetic blocked download','NotAllowedError');}return click.call(this);};window.blockRecordingExport=true;});
+ await page.evaluate(()=>{const click=HTMLAnchorElement.prototype.click;HTMLAnchorElement.prototype.click=function(){if(this.download.endsWith('.mp4')||this.download.endsWith('.webm')){window.recordingExportConnected=this.isConnected;window.recordingExportTarget=this.target;window.recordingExportRel=this.rel;window.recordingExportCount=(window.recordingExportCount||0)+1;if(window.blockRecordingExport)throw new DOMException('Synthetic blocked download','NotAllowedError');}return click.call(this);};window.blockRecordingExport=true;});
  await preview.locator('[data-video-save]').click();assert.equal(await preview.locator('video').getAttribute('src'),clipURL);await page.evaluate(()=>window.blockRecordingExport=false);
  const downloadTask=page.waitForEvent('download');await preview.locator('[data-video-save]').click();const download=await downloadTask;assert.match(download.suggestedFilename(),/^Recording fixture_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}(?:-\d+)?\.(mp4|webm)$/);const stream=await download.createReadStream(),chunks=[];for await(const chunk of stream)chunks.push(chunk);const bytes=Buffer.concat(chunks);assert.ok(bytes.length>(native?100:0));assert.equal(await page.evaluate(()=>recordingExportConnected),true);assert.equal(await preview.isVisible(),true);assert.equal(await preview.locator('[data-video-status]').textContent(),'ダウンロード一覧を確認');
  // Native browser file writes (OPFS) behind a controlled picker. Never write
@@ -96,6 +96,28 @@ function cartridge(){
  await page.evaluate(()=>window.videoExportMode='cancel');await preview.locator('[data-video-save]').click();await page.waitForFunction(()=>!document.querySelector('[data-video-save]').disabled);assert.equal(await preview.locator('[data-video-status]').textContent(),'');assert.equal(await preview.locator('video').getAttribute('src'),clipURL);
  await page.evaluate(()=>{window.videoExportMode='fail';window.finishVideoWrite=null;});await preview.locator('[data-video-save]').click();await page.waitForFunction(()=>!!window.finishVideoWrite);await page.evaluate(()=>finishVideoWrite());await page.waitForFunction(()=>!document.querySelector('[data-video-save]').disabled);assert.equal(await preview.locator('[data-video-status]').textContent(),'');assert.equal(await preview.locator('video').getAttribute('src'),clipURL);
  await page.evaluate(()=>window.showSaveFilePicker=undefined);
+ assert.equal(await page.evaluate(()=>recordingExportTarget),'_blank');assert.equal(await page.evaluate(()=>recordingExportRel),'noopener');
+ // iPhone and iPadOS desktop mode save through the native share sheet. Holding
+ // that promise must preserve the game/clip and block duplicate saves/updates.
+ // This simulates OS completion/cancellation, not an actual iPhone Photos save.
+ await page.evaluate(()=>{
+  const share=navigator.share;
+  window.restoreVideoShareEnvironment=()=>{Object.defineProperty(navigator,'share',{configurable:true,value:share});delete navigator.userAgent;delete navigator.maxTouchPoints;};
+  Object.defineProperty(navigator,'share',{configurable:true,value:({files})=>{window.iosSavedVideo=files[0];return new Promise((resolve,reject)=>{window.finishIOSVideoSave=resolve;window.cancelIOSVideoSave=()=>reject(new DOMException('Cancelled','AbortError'));window.failIOSVideoSave=()=>reject(new DOMException('Denied','NotAllowedError'));});}});
+ });
+ const downloadsBeforeIOS=await page.evaluate(()=>recordingExportCount);
+ for(const [ua,touches,outcome]of [['Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)',1,'save'],['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15)',5,'cancel'],['Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)',5,'fail']]){
+  await page.evaluate(({ua,touches})=>{Object.defineProperty(navigator,'userAgent',{configurable:true,value:ua});Object.defineProperty(navigator,'maxTouchPoints',{configurable:true,value:touches});window.finishIOSVideoSave=null;},{ua,touches});
+  await preview.locator('[data-video-save]').click();await page.waitForFunction(()=>!!window.finishIOSVideoSave);
+  assert.equal(await preview.locator('[data-video-save]').isDisabled(),true);assert.equal(await preview.locator('[data-video-close]').isDisabled(),true);assert.equal(await page.evaluate(()=>recordingCanUpdate()),false);
+  assert.equal(await page.evaluate(()=>recordingCore.paused),true);assert.equal(await page.locator('#player').isVisible(),true);
+  assert.equal(await page.evaluate(()=>iosSavedVideo.name),download.suggestedFilename());assert.equal(await page.evaluate(()=>iosSavedVideo.size),bytes.length);
+  await page.evaluate(outcome=>{if(outcome==='save')finishIOSVideoSave();else if(outcome==='cancel')cancelIOSVideoSave();else failIOSVideoSave();},outcome);
+  await page.waitForFunction(()=>!document.querySelector('[data-video-save]').disabled);
+  assert.equal(await preview.locator('[data-video-status]').textContent(),'','Do not claim an OS destination was saved');
+  assert.equal(await preview.locator('video').getAttribute('src'),clipURL);assert.equal(await page.locator('#player').isVisible(),true);assert.equal(await page.evaluate(()=>recordingExportCount),downloadsBeforeIOS,'No navigating download, including on cancellation/failure');
+ }
+ await page.evaluate(()=>restoreVideoShareEnvironment());
  assert.equal(await preview.locator('[data-video-share]').isVisible(),true);await preview.locator('[data-video-share]').click();await page.waitForFunction(()=>recordingShared&&!document.querySelector('[data-video-share]').disabled);const shared=await page.evaluate(()=>recordingShared);assert.equal(shared.size,bytes.length);assert.match(shared.type,/^video\/(mp4|webm)$/);
  await page.evaluate(()=>window.cancelRecordingShare=true);await preview.locator('[data-video-share]').click();await page.waitForFunction(()=>!document.querySelector('[data-video-share]').disabled);assert.equal(await preview.locator('video').getAttribute('src'),clipURL);
  await preview.locator('[data-video-close]').click();await preview.locator('[data-video-confirm]').waitFor();await preview.locator('[data-video-cancel]').click();assert.equal(await preview.locator('[data-video-confirm]').isVisible(),false);assert.equal(await preview.locator('video').getAttribute('src'),clipURL);

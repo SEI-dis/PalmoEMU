@@ -94,6 +94,24 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await page.waitForFunction(version=>localStorage.getItem('palmo-release-seen:/')===version,releaseVersion());
   assert.equal(await page.locator('#sheet.release-notice[open]').count(),0,'A first visit establishes the current release without an update notice');
   assert.match(await page.evaluate(name=>fetch(name).then(r=>r.text()),lazyAsset),/lazy asset revision 1/);
+  async function restoredGame(client){
+   await client.evaluate(()=>{window.restoreGameMarker='same-game';window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));});
+   await client.waitForTimeout(1100); // Observe two coordinator ticks and any navigation.
+   assert.equal(await client.evaluate(()=>window.restoreGameMarker),'same-game','Page-cache restoration must not reload a running game');
+   assert.equal(await client.locator('#player').isVisible(),true);assert.equal(await client.locator('#resume-game').isVisible(),true);
+   await client.locator('#resume-game').click();assert.equal(await client.locator('#resume-game').isVisible(),false,'Restored gameplay can resume');
+  }
+  if(process.env.UPDATE_RESTORE_ONLY){
+   await page.locator('#rom-input').setInputFiles({name:'Restore-test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});
+   await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
+   await restoredGame(page);
+   await page.evaluate(async()=>{const {guardUpdateTask}=await import('./src/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishRestoreTask=resolve;}))();});
+   await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
+   await page.waitForTimeout(1100);assert.equal(await page.evaluate(()=>window.restoreGameMarker),'same-game','File operation still blocks the deferred reload after gameplay ends');
+   await page.evaluate(()=>finishRestoreTask());await page.waitForFunction(()=>window.restoreGameMarker===undefined);await page.locator('.game-launch').waitFor();
+   assert.equal(await page.evaluate(()=>globalThis.updateTestRevision),1,'Refresh happens once the in-memory work is safely finished');
+   console.log('PASS: page-cache restoration retains paused gameplay and pending file work, then refreshes only when safe.');await context.close();return;
+  }
   if(process.env.UPDATE_FLOW_ONLY){
    await page.locator('#rom-input').setInputFiles({name:'Original-update-test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});await page.locator('.game-launch').waitFor();
    await exerciseUpdateFlow(page);await context.close();return;
@@ -116,6 +134,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   const second=await context.newPage();await second.goto(base+'index.html');
   await second.locator('#rom-input').setInputFiles({name:'Original-update-test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});
   await second.locator('.game-launch').click();await second.locator('.game-info-play').click();await second.locator('#loading').waitFor({state:'hidden'});
+  await restoredGame(second);
   await update.locator('[data-tab=settings]').click();await update.locator('[data-action=video]').click();
   revision=3;await update.evaluate(async()=>{await(await navigator.serviceWorker.ready).update();});
   const stays=async expected=>{await update.waitForTimeout(4000);assert.equal(await update.evaluate(()=>globalThis.updateTestRevision),expected);assert.equal(await second.evaluate(()=>globalThis.updateTestRevision),expected);};
