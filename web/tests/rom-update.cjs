@@ -8,7 +8,10 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),page=await context.newPage(),requests=[],errors=[];
   context.on('request',r=>requests.push(r));page.on('pageerror',e=>errors.push(e.message));
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';await page.goto(base);
+  // Static tab buttons exist before the async application startup binds them.
+  await page.locator('#add-first').waitFor();
   await page.locator('[data-tab="imports"]').click();
+  await page.locator('#import-update-rom').waitFor();
   assert.deepEqual(await page.locator('.import-services > button').evaluateAll(buttons=>buttons.map(button=>button.id)),['import-saves','import-skins','import-update-rom','import-patch']);
   assert.equal(await page.locator('#import-update-rom').isDisabled(),true);
   await page.locator('[data-tab="games"]').click();
