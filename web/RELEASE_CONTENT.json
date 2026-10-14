@@ -89,14 +89,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 87191,
-      "sha256": "94757749305968dde59724779d505d373fe75687ef21eaa797b64a481ebcf3b7",
+      "bytes": 87570,
+      "sha256": "e6fc5e51f250f87fda95652dc64cc744c6017b24d21bcc7fa0b925baac629f84",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 146961,
-      "sha256": "54e42149a627cb633046952ee01cb99f444f2bfa893c5e86e200298b2bb9764c",
+      "bytes": 147523,
+      "sha256": "360e8664629be9fa315f08eaad186a3cbfa3533e3e158607d98b0e58f42952c7",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 7554,
-      "sha256": "221c9f3563dbe236ab0f8804feb434f708e5e10a967ec2cf7cedc77897d8efd1",
+      "sha256": "3ffa23a2818cba35144a6c0292b7f273f4665186ac22f723b2e82da722191578",
       "component": "web-port-code-and-documentation"
     },
     {
