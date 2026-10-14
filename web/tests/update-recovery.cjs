@@ -10,7 +10,7 @@ const modules=['src/updates/auto-update.js','src/updates/offline.js','src/update
 const baseline=process.env.UPDATE_RECOVERY_BASELINE;
 const sources=new Map(['sw.js',...modules].map(name=>[name,baseline?require('node:child_process').execFileSync('git',['show',baseline+':web/'+name],{cwd:root,encoding:'utf8',windowsHide:true}):fs.readFileSync(path.join(root,name),'utf8')]));
 const names=['index.html','fixture.js',...modules,'assets/update-payload.bin'],shell=names.filter(name=>name!=='assets/update-payload.bin');
-const requested=process.env.UPDATE_RECOVERY_CASE?.split(','),allCases=['transient503','disconnect','recover','later','continue','pending'];
+const requested=process.env.UPDATE_RECOVERY_CASE?.split(','),allCases=['transient503','disconnect','recover','later','continue','pending','lease','lease-cancel','lease-reject'];
 let revision=1,helpMs=1200,assetMode='ok',failuresLeft=0,requests=0,held=[],heldAt=0,caseName='';
 function releaseAsset(){assetMode='ok';for(const finish of held.splice(0))finish();}
 function resource(name){
@@ -56,10 +56,23 @@ const server=http.createServer((req,res)=>{
    const realWait=caseName==='pending'&&engine==='chromium'&&process.env.UPDATE_RECOVERY_LONG==='1';helpMs=realWait?60000:1200;
    const context=await browser.newContext({locale:'ja-JP'}),page=await context.newPage();page.setDefaultTimeout(25000);
    await context.addInitScript(()=>localStorage.setItem('palmo-language','ja'));
+   if(caseName.startsWith('lease')){
+    // Keep the real shared lock held briefly after the app resolves its lease.
+    // A ready reply must wait for the LockManager request itself to complete.
+    await context.addInitScript(mode=>{
+     const request=navigator.locks.request.bind(navigator.locks);let releases=0;
+     navigator.locks.request=(name,options,callback)=>request(name,options,options?.mode==='shared'&&name==='local-play-version:/'?async lock=>{
+      const result=await callback(lock);globalThis.leaseReleasePending=true;
+      const first=++releases===1;sessionStorage.setItem('lease-releases',String(Number(sessionStorage.getItem('lease-releases')||0)+1));
+      await new Promise(resolve=>setTimeout(resolve,mode==='lease-cancel'&&first?2500:250));globalThis.leaseReleasePending=false;
+      if(mode==='lease-reject'&&first)throw Error('Synthetic lease completion failure');return result;
+     }:callback);
+    },caseName);
+   }
    try{
     await page.goto(base);await page.waitForFunction(()=>globalThis.fixtureReady&&!!navigator.serviceWorker.controller);
     await page.evaluate(async()=>{
-     sessionStorage.setItem('failures','0');sessionStorage.setItem('reloads','0');
+     sessionStorage.setItem('failures','0');sessionStorage.setItem('reloads','0');sessionStorage.setItem('lease-releases','0');
      const request=indexedDB.open('update-save-sentinel',1);request.onupgradeneeded=()=>request.result.createObjectStore('saves');
      const db=await new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
      await new Promise((resolve,reject)=>{const tx=db.transaction('saves','readwrite');tx.objectStore('saves').put(new Uint8Array([7,9,42]),'keep');tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});db.close();
@@ -79,7 +92,13 @@ const server=http.createServer((req,res)=>{
      assert.equal(await page.locator('.update-progress[open]').count(),0);
     }
     revision=2;
-    if(['transient503','disconnect'].includes(caseName)){
+    if(caseName.startsWith('lease')){
+     await update();await page.waitForFunction(()=>globalThis.leaseReleasePending===true);
+     assert.equal(await page.evaluate(()=>fixtureRevision),1,'The page stays on its current build while its shared lock is releasing');
+     await page.waitForFunction(()=>globalThis.fixtureRevision===2&&globalThis.fixtureReady,{},{timeout:10000});await applied(0);
+     if(caseName!=='lease')assert.ok(await page.evaluate(()=>Number(sessionStorage.getItem('lease-releases'))>=2),'Cancellation/failure reacquires a shared lease before another preparation');
+     console.log('PASS '+engine+': '+caseName+' waits for shared-lock release and safely recovers from cancelled/rejected preparation.');
+    }else if(['transient503','disconnect'].includes(caseName)){
      assetMode=caseName==='disconnect'?'disconnect':'transient';failuresLeft=1;
      await update();await applied(0);assert.ok(requests>=2,'The failed asset must be requested again');
      console.log('PASS '+engine+': '+caseName+' recovers the same build automatically, without a failure dialog or save loss.');

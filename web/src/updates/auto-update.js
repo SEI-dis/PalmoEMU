@@ -145,10 +145,25 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
   if(type!=='local-play-update-prepare')return;
   if(!ready()){port.postMessage({ready:false});port.close();return;}
   const worker=event.source,checkWorker=()=>{if(prepared?.token===token&&prepared.committed&&worker.state==='redundant')reloadUpdated();};
-  prepared={token,port,worker,checkWorker,controller:navigator.serviceWorker.controller,timer:null};worker.addEventListener('statechange',checkWorker);clearTimeout(stageTimer);freeze(tr('更新中…'),0,{update:true,phase:'applying'});release();
+  prepared={token,port,worker,checkWorker,controller:navigator.serviceWorker.controller,timer:null};worker.addEventListener('statechange',checkWorker);clearTimeout(stageTimer);freeze(tr('更新中…'),0,{update:true,phase:'applying'});
   prepared.timer=setTimeout(()=>cancel(token).catch(()=>location.reload()),15000);
   port.onmessage=message=>{if(prepared?.token!==token)return;if(message.data?.type==='commit'){prepared.committed=true;clearTimeout(prepared.timer);checkWorker();}else if(message.data?.type==='abort'){prepared.committed=false;cancel(token).catch(()=>location.reload());}else if(message.data?.type==='cancel')cancel(token).catch(()=>location.reload());};
-  port.postMessage({ready:true});
+  const preparing=prepared,releasedLease=lease;release();
+  // Resolving the callback is not confirmation that the browser released its
+  // shared lock. Reply only after the LockManager request has completed.
+  void(async()=>{
+   try{
+    await releasedLease;
+    if(prepared!==preparing||preparing.cancelling||registration.waiting!==worker||worker.state==='redundant'){
+     try{port.postMessage({ready:false});}catch{}
+     await cancel(token);return;
+    }
+    port.postMessage({ready:true});
+   }catch{
+    try{port.postMessage({ready:false});}catch{}
+    try{await cancel(token);}catch{location.reload();}
+   }
+  })();
  });
  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(prepared)reloadUpdated();});
  async function tryApply(){
