@@ -18,6 +18,23 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
    }
    for(const Core of [RetroCore,NDSCore,JgenesisCore])for(const method of ['audio','setSpeed'])check(Core.prototype[method]===MGBACore.prototype[method],'Synchronous cores use the shared audio path');
    const linked=[new MGBACore(document.createElement('canvas')),new MGBACore(document.createElement('canvas'))],local=new LocalLinkCore(...linked);local.setPreservePitch(true);check(linked.every(core=>core.preservePitch===true),'Both local-link cores retain pitch preservation');local.dispose();
+   // Exercise production scheduling with a controlled clock on WebKit builds
+   // that do not expose OfflineAudioContext as well as rendered-audio builds.
+   const {performanceDiagnostics:metrics}=await import('./src/runtime/performance.js');
+   const measured=new MGBACore(document.createElement('canvas'));let measuredReads=0,stretchResets=0;
+   measured.paused=false;measured.m={HEAP16:new Int16Array(960).fill(12000),_web_audio:()=>0,_web_audio_rate:()=>48000,_web_audio_read:()=>{measuredReads++;return 480;}};
+   measured.ac={state:'running',currentTime:0,createBuffer(channels,length,rate){const pcm=Array.from({length:channels},()=>new Float32Array(length));return {duration:length/rate,getChannelData:index=>pcm[index]};},createBufferSource:()=>({playbackRate:{value:1},connect(){},start(){},stop(){},disconnect(){}})};
+   measured.gain={};measured.stretch={reset:()=>stretchResets++};measured.nextAudio=.2;
+   metrics.configure({engine:measured,running:true});measured.audio();check(metrics.snapshot().audio.overflowDrops===0&&measuredReads===1&&stretchResets===1,'Disabled diagnostics leave the existing drain/reset behavior unchanged');
+   metrics.configure({engine:measured,enable:true,running:true});measured.audio();
+   let counts=metrics.snapshot().audio;
+   check(counts.overflowDrops===1&&counts.overflowSamples===480&&counts.overflowResets===1&&counts.queueMaxMs===200,'Real overflow reports native sample frames, WSOLA reset and queue lead');
+   measured.volume=0;measured.audio();measured.volume=.7;measured.ac.state='suspended';measured.audio();measured.ac.state='running';
+   metrics.configure({engine:measured,enable:true,running:false});measured.audio();
+   check(metrics.snapshot().audio.overflowDrops===1,'Mute, suspended audio and paused diagnostics are not overflow events');
+   metrics.configure({engine:measured,enable:true,running:true});metrics.reset();measured.stretch=null;measured.nextAudio=0;measured.audio();
+   counts=metrics.snapshot().audio;check(counts.queueMaxMs===35&&counts.overflowDrops===0,'Normal scheduling measures its 25ms lead plus 10ms buffer without changing timing');
+   measured.stopAudio();metrics.configure({enable:false});
    if(typeof OfflineAudioContext==='undefined')return{unavailable:true};
    const frequency=(data,start,end)=>{
     const crossings=[];for(let i=start+1;i<end;i++)if(data[i-1]<0&&data[i]>=0)crossings.push(i-data[i]/(data[i]-data[i-1]));
@@ -75,6 +92,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   });
   if(result.unavailable)console.log('SKIP: this browser build has no OfflineAudioContext; rendered audio is not verified.');
   else{assert.equal(result.cases.length,30);console.log('PASS: 30 rendered stereo cases (32.768/44.1/48 kHz, 1–5x, on/off), 1x sample identity, continuous timing, bounded queue and pause/mute/toggle/speed/state/reset/close cancellation.');}
+  console.log('PASS: opt-in overflow/sample/reset counters and queue lead; disabled, muted, suspended and paused exclusions without scheduling changes.');
   const pitch=page.locator('[data-setting=preservePitch],[data-menu-option=preservePitch]');
   const settings=async()=>{await page.locator('[data-tab=settings]').click();await page.locator('#content [data-action=audio]').click();};
   const instrument=()=>page.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),original=MGBACore.prototype.setSpeed;MGBACore.prototype.setSpeed=function(v){window.testEngine=this;return original.call(this,v);};});

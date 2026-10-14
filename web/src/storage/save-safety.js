@@ -129,7 +129,14 @@ export class SaveProtection {
    }catch(e){if(trigger)this.saveTrigger.failed(trigger,this.now());this.deferAutomatic(e,checkpoint,null);this.onStatus({...this.status,error:e.name==='QuotaExceededError'&&!e.saveCommitted?tr('容量不足で保存できません。セーブを書き出してください。'):e.message});throw e;}
   }))().finally(()=>{this.pendingSaves--;});this.queue=next;return next;
  }
- async verify(record){if(!record?.bytes?.length)throw new Error(tr('保存データがありません。'));if(record.hash&&await hash(new Uint8Array(record.bytes))!==record.hash){const error=new Error(tr('保存データに破損が見つかりました。別のバックアップを選んでください。'));error.code='SAVE_INTEGRITY_FAILED';throw error;}return new Uint8Array(record.bytes);}
+ async verify(record){
+  if(!record?.bytes?.length)throw new Error(tr('保存データがありません。'));
+  // Keep one owned snapshot across the digest await: return exactly the bytes
+  // that were checked, even if the caller changes its record in the meantime.
+  const bytes=new Uint8Array(record.bytes),expectedHash=record.hash;
+  if(expectedHash&&await hash(bytes)!==expectedHash){const error=new Error(tr('保存データに破損が見つかりました。別のバックアップを選んでください。'));error.code='SAVE_INTEGRITY_FAILED';throw error;}
+  return bytes;
+ }
  compatible(record){return compatibleState(this.coreId,record);}
  async restoreState(core,record){
   if(!this.compatible(record))throw new Error(tr('このステートは現在のコアで読み込めません。ゲーム内セーブから再開してください。'));

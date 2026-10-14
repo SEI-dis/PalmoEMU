@@ -827,3 +827,10 @@ Original AGPL adapter cleanup attempts every owned resource even after an
 exception and extends late-initialization cancellation to NDS/Retro/jgenesis.
 Corresponding sources, build instructions and allocation/teardown regressions
 are included. The pinned upstream archive and license conditions are unchanged.
+
+Follow-up original AGPL changes after reviewing an audit of 92f354e retain one
+verified save snapshot, complete independent startup cleanup after an error,
+and add opt-in aggregate audio queue/drop measurements. Native binaries, audio
+processing, save formats, third-party source, permissions and endpoints remain
+unchanged from the preceding self-audit. No PCM or user game data is recorded
+by these additional measurements.

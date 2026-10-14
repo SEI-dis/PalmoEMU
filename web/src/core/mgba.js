@@ -131,7 +131,11 @@ export class MGBACore {
   }
   audio(){
     const m=this.m,n=m._web_audio_read();if(!n)return;
-    if(!this.ac||this.ac.state!=='running'||!this.volume||this.nextAudio>this.ac.currentTime+.18){this.stretch?.reset();return;}
+    if(!this.ac||this.ac.state!=='running'||!this.volume){this.stretch?.reset();return;}
+    if(this.nextAudio>this.ac.currentTime+.18){
+      if(performanceDiagnostics.measuring){performanceDiagnostics.audioQueue(this.nextAudio-this.ac.currentTime,this);performanceDiagnostics.audioOverflow(n,!!this.stretch,this);}
+      this.stretch?.reset();return;
+    }
     const rate=m._web_audio_rate(),p=m._web_audio()>>1,pcm=m.HEAP16;
     if(this.preservePitch&&this.speed>1){
       if(this.stretch?.rate!==rate||this.stretch?.speed!==this.speed)this.stretch=new TimeStretch(rate,this.speed);
@@ -149,6 +153,7 @@ export class MGBACore {
     if(this.nextAudio>0&&this.nextAudio<this.ac.currentTime&&this.ac.state==='running'&&this.volume>0)performanceDiagnostics.audioGap(this.ac.currentTime-this.nextAudio,this);
     if(!this.nextAudio||this.nextAudio<this.ac.currentTime+.003)this.nextAudio=this.ac.currentTime+.025;
     source.start(this.nextAudio);this.nextAudio+=buffer.duration/speed;
+    if(performanceDiagnostics.measuring)performanceDiagnostics.audioQueue(Math.max(0,this.nextAudio-this.ac.currentTime),this);
   }
   setFilter(mode){if(this.video?.mode!==mode)this.video?.setMode(mode);}
   setFilterStrength(value){this.video?.setStrength(value);}

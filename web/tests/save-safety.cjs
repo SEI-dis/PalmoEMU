@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 const assert=require('node:assert/strict');
-const {chromium}=require('./browser-runtime.cjs');
-(async()=>{const b=await chromium.launch({headless:true,channel:process.env.BROWSER_CHANNEL||'msedge'});try{
+const kind=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-runtime.cjs');
+(async()=>{const b=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});try{
  const c=await b.newContext(),p=await c.newPage(),base=process.env.TEST_URL||'http://127.0.0.1:4173/';let traffic=[];
  c.on('request',r=>traffic.push(r));await p.goto(base+'privacy.html');
  // Preserve a version-1 database through the real upgrade, never touching a user's profile.
@@ -15,6 +15,25 @@ const {chromium}=require('./browser-runtime.cjs');
   return {legacy:[...(await db.get('saves','legacy')).bytes],history:backups.map(r=>r.bytes[0]),states:states.map(r=>r.bytes[0]),restoredState,restoredSave,corrupt,aborted,unchanged:before.hash===(await db.get('saves','test')).hash};
  });
  assert.deepEqual(result,{legacy:[90],history:[6,5,4,3,2],states:[7,6,5,4,3],restoredState:[7,42],restoredSave:[7],corrupt:true,aborted:true,unchanged:true});
+ // Hash and return the same owned snapshot even if the caller replaces or
+ // mutates its record while the asynchronous digest is pending.
+ const verification=await p.evaluate(async()=>{
+  const {hash}=await import('./src/shared.js'),expected=new Uint8Array([12,34,56]),digest=await hash(expected);
+  const backing=new Uint8Array([99,12,34,56,88]),source=backing.subarray(1,4),record={bytes:source,hash:digest};
+  const nativeDigest=crypto.subtle.digest.bind(crypto.subtle);let checked,release;
+  const gate=new Promise(resolve=>release=resolve);
+  crypto.subtle.digest=async(algorithm,bytes)=>{checked=bytes;const result=await nativeDigest(algorithm,bytes);await gate;return result;};
+  let returned;
+  try{const pending=s.verify(record);source[0]=77;record.bytes=new Uint8Array([4,5,6]);record.hash='changed-during-digest';release();returned=await pending;}
+  finally{crypto.subtle.digest=nativeDigest;release();}
+  const pristine={bytes:expected.slice(),hash:digest},verified=await s.verify(pristine);
+  let corruptionRejected=false;try{await s.verify({bytes:new Uint8Array([12,34,57]),hash:digest});}catch(error){corruptionRejected=error.code==='SAVE_INTEGRITY_FAILED';}
+  const legacy=[12,34,56],legacyVerified=await s.verify({bytes:legacy,hash:digest});
+  return {returned:[...returned],sameSnapshot:returned===checked,owned:returned.buffer!==source.buffer,
+   callerChanges:[...record.bytes],callerHash:record.hash,backing:[...backing],pristine:[...pristine.bytes],pristineOwned:verified!==pristine.bytes,
+   corruptionRejected,legacy,legacyVerified:[...legacyVerified]};
+ });
+ assert.deepEqual(verification,{returned:[12,34,56],sameSnapshot:true,owned:true,callerChanges:[4,5,6],callerHash:'changed-during-digest',backing:[99,77,34,56,88],pristine:[12,34,56],pristineOwned:true,corruptionRejected:true,legacy:[12,34,56],legacyVerified:[12,34,56]});
  const asynchronous=await p.evaluate(async()=>{
   const {SaveProtection}=await import('./src/storage/save-safety.js');const p=new SaveProtection(()=>{});await p.open({id:'async-checkpoint',system:'gba'},'mgba-rom64-link-v1');
   const core={save:async()=>{throw Error('Must use paired worker snapshot');},state:async()=>{throw Error('Must use paired worker snapshot');},checkpoint:async()=>({save:new Uint8Array([4]),state:new Uint8Array([5]),stateError:null})};

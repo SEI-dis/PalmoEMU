@@ -296,7 +296,19 @@ async function launch(game,{safeMode=false,skipRecovery=false}={}){
   engine.pause(false);
   engine.setCheats?.(safeMode||!coreFor(game).cheats?[]:cheatsFor(game));game.lastPlayed=Date.now();await db.setGameDetails(game.id,{lastPlayed:game.lastPlayed});paused=false;playRunAt=Date.now();$('#resume-game').hidden=true;rewindSession.attach(engine,{...game,coreKey:coreFor(game).key});applySettings();layoutSkin();$('#loading').hidden=true;$('#save-status').hidden=false;engine.unlockAudio()?.catch?.(()=>{});startPadPoll();
   if(!safeMode&&!skipRecovery&&previous.interrupted&&previous.recoveries.some(r=>protection.compatible(r))){setPause(true);await showRecovery(true);}
- }catch(e){diagnostics.record(e,'startup');await rewindSession.dispose();clearImportedSkin();releaseSkin();skinPair=null;await engine?.close();engine=null;current=null;settingsGame=null;await protection.close();$('#player').hidden=true;$('#loading').hidden=true;if(e.code==='SAVE_INTEGRITY_FAILED'){await gameInfo.showSaveData(game,{startupError:true});return false;}if(e.code==='CORE_LOAD_FAILED'){showCoreLoadFailure({sheet});return false;}throw e;}finally{preparedAudio.close();launching=false;if(engine&&document.hidden)setPause(true,'background');syncRuntime();}
+ }catch(e){
+  diagnostics.record(e,'startup');
+  // A failed native cleanup must not strand the loading UI or prevent the
+  // save writer from closing. Protection keeps its own fence/lock if closing
+  // fails; never force-release it or replace the original startup error.
+  for(const cleanup of [()=>rewindSession.dispose(),()=>clearImportedSkin(),()=>releaseSkin(),()=>engine?.close(),()=>protection.close()]){
+   try{await cleanup();}catch(cleanupError){diagnostics.record(cleanupError,'startup');}
+  }
+  skinPair=null;engine=null;current=null;settingsGame=null;$('#player').hidden=true;$('#loading').hidden=true;
+  if(e.code==='SAVE_INTEGRITY_FAILED'){await gameInfo.showSaveData(game,{startupError:true});return false;}
+  if(e.code==='CORE_LOAD_FAILED'){showCoreLoadFailure({sheet});return false;}
+  throw e;
+ }finally{preparedAudio.close();launching=false;if(engine&&document.hidden)setPause(true,'background');syncRuntime();}
 }
 function frameStyle(frame,map){return `left:${frame.x/map.width*100}%;top:${frame.y/map.height*100}%;width:${frame.width/map.width*100}%;height:${frame.height/map.height*100}%;`;}
 let layoutFrame=null,lastLayoutSize='',skinScreenCleanup=()=>{},skinInputs=null;

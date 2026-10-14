@@ -57,6 +57,43 @@ const runtime=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||
   const invalid=await browser.newContext({serviceWorkers:'block'}),invalidPage=await invalid.newPage();await invalidPage.goto(base);await invalidPage.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
   const rejected=await invalidPage.evaluate(async()=>{const {RetroCore}=await import('./src/core/retro.js'),core=new RetroCore(document.createElement('div'));try{await core.load(new Uint8Array([1,2,3]),{system:'nes',size:3});}catch(error){return {code:error.code||null,message:error.message,cause:error.cause?.message};}finally{core.close();}});
   assert.equal(rejected.code,null);assert.match(rejected.message,/ROM/,'Invalid ROM must not become an update warning');await invalid.close();
-  console.log('PASS '+kind+': actual SW SRI/503 failures in four core adapters, actionable update/retry UI, released lock, original saves/history/ROM preserved and invalid-ROM classification.');
+  // A native cleanup trap must not replace the startup error or strand the
+  // loading UI/game lock. An unresolved save fence must still retain its lock.
+  for(const failFence of [false,true]){
+   const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage();
+   await context.addInitScript(()=>{localStorage.setItem('manic-settings',JSON.stringify({autosave:false,recovery:false}));localStorage.setItem('palmo-release-seen:/','9999.0.0');});
+   await page.goto(base);await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
+   await page.locator('#rom-input').setInputFiles({name:'Startup cleanup fixture.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});await page.locator('.game-launch').waitFor();
+   await page.evaluate(async failFence=>{
+    const {MGBACore}=await import('./src/core/mgba.js'),{SaveProtection}=await import('./src/storage/save-safety.js');
+    const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js');
+    window.game=(await db.all('library'))[0];const bytes=new Uint8Array(8192);bytes[0]=0x53;
+    const save={bytes,hash:await hash(bytes),at:123,coreId:'mgba-rom64-save6-v2'};
+    await db.put('saves',game.id,save);await db.put('backups',game.id,[save]);
+    window.snapshot=async()=>JSON.stringify([await db.get('saves',game.id),await db.get('backups',game.id),await db.get('roms',game.id)]);window.before=await snapshot();
+    const load=MGBACore.prototype.load,open=SaveProtection.prototype.open,resolveFence=SaveProtection.prototype.resolveFence;
+    window.restoreLoad=()=>{MGBACore.prototype.load=load;};
+    SaveProtection.prototype.open=async function(...args){const result=await open.apply(this,args);window.failedProtection=this;return result;};
+    MGBACore.prototype.load=async function(){
+     window.failedCore=this;this.m={_web_close(){throw new WebAssembly.RuntimeError('Native cleanup fixture failure');}};
+     if(failFence){failedProtection.beginFence(failedProtection.id);failedProtection.resolveFence=async()=>{throw new Error('Fence fixture failure');};}
+     throw new Error('Startup fixture failure');
+    };
+    window.retryCleanup=async()=>{failedProtection.resolveFence=resolveFence;await failedProtection.close();};
+   },failFence);
+   await page.locator('.game-launch').click();await page.locator('.game-info-play').click();
+   await page.waitForFunction(()=>window.failedCore?.closed&&document.querySelector('#toast').textContent.includes('fixture failure'));
+   assert.equal(await page.locator('#player').isVisible(),false,'A close exception must not leave the player/loading overlay visible');
+   assert.equal(await page.locator('#loading').isVisible(),false);
+   assert.equal(await page.locator('#toast').textContent(),'Startup fixture failure','Report the original startup failure');
+   assert.equal(await page.evaluate(async()=>before===await snapshot()),true,'Startup cleanup leaves ROM, save and history unchanged');
+   assert.equal(await page.evaluate(()=>navigator.locks.request('local-game:'+game.id,{ifAvailable:true},lock=>!!lock)),!failFence,'Release only a completed protection session');
+   assert.equal(await page.evaluate(()=>!!failedProtection.fence),failFence,'An unresolved save fence is retained');
+   await page.evaluate(async()=>{await retryCleanup();restoreLoad();});
+   await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
+   assert.equal(await page.locator('#player').isVisible(),true,'A completed cleanup permits a new launch without reloading');
+   await context.close();
+  }
+  console.log('PASS '+kind+': actual SW SRI/503 failures, startup/cleanup traps, retry UI, released completed locks, retained unresolved fences, original ROM/save/history and error preservation.');
  }finally{await browser.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;});
