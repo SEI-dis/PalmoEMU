@@ -640,6 +640,10 @@ GitHub CIとPages公開ワークフローはそれぞれ同じコミットから
 対応するソースの提供を維持してください。確認記録は `LICENSE_AUDIT.md` と `RELEASE_REVIEW.json` にあります。
 検査対象と結果は[検証記録](RELEASE_VALIDATION.md)に記載しています。変更した内容に応じて再確認してください。
 
+## セーブ変換ツールの更新
+
+くりーぱーさんから提供される変換処理は `vendor/start-save-migrate/`、PalmoEMU側の互換性判定・保存保護は `src/start-save/` に分けています。新しい提供物の抽出、出典・許諾の記録、候補の差分検査と必要な回帰テストは[更新手順](scripts/start-save-migrate/README.md)を参照してください。
+
 ## 開発用のテスト
 
 以下は `web` フォルダーで実行します。コア単体のテストはNodeのみで実行できます。
@@ -682,6 +686,7 @@ npm run test:nds
 | 旧Peer接続の回帰検査 | `npm run test:link` |
 | 外部通信・保存データの扱い | `npm run test:privacy` |
 | アプリ更新時のデータ保持 | `node tests/update.cjs` |
+| セーブ変換ツールの出典・候補検査 | `npm run check:start-save-component`、`npm run test:start-save-component` |
 | 配布物検査スクリプトのテスト | `python -B -X utf8 tests/audit-content.py` |
 
 実行環境は、必要に応じて次の環境変数で指定します。

@@ -48,7 +48,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    },path.basename(targetFile));
   };
   const committed=async(source,target,saveVersion)=>page.evaluate(async({source,target,saveVersion})=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{readROMUpdateBackup}=await import('./src/rom-update.js'),{inspectStartSave}=await import('./src/start-save-migration.js');
+   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{readROMUpdateBackup}=await import('./src/rom-update.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
    const game=await db.get('library',target),save=await db.get('saves',target),backup=await readROMUpdateBackup(game);
    return {target:await hash(save.bytes),source:await hash((await db.get('saves',source)).bytes),backup:await hash(backup.save.bytes),migration:game.romUpdate.migration??null,validSlots:inspectStartSave(save.bytes,saveVersion).slots.filter(slot=>slot.valid).length};
   },{source,target,saveVersion});
@@ -87,7 +87,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   // Until the updated game itself writes a save, its cartridge revision is
   // newer than the serialized stamp. A subsequent update must inspect bytes.
   const nextUpdate=await page.evaluate(async id=>{
-   const {startSaveTask}=await import('./src/start-save-client.js');
+   const {startSaveTask}=await import('./src/start-save/client.js');
    return startSaveTask({action:'inspect',id,targetProfile:{version:'0.43.0',minimumSaveVersion:'0.36.2'}});
   },target425.id);
   assert.equal(nextUpdate.identity.version,'0.42.5');assert.equal(nextUpdate.version,'0.42.3','Use the actual converted save stamp instead of the newer ROM revision');

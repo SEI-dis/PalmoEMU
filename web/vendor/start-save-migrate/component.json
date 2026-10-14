@@ -1,0 +1,27 @@
+{
+  "schema": 1,
+  "hostContract": "start-v23-50-savecrypt",
+  "toolVersion": "1.0.5",
+  "outputVersion": "0.42.3",
+  "author": "くりーぱー (Discord: ajillo0112)",
+  "permission": "User-authorized incorporation; no upstream license was supplied. Retain the permission/provenance scope in README.md; this is not a general third-party license.",
+  "sources": [
+    {
+      "name": "START-Save-Migrate.html",
+      "sha256": "6b3aece19d09e42dff7242924db19de0b654924b8b907de91a796d833d04e4e8"
+    },
+    {
+      "name": "user-supplied browser ZIP (reviewed 2026-10-13)",
+      "sha256": "b40f08152d94ba7197da3fd4b28295d8b41983b4347dfa51ab631112c27b9e6c"
+    },
+    {
+      "name": "user-supplied source ZIP (reviewed 2026-10-13)",
+      "sha256": "d231361de0613d4d6c57bcfc4d3c088b59d81fb2ca8498e292d6357c8bd1bd6b"
+    }
+  ],
+  "files": {
+    "engine.js": "1c2bed4c9f0bd8cf94e009c1cdc32096f6428bb669d6cb7a5486d35d15924620",
+    "manifest.js": "8c275eb48192f22a3efa779c7ff62d8d54ebb9f267627cd0abde7f40296bb96c",
+    "README.md": "a7a585ac01942078d7046f0c6b425d7588296aff2a76c811de041146c8d6c232"
+  }
+}

@@ -5,7 +5,7 @@ import {tr} from './i18n/index.js';
 import {coreFor,saveKey,supportsGame} from './core-registry.js';
 import {hash} from './shared.js';
 import * as db from './storage.js';
-import {isStartName} from './start-save-version.js';
+import {isStartName} from './start-save/version.js';
 
 export async function sourceSave(id){
  const game=await db.get('library',id);if(!game)throw Error(tr('元のゲームが見つかりません。'));
@@ -34,8 +34,8 @@ export async function finishROMUpdate(plan,game,rom,onProgress){
   if(source.id===game.id||source.system!==game.system||!supportsGame(coreFor(source),game))throw Error(tr('更新するROMを確認してください。'));
   let targetSave=save,migration;
   if(source.system==='gba'&&coreFor(source).key==='mgba'){
-   const {identifyStartROM,migrateStartSave,inspectStartUpdate,START_MIGRATION_VERSION}=await import('./start-save-migration.js');
-   const {canApplyStartMigration}=await import('./start-save-compatibility.js'),target=identifyStartROM(rom);
+   const {identifyStartROM,migrateStartSave,inspectStartUpdate,START_MIGRATION_VERSION}=await import('./start-save/migration.js');
+   const {canApplyStartMigration}=await import('./start-save/compatibility.js'),target=identifyStartROM(rom);
    const operation=plan.startCopy||plan.startMigration;
    // Recheck the actual selected bytes at commit time. A stale/generic UI must
    // not bypass migration by sending a plain copy plan for PokemonStart.

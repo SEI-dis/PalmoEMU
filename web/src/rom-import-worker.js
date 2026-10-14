@@ -22,7 +22,7 @@ async function storeROM(file,system,unpacked,{inspectOnly=false,updatePlan,expec
   const game={id,name:file.name.replace(/\.[^.]+$/,''),filename:file.name,system,size:file.size,added:Date.now(),lastPlayed:0,favorite:false};
   if(expectedId&&id!==expectedId)throw Error(tr('取り外したものと同じROMを選んでください。'));
   if(inspectOnly){
-   const startROM=system==='gba'?(await import('./start-save-migration.js')).identifyStartROM(bytes):null;
+   const startROM=system==='gba'?(await import('./start-save/migration.js')).identifyStartROM(bytes):null;
    return {id,game,startROM};
   }
   if(!updatePlan&&await db.get('library',id)&&await db.has('roms',id))return {id,added:false};

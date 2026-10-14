@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // PalmoEMU safety facade. Upstream migration code has separate provenance;
-// this module's license does not relicense ../vendor/start-save-migrate/.
-import {MANIFEST,inspectInput,migrateSave,normalizeVersion,readSave,getVariable} from '../vendor/start-save-migrate/engine.js';
-import {tr} from './i18n/index.js';
-import {startSaveCompatibility,START_MIGRATION_VERSION} from './start-save-compatibility.js';
-import {startVersionNumber,startVersionFromStamp} from './start-save-version.js';
-import {readStartROMProfile,isStartROMFamily} from './start-rom-profile.js';
+// this module's license does not relicense ../../vendor/start-save-migrate/.
+import {inspectInput,migrateSave,normalizeVersion,readSave,getVariable} from './provider.js';
+import {START_COMPONENT,START_SOURCE_VERSIONS} from './definition.js';
+import {tr} from '../i18n/index.js';
+import {startSaveCompatibility,START_MIGRATION_VERSION} from './compatibility.js';
+import {startVersionNumber,startVersionFromStamp} from './version.js';
+import {readStartROMProfile,isStartROMFamily} from './rom-profile.js';
 
-export {START_MIGRATION_VERSION};
-export const START_SOURCE_VERSIONS=Object.freeze(MANIFEST.versions.map(source=>Object.freeze({version:source.version,sampleTested:source.saveSampleTested===true,boxes:source.boxes,encrypted:source.encrypted,crc32:source.crc32??null})));
-const sizes=new Set([131072,131088,1048576,1048592,6291456,6291472]),maxSaveBytes=6291472;
-const sources=new Map(MANIFEST.versions.map(source=>[source.version,source]));
-const stamps=new Map(MANIFEST.versions.filter(source=>source.saveVersionStamp!==undefined).map(source=>[source.saveVersionStamp,source.version]));
+export {START_MIGRATION_VERSION,START_SOURCE_VERSIONS};
+const sizes=new Set(START_COMPONENT.saveSizes),maxSaveBytes=START_COMPONENT.maxSaveBytes;
+const sources=new Map(START_COMPONENT.versions.map(source=>[source.version,source]));
+const stamps=new Map(START_COMPONENT.versions.filter(source=>source.saveVersionStamp!==undefined).map(source=>[source.saveVersionStamp,source.version]));
+const {output,versionVariable}=START_COMPONENT;
 const failures={input:()=>tr('通常セーブのデータを選択してください。'),size:()=>tr('128KiB・1MiB・6MiBの通常セーブを選択してください。'),version:()=>tr('移行元のバージョンを選択してください。'),mismatch:()=>tr('セーブ内のバージョンと選択した移行元が一致しません。'),slot:()=>tr('有効なセーブを選択してください。'),output:()=>tr('移行結果の検証に失敗しました。原本は変更されていません。')};
 function fail(code){const error=new Error(failures[code]());error.code=`START_${code.toUpperCase()}`;throw error;}
 function view(value){
@@ -37,7 +38,7 @@ export function identifyStartROM(value){
 function inspect(bytes,source){
  const slots=inspectInput(bytes,source.inspectionVersion||source.version).map(slot=>{
   if(!slot.valid)return {slot:slot.slot,valid:false};
-  const state=readSave(bytes,slot.slot),stamp=getVariable(state,0x50ef),detectedVersion=stamps.get(stamp)||(state.version===23&&state.encrypted&&state.boxCount===50?startVersionFromStamp(stamp):null);
+  const state=readSave(bytes,slot.slot),stamp=getVariable(state,versionVariable),detectedVersion=stamps.get(stamp)||(state.version===output.family&&state.encrypted===output.encrypted&&state.boxCount===output.boxes?startVersionFromStamp(stamp):null);
   // Early releases do not define a stamp. Only known stamps are identification
   // evidence; zero/unrecognised old fields must not masquerade as a version.
   if(detectedVersion&&detectedVersion!==source.version)fail('mismatch');
@@ -49,9 +50,9 @@ function inspect(bytes,source){
 export function inspectStartSave(value,from){return inspect(copySave(value),sourceVersion(from));}
 export function detectStartSaveVersion(value){
  const bytes=copySave(value),versions=[];
- for(let slot=0;slot<(bytes.length>=6291456?2:1);slot++){
+ for(let slot=0;slot<(bytes.length>=START_COMPONENT.flashBytes?2:1);slot++){
   let state;try{state=readSave(bytes,slot);}catch{continue;}
-  versions.push(state.version===23&&state.encrypted&&state.boxCount===50?startVersionFromStamp(getVariable(state,0x50ef)):null);
+  versions.push(state.version===output.family&&state.encrypted===output.encrypted&&state.boxCount===output.boxes?startVersionFromStamp(getVariable(state,versionVariable)):null);
  }
  // A converted save may still carry the bridge stamp until the new game saves.
  // Do not guess when slots disagree or an older slot has no version stamp.
@@ -81,7 +82,7 @@ export async function migrateStartSave(value,{from,onProgress,signal,selection='
  for(const slot of chosen){
   const after=readSave(result.data,slot.slot);
   // Unselected slots may intentionally retain an older format/stamp.
-  if(after.version!==23||after.boxCount!==50||getVariable(after,0x50ef)!==sources.get(START_MIGRATION_VERSION).saveVersionStamp)fail('output');
+  if(after.version!==output.family||after.boxCount!==output.boxes||after.encrypted!==output.encrypted||getVariable(after,versionVariable)!==output.saveVersionStamp)fail('output');
  }
  // The vendor verifies all existing records, untouched slots and the RTC tail.
  // Output ownership is independent from the caller and from worker input buffers.

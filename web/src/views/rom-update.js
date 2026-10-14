@@ -7,7 +7,7 @@ import {prepareROMUpdate,readROMUpdateBackup} from '../rom-update.js';
 import {guardUpdateTask} from '../update-activity.js';
 import * as db from '../storage.js';
 import {createStartSaveDialog} from './start-save-migrate.js';
-import {isStartName} from '../start-save-version.js';
+import {isStartName} from '../start-save/version.js';
 
 export function createROMUpdateDialog(api){
  const startDialog=createStartSaveDialog(api);

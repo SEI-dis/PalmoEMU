@@ -32,7 +32,7 @@ Compatibility updates intentionally change save-version variables, newly introdu
 ## Destination compatibility (2026-10-14)
 
 The tool still emits 0.42.3-format saves; the host no longer equates that with
-an exact destination ROM version. `src/start-rom-profile.js` reads the native
+an exact destination ROM version. `src/start-save/rom-profile.js` reads the native
 version writer and minimum-save gate, using the provided Source package's
 `analysis/extract-compat.py` as identification evidence. Actual local 0.42.3
 and 0.42.5 ROMs were inspected read-only: both reject save versions below
@@ -41,3 +41,9 @@ changed/unreadable gate or a minimum above that output prevents application.
 Tests contain only authored instructions and synthetic save layouts. They
 cover both slots, RTC, original backups, future boundary changes and generic
 copy bypass rejection. The supplied conversion engine has not been changed.
+
+## Component updates
+
+PalmoEMU host integration is grouped under `src/start-save/`; `provider.js` is the only application entry to the conversion engine. `definition.js` derives versions from this manifest, while `contract.js` rejects unsupported output layouts. `component.json` records source provenance and extracted-file hashes. The 2026-10-14 refactor did not change `engine.js` or `manifest.js`.
+
+See the [update procedure](../../scripts/start-save-migrate/README.md) for candidate review, extraction boundaries, required regressions and release steps. Candidate checks do not execute the supplied JavaScript and do not establish behavioral compatibility or grant a license.

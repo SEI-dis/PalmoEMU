@@ -3,9 +3,9 @@
 const assert=require('node:assert/strict');
 const {fixture35,fixture22,fakeROM,hash,put16,put32,seal,sector,slotBytes}=require('./helpers/start-save-fixtures.cjs');
 (async()=>{
- const api=await import('../src/start-save-migration.js'),engine=await import('../vendor/start-save-migrate/engine.js');
+ const api=await import('../src/start-save/migration.js'),engine=await import('../vendor/start-save-migrate/engine.js');
  const {START_MIGRATION_VERSION,START_SOURCE_VERSIONS,identifyStartROM,inspectStartSave,migrateStartSave}=api;
- const {startVersionFromName}=await import('../src/start-save-version.js');
+ const {startVersionFromName}=await import('../src/start-save/version.js');
  for(const [name,expected] of [['PokemonStart_v0.35.0.gba','0.35.0'],['START 0.35.gba','0.35.0'],['START-v0.1.gba','0.1'],['START 0.18.0.gba','0.18'],['START 0.42.3.gba','0.42.3'],['START.gba',null],['START 0.99.0.gba','0.99.0'],['PokemonStart_v0.42.5.gba','0.42.5'],['START 1.0.35.0.gba',null],['START 0.35.0 to 0.42.3.gba',null]])assert.equal(startVersionFromName(name),expected,name);
  assert.equal(startVersionFromName('PokemonStart_v0.35.0.gba','renamed 0.42.3'),'0.35.0');assert.equal(startVersionFromName(undefined,'START 0.35.0'),'0.35.0');assert.equal(startVersionFromName('0.35.0 to 0.42.3.gba','START 0.35.0'),null);
  assert.equal(START_MIGRATION_VERSION,'0.42.3');assert.equal(START_SOURCE_VERSIONS.length,58);assert.equal(START_SOURCE_VERSIONS.find(v=>v.version==='0.17').sampleTested,false);assert(Object.isFrozen(START_SOURCE_VERSIONS[0]));

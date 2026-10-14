@@ -2,8 +2,8 @@
 import {tr} from '../i18n/index.js';
 import {escapeHTML as esc} from '../shared.js';
 import {guardUpdateTask} from '../update-activity.js';
-import {START_SOURCE_VERSIONS} from '../start-save-migration.js';
-import {startSaveTask} from '../start-save-client.js';
+import {START_SOURCE_VERSIONS} from '../start-save/migration.js';
+import {startSaveTask} from '../start-save/client.js';
 
 export function createStartSaveDialog(api){
  const $=selector=>document.querySelector(selector);
@@ -72,7 +72,7 @@ export function createStartSaveDialog(api){
  }
  function showResult(result,onBack,target){
   api.sheet(tr('セーブの変換が完了しました'),tr`<button id="start-save-download" class="primary wide-button">変換セーブを保存</button><button id="start-save-original" class="secondary wide-button">元セーブを書き出す</button>${target?tr`<button id="start-save-target" class="secondary wide-button">新版のゲーム詳細へ</button>`:''}<button id="start-save-back" class="secondary wide-button">戻る</button>`);
-  bind('#start-save-download',()=>api.download(result.bytes,result.name+'-0.42.3.sav'));
+  bind('#start-save-download',()=>api.download(result.bytes,result.name+'-'+result.report.to+'.sav'));
   bind('#start-save-original',()=>api.download(result.original,result.name+'-original.sav'));
   if(target)bind('#start-save-target',()=>api.showGame(target));bind('#start-save-back',onBack);
  }

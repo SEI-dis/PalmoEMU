@@ -74,6 +74,14 @@ for the exact scope and upstream verification limitations. The release content
 inventory pins these files as a separate, license-unspecified component;
 that inventory is not a grant of redistribution rights.
 
+Modified 2026-10-14: grouped the original PalmoEMU save-conversion integration
+under `src/start-save/`, separated the vendor API adapter and supported-layout
+contract, and derived the output version from the supplied manifest. Added
+original AGPL candidate/provenance checks and update instructions under
+`scripts/start-save-migrate/`. The supplied engine and manifest are byte-for-byte
+unchanged. The new component record retains the existing author and permission
+scope; it does not grant or assert an upstream license.
+
 Modified 2026-10-09: removed native file-picker extension filters for ROMs,
 controller skins and saves because iOS file providers may disable supported
 custom extensions. Format and size checks remain local; skin/save extensions

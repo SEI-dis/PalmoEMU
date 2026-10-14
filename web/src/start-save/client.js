@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import {language,tr} from './i18n/index.js';
+import {language,tr} from '../i18n/index.js';
 export function startSaveTask(options,onProgress){
  return new Promise((resolve,reject)=>{
-  const worker=new Worker(new URL('./start-save-worker.js',import.meta.url),{type:'module'});
+  const worker=new Worker(new URL('./worker.js',import.meta.url),{type:'module'});
   const finish=(fn,value)=>{worker.terminate();fn(value);};
   worker.onmessage=({data})=>{
    if(data.type==='progress')onProgress?.(data);

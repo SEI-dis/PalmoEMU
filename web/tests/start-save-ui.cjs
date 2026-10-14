@@ -23,7 +23,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
    return {source,target:inspected.id,targetGame:inspected.game};
   },{oldROM:[...fakeROM(2749620783)],newROM:[...fakeROM(47924504)]});
   const result=await page.evaluate(async({source,targetGame,newROM})=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{startSaveTask}=await import('./src/start-save-client.js'),{prepareROMUpdate,readROMUpdateBackup}=await import('./src/rom-update.js'),{importROM}=await import('./src/rom-import.js'),{inspectStartSave}=await import('./src/start-save-migration.js');
+   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{startSaveTask}=await import('./src/start-save/client.js'),{prepareROMUpdate,readROMUpdateBackup}=await import('./src/rom-update.js'),{importROM}=await import('./src/rom-import.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
    const original=await db.get('saves',source),inspection=await startSaveTask({action:'inspect',id:source});
    const input={action:'convert',id:source,from:'0.35.0',hash:inspection.hash,at:inspection.at},converted=await startSaveTask(input);
    const valid=inspectStartSave(converted.bytes,'0.42.3').slots[0].valid;
@@ -90,7 +90,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
    ['mixed',[...fakeROM(0x55667788)],'PokemonStart-v0.40.0.gba','mixed']
   ]);
   const workerPolicy=await page.evaluate(async sources=>{
-   const {startSaveTask:task}=await import('./src/start-save-client.js'),db=await import('./src/storage.js'),out={};
+   const {startSaveTask:task}=await import('./src/start-save/client.js'),db=await import('./src/storage.js'),out={};
    for(const key of Object.keys(sources))out[key]=await task({action:'inspect',id:sources[key]});
    for(const key of ['compatible','unknown','mismatch','mixed']){
     const info=out[key];try{await task({action:'convert',id:sources[key],from:info.version,hash:info.hash,at:info.at,allowUnverified:key==='compatible'});out[key+'Rejected']=false;}catch{out[key+'Rejected']=true;}
@@ -108,7 +108,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   const selectTarget=()=>page.locator('#rom-update-file').setInputFiles({name:'START-0.42.3.gba',mimeType:'application/octet-stream',buffer:Buffer.from(fakeROM(47924504))});
   const removeTarget=()=>page.evaluate(async id=>{await(await import('./src/storage.js')).removeGame(id);},ids.target);
   const committed=(source,version='0.42.3')=>page.evaluate(async({source,target,version})=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{readROMUpdateBackup}=await import('./src/rom-update.js'),{inspectStartSave}=await import('./src/start-save-migration.js');
+   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{readROMUpdateBackup}=await import('./src/rom-update.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
    const game=await db.get('library',target),save=await db.get('saves',target),backup=await readROMUpdateBackup(game);
    return {target:await hash(save.bytes),source:await hash((await db.get('saves',source)).bytes),backup:await hash(backup.save.bytes),migration:game.romUpdate.migration??null,valid:inspectStartSave(save.bytes,version).slots.filter(s=>s.valid).length};
   },{source,target:ids.target,version});

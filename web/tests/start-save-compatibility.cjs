@@ -3,8 +3,8 @@
 const assert=require('node:assert/strict');
 const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixtures.cjs');
 (async()=>{
- const {startSaveCompatibility:policy}=await import('../src/start-save-compatibility.js');
- const {inspectStartUpdate:inspect,START_SOURCE_VERSIONS}=await import('../src/start-save-migration.js');
+ const {startSaveCompatibility:policy}=await import('../src/start-save/compatibility.js');
+ const {inspectStartUpdate:inspect,START_SOURCE_VERSIONS}=await import('../src/start-save/migration.js');
  for(const from of ['0.1','0.22','0.35.0','0.35.4','0.36.0','0.36.1'])assert.deepEqual(policy(from),{status:'convert',from,to:'0.42.3'});
  for(const from of ['0.36.2','0.37.0'])assert.deepEqual(policy(from),{status:'unknown',from,to:'0.42.3'});
  for(const from of ['0.38.0','0.38.1','0.39.0','0.40.0','0.41.1','0.42.0','0.42.2','0.42.3'])assert.deepEqual(policy(from),{status:'compatible',from,to:'0.42.3'});
@@ -17,12 +17,12 @@ const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixture
   for(const from of ['0.36.2','0.37.0','0.38.0','0.42.3'])assert.equal(policy(from,target).status,'compatible');
   assert.equal(policy('0.35.0',{...target,minimumSaveVersion:null}).status,'unknown');
  }
- const {canApplyStartMigration:canApply}=await import('../src/start-save-compatibility.js');
+ const {canApplyStartMigration:canApply}=await import('../src/start-save/compatibility.js');
  assert.equal(canApply({version:'0.43.0',minimumSaveVersion:'0.36.2'}),true);
  assert.equal(canApply({version:'0.43.0',minimumSaveVersion:'0.43.0'}),false);
  assert.equal(canApply({version:'0.42.5',minimumSaveVersion:null}),false);
  assert.equal(canApply({version:'0.42.5',unverified:true}),false);
- const {detectStartSaveVersion:detect}=await import('../src/start-save-migration.js');
+ const {detectStartSaveVersion:detect}=await import('../src/start-save/migration.js');
  const newSave=fixture35({stamp:0x2a05,second:true});assert.equal(detect(newSave),'0.42.5');
  assert.equal(inspect(newSave,'0.42.5',{version:'0.43.0',minimumSaveVersion:'0.36.2'}).compatibility.status,'compatible');
  assert.throws(()=>inspect(newSave,'0.35.0'),{code:'START_MISMATCH'});

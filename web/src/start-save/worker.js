@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Conversion and ROM identification run off the UI thread. This worker never writes.
-import {tr,setWorkerLanguage} from './i18n/index.js';
-import {sourceSave,readROMUpdateBackup} from './rom-update.js';
-import {coreFor} from './core-registry.js';
-import * as db from './storage.js';
-import {identifyStartROM,migrateStartSave,inspectStartUpdate,detectStartSaveVersion} from './start-save-migration.js';
-import {startVersionFromName} from './start-save-version.js';
-import {START_MIGRATION_VERSION,canApplyStartMigration} from './start-save-compatibility.js';
+import {tr,setWorkerLanguage} from '../i18n/index.js';
+import {sourceSave,readROMUpdateBackup} from '../rom-update.js';
+import {coreFor} from '../core-registry.js';
+import * as db from '../storage.js';
+import {identifyStartROM,migrateStartSave,inspectStartUpdate,detectStartSaveVersion} from './migration.js';
+import {startVersionFromName} from './version.js';
+import {START_MIGRATION_VERSION,canApplyStartMigration} from './compatibility.js';
 
 async function readSource(id,previous){
  const game=await db.get('library',id);

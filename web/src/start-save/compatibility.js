@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import {startVersionNumber} from './start-save-version.js';
+import {startVersionNumber} from './version.js';
 
 // The converter's output version is a bridge, not an exact destination-ROM gate.
-export const START_MIGRATION_VERSION='0.42.3';
+import {START_MIGRATION_VERSION} from './definition.js';
+export {START_MIGRATION_VERSION};
 // Changelog evidence for known ROMs; newer ROMs supply their own validated
 // native minimum-save-version gate. Never infer that gate from a filename.
 // https://github.com/pm-start/PokemonStart/blob/a9848a797893f909d7f2c50f3bc4ea5ce71fc804/CHANGELOG.md

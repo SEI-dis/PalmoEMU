@@ -4,6 +4,7 @@ const root=path.resolve(__dirname,'..'),manifest=JSON.parse(fs.readFileSync(path
 const {spawnSync}=require('node:child_process');
 function run(command,args){const r=spawnSync(command,args,{stdio:'inherit'});assert.equal(r.status,0,'Release verification failed: '+command+' '+args.join(' '));}
 const python=process.env.PYTHON||(process.platform==='win32'?'python':'python3');
+run(process.execPath,[path.join(__dirname,'start-save-migrate/check.mjs')]);
 run(python,['-B','-X','utf8',path.join(__dirname,'audit-content.py')]);
 run(python,['-B','-X','utf8',path.join(__dirname,'check-bundled-skins.py')]);
 run(python,['-B','-X','utf8',path.join(__dirname,'package_source.py'),'--check']);

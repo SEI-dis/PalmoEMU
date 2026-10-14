@@ -3,7 +3,7 @@ const assert=require('node:assert/strict'),crypto=require('node:crypto');
 const {fixture,word,literal,branchLink}=require('./helpers/start-rom-profile-fixture.cjs');
 const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 (async()=>{
- const {readStartROMProfile:read,isStartROMFamily:isFamily}=await import('../src/start-rom-profile.js');
+ const {readStartROMProfile:read,isStartROMFamily:isFamily}=await import('../src/start-save/rom-profile.js');
  const baseline=fixture(),before=hash(baseline.bytes),expected={version:'0.42.5',minimumSaveVersion:'0.36.2'};
  assert.equal(isFamily(baseline.bytes),true);
  assert.deepEqual(read(baseline.bytes),expected);
