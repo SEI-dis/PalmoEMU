@@ -4,7 +4,7 @@
   "toolVersion": "1.0.5",
   "outputVersion": "0.42.3",
   "author": "くりーぱー (Discord: ajillo0112)",
-  "permission": "User-authorized incorporation; no upstream license was supplied. Retain the permission/provenance scope in README.md; this is not a general third-party license.",
+  "permission": "Author permission for incorporation into PalmoEMU, Web publication, modification, and redistribution of modified source was confirmed by the project maintainer on 2026-10-14. No standardized upstream license was supplied. Retain the provenance/scope in README.md; do not assert an AGPL, MIT or general third-party license. The maintainer confirmed that the author's stated condition is credit attribution.",
   "sources": [
     {
       "name": "START-Save-Migrate.html",
@@ -22,6 +22,6 @@
   "files": {
     "engine.js": "1c2bed4c9f0bd8cf94e009c1cdc32096f6428bb669d6cb7a5486d35d15924620",
     "manifest.js": "8c275eb48192f22a3efa779c7ff62d8d54ebb9f267627cd0abde7f40296bb96c",
-    "README.md": "a7a585ac01942078d7046f0c6b425d7588296aff2a76c811de041146c8d6c232"
+    "README.md": "46e66d04c66925eff9b309af2be3dab37e16387f0c7b45de1ce35ea992dae996"
   }
 }

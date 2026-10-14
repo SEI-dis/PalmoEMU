@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+name: Detect upstream updates
+on:
+  schedule:
+    - cron: '17 21 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: upstream-metadata-review
+  cancel-in-progress: false
+jobs:
+  metadata:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - name: Check detector fixtures
+        run: node web/tests/upstream-watch.cjs
+      # Only the trusted repository's checker runs. Remote JS/CMake/scripts and
+      # release assets are never executed/downloaded by this scheduled job.
+      - name: Compare pinned sources with upstream metadata
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node web/scripts/upstream-watch.mjs
+      - name: Keep review reports
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: upstream-update-review
+          path: work/upstream-review/report.*
+          if-no-files-found: error
+          retention-days: 30

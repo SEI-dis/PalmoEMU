@@ -110,3 +110,18 @@ Celio-Server 8f509bdcf2a8383b936e0f2f31b2f6553ae421ceではdeviceDataが配列�
 相互接続対象の上流Web固定版は旧形式です。新サーバーで未対応の旧クライアントまで動かせるわけではありません。
 中継URLが同じでも、相手側の実装・ゲームが対応する必要があります。新形式の試験はローカル中継だけを使用し、
 公開サーバーのデプロイ版、実機iPhone、実ゲームでの交換・対戦の完了は未確認です。人数は2人のままです。
+
+## 公開中継サービスとコードの許諾（2026-10-14）
+
+Celio-ServerのGPL-3.0はサーバーソフトウェアの利用・改変・配布に関するものです。他者が運営する中継サービスの利用条件を、それだけで許可済みとは扱いません。公式Client・mGBA連携・参照Web版も同じ公開接続先を使用していますが、公式README・サイト・関連公開資料では第三者互換クライアントを明示的に許可または禁止する条件を確認できませんでした。記載がないことから禁止・違法とも断定しません。
+
+PalmoEMUは部屋作成・参加を明示的に選んだ場合だけ接続し、接続先と送信範囲を通信画面に表示します。今回、任意の対応WSS中継先を指定できるようにしました。運営者の案内・利用条件に従って接続先を選び、独自運営の場合もサーバー側のGPL条件を確認してください。接続時には中継事業者がIPアドレス等の通信情報を受け取ります。公開中継の稼働・許容量・個別許諾はPalmoEMUが保証するものではありません。
+
+確認資料：
+- [Celio-Server README](https://github.com/Celio-Link/Celio-Server/blob/8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/README.md)
+- [Server GPL全文](https://github.com/Celio-Link/Celio-Server/blob/8f509bdcf2a8383b936e0f2f31b2f6553ae421ce/LICENSE.txt)
+- [公式Client接続設定](https://github.com/Celio-Link/Celio-Client/blob/be562a93b48c6025e398714af82bddfb6498e00c/src/environments/environment.prod.ts)
+- [公式サイト](https://celi0.link/)
+- [参照Web版の通信実装](https://github.com/pm-start/mgba-celio-web/blob/23235bc6db1b67009808c0dc7e1f25131eb75e7a/web/link-session.js)
+
+この確認では運営者への連絡、公開中継への接続・負荷試験は行っていません。

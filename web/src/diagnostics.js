@@ -3,6 +3,8 @@
 // names supplied by users, ROM identities, saves, screenshots or raw UA text.
 import {coreRegistry} from './core/core-registry.js';
 import {videoFilters} from './rendering/video.js';
+import {diagnosticSources} from './runtime/diagnostic-sources.js';
+import {performanceDiagnostics} from './runtime/performance.js';
 
 const key='palmo-diagnostics-v1',limit=5,frameLimit=8;
 const sources=new Set(['handled','global-error','unhandled-rejection','core','startup','import','save','previous-session','update']);
@@ -16,8 +18,7 @@ const browsers=new Set(['Chrome','Edge','Firefox','Safari','Other']),oses=new Se
 const errorNames=new Set(['Error','TypeError','RangeError','ReferenceError','SyntaxError','URIError','EvalError','AggregateError','DOMException','AbortError','QuotaExceededError','NotAllowedError','NotFoundError','NetworkError','DataCloneError','NotReadableError','SecurityError','InvalidStateError','OperationError','TimeoutError','UnknownError','RuntimeError','CompileError','LinkError']);
 // Exact source names prevent a fabricated stack from exporting a ROM filename
 // disguised as src/<private-name>.js. New source files can be added explicitly.
-const sourceNames=('library/library library-view input/startup-input storage/backup backup-view library/game-preferences game-preferences-view input/input-controls input-controls-view core/rewind core/rewind-session app updates/auto-update updates/auto-update-worker skins/bundled-skins link/celio-device link/celio-serial skins/control-alignment skins/control-editor skins/control-layout core/core-factory core/core-registry cover-dialog core/development diagnostics diagnostics-view link/direct-link components/floating-panel game-info input/haptics library/import-progress core/jgenesis link/link-controls link/link-safety link/local-link-core link/local-link-save components/manic-ui core/mgba core/nds skins/nds-skin updates/offline link/peer-link core/retro library/rom-import library/rom-import-worker link/room-link storage/save-safety settings-view shared skins/skin-art skins/skin-drawing skins/skin-format skins/skin-inputs skins/skin-layout skins/skin-preview skins/skin-profiles skins/skin-screens skins/skin-selection skin-settings skins/skin-zip skins/skins state-dialogs storage/storage core/three-ds core/three-ds-save core/three-ds-worker rendering/time-stretch ui updates/update updates/update-activity rendering/video start-save/client workers/task').split(' ');
-const files=new Set(sourceNames.map(name=>'src/'+name+'.js'));
+const files=new Set(diagnosticSources);
 for(const core of cores)for(const name of ['core.js','core.wasm',...(core.key==='mgba'?['mgba.js','mgba.wasm']:[]),...(core.key==='jgenesis'?['core_bg.wasm']:[])])files.add(`cores/${core.directory}/${name}`);
 const base=new URL('../',import.meta.url);
 let context=()=>({phase:'idle'}),seen=new WeakSet(),recording=false,memory={enabled:true,reports:[]},storageUnavailable=false;
@@ -111,7 +112,7 @@ export const diagnostics=Object.freeze({
    if(report){value.reports.push(report);write(value);return report;}
   }catch{}finally{recording=false;}
  },
- snapshot(){return {schemaVersion:1,app:app(),environment:environment(),current:current(),reports:diagnostics.list()};}
+ snapshot(){return {schemaVersion:1,app:app(),environment:environment(),current:current(),performance:performanceDiagnostics.snapshot(),reports:diagnostics.list()};}
 });
 window.addEventListener('error',event=>{diagnostics.record(event.error||event,'global-error');});
 window.addEventListener('unhandledrejection',event=>{diagnostics.record(event.reason,'unhandled-rejection');});

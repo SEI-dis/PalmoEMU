@@ -11,7 +11,7 @@ function automaticUpdateCoordinator(base){
  });}
  async function apply(source){
   if(running||!self.navigator.locks||!source?.url||!source.url.startsWith(base.href)||!self.registration.waiting)return false;
-  running=true;let prepared=[];
+  running=true;let prepared=[],committed=false;
   try{
    const clients=await scopeClients();if(!clients.length)return false;
    const token=crypto.randomUUID(),probes=await Promise.all(clients.map(client=>ask(client,'local-play-update-probe',token)));
@@ -23,12 +23,23 @@ function automaticUpdateCoordinator(base){
     const known=new Set(clients.map(client=>client.id));
     if((await scopeClients()).some(client=>!known.has(client.id)))return false;
     // Keep new tabs behind the version lock until claim() has switched controllers.
-    let timer;const completion=new Promise((resolve,reject)=>{activated=resolve;timer=setTimeout(()=>reject(Error('Activation timed out')),10000);});
+    // skipWaiting cannot be rolled back. Hold the lease through claim(), even
+    // if cache cleanup/activation takes longer than a network-style timeout.
+    const completion=new Promise(resolve=>{activated=resolve;});
     // All prepared pages have shown their update indicator. Give it time to be read.
-    try{await new Promise(resolve=>setTimeout(resolve,1200));await self.skipWaiting();await completion;return true;}finally{clearTimeout(timer);activated=null;}
+    try{
+     await new Promise(resolve=>setTimeout(resolve,1200));committed=true;
+     for(const result of prepared){try{result.port?.postMessage({type:'commit'});}catch{}}
+     try{await self.skipWaiting();}catch(error){
+      // A rejected request never commits the switch. Explicitly distinguish
+      // this from a slow, successful activation, which cannot be cancelled.
+      committed=false;for(const result of prepared){try{result.port?.postMessage({type:'abort'});}catch{}}throw error;
+     }
+     await completion;return true;
+    }finally{activated=null;}
    });
   }finally{
-   for(const result of prepared){try{result.port?.postMessage({type:'cancel'});}catch{}result.port?.close();}
+   for(const result of prepared){try{if(!committed)result.port?.postMessage({type:'cancel'});}catch{}result.port?.close();}
    running=false;
   }
  }

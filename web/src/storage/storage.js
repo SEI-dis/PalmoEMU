@@ -198,6 +198,7 @@ async function deleteGames(ids){const db=await database;return new Promise((reso
   if(--pending)return;
   for(const selected of ids){
    tx.objectStore('coverCatalogs').delete(romUpdateMetadataPrefix+selected);
+   tx.objectStore('coverCatalogs').delete(IDBKeyRange.bound(saveRescuePrefix+selected+':',saveRescuePrefix+selected+':\uffff'));
    for(const name of ['library','roms','saves','backups','archives','recoveries','sessions']){const store=tx.objectStore(name);store.delete(selected);if(name!=='library'&&name!=='roms')store.delete(IDBKeyRange.bound(selected+'@',selected+'@\uffff'));}
    const states=tx.objectStore('states');states.delete(IDBKeyRange.bound(selected+':',selected+':\uffff'));states.delete(IDBKeyRange.bound(selected+'@',selected+'@\uffff'));
   }
@@ -272,60 +273,144 @@ async function commitProtectionBatch(entries){
 }
 
 async function stateEntries(id){const db=await database;return new Promise((resolve,reject)=>{const list=[],r=db.transaction('states').objectStore('states').openCursor(IDBKeyRange.bound(id+':',id+':\uffff'));r.onsuccess=()=>{const c=r.result;if(!c){resolve(list);return;}list.push({key:c.key,value:c.value});c.continue();};r.onerror=()=>reject(r.error);});}
+async function stateKeys(id){const db=await database;return new Promise((resolve,reject)=>{const r=db.transaction('states').objectStore('states').getAllKeys(IDBKeyRange.bound(id+':',id+':\uffff'));r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
 
 // Private metadata keys share the existing catalog store to avoid a disruptive
 // database upgrade while another tab is playing. No catalog API enumerates it.
 export const backupMetadataPrefix='\u0001palmo-backup:';
 const backupStores=['saves','states','backups','archives','recoveries'];
-async function readBackupData({summary=false}={}){const db=await database;return new Promise((resolve,reject)=>{
- const tx=db.transaction(['library',...backupStores]),result={games:[],records:[]};let bytes=0,failure;
- for(const name of ['library',...backupStores]){const request=tx.objectStore(name).openCursor();request.onsuccess=()=>{try{const c=request.result;if(!c)return;
-  const project=(value,fields)=>Object.fromEntries(fields.filter(key=>Object.hasOwn(value,key)).map(key=>[key,value[key]]));
-  if(name==='library')result.games.push(summary?project(c.value,['id','system','size','name','romMissing']):{category:'',favorite:false,...project(c.value,['id','system','size','preferences','coreKey','cheats','coreCheats','controlLayout','category','favorite'])});else{const rows=Array.isArray(c.value)?c.value:[c.value],values=rows.map(item=>project(item,summary?['at']:['bytes','hash','at','coreId','save','saveHash']));result.records.push({store:name,key:c.key,value:Array.isArray(c.value)?values:values[0]});for(const item of values)bytes+=(item.bytes?.byteLength||0)+(item.save?.byteLength||0);}
-  if(!summary&&(result.games.length>1000||result.records.length>10000||bytes>128*1048576)){failure=Error(tr('バックアップの上限（128 MiB／1000ゲーム／10000件）を超えています。個別に書き出してから整理してください。'));tx.abort();return;}c.continue();}catch(e){failure=Error(tr('バックアップ用の保存データを読めませんでした。'));tx.abort();}};}
- tx.oncomplete=()=>resolve(result);tx.onabort=()=>reject(failure||tx.error||Error(tr('バックアップ用のデータを読めませんでした。')));
+async function readBackupData({summary=false,gameIds,latestOnly=false,selectedRecords}={}){const db=await database;return new Promise((resolve,reject)=>{
+ const tx=db.transaction(['library',...backupStores,'coverCatalogs']),result={games:[],records:[],playRecords:[]},ids=gameIds&&new Set(gameIds),selected=selectedRecords&&new Map(selectedRecords.map(r=>[r.store+':'+r.key,r]));let bytes=0,failure;
+ const project=(value,fields)=>Object.fromEntries(fields.filter(key=>Object.hasOwn(value,key)).map(key=>[key,value[key]]));
+ const abort=e=>{failure=e;try{tx.abort();}catch{}};
+ const append=(name,key,value)=>{
+  const id=String(key).split(/[@:]/,1)[0],selection=selected?.get(name+':'+key);
+  if(ids&&!ids.has(id)||name!=='library'&&(latestOnly&&name!=='saves'||selected&&!selection))return;
+  if(name==='library')result.games.push({category:'',favorite:false,...project(value,['id','system','size','preferences','coreKey','cheats','coreCheats','controlLayout','category','favorite','added','lastPlayed','updatedAt','playDuration','romUpdate',...(summary?['name','romMissing']:[])])});
+  else {
+   const rows=Array.isArray(value)?value:[value],values=rows.flatMap((item,index)=>selection&&!selection.indices.includes(index)?[]:[summary?{...project(item,['at','hash','coreId','saveHash']),byteLength:(item.bytes?.byteLength||0)+(item.save?.byteLength||0)}:project(item,['bytes','hash','at','coreId','save','saveHash'])]);
+   result.records.push({store:name,key,value:Array.isArray(value)?values:values[0]});for(const item of values)bytes+=(item.bytes?.byteLength||0)+(item.save?.byteLength||0);
+  }
+  if(result.games.length>1000||result.records.length>10000||!summary&&bytes>128*1048576)throw Error(tr('バックアップを分割して書き出してください。'));
+ };
+ for(const name of ['library',...backupStores]){
+  if(name!=='library'&&selected){
+   // Export only the requested part. Do not clone unrelated saves or states.
+   for(const entry of selectedRecords.filter(record=>record.store===name)){const r=tx.objectStore(name).get(entry.key);r.onsuccess=()=>{try{if(r.result===undefined)throw Error(tr('保存データが変わりました。書き出し内容を選び直してください。'));append(name,entry.key,r.result);}catch(e){abort(e);}};}
+  }else if(!(latestOnly&&name!=='library'&&name!=='saves')){
+   const request=tx.objectStore(name).openCursor();request.onsuccess=()=>{try{const c=request.result;if(!c)return;append(name,c.key,c.value);c.continue();}catch(e){abort(e);}};
+  }
+ }
+ const catalog=tx.objectStore('coverCatalogs'),profile=catalog.get(trainerProfileKey);profile.onsuccess=()=>{if(profile.result)result.profile=profile.result;};
+ const records=catalog.getAll(IDBKeyRange.bound(playRecordPrefix,playRecordPrefix+'\uffff'));records.onsuccess=()=>{result.playRecords=records.result;};
+ if(!latestOnly){
+  if(selected){for(const entry of selectedRecords.filter(record=>record.store==='rom-updates')){const r=catalog.get(romUpdateMetadataPrefix+entry.key.split('@')[0]);r.onsuccess=()=>{try{if(!r.result)throw Error(tr('保存データが変わりました。書き出し内容を選び直してください。'));append('rom-updates',entry.key,r.result.save);}catch(e){abort(e);}};}}
+  else {const updates=catalog.openCursor(IDBKeyRange.bound(romUpdateMetadataPrefix,romUpdateMetadataPrefix+'\uffff'));updates.onsuccess=()=>{try{const c=updates.result;if(!c)return;const item=c.value;append('rom-updates',item.targetId+'@'+item.coreKey,item.save);c.continue();}catch(e){abort(e);}};}
+ }
+ tx.oncomplete=()=>{const games=new Set(result.games.map(game=>game.id));result.records=result.records.filter(record=>games.has(record.key.split(/[@:]/,1)[0]));resolve(result);};tx.onabort=()=>reject(failure||tx.error||Error(tr('バックアップ用のデータを読めませんでした。')));
 });}
 // Caller holds the selected local-game locks and validates all incoming bytes.
 // Capture the actual previous values and replace data in the same transaction.
 // ROM payloads are never read; count() only confirms each library entry exists.
-async function restoreBackupData({games,records,settings,previousSettings,cleanGame,cleanRecord,maxBytes}){const db=await database;return new Promise((resolve,reject)=>{
- const tx=write(db,['library','roms',...backupStores,'coverCatalogs']),catalog=tx.objectStore('coverCatalogs'),ids=new Set(games.map(g=>g.id));
- let failure,pending=games.length*2+backupStores.length,previousBytes=0;const before={games:[],records:[]},remove=[];
+function backupRecordSummary(record){
+ const project=item=>({at:item.at,hash:item.hash,coreId:item.coreId,saveHash:item.saveHash,byteLength:item.byteLength??((item.bytes?.byteLength||0)+(item.save?.byteLength||0))});
+ return {store:record.store,key:record.key,value:Array.isArray(record.value)?record.value.map(project):project(record.value)};
+}
+function backupGameSummary(game){
+ const fields=['id','system','size','preferences','coreKey','cheats','coreCheats','controlLayout','category','favorite','added','lastPlayed','updatedAt','playDuration','romUpdate'];
+ return {category:'',favorite:false,...Object.fromEntries(fields.filter(key=>Object.hasOwn(game,key)).map(key=>[key,game[key]]))};
+}
+function backupSnapshotSignature(data,ids){
+ return JSON.stringify({games:data.games.filter(game=>ids.has(game.id)).map(backupGameSummary).sort((a,b)=>a.id.localeCompare(b.id)),records:data.records.filter(record=>ids.has(record.key.split(/[@:]/,1)[0])).map(backupRecordSummary).sort((a,b)=>(a.store+':'+a.key).localeCompare(b.store+':'+b.key))});
+}
+function backupMetadataSignature(data){
+ const value={settings:data.settings,profile:data.profile||null,playRecords:[...(data.playRecords||[])].sort((a,b)=>a.id.localeCompare(b.id))};
+ return JSON.stringify(value,(_key,item)=>item&&typeof item==='object'&&!Array.isArray(item)?Object.fromEntries(Object.keys(item).sort().map(key=>[key,item[key]])):item);
+}
+function mergeBackupHistory(name,current,incoming){
+ const limit=name==='archives'?10:5,seen=new Set();
+ const history=[...incoming,...(Array.isArray(current)?current:[])].sort((a,b)=>(b.at||0)-(a.at||0)).filter(item=>{const key=[item.hash,item.saveHash,item.at,item.coreId].join(':');if(seen.has(key))return false;seen.add(key);return true;});
+ return retainHistory(history,limit);
+}
+async function restoreBackupData({games,records,settings,profile,playRecords=[],previousSettings,cleanGame,cleanRecord,merge=false,part}){
+ // The caller keeps game/restore locks during this preflight and the transaction.
+ // If play or edits happened since an unfinished split restore, protect that
+ // newer data as a fresh baseline rather than retaining a stale rollback copy.
+ const partId=part?.id,prior=partId?await get('coverCatalogs',backupMetadataPrefix+'snapshot'):null;
+ let continuePart=!!(part&&prior&&prior.partId===partId&&prior.expected&&!prior.complete&&prior.partCount===part.count);
+ if(continuePart){const ids=new Set(games.map(game=>game.id).filter(id=>prior.games.some(game=>game.id===id))),current=await readBackupData({summary:true,gameIds:[...ids]});continuePart=backupSnapshotSignature(current,ids)===backupSnapshotSignature(prior.expected,ids)&&backupMetadataSignature({...current,settings:previousSettings})===backupMetadataSignature(prior.expected);}
+ const db=await database;return new Promise((resolve,reject)=>{
+ const tx=write(db,['library','roms',...backupStores,'coverCatalogs']),catalog=tx.objectStore('coverCatalogs'),ids=new Set(games.map(g=>g.id));let failure;
  const abort=e=>{failure=e;try{tx.abort();}catch{}};
- const belongs=key=>typeof key==='string'&&ids.has(key.split(/[@:]/,1)[0]);
- const done=()=>{if(--pending)return;try{
-  // Latest one only. Previous snapshot replacement is atomic with the restore.
-  catalog.delete(IDBKeyRange.bound(backupMetadataPrefix,backupMetadataPrefix+'\uffff'));
-  const meta={settings:previousSettings,games:before.games,count:before.records.length,at:Date.now()};
-  catalog.put(meta,backupMetadataPrefix+'snapshot');
-  before.records.forEach((record,i)=>catalog.put(record,backupMetadataPrefix+'record:'+i));
-  if(settings!==undefined)catalog.put({settings},backupMetadataPrefix+'pending');
-  for(const [store,key] of remove)tx.objectStore(store).delete(key);
-  for(const record of records)tx.objectStore(record.store).put(record.value,record.key);
- }catch(e){abort(e);}};
- for(const incoming of games){
-  const r=tx.objectStore('library').get(incoming.id);r.onsuccess=()=>{try{
-   const game=r.result;if(!game||game.system!==incoming.system||game.size!==incoming.size)throw Error(tr('ゲーム一覧が変わりました。ファイルを選び直してください。'));
-   before.games.push(cleanGame(game));
-   for(const field of ['preferences','coreKey','cheats','coreCheats','controlLayout']){if(Object.hasOwn(incoming,field))game[field]=incoming[field];else delete game[field];}
-   // Older portable backups did not include library organization. Preserve it
-   // unless the archive explicitly supplies a value (including false/empty).
-   if(Object.hasOwn(incoming,'category')){if(incoming.category)game.category=incoming.category;else delete game.category;}
-   if(Object.hasOwn(incoming,'favorite'))game.favorite=incoming.favorite;
-   tx.objectStore('library').put(game,game.id);done();
+ const snapshot=catalog.get(backupMetadataPrefix+'snapshot');snapshot.onsuccess=()=>{try{
+  const continuing=continuePart&&snapshot.result?.at===prior.at&&Array.isArray(snapshot.result.entries);
+  const before=continuing?snapshot.result:{settings:previousSettings,games:[],playRecords:[],entries:[],at:Date.now(),...(partId?{partId,partCount:part.count,completedParts:[]}:{})};
+  if(!continuing)catalog.delete(IDBKeyRange.bound(backupMetadataPrefix,backupMetadataPrefix+'\uffff'));
+  const protectedIds=new Set(before.games.map(game=>game.id)),newIds=new Set([...ids].filter(id=>!protectedIds.has(id))),updatedGames=new Map(),merged=new Set(),incoming=new Map(records.map(record=>[record.store+':'+record.key,record]));let pending=games.length*2+backupStores.length+3,currentRecords=[],currentProfile=null;
+  const expectedGames=new Map((before.expected?.games||[]).map(game=>[game.id,game])),expectedRecords=new Map((before.expected?.records||[]).filter(record=>!ids.has(record.key.split(/[@:]/,1)[0])).map(record=>[record.store+':'+record.key,record]));
+  const done=()=>{if(--pending)return;try{
+   if(before.entries.length>10000)throw Error(tr('復元前のデータの件数上限を超えています。'));
+   before.count=before.entries.length;
+   if(settings!==undefined)catalog.put({settings},backupMetadataPrefix+'pending');
+   if(profile!==undefined)catalog.put(profile,trainerProfileKey);
+   const previousRecords=new Map(currentRecords.map(record=>[record.id,record]));
+   for(const record of playRecords){
+    const existing=previousRecords.get(record.id);if(existing&&existing.system!==record.system)throw Error(tr('プレイ記録の機種が一致しません。'));
+    const next=playRecord(record,existing);previousRecords.set(record.id,next);catalog.put(next,playRecordPrefix+record.id);
+   }
+   for(const game of updatedGames.values()){
+    // Same-ROM counters are maxima, never sums. Re-importing any part is idempotent.
+    const remembered=previousRecords.get(game.id);if(remembered?.system===game.system){for(const field of ['playDuration','lastPlayed'])if(remembered[field]||Object.hasOwn(game,field))game[field]=Math.max(game[field]||0,remembered[field]||0);}
+    tx.objectStore('library').put(game,game.id);expectedGames.set(game.id,backupGameSummary(game));
+   }
+   for(const record of records)if(!merged.has(record.store+':'+record.key)){
+    if(record.store==='rom-updates'){const game=updatedGames.get(record.key.split('@')[0]),link=game.romUpdate;catalog.put({sourceId:link.previousId,targetId:game.id,sourceName:link.previousName,system:game.system,coreKey:link.coreKey,save:record.value,at:link.at},romUpdateMetadataPrefix+game.id);}
+    else tx.objectStore(record.store).put(record.value,record.key);
+    expectedRecords.set(record.store+':'+record.key,backupRecordSummary(record));
+   }
+   if(part){before.completedParts=[...new Set([...before.completedParts,part.index])];before.complete=before.completedParts.length===part.count;before.expected={games:[...expectedGames.values()],records:[...expectedRecords.values()],settings:settings===undefined?previousSettings:settings,profile:profile===undefined?currentProfile:profile,playRecords:[...previousRecords.values()]};}
+   catalog.put(before,backupMetadataPrefix+'snapshot');
   }catch(e){abort(e);}};
-  const check=tx.objectStore('roms').count(incoming.id);check.onsuccess=()=>{if(check.result){done();return;}const local=tx.objectStore('library').get(incoming.id);local.onsuccess=()=>{if(local.result?.romMissing===true)done();else abort(Error(tr('対象のROMがありません。先にROMを追加してください。')));};};
- }
- for(const name of backupStores){const r=tx.objectStore(name).openCursor();r.onsuccess=()=>{try{const c=r.result;if(!c){done();return;}if(belongs(c.key)){
-   const record=cleanRecord({store:name,key:c.key,value:c.value});before.records.push(record);remove.push([name,c.key]);
-   for(const item of Array.isArray(record.value)?record.value:[record.value])previousBytes+=(item.bytes?.byteLength||0)+(item.save?.byteLength||0);
-   if(previousBytes>maxBytes||before.records.length>10000)throw Error(tr('復元前のデータが退避上限を超えています。個別に書き出してから整理してください。'));
-  }c.continue();}catch(e){abort(e);}};}
+  const p=catalog.get(trainerProfileKey);p.onsuccess=()=>{currentProfile=p.result||null;if(!continuing&&p.result)before.profile=p.result;done();};
+  const stats=catalog.getAll(IDBKeyRange.bound(playRecordPrefix,playRecordPrefix+'\uffff'));stats.onsuccess=()=>{currentRecords=stats.result;if(!continuing)before.playRecords=currentRecords;done();};
+  const updates=catalog.openCursor(IDBKeyRange.bound(romUpdateMetadataPrefix,romUpdateMetadataPrefix+'\uffff'));updates.onsuccess=()=>{try{const c=updates.result;if(!c){done();return;}const value=c.value;if(ids.has(value.targetId)){if(newIds.has(value.targetId)){const key=backupMetadataPrefix+'record:'+before.entries.length;catalog.put(cleanRecord({store:'rom-updates',key:value.targetId+'@'+value.coreKey,value:value.save}),key);before.entries.push({key,store:'rom-updates',recordKey:value.targetId+'@'+value.coreKey});}if(!merge&&games.some(game=>game.id===value.targetId&&game.romUpdate))c.delete();else{const record={store:'rom-updates',key:value.targetId+'@'+value.coreKey,value:value.save};expectedRecords.set(record.store+':'+record.key,backupRecordSummary(record));}}c.continue();}catch(e){abort(e);}};
+  for(const entry of games){
+   const r=tx.objectStore('library').get(entry.id);r.onsuccess=()=>{try{
+    const game=r.result;if(!game||game.system!==entry.system||game.size!==entry.size)throw Error(tr('ゲーム一覧が変わりました。ファイルを選び直してください。'));
+    if(newIds.has(game.id))before.games.push(cleanGame(game));
+    for(const field of ['preferences','coreKey','cheats','coreCheats','controlLayout']){if(Object.hasOwn(entry,field))game[field]=entry[field];else delete game[field];}
+    if(Object.hasOwn(entry,'category')){if(entry.category)game.category=entry.category;else delete game.category;}
+    if(Object.hasOwn(entry,'favorite'))game.favorite=entry.favorite;
+    for(const field of ['playDuration','lastPlayed','updatedAt'])if(Object.hasOwn(entry,field))game[field]=Math.max(game[field]||0,entry[field]);
+    if(entry.added)game.added=game.added?Math.min(game.added,entry.added):entry.added;
+    if(entry.romUpdate)game.romUpdate=entry.romUpdate;
+    updatedGames.set(game.id,game);done();
+   }catch(e){abort(e);}};
+   const check=tx.objectStore('roms').count(entry.id);check.onsuccess=()=>{if(check.result){done();return;}const local=tx.objectStore('library').get(entry.id);local.onsuccess=()=>{if(local.result?.romMissing===true)done();else abort(Error(tr('対象のROMがありません。先にROMを追加してください。')));};};
+  }
+  for(const name of backupStores){const r=tx.objectStore(name).openCursor();r.onsuccess=()=>{try{
+   const c=r.result;if(!c){done();return;}const id=String(c.key).split(/[@:]/,1)[0];
+   if(ids.has(id)){
+    // Write each prior record straight to IndexedDB instead of accumulating
+    // all selected games' buffers in JS memory. Transaction abort restores it.
+    if(newIds.has(id)){const key=backupMetadataPrefix+'record:'+before.entries.length;catalog.put(cleanRecord({store:name,key:c.key,value:c.value}),key);before.entries.push({key,store:name,recordKey:c.key});}
+    if(!merge)c.delete();
+    else {const token=name+':'+c.key,entry=incoming.get(token);let value=c.value;if(entry&&Array.isArray(entry.value)){value=mergeBackupHistory(name,c.value,entry.value);c.update(value);merged.add(token);}expectedRecords.set(token,backupRecordSummary({store:name,key:c.key,value}));}
+   }c.continue();
+  }catch(e){abort(e);}};}
+ }catch(e){abort(e);}};
  tx.oncomplete=()=>resolve({games:games.length,records:records.length});tx.onabort=()=>reject(failure||tx.error||Error(tr('復元が中断されました。元のデータは変更していません。')));tx.onerror=()=>{};
 });}
-async function readPreviousBackup(){const db=await database;return new Promise((resolve,reject)=>{
- const tx=db.transaction('coverCatalogs'),store=tx.objectStore('coverCatalogs'),r=store.get(backupMetadataPrefix+'snapshot');let result=null,failure;
- r.onsuccess=()=>{if(!r.result)return;if(!Number.isInteger(r.result.count)||r.result.count<0||r.result.count>10000){failure=Error(tr('復元前のバックアップ情報が正しくありません。'));tx.abort();return;}result={...r.result,records:[]};for(let i=0;i<result.count;i++){const q=store.get(backupMetadataPrefix+'record:'+i);q.onsuccess=()=>{result.records[i]=q.result;};}};
+async function readPreviousBackup({summary=false,selectedRecords}={}){const db=await database;return new Promise((resolve,reject)=>{
+ const tx=db.transaction('coverCatalogs'),store=tx.objectStore('coverCatalogs'),r=store.get(backupMetadataPrefix+'snapshot'),selected=selectedRecords&&new Map(selectedRecords.map(record=>[record.store+':'+record.key,record]));let result=null,failure,bytes=0;
+ r.onsuccess=()=>{if(!r.result)return;if(!Number.isInteger(r.result.count)||r.result.count<0||r.result.count>10000){failure=Error(tr('復元前のバックアップ情報が正しくありません。'));tx.abort();return;}result={...r.result,records:[]};
+  const entries=r.result.entries||Array.from({length:r.result.count},(_,i)=>backupMetadataPrefix+'record:'+i);
+  for(const entry of entries){if(selected&&typeof entry==='object'&&!selected.has(entry.store+':'+entry.recordKey))continue;const q=store.get(typeof entry==='object'?entry.key:entry);q.onsuccess=()=>{try{const record=q.result;if(!record)throw Error(tr('復元前のバックアップ情報が正しくありません。'));const choice=selected?.get(record.store+':'+record.key);if(selected&&!choice)return;
+   const values=(Array.isArray(record.value)?record.value:[record.value]).flatMap((item,index)=>choice&&!choice.indices.includes(index)?[]:[summary?{at:item.at,hash:item.hash,coreId:item.coreId,saveHash:item.saveHash,byteLength:(item.bytes?.byteLength||0)+(item.save?.byteLength||0)}:item]);
+   for(const item of values)bytes+=(item.bytes?.byteLength||0)+(item.save?.byteLength||0);if(bytes>128*1048576)throw Error(tr('復元前のデータが大きいため、分割して書き出してください。'));
+   result.records.push({...record,value:Array.isArray(record.value)?values:values[0]});
+  }catch(e){failure=e;tx.abort();}};}
+ };
  tx.oncomplete=()=>resolve(result);tx.onabort=()=>reject(failure||tx.error||Error(tr('復元前のバックアップを読めませんでした。')));
 });}
 
@@ -354,6 +439,35 @@ async function detachGameROM(id){
  });
 }
 export const romUpdateMetadataPrefix='\u0001palmo-rom-update:';
+export const saveRescuePrefix='\u0001palmo-save-rescue:';
+async function readSaveRescueOriginals(id,coreKey){
+ libraryIds([id]);const db=await database;
+ return new Promise((resolve,reject)=>{const rows=[],tx=db.transaction('coverCatalogs'),request=tx.objectStore('coverCatalogs').openCursor(IDBKeyRange.bound(saveRescuePrefix+id+':',saveRescuePrefix+id+':\uffff'));
+  request.onsuccess=()=>{const cursor=request.result;if(!cursor)return;const value=cursor.value;if(value.coreKey===coreKey)rows.push({key:cursor.key,at:value.at,saveAt:value.save?.at||0,bytes:byteView(value.save?.bytes)?.length||0});cursor.continue();};
+  tx.oncomplete=()=>resolve(rows.sort((a,b)=>b.at-a.at));tx.onabort=()=>reject(tx.error||Error(tr('保存履歴を開けませんでした。')));
+ });
+}
+// The caller holds this game's Web Lock and has verified the selected history.
+// Check exact bytes again inside the transaction. A damaged original is stored
+// unchanged under a separate, immutable key before replacing the current save.
+async function commitSaveRescue({game,original,source,record,save}){
+ libraryIds([game.id]);if(!['backups','archives','recoveries','states'].includes(source.store)||(source.store==='states'?(typeof source.key!=='string'||!source.key.startsWith(saveKey(game)+':')):(!Number.isInteger(source.index)||source.index<0))||!save?.bytes?.length||save.bytes.length>coreFor(game).maxSave)throw Error(tr('保存履歴を選び直してください。'));
+ const same=(a,b)=>!a&&!b||!!a&&!!b&&a.at===b.at&&a.hash===b.hash&&a.coreId===b.coreId&&(equal(a.bytes,b.bytes)||!a.bytes&&!b.bytes);
+ const db=await database;return new Promise((resolve,reject)=>{
+  const tx=write(db,['library','saves',source.store,'sessions','coverCatalogs']),key=saveKey(game);let pending=3,failure;
+  const abort=error=>{failure=error;try{tx.abort();}catch{}};
+  const done=()=>{if(--pending)return;try{
+   if(original!==undefined)tx.objectStore('coverCatalogs').add({gameId:game.id,coreKey:coreFor(game).key,at:Date.now(),save:original},saveRescuePrefix+game.id+':'+crypto.randomUUID());
+   tx.objectStore('saves').put(save,key);
+   // Fence any delayed writer; keep all histories intact for explicit recovery.
+   tx.objectStore('sessions').put({id:crypto.randomUUID(),dirty:false,checkedAt:Date.now(),coreId:coreFor(game).id},key);
+  }catch(e){abort(e);}};
+  const gameRequest=tx.objectStore('library').get(game.id);gameRequest.onsuccess=()=>{try{const fresh=gameRequest.result;if(!fresh||fresh.system!==game.system||fresh.size!==game.size||coreFor(fresh).key!==coreFor(game).key)throw Error(tr('ゲームの設定が変わりました。保存履歴を開き直してください。'));done();}catch(e){abort(e);}};
+  const saved=tx.objectStore('saves').get(key);saved.onsuccess=()=>{if(!same(saved.result,original)){abort(Error(tr('現在のセーブが変わりました。保存履歴を開き直してください。')));return;}done();};
+  const history=tx.objectStore(source.store).get(source.store==='states'?source.key:key);history.onsuccess=()=>{const entry=source.store==='states'?history.result:history.result?.[source.index],actual=['recoveries','states'].includes(source.store)?{bytes:entry?.save,hash:entry?.saveHash,at:entry?.at,coreId:entry?.coreId}:entry;if(!same(actual,record)){abort(Error(tr('保存履歴が変わりました。開き直して選び直してください。')));return;}done();};
+  tx.oncomplete=resolve;tx.onabort=()=>reject(failure||tx.error||Error(tr('復元を完了できませんでした。元のセーブは残っています。')));tx.onerror=()=>{};
+ });
+}
 // Both game locks are held by the caller. Check the exact source bytes again
 // inside the transaction; a concurrent save import must never be silently lost.
 // New ROM, copied save and a permanent pre-update snapshot commit together.
@@ -410,6 +524,9 @@ const stateEntriesWithActivity=guardUpdateTask(stateEntries);
 export const addState=guardUpdateTask(addImportedState);
 export const detachROM=guardUpdateTask(detachGameROM);
 export const commitROMUpdate=guardUpdateTask(commitGameROMUpdate);
+export const commitSaveRescueWithActivity=guardUpdateTask(commitSaveRescue),saveRescueOriginals=guardUpdateTask(readSaveRescueOriginals);
+export const saveRescueStateKeys=guardUpdateTask(stateKeys);
+export {commitSaveRescueWithActivity as commitSaveRescue};
 export const rotateSaveSessionWithActivity=guardUpdateTask(rotateSaveSession);
 export {rotateSaveSessionWithActivity as rotateSaveSession};
 export {hasWithActivity as has, commitProtectionBatchWithActivity as commitProtectionBatch, getWithActivity as get, allWithActivity as all, putWithActivity as put, removeWithActivity as remove, removeStatesWithActivity as removeStates, addGameWithActivity as addGame, setGameCoverWithActivity as setGameCover, setGameSkinWithActivity as setGameSkin, setGameControlsWithActivity as setGameControls, removeSkinWithActivity as removeSkin, removeGameWithActivity as removeGame, setGameCoreWithActivity as setGameCore, commitProtectionWithActivity as commitProtection, stateEntriesWithActivity as stateEntries};

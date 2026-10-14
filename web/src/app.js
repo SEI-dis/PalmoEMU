@@ -11,6 +11,9 @@ import {createUINavigation} from './components/ui-navigation.js';
 import {tr,locale} from './i18n/index.js';
 import {dualScreen} from './core/development.js';
 import {diagnostics} from './diagnostics.js';
+import {createScreenAwake} from './runtime/screen-awake.js';
+import {performanceDiagnostics} from './runtime/performance.js';
+const screenAwake=createScreenAwake();
 import {createInputControls} from './input/input-controls.js';
 import {createInputControlsView} from './views/input-controls.js';
 import {holdStartupInputs} from './input/startup-input.js';
@@ -64,7 +67,7 @@ import {row,action} from './components/rows.js';
 import {filterStrengthControl} from './components/filter-strength.js';
 import {createSettingsView,videoFilterNote} from './views/settings.js';
 import {trainerStats} from './library/trainer-profile.js';
-let link=null,linkMessage='',linkStarting=false,linkSaveBlocked=false,exiting=false,sheetCleanup=()=>{};
+let link=null,linkMessage='',linkStarting=false,linkSaveBlocked=false,exiting=false,exitStage=null,pauseSaveTask=null,sheetCleanup=()=>{};
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let library=[],tab=tabFromHash(),engine=null,current=null,skinPair=null,paused=false,toastTimer,saveLock=null,launching=false,importing=false,dialogResume=false;
 let trainer={profile:null,total:0,rankings:[]};
@@ -75,7 +78,7 @@ let savedSettings={};try{savedSettings=JSON.parse(localStorage.getItem('manic-se
 // Pitch preservation is standard playback behavior; legacy preferences are ignored.
 delete savedSettings?.preservePitch;
 let settingsGame=null,gameMenuReturn=null;
-const preferences=createGamePreferences({theme:'dark',volume:.7,speed:1,autosave:true,recovery:true,quickStart:false,haptics:true,filter:'pixel',showFps:false,touchControls:true,showCamera:true,rewindEnabled:false,...touchInputDefaults,...savedSettings},{getGame:()=>current||settingsGame,saveGame:(id,value)=>db.setGamePreferences(id,value),onError:error});
+const preferences=createGamePreferences({theme:'dark',volume:.7,speed:1,autosave:true,recovery:true,quickStart:false,keepScreenAwake:true,measurePerformance:false,haptics:true,filter:'pixel',showFps:false,touchControls:true,showCamera:true,rewindEnabled:false,...touchInputDefaults,...savedSettings},{getGame:()=>current||settingsGame,saveGame:(id,value)=>db.setGamePreferences(id,value),onError:error});
 const settings=preferences.settings;delete settings.autoCovers;
 diagnostics.setContext(()=>{
  const core=current?coreFor(current):null;
@@ -84,7 +87,7 @@ diagnostics.setContext(()=>{
   speed:settings.speed,filter:settings.filter,romMiB:current?current.size/1048576:undefined,memoryMiB:engine?.m?.HEAPU8?.byteLength/1048576};
 });
 const showBackup=createBackupView({sheet,download,toast,settings:preferences.global});
-const showDiagnostics=createDiagnosticsView({sheet,download,toast});
+const showDiagnostics=createDiagnosticsView({sheet,download,toast,settings,applySettings});
 const {renderSettings,showVideoSettings,showAudioSettings,showSaveHelp,showControllers,showStorage}=createSettingsView({
  canChangeLanguage:()=>!engine&&!launching&&!importing&&!exiting,
  trainer:()=>trainer,saveNickname:async value=>{trainer.profile=await db.saveTrainerNickname(value);},saveAvatar:async value=>{trainer.profile=await db.saveTrainerAvatar(value);},closeSheet,error,
@@ -98,7 +101,7 @@ const pressed=new Map(),skinPointers=createSkinPointers();
 const inputControls=createInputControls({settings,keybits,pressed,updateKeys,
  getState:()=>({system:current?.system||settingsGame?.system||'gba',active:!!engine,paused:paused||rewindSession.busy,linked:!!link||linkStarting,deadZone:settings.deadZone??.4}),
  action:kind=>{if(rewindSession.busy)return;const actions={menu:showGameMenu,save:()=>{setPause(true);confirmStateSave(true);},load:showQuickLoad,speed:cycleSpeed,rewind:rewindNow};void guardUpdateTask(()=>Promise.resolve(actions[kind]?.()).catch(error))();},
- unlockAudio:()=>engine?.unlockAudio(),saveSettings:applySettings,
+ unlockAudio:()=>!paused&&!exiting&&!exitStage?engine?.unlockAudio():undefined,saveSettings:applySettings,
  ignoreEvent:event=>{if($('#sheet').open||event.target.closest?.('#link-panel,#screenshot-preview,#capture-menu,#recording-preview'))return true;if(event.code==='Escape'&&captureControls.menuVisible){event.preventDefault();captureControls.hide();return true;}if(event.code==='Escape'&&screenshotPreview.visible){event.preventDefault();screenshotPreview.hide();return true;}if(event.code==='Escape'&&linkPanel.visible){event.preventDefault();linkPanel.hide({focus:true});return true;}if(event.code==='Tab'&&linkPanel.visible)return true;return ['Enter','Space'].includes(event.code)&&!!event.target.closest?.('button,a');}
 });
 const showInputControls=createInputControlsView({controls:inputControls,settings,applySettings:()=>{applySettings();layoutSkin();},sheet,onClose:cleanup=>{sheetCleanup=cleanup;},getSystem:()=>current?.system||settingsGame?.system||'gba',isPlaying:()=>!!engine});
@@ -124,7 +127,13 @@ $('#player-link').innerHTML=icon('wifi');$('#link-panel-icon').innerHTML=icon('w
 $('#player-link').onclick=()=>linkPanel.visible?linkPanel.hide():showLink();
 function toast(text){const el=$('#toast');($('#sheet').open?$('#sheet'):document.body).append(el);el.textContent=text;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3500);}
 function error(e){diagnostics.record(e,'handled');console.error(e);toast(e?.name==='QuotaExceededError'&&!e.saveCommitted?tr('保存容量が不足しています。セーブをファイルに書き出してください。'):e.message||String(e));}
-function applySettings(){$$('#quick-actions button').forEach(b=>b.disabled=!!link);document.documentElement.dataset.theme=settings.theme==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):settings.theme;$('#screen').className=settings.filter==='smooth'?'smooth':settings.filter==='scanlines'?'scanlines':'';engine?.setVolume(settings.muted?0:settings.volume);$('#screen').dataset.scaling=settings.screenScaling||'fit';engine?.setSpeed(link?1:settings.speed);engine?.setPreservePitch?.(true);updateSpeedButton();updateLinkButton();engine?.setFilter?.(settings.filter);engine?.video?.setStrength(settings.filterStrength??.5);engine?.videos?.forEach(video=>video.setStrength(settings.filterStrength??.5));$$('[data-filter-strength]').forEach(el=>el.hidden=!['lcd','crt'].includes(settings.filter));engine?.setCartridgeOptions?.(settings);engine?.setNDSOptions?.(settings);engine?.setRenderLimit?.(settings.ndsPowerSave!==false);$('#fps-meter').hidden=!settings.showFps;rewindSession.configure(settings.rewindEnabled);guardUpdateTask(()=>preferences.save())().catch(()=>{});}
+function syncRuntime(){
+ const active=!!engine&&!paused&&!exiting&&!launching&&!document.hidden;
+ screenAwake.set({active,allow:settings.keepScreenAwake!==false});
+ const fps=current?.system==='nds'&&coreFor(current).renderLimit&&settings.ndsPowerSave!==false?30:Math.min(60,(engine?.fps||60)*(settings.speed||1));
+ performanceDiagnostics.configure({enable:settings.measurePerformance===true,running:active,engine,fps});
+}
+function applySettings(){syncRuntime();$$('#quick-actions button').forEach(b=>b.disabled=!!link);document.documentElement.dataset.theme=settings.theme==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):settings.theme;$('#screen').className=settings.filter==='smooth'?'smooth':settings.filter==='scanlines'?'scanlines':'';engine?.setVolume(settings.muted?0:settings.volume);$('#screen').dataset.scaling=settings.screenScaling||'fit';engine?.setSpeed(link?1:settings.speed);engine?.setPreservePitch?.(true);updateSpeedButton();updateLinkButton();engine?.setFilter?.(settings.filter);engine?.video?.setStrength(settings.filterStrength??.5);engine?.videos?.forEach(video=>video.setStrength(settings.filterStrength??.5));$$('[data-filter-strength]').forEach(el=>el.hidden=!['lcd','crt'].includes(settings.filter));engine?.setCartridgeOptions?.(settings);engine?.setNDSOptions?.(settings);engine?.setRenderLimit?.(settings.ndsPowerSave!==false);$('#fps-meter').hidden=!settings.showFps;rewindSession.configure(settings.rewindEnabled);guardUpdateTask(()=>preferences.save())().catch(()=>{});}
 function bindActions(root,handlers){root.querySelectorAll('[data-action]').forEach(el=>el.onclick=guardUpdateTask(()=>Promise.resolve().then(()=>{if(!rewindSession.busy)return handlers[el.dataset.action]?.();}).catch(error)));}
 function sheet(title,html,resume=false){
  captureControls.hide();
@@ -277,7 +286,7 @@ async function launch(game,{safeMode=false,skipRecovery=false}={}){
   engine.pause(false);
   engine.setCheats?.(safeMode||!coreFor(game).cheats?[]:cheatsFor(game));game.lastPlayed=Date.now();await db.setGameDetails(game.id,{lastPlayed:game.lastPlayed});paused=false;playRunAt=Date.now();$('#resume-game').hidden=true;rewindSession.attach(engine,{...game,coreKey:coreFor(game).key});applySettings();layoutSkin();$('#loading').hidden=true;$('#save-status').hidden=false;engine.unlockAudio()?.catch?.(()=>{});startPadPoll();
   if(!safeMode&&!skipRecovery&&previous.interrupted&&previous.recoveries.some(r=>protection.compatible(r))){setPause(true);await showRecovery(true);}
- }catch(e){diagnostics.record(e,'startup');await rewindSession.dispose();clearImportedSkin();releaseSkin();skinPair=null;await engine?.close();engine=null;current=null;settingsGame=null;await protection.close();$('#player').hidden=true;$('#loading').hidden=true;throw e;}finally{launching=false;}
+ }catch(e){diagnostics.record(e,'startup');await rewindSession.dispose();clearImportedSkin();releaseSkin();skinPair=null;await engine?.close();engine=null;current=null;settingsGame=null;await protection.close();$('#player').hidden=true;$('#loading').hidden=true;if(e.code==='SAVE_INTEGRITY_FAILED'){await gameInfo.showSaveData(game,{startupError:true});return false;}throw e;}finally{launching=false;if(engine&&document.hidden)setPause(true,'background');syncRuntime();}
 }
 function frameStyle(frame,map){return `left:${frame.x/map.width*100}%;top:${frame.y/map.height*100}%;width:${frame.width/map.width*100}%;height:${frame.height/map.height*100}%;`;}
 let layoutFrame=null,lastLayoutSize='',skinScreenCleanup=()=>{},skinInputs=null;
@@ -321,13 +330,18 @@ function layoutSkin(force=true){if(!current||!skinPair||!engine)return;
  $('#touch-controls').innerHTML=rep.items.map((item,i)=>{const pad=!Array.isArray(item.inputs),inputs=pad?['dpad']:item.inputs;return `<button class="skin-button${pad?' dpad':''}" data-item="${i}" aria-label="${pad?tr('十字キー'):esc(item.label||inputs.join('+').toUpperCase())}" style='${frameStyle(item.frame,map)}opacity:${item.opacity??1};background-image:url("${skinData.images[item.asset?.normal]||''}")'>${pad?['up','down','left','right'].map(d=>`<span class="dpad-direction${item.asset?.normal?'':' baked'}" data-direction="${d}" aria-hidden="true" hidden></span>`).join(''):''}</button>`;}).join('');
  dpadViews=$$('.dpad-direction').map(el=>{const inputs=rep.items[Number(el.parentElement.dataset.item)].inputs,key=keybits[inputs[el.dataset.direction]];return {el,mask:key===undefined?0:1<<key,on:false};});
  $$('#touch-controls .skin-button').forEach(btn=>{const item=rep.items[Number(btn.dataset.item)];btn.dataset.gameInput='';function input(e){if(Array.isArray(item.inputs)){if(item.inputs.includes('menu'))return;pressed.set(e.pointerId,item.inputs.reduce((v,k)=>v|(keybits[k]===undefined?0:1<<keybits[k]),0));}else{const r=btn.getBoundingClientRect();let bits=0;for(const d of builtinDpadDirections((e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height,settings))if(keybits[item.inputs[d]]!==undefined)bits|=1<<keybits[item.inputs[d]];pressed.set(e.pointerId,bits);}btn.classList.add('pressed');updateKeys();}
- btn.onpointerdown=e=>{e.preventDefault();engine?.unlockAudio();if(item.inputs.includes?.('menu')){showGameMenu();return;}if(paused)return;if($('#link-panel').contains(document.activeElement))document.activeElement.blur();skinPointers.start(btn,e,{move:Array.isArray(item.inputs)?undefined:input,end:()=>{pressed.delete(e.pointerId);btn.classList.toggle('pressed',skinPointers.has(btn));updateKeys();}});tapHaptic(settings);input(e);};});configureBuiltinTouchTargets($('#touch-controls'),settings);}
+ btn.onpointerdown=e=>{e.preventDefault();if(item.inputs.includes?.('menu')){showGameMenu();return;}if(paused)return;engine?.unlockAudio();if($('#link-panel').contains(document.activeElement))document.activeElement.blur();skinPointers.start(btn,e,{move:Array.isArray(item.inputs)?undefined:input,end:()=>{pressed.delete(e.pointerId);btn.classList.toggle('pressed',skinPointers.has(btn));updateKeys();}});tapHaptic(settings);input(e);};});configureBuiltinTouchTargets($('#touch-controls'),settings);}
 function updateKeys(time){let keys=0,second=0;for(const [source,mask] of pressed){const player=source==='mapped-gamepad-2'?2:source==='mapped-keyboard'?inputControls.player(current?.system,'keyboard'):source==='mapped-gamepad'?1:inputControls.player(current?.system,'touch');if(player===2)second|=mask;else keys|=mask;}keys=inputControls.transform(keys,time);if(paused||rewindSession.busy)keys=second=0;engine?.setKeys(keys);if(engine?.multiplayer)engine.setKeys(second,1);keys|=second;for(const view of dpadViews){const on=!!(keys&view.mask);if(on!==view.on){view.on=on;view.el.hidden=!on;}}}
 function release(){skinPointers.release();inputControls.release();stopHaptics();skinInputs?.release();pressed.clear();updateKeys();$$('.pressed').forEach(b=>b.classList.remove('pressed'));}
-function setPause(v,reason='pause'){if(!v&&(linkStarting||link?.closed||rewindSession.busy))return;if(v){cameraBinding?.cancel();captureControls.pause(reason);}if(v&&playRunAt&&current){current.playDuration=(current.playDuration||0)+Math.max(0,Date.now()-playRunAt);playRunAt=0;}else if(!v&&!playRunAt&&engine)playRunAt=Date.now();paused=v;syncResume();release();engine?.pause(v);void rewindSession.pause(v);if(!v)engine?.unlockAudio();}
+function setPause(v,reason='pause'){if(!v&&(linkStarting||link?.closed||rewindSession.busy||exitStage))return;if(v){cameraBinding?.cancel();captureControls.pause(reason);}else pauseSaveTask=null;if(v&&playRunAt&&current){current.playDuration=(current.playDuration||0)+Math.max(0,Date.now()-playRunAt);playRunAt=0;}else if(!v&&!playRunAt&&engine)playRunAt=Date.now();paused=v;syncResume();release();if(!exitStage?.coreClosed)engine?.pause(v);void rewindSession.pause(v);if(!v)engine?.unlockAudio();syncRuntime();}
 $('#resume-game').onclick=()=>{if(engine&&!document.hidden)setPause(false);};
-function backgroundPause(){if(!engine)return;const wasPaused=paused,wasLinked=!!link;setPause(true,'background');if(link?.connected)link.close(tr('画面を離れたため接続を終了しました。'));if(!wasPaused&&!wasLinked)persist({checkpoint:settings.recovery,reason:'background'}).catch(error);}
-function syncResume(){$('#resume-game').hidden=!engine||!paused||!$('#loading').hidden||exiting;}
+function savePausedGame(options={}){
+ if(!engine||!paused||launching||exiting||exitStage||applyingSave||link||linkStarting||linkSaveBlocked||rewindSession.busy)return;
+ if(pauseSaveTask?.core===engine)return pauseSaveTask.promise;
+ const task={core:engine};task.promise=persist(options).catch(error).finally(()=>{if(pauseSaveTask===task)pauseSaveTask=null;});pauseSaveTask=task;return task.promise;
+}
+function backgroundPause(){if(!engine||exiting||exitStage)return;const wasPaused=paused,wasLinked=!!link;setPause(true,'background');if(link?.connected)link.close(tr('画面を離れたため接続を終了しました。'));if(!wasLinked)savePausedGame({checkpoint:!wasPaused&&settings.recovery,reason:'background'});}
+function syncResume(){$('#resume-game').hidden=!engine||!paused||!$('#loading').hidden||exiting||!!exitStage;}
 new ResizeObserver(scheduleSkinLayout).observe($('#player'));
 window.visualViewport?.addEventListener('resize',scheduleSkinLayout);
 window.addEventListener('resize',scheduleSkinLayout);window.addEventListener('blur',backgroundPause);window.addEventListener('focus',syncResume);
@@ -335,7 +349,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)backgroundP
 window.addEventListener('pagehide',backgroundPause);window.addEventListener('pageshow',event=>{if(event.persisted&&engine)setPause(true);syncResume();});
 document.addEventListener('freeze',backgroundPause);document.addEventListener('resume',syncResume);
 function startPadPoll(){engine.beforeFrame=()=>{inputControls.poll();if(engine.rumble?.enabled)engine.rumble.setTarget(inputControls.rumbleTarget());rewindSession.frame();};}
-function persist(options={}){if(!engine||!current||link||linkStarting||linkSaveBlocked||rewindSession.busy)return Promise.resolve();return protection.save(engine,options).catch(e=>{diagnostics.record(e,'save');throw e;});}
+function persist(options={}){if(!engine||!current||exitStage||link||linkStarting||linkSaveBlocked||rewindSession.busy)return Promise.resolve();const savingEngine=engine,started=performance.now();return protection.save(savingEngine,options).then(result=>{if(!result?.skipped)performanceDiagnostics.save(performance.now()-started,true,savingEngine);return result;}).catch(e=>{performanceDiagnostics.save(performance.now()-started,false,savingEngine);diagnostics.record(e,'save');throw e;});}
+// A settled native save can reach IndexedDB sooner without capturing a state.
+setInterval(()=>{if(engine&&!paused&&settings.autosave&&!applyingSave)persist({gameSave:true,automatic:true}).catch(error);},1000);
 // Check deadlines without capturing data; automatic saves start after 120 seconds.
 setInterval(()=>{if(engine&&!paused&&(settings.autosave||settings.recovery))persist({checkpoint:settings.recovery&&!link,automatic:true}).catch(error);},10000);
 // Crash recovery uses the native automatic-save tab, not a separate menu.
@@ -359,7 +375,7 @@ async function showBackups(mode='recent'){
 // GameOptionsView.getListPage / GameOption.defaultGroupAndSort, with native-only
 // actions removed. Browser-only functions use the same grouped row components.
 function showGameMenu(){
- if(!engine||linkStarting||exiting||rewindSession.busy)return;if(link){showConnectedMenu();return;}setPause(true);
+ if(!engine||linkStarting||exiting||rewindSession.busy)return;if(exitStage){showExitRetry();return;}if(link){showConnectedMenu();return;}setPause(true);savePausedGame({reason:'pause'});
  const cells={
   cartridge:current.system==='nds'?nativeAction(tr('DSの操作'),'cartridge','game'):['gb','gbc','gba'].includes(current.system)&&engine.sensors?nativeAction(current.system==='gba'?tr('GBAカートリッジ'):tr('カートリッジ'),'cartridge','game'):'',
   skins:nativeAction(tr('スキン設定'),'skins','shirt'),stateList:nativeAction(tr('セーブステートを確認'),'states','state'),
@@ -425,7 +441,34 @@ $('#save-input').onchange=guardUpdateTask(async e=>{
   await applyGameSave(game,bytes);
  }catch(errorValue){error(errorValue);}finally{e.target.value='';}
 });
-async function exitGame(){if(linkStarting||exiting)return;exiting=true;try{await captureControls.stop('exit');const wasLinked=!!link;await link?.close();if(!engine)return;setPause(true);await rewindSession.dispose();await preferences.flush();await persist({checkpoint:settings.recovery&&!wasLinked,clean:true,reason:'exit'});if(current&&!current.cover){try{const cover=engine.screenshot(),updated=await db.setGameCover(current.id,{cover,coverSource:'screenshot'},{onlyMissing:true});if(updated)Object.assign(current,updated,{playDuration:current.playDuration});}catch(e){console.warn('Cover image could not be stored:',e.name);}}if(current)await db.setGameDetails(current.id,{playDuration:current.playDuration||0});dialogResume=false;$('#sheet').close();clearImportedSkin();await engine.close();await protection.close();releaseSkin();engine=null;current=null;paused=false;settingsGame=null;linkPanel.reset();screenshotPreview.clear();captureControls.leaveGame();updateLinkButton();linkMessage='';linkSaveBlocked=false;skinPair=null;pressed.clear();$('#screen').replaceChildren();$('#player').hidden=true;if(document.fullscreenElement)await document.exitFullscreen();await refresh();}finally{exiting=false;syncResume();}}
+function showExitRetry(){
+ sheet(tr('ゲームを終了できませんでした。'),tr('<p class="sheet-note">もう一度終了してください。</p><div class="sheet-actions"><button class="primary" data-action="exit">終了</button></div>'));
+ bindActions($('#sheet-body'),{exit:exitGame});
+}
+async function exitGame(){
+ if(linkStarting||exiting||applyingSave)return;exiting=true;
+ try{
+  if(!exitStage){
+   await captureControls.stop('exit');const wasLinked=!!link;await link?.close();if(!engine)return;
+   setPause(true);await rewindSession.dispose();await preferences.flush();
+   // A failed save keeps the running core available for export/retry. Only a
+   // successful final save may advance to irreversible resource teardown.
+   await persist({checkpoint:settings.recovery&&!wasLinked,clean:true,reason:'exit'});
+   if(current&&!current.cover){try{const cover=engine.screenshot(),updated=await db.setGameCover(current.id,{cover,coverSource:'screenshot'},{onlyMissing:true});if(updated)Object.assign(current,updated,{playDuration:current.playDuration});}catch(e){console.warn('Cover image could not be stored:',e.name);}}
+   if(current)await db.setGameDetails(current.id,{playDuration:current.playDuration||0});
+   exitStage={core:engine,coreClosed:false};dialogResume=false;clearImportedSkin();
+  }
+  // Protection.close may retain a fenced writer/lock after failure. Retrying
+  // it must not capture from a core that has already been destroyed.
+  if(!exitStage.coreClosed){
+   try{await exitStage.core.close();exitStage.coreClosed=true;}
+   catch(e){exitStage.coreClosed=!!exitStage.core.closed;throw e;}
+  }
+  await protection.close();
+  $('#sheet').close();releaseSkin();engine=null;current=null;exitStage=null;paused=false;settingsGame=null;linkPanel.reset();screenshotPreview.clear();captureControls.leaveGame();updateLinkButton();linkMessage='';linkSaveBlocked=false;skinPair=null;pressed.clear();$('#screen').replaceChildren();$('#player').hidden=true;
+  if(document.fullscreenElement)await document.exitFullscreen();await refresh();
+ }finally{exiting=false;if(exitStage)showExitRetry();syncResume();syncRuntime();}
+}
 function download(bytes,name){const url=URL.createObjectURL(new Blob([bytes]));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);}
 function updateSpeedButton(){
  const speed=link?1:settings.speed,button=$('#boost');

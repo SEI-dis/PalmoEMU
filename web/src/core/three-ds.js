@@ -55,7 +55,7 @@ export class ThreeDSCore extends NDSCore {
  setKeys(mask){if(this.keyMask===mask)return;this.keyMask=mask;this.send('keys',{mask});}
  touchAt(x,y){if(this.paused)return;this.send('touch',{x,y,down:true});}
  releaseTouch(){this.send('touch',{x:0,y:0,down:false});}
- pause(value){this.paused=!!value;this.keyMask=null;this.stopAudio();this.send('pause',{value:this.paused});if(value)this.releaseTouch();}
+ pause(value){this.paused=!!value;this.keyMask=null;if(value)this.suspendAudio();else this.stopAudio();this.send('pause',{value:this.paused});if(value)this.releaseTouch();}
  setSpeed(value){super.setSpeed(value);this.send('speed',{value:this.speed});}
  setVolume(value){super.setVolume(value);this.send('volume',{value});}
  setCheats(list){if(list?.some(c=>c.enabled))throw Error(tr('この3DSコアはチートに対応していません。'));}

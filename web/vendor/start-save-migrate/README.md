@@ -4,7 +4,7 @@ Original author: **くりーぱー** (Discord: `ajillo0112`, identified by the u
 
 [PokemonStart](https://github.com/pm-start/PokemonStart) game developer: **[onikoro334274-cell](https://github.com/onikoro334274-cell)**. This identifies the game developer, not an additional author of the migration tool.
 
-The user explicitly authorized incorporating this attachment into PalmoEMU and identified the author as くりーぱー. The attachment does not state an upstream license. **No AGPL, MIT, or other upstream license is asserted for this component.** Retain this author/provenance notice; the permission recorded for this project must not be represented as a general third-party license.
+The project maintainer identified the author as くりーぱー and, on 2026-10-14, explicitly confirmed that the author has permitted incorporation into PalmoEMU, Web publication, modification, and redistribution of the modified source. The maintainer also confirmed that the author's stated condition is credit attribution. This is the maintainer's confirmation of author permission; the original author's permission message was not independently inspected in this review. The attachment does not state an upstream license. **No AGPL, MIT, or other upstream license is asserted for this component.** Retain this author/provenance notice; the permission recorded for this project must not be represented as a general third-party license.
 
 Original attachment SHA-256: `6b3aece19d09e42dff7242924db19de0b654924b8b907de91a796d833d04e4e8`.
 

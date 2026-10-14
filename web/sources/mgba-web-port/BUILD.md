@@ -112,3 +112,28 @@ external-clock cancellation/reconnect, and independent save/state/RTC round
 trips. Browser checks use authored cartridges and generated RAM for the two
 player UI and atomic-save failures. No commercial game or physical cable
 compatibility is claimed by these tests.
+
+## 2026-10-14 settled battery-save notifications
+
+`save-watch.h` observes the existing native `savedataUpdated` callback and
+exposes a small per-core revision and pending-write query. A new cartridge
+without a save VFile uses mGBA's unchanged `mSavedataClean` helper at frame end
+so it has the same 15-frame quiet threshold as an imported memory-backed save.
+The observer does not clone cartridge RAM, write files or send data. Pending
+flash/EEPROM commands and settling timers prevent the browser's completion
+path from capturing an in-progress hardware write.
+
+Import, reset and state restoration establish a new observer baseline without
+changing save bytes, native state layouts or compatibility identifiers. The
+browser additionally waits for a quiet interval, bounds save frequency and
+retries, and rechecks the generation after awaiting save-session fencing.
+Ordinary two-minute saving remains available for other cores. Recovery-state
+timing remains independent from frequent battery saves. A settled hardware
+write is not a universal game-level "save completed" transaction marker.
+
+The bridge was built twice from separately extracted copies of the pinned
+distribution archive and separate bridge/build directories with Emscripten
+4.0.15, CMake 3.31.6 and Ninja 1.11.1; both JS/WASM hashes match. Authored GB,
+GBC and GBA programs cover continuously changing RAM, quiet notifications,
+6 MiB flash, initial/imported saves, state/reset suppression, independent
+instances and compatibility with the previous distributed core.

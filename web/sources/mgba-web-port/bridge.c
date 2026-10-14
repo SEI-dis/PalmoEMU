@@ -1,4 +1,4 @@
-/* Mozilla Public License 2.0; see ../LICENSE. */
+/* Mozilla Public License 2.0; see ../../licenses/mGBA-MPL-2.0.txt. */
 #include <emscripten/emscripten.h>
 #include <mgba/core/core.h>
 #include <mgba/core/cheats.h>
@@ -49,6 +49,7 @@ EMSCRIPTEN_KEEPALIVE int web_select(unsigned instance) {
 #include "link.h"
 #include "options.h"
 #include "gb-link.h"
+#include "save-watch.h"
 
 EMSCRIPTEN_KEEPALIVE void web_close(void) {
   web_gb_link_stop();
@@ -62,6 +63,7 @@ EMSCRIPTEN_KEEPALIVE void web_close(void) {
   free(rom); rom = NULL;
   free(save); save = NULL;
   free(state); state = NULL;
+  webSaveWatches[webSelected] = (struct WebSaveWatch){0};
 }
 
 EMSCRIPTEN_KEEPALIVE int web_load(const void* data, size_t size) {
@@ -87,6 +89,7 @@ EMSCRIPTEN_KEEPALIVE int web_load(const void* data, size_t size) {
   if (!core->loadROM(core, vf)) { vf->close(vf); web_close(); return 0; }
   web_options_init();
   core->reset(core);
+  web_save_watch_init();
   core->currentVideoSize(core, &width, &height);
   return 1;
 }
@@ -109,7 +112,7 @@ EMSCRIPTEN_KEEPALIVE void web_frame(unsigned keys) {
   core->setKeys(core, keys);
   core->runFrame(core);
 }
-EMSCRIPTEN_KEEPALIVE void web_reset(void) { if (core) core->reset(core); }
+EMSCRIPTEN_KEEPALIVE void web_reset(void) { if (core) { core->reset(core); web_save_watch_baseline(); } }
 EMSCRIPTEN_KEEPALIVE double web_fps(void) { return core ? (double) core->frequency(core) / core->frameCycles(core) : 60; }
 EMSCRIPTEN_KEEPALIVE unsigned web_audio_rate(void) { return core ? core->audioSampleRate(core) : 32768; }
 EMSCRIPTEN_KEEPALIVE void* web_audio(void) { return audio; }
@@ -120,7 +123,11 @@ EMSCRIPTEN_KEEPALIVE size_t web_save_export(void) {
 }
 EMSCRIPTEN_KEEPALIVE void* web_save_data(void) { return save; }
 EMSCRIPTEN_KEEPALIVE size_t web_save_limit(void) { return core && core->platform(core) == mPLATFORM_GBA ? WEB_GBA_SAVE_LIMIT : 1024 * 1024; }
-EMSCRIPTEN_KEEPALIVE int web_save_import(const void* data, size_t size) { return core && data && size && size <= web_save_limit() && core->savedataRestore(core, data, size, false); }
+EMSCRIPTEN_KEEPALIVE int web_save_import(const void* data, size_t size) {
+  int ok = core && data && size && size <= web_save_limit() && core->savedataRestore(core, data, size, false);
+  if (ok) web_save_watch_baseline();
+  return ok;
+}
 
 /* Sets belong to the core and are discarded when another ROM is loaded. */
 EMSCRIPTEN_KEEPALIVE int web_platform(void) { return core ? core->platform(core) : -1; }
@@ -197,5 +204,6 @@ EMSCRIPTEN_KEEPALIVE int web_state_import(const void* data, size_t size) {
   if (!vf) return 0;
   bool ok = mCoreLoadStateNamed(core, vf, SAVESTATE_SAVEDATA | SAVESTATE_RTC);
   vf->close(vf);
+  if (ok) web_save_watch_baseline();
   return ok;
 }

@@ -27,7 +27,7 @@ export class LocalLinkCore {
       if(!this.paused&&!this.closed)this.raf=requestAnimationFrame(this.tick);
     };
   }
-  select(view){if(![0,1].includes(view))return;this.setKeys(0);this.cores.forEach(c=>c.stopAudio());this.view=view;this.cores[view].draw(this.video);this.unlockAudio().catch(()=>{});}
+  select(view){if(![0,1].includes(view))return;this.setKeys(0);this.cores.forEach(c=>c.suspendAudio());this.view=view;this.cores[view].draw(this.video);if(!this.paused)this.unlockAudio().catch(()=>{});}
   setKeys(mask){this.keys=mask;this.cores.forEach(c=>c.setKeys(0));}
   pause(value){this.paused=value;this.setKeys(0);this.clock=null;cancelAnimationFrame(this.raf);this.raf=null;this.cores.forEach(c=>c.pause(true));if(!value&&!this.closed)this.raf=requestAnimationFrame(this.tick);}
   setVolume(v){this.volume=v;this.cores.forEach(c=>c.setVolume(v));}

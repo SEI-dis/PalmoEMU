@@ -7,6 +7,7 @@ import {TimeStretch} from '../rendering/time-stretch.js';
 import {loadCompatibleMGBA} from './mgba-compatibility.js';
 import {choosePixelTransfer,createPixelTransfer} from '../rendering/pixel-transfer.js';
 import {GameRumble} from '../input/game-rumble.js';
+import {performanceDiagnostics} from '../runtime/performance.js';
 // Bind every native operation to its own mCore. Heap views remain dynamic when
 // WASM memory grows, and the original exports remain usable by older callers.
 function coreInstance(module,index){
@@ -28,6 +29,7 @@ export class MGBACore {
     this.instance=sharedCore?1:0;this.m=coreInstance(this.nativeModule,this.instance);
     this.pixelTransferChoice=sharedCore?.pixelTransferChoice||choosePixelTransfer(this.m);
     this.compatibility=await loadCompatibleMGBA(this.m,bytes);
+    this.saveEpoch=(this.saveEpoch||0)+1;
     this.width=this.m._web_width();this.height=this.m._web_height();this.video=new VideoOutput(this.canvas,this.width,this.height);this.image=new ImageData(this.width,this.height);this.pixelTransfer=createPixelTransfer(this.m,this.width,this.height,this.pixelTransferChoice.mode);this.fps=this.m._web_fps();this.sensors=new GBASensors((...values)=>this.m._web_sensors?.(...values));
     if(this.supportsGameRumble)this.rumble=new GameRumble({readStrength:()=>this.m._web_rumble_strength(),setEnabled:value=>this.m._web_rumble_enable(value)});
     // The app caches options before load. Apply the clock before the first
@@ -58,7 +60,26 @@ export class MGBACore {
     if(!this.pixelTransfer.copy(this.image.data))return;
     output.draw(this.image);this.presented++;
   }
-  async unlockAudio(){const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return;this.ac??=new AudioContext();if(!this.gain){this.gain=this.ac.createGain();this.gain.connect(this.ac.destination);this.gain.gain.value=this.volume;}if(this.ac.state!=='running')await this.ac.resume();}
+  async unlockAudio(){
+    if(this.closed)return false;
+    const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return false;
+    const wasPaused=this.audioPaused;this.audioPaused=false;
+    try{
+      this.ac??=new AudioContext();const ac=this.ac;
+      if(!this.gain){this.gain=ac.createGain();this.gain.connect(ac.destination);this.gain.gain.value=this.volume;}
+      // Enqueue resume even if a preceding suspend has not changed state yet.
+      // Call it synchronously so a real click/tap can supply user activation.
+      if(wasPaused||ac.state!=='running')await ac.resume();
+      if(this.audioPaused&&!this.closed)await ac.suspend();
+      return !this.audioPaused&&ac.state==='running';
+    }catch{return false;} // Autoplay/OS refusal must not reject an input handler.
+  }
+  suspendAudio(){
+    this.audioPaused=true;this.stopAudio();
+    // A local-link child remains emulation-paused while its audio is selected;
+    // therefore audio intent is separate from the core's paused flag.
+    try{this.ac?.suspend?.()?.catch?.(()=>{});}catch{}
+  }
   audio(){
     const m=this.m,n=m._web_audio_read();if(!n)return;
     if(!this.ac||this.ac.state!=='running'||!this.volume||this.nextAudio>this.ac.currentTime+.18){this.stretch?.reset();return;}
@@ -76,6 +97,7 @@ export class MGBACore {
   queueAudio(buffer,speed){
     const source=this.ac.createBufferSource();source.buffer=buffer;source.playbackRate.value=speed;source.connect(this.gain);
     source.onended=()=>{source.disconnect();this.sources.delete(source);};this.sources.add(source);
+    if(this.nextAudio>0&&this.nextAudio<this.ac.currentTime&&this.ac.state==='running'&&this.volume>0)performanceDiagnostics.audioGap(this.ac.currentTime-this.nextAudio,this);
     if(!this.nextAudio||this.nextAudio<this.ac.currentTime+.003)this.nextAudio=this.ac.currentTime+.025;
     source.start(this.nextAudio);this.nextAudio+=buffer.duration/speed;
   }
@@ -95,14 +117,15 @@ export class MGBACore {
   }
   setKeys(mask){this.keys=mask;}
   stopAudio(){for(const s of this.sources){s.onended=null;try{s.stop();}catch{}s.disconnect();}this.sources.clear();this.nextAudio=0;this.stretch?.reset();}
-  pause(value){this.paused=value;this.sensors?.pause(value);this.rumble?.pause(value);this.keys=0;this.clock=null;if(value){cancelAnimationFrame(this.raf);this.raf=null;this.stopAudio();}else this.scheduleFrame();}
+  pause(value){this.paused=value;this.sensors?.pause(value);this.rumble?.pause(value);this.keys=0;this.clock=null;if(value){cancelAnimationFrame(this.raf);this.raf=null;this.suspendAudio();}else this.scheduleFrame();}
   setVolume(v){if(!v&&this.volume)this.stopAudio();this.volume=v;if(this.gain)this.gain.gain.value=v;}
   setPreservePitch(value){value=!!value;if(this.preservePitch===value)return;this.preservePitch=value;this.stopAudio();this.stretch=null;}
   setSpeed(v){v=Math.max(1,Math.min(5,Number(v)||1));if(this.speed===v)return;this.speed=v;this.stopAudio();this.clock=null;}
   save(){const n=this.m._web_save_export();return n?this.m.HEAPU8.slice(this.m._web_save_data(),this.m._web_save_data()+n):null;}
-  restore(bytes){this.copyIn(bytes,(p,n)=>{if(!this.m._web_save_import(p,n))throw new Error(tr('セーブ形式が一致しません。'));});this.applyClockOptions();}
+  saveProgress(){return !this.closed&&typeof this.m?._web_save_revision==='function'?{epoch:this.saveEpoch||0,revision:this.m._web_save_revision()>>>0,pending:!!this.m._web_save_pending()}:null;}
+  restore(bytes){this.copyIn(bytes,(p,n)=>{if(!this.m._web_save_import(p,n))throw new Error(tr('セーブ形式が一致しません。'));});this.saveEpoch=(this.saveEpoch||0)+1;this.applyClockOptions();}
   state(){const n=this.m._web_state_export();if(!n)throw new Error(tr('状態を保存できませんでした。'));return this.m.HEAPU8.slice(this.m._web_state_data(),this.m._web_state_data()+n);}
-  loadState(bytes){this.stopAudio();this.rumble?.stop();this.copyIn(bytes,(p,n)=>{if(!this.m._web_state_import(p,n))throw new Error(tr('このコアで読み込めるステートではありません。'));});this.m._web_overclock?.(this.overclock||1);this.applyClockOptions();this.draw();}
+  loadState(bytes){this.stopAudio();this.rumble?.stop();this.copyIn(bytes,(p,n)=>{if(!this.m._web_state_import(p,n))throw new Error(tr('このコアで読み込めるステートではありません。'));});this.saveEpoch=(this.saveEpoch||0)+1;this.m._web_overclock?.(this.overclock||1);this.applyClockOptions();this.draw();}
   async restorePreview(url){
     // This bridge's states restore CPU/VRAM, but not the last rendered frame.
     // Show the paired local screenshot while paused, until the next emulated frame.
@@ -110,6 +133,6 @@ export class MGBACore {
     try{const image=new Image();image.src=url;await image.decode();if(this.paused&&!this.closed)this.video.restorePreview(image);}catch{}
   }
   screenshot(){return this.canvas.toDataURL('image/png');}
-  reset(){this.stopAudio();this.rumble?.stop();this.m._web_reset();this.m._web_overclock?.(this.overclock||1);this.applyClockOptions();this.clock=null;}
-  close(){this.closed=true;this.sensors?.close();this.rumble?.close();this.pixelTransfer?.dispose();this.pixelTransfer=null;this.video?.dispose();cancelAnimationFrame(this.raf);this.stopAudio();this.ac?.close();this.m?._web_close();}
+  reset(){this.stopAudio();this.rumble?.stop();this.m._web_reset();this.saveEpoch=(this.saveEpoch||0)+1;this.m._web_overclock?.(this.overclock||1);this.applyClockOptions();this.clock=null;}
+  close(){this.closed=true;this.sensors?.close();this.rumble?.close();this.pixelTransfer?.dispose();this.pixelTransfer=null;this.video?.dispose();cancelAnimationFrame(this.raf);this.stopAudio();try{this.ac?.close()?.catch?.(()=>{});}catch{}this.m?._web_close();}
 }

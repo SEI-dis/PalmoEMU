@@ -1,6 +1,102 @@
 {
   "releases": [
     {
+      "version": "0.3.29",
+      "date": "2026-10-14",
+      "changes": [
+        "バックアップでゲームや保存する内容を選べるようにしました。大きいデータの分割保存と、トレーナーカード・プレイ時間の引き継ぎにも対応します。",
+        "mGBAのゲーム内セーブを、書き込みが落ち着いたあと早めに端末へ保存するようにしました。",
+        "プレイ中の画面消灯防止と、描画・音声・保存の動作計測を追加しました。",
+        "診断レポートで一部のエラー発生場所が記録されない問題を修正しました。",
+        "通信画面で、接続するCelio中継サーバーを指定できるようにしました。",
+        "ゲームメニューを開いたままアプリを閉じる場合の保存と、終了に失敗した場合の再試行を改善しました。",
+        "セーブの破損で起動できない場合も、ゲームの詳細から正常な履歴を復元したり、原本を書き出せるようにしました。",
+        "アプリの更新に失敗したときの再試行と、更新中のファイル検証を改善しました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "现在可以选择要备份的游戏和数据。大型备份支持拆分为多个文件，也支持转移训练家卡和游玩时间。",
+          "mGBA 现在会在写入稳定后，更快地将游戏内存档保存到设备。",
+          "新增游玩时保持屏幕常亮的选项，以及画面绘制、音频供给和保存操作的性能测量。",
+          "修复了诊断报告中部分错误发生位置未被记录的问题。",
+          "现在可以在通信界面指定要连接的 Celio 中继服务器。",
+          "改进了游戏菜单打开时关闭应用的保存处理，以及退出游戏失败后的重试。",
+          "因存档损坏无法启动游戏时，现在也可以从游戏详情恢复完好的历史存档，或导出原始数据。",
+          "改进了应用更新失败后的重试，以及更新过程中的文件验证。"
+        ],
+        "zh-Hant": [
+          "現在可以選擇要備份的遊戲和資料。大型備份支援分割為多個檔案，也支援轉移訓練家卡和遊玩時間。",
+          "mGBA 現在會在寫入穩定後，更快地將遊戲內存檔儲存到裝置。",
+          "新增遊玩時保持螢幕開啟的選項，以及畫面繪製、音訊供給和儲存操作的效能量測。",
+          "修正診斷報告中部分錯誤發生位置未被記錄的問題。",
+          "現在可以在通訊畫面指定要連線的 Celio 中繼伺服器。",
+          "改善了遊戲選單開啟時關閉應用程式的儲存處理，以及結束遊戲失敗後的重試。",
+          "因存檔損壞無法啟動遊戲時，現在也可以從遊戲詳情還原完好的歷史存檔，或匯出原始資料。",
+          "改善了應用程式更新失敗後的重試，以及更新過程中的檔案驗證。"
+        ],
+        "ko": [
+          "백업할 게임과 데이터를 선택할 수 있습니다. 큰 백업을 여러 파일로 나누고, 트레이너 카드와 플레이 시간도 옮길 수 있습니다.",
+          "mGBA의 게임 내 세이브를 쓰기가 안정된 뒤 기기에 더 빨리 저장하도록 개선했습니다.",
+          "플레이 중 화면 켜짐 유지 옵션과 렌더링, 오디오 공급, 저장 작업의 성능 측정을 추가했습니다.",
+          "진단 보고서에 일부 오류의 발생 위치가 기록되지 않던 문제를 수정했습니다.",
+          "통신 화면에서 연결할 Celio 중계 서버를 지정할 수 있습니다.",
+          "게임 메뉴를 열어 둔 채 앱을 닫을 때의 저장 처리와 게임 종료 실패 시 재시도를 개선했습니다.",
+          "세이브 손상으로 게임을 실행할 수 없을 때에도 게임 상세에서 손상되지 않은 저장 기록을 복원하거나 원본 데이터를 내보낼 수 있습니다.",
+          "앱 업데이트 실패 후 재시도와 업데이트 중 파일 검증을 개선했습니다."
+        ],
+        "es": [
+          "Ahora puedes elegir qué juegos y datos incluir en la copia de seguridad. Las copias grandes se pueden dividir en archivos y también permiten transferir la tarjeta de entrenador y el tiempo de juego.",
+          "mGBA ahora guarda antes en el dispositivo las partidas guardadas dentro del juego, una vez estabilizada la escritura.",
+          "Se añadió una opción para mantener la pantalla encendida al jugar y medir el rendimiento del renderizado, el audio y el guardado.",
+          "Se corrigió un problema que impedía registrar la ubicación de algunos errores en los informes de diagnóstico.",
+          "Ahora puedes elegir el servidor de retransmisión Celio en la pantalla de comunicación.",
+          "Se mejoró el guardado al cerrar la aplicación con el menú del juego abierto y los reintentos si falla la salida del juego.",
+          "Si una partida dañada impide iniciar el juego, ahora se puede restaurar una partida intacta del historial o exportar los datos originales desde los detalles del juego.",
+          "Se mejoraron los reintentos tras fallos de actualización y la verificación de archivos durante las actualizaciones."
+        ],
+        "fr": [
+          "Vous pouvez désormais choisir les jeux et les données à sauvegarder. Les sauvegardes volumineuses peuvent être divisées en fichiers, et la carte de Dresseur ainsi que le temps de jeu peuvent aussi être transférés.",
+          "mGBA enregistre désormais plus rapidement sur l’appareil les sauvegardes effectuées dans le jeu, une fois les écritures stabilisées.",
+          "Ajout d’une option pour garder l’écran allumé pendant le jeu et mesurer les performances du rendu, de l’audio et de l’enregistrement.",
+          "Correction des emplacements manquants pour certaines erreurs dans les rapports de diagnostic.",
+          "Vous pouvez désormais choisir le serveur relais Celio sur l’écran de communication.",
+          "Amélioration de l’enregistrement à la fermeture de l’application avec le menu du jeu ouvert, et des nouvelles tentatives si la fermeture du jeu échoue.",
+          "Si une sauvegarde corrompue empêche le jeu de démarrer, vous pouvez désormais restaurer une sauvegarde intacte de l’historique ou exporter les données originales depuis les détails du jeu.",
+          "Amélioration des nouvelles tentatives après un échec de mise à jour et de la vérification des fichiers pendant les mises à jour."
+        ],
+        "de": [
+          "Spiele und Daten für Backups können jetzt ausgewählt werden. Große Backups lassen sich auf mehrere Dateien verteilen. Auch Trainerkarte und Spielzeit können übertragen werden.",
+          "mGBA sichert Spielstände aus dem Spiel jetzt früher auf dem Gerät, sobald die Schreibvorgänge zur Ruhe gekommen sind.",
+          "Neu sind eine Option zum Verhindern des Bildschirmruhezustands beim Spielen und Leistungsmessungen für Grafik, Audio und Speicherung.",
+          "Fehlende Angaben zum Fehlerort in einigen Diagnoseberichten wurden korrigiert.",
+          "Im Verbindungsbildschirm kann jetzt ein Celio-Relaisserver angegeben werden.",
+          "Das Speichern beim Schließen der App mit geöffnetem Spielmenü und das erneute Beenden nach einem Fehler wurden verbessert.",
+          "Verhindert ein beschädigter Spielstand den Spielstart, können Sie jetzt in den Spieledetails einen unbeschädigten Spielstand aus der Speicherhistorie wiederherstellen oder die Originaldaten exportieren.",
+          "Erneute Versuche nach fehlgeschlagenen App-Updates und die Dateiprüfung während des Updates wurden verbessert."
+        ],
+        "pt": [
+          "Agora você pode escolher os jogos e dados incluídos no backup. Backups grandes podem ser divididos em arquivos, e o cartão de treinador e o tempo de jogo também podem ser transferidos.",
+          "O mGBA agora grava os saves feitos dentro do jogo no dispositivo mais cedo, assim que as gravações se estabilizam.",
+          "Foram adicionadas uma opção para manter a tela ligada durante o jogo e medições de desempenho de renderização, áudio e salvamento.",
+          "Foi corrigida a ausência da localização de alguns erros nos relatórios de diagnóstico.",
+          "Agora é possível escolher o servidor de retransmissão Celio na tela de comunicação.",
+          "Foram melhorados o salvamento ao fechar o aplicativo com o menu do jogo aberto e as novas tentativas quando não é possível sair do jogo.",
+          "Se um save corrompido impedir o início do jogo, agora é possível restaurar um save íntegro do histórico ou exportar os dados originais pelos detalhes do jogo.",
+          "Foram melhoradas as novas tentativas após falhas de atualização e a verificação dos arquivos durante as atualizações."
+        ]
+      },
+      "changesEn": [
+        "You can now choose which games and data to back up. Large backups can be split into files, and your trainer card and play time can be transferred too.",
+        "mGBA now saves in-game save data to your device sooner once writing has settled.",
+        "Added an option to keep the screen on while playing, along with performance measurement for rendering, audio and saving.",
+        "Fixed missing locations for some errors in diagnostic reports.",
+        "You can now choose a Celio relay server on the link screen.",
+        "Improved saving when closing the app with the game menu open, and retrying if exiting the game fails.",
+        "If a corrupted save prevents a game from starting, you can now restore an intact save from its history or export the original data from the game details.",
+        "Improved retries after failed app updates and file verification during updates."
+      ]
+    },
+    {
       "version": "0.3.28",
       "date": "2026-10-14",
       "changes": [

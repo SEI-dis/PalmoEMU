@@ -31,7 +31,7 @@ if(review.status!=='ready'||review.openItems.length||manifest.otherCores.corresp
     const p=path.resolve(root,e.evidenceFile);assert.ok(p.startsWith(root+path.sep),'Evidence must be in the release');
     assert.equal(crypto.createHash('sha256').update(fs.readFileSync(p)).digest('hex'),e.sha256,'Changed review evidence: '+id);
   }
-  for(const name of ['ci.yml','web-pages.yml','core-candidate.yml']){
+  for(const name of ['ci.yml','web-pages.yml','core-candidate.yml','upstream-watch.yml']){
     let file=path.join(root,'../.github/workflows',name);
     if(name==='web-pages.yml'&&!fs.existsSync(file))file=path.join(root,'../deployment',name);
     assert.ok(review.workflows?.[name],'Reviewed workflow required: '+name);

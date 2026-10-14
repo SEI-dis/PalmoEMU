@@ -37,7 +37,7 @@ def prepare():
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(file, dest)
     # Source package verification must see exactly the workflow it was built with.
-    for name in ('.github/workflows/ci.yml', '.github/workflows/web-pages.yml', '.github/workflows/core-candidate.yml', 'deployment/web-pages.yml'):
+    for name in ('.github/workflows/ci.yml', '.github/workflows/web-pages.yml', '.github/workflows/core-candidate.yml', '.github/workflows/upstream-watch.yml', 'deployment/web-pages.yml'):
         file = ROOT / name
         if file.is_file():
             dest = target / name

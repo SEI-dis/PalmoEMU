@@ -6,11 +6,12 @@ import {hash} from '../shared.js';
 import {assertHistoryRecord} from './save-history.js';
 import {createSaveWriter} from './save-writer.js';
 import {guardUpdateTask} from '../updates/update-activity.js';
+import {SaveTrigger} from './save-trigger.js';
 const AUTO_SAVE_MS=120000,MAX_RETRY_MS=600000;
 const retryDelay=failures=>Math.min(MAX_RETRY_MS,AUTO_SAVE_MS*2**Math.min(3,failures-1));
 const interrupted=()=>new Error(tr('保存が中断されました。以前の保存データは残っています。'));
 export class SaveProtection {
- constructor(onStatus,{useWorker=true,clock=()=>performance.now()}={}){this.onStatus=onStatus;this.useWorker=useWorker;this.clock=clock;this.lastClock=0;this.pendingSaves=0;this.queue=Promise.resolve();this.stateAt=0;this.openGeneration=0;this.accepting=false;}
+ constructor(onStatus,{useWorker=true,clock=()=>performance.now()}={}){this.onStatus=onStatus;this.useWorker=useWorker;this.clock=clock;this.lastClock=0;this.pendingSaves=0;this.queue=Promise.resolve();this.stateAt=0;this.openGeneration=0;this.accepting=false;this.saveTrigger=new SaveTrigger();}
  now(){let value;try{value=this.clock();}catch{}if(Number.isFinite(value)&&value>=0)this.lastClock=Math.max(this.lastClock,Math.min(value,Number.MAX_SAFE_INTEGER-MAX_RETRY_MS));return this.lastClock;}
  deferAutomatic(error,checkpoint,recovery){
   const now=this.now();
@@ -39,6 +40,7 @@ export class SaveProtection {
    const save=await db.get('saves',this.storageKey);
    this.writer=createSaveWriter({useWorker:this.useWorker});this.openGeneration++;this.accepting=!this.closeTask;
    this.autoFailures=this.stateFailures=0;this.nextAutoAt=this.nextStateAt=this.now()+AUTO_SAVE_MS;
+   this.saveTrigger.reset();
    this.status={at:save?.at||0,stateAt:recoveries[0]?.at||0};this.onStatus(this.status);
    return {save,interrupted:!!previous?.dirty,recoveries};
   }catch(e){this.accepting=false;await this.writer?.close();this.writer=null;this.release?.();this.release=null;await this.lockTask?.catch(()=>{});this.lockTask=null;this.game=null;this.id=null;throw e;}
@@ -57,11 +59,20 @@ export class SaveProtection {
   const nextId=await db.rotateSaveSession(this.storageKey,fence.sessionId);
   this.id=nextId;this.fence=null;fence.releaseActivity();
  }
- save(core,{checkpoint=false,clean=false,reason='auto',resetRecovery=false,automatic=false}={}){
+ save(core,{checkpoint=false,clean=false,reason='auto',resetRecovery=false,automatic=false,gameSave=false}={}){
   if(!this.accepting||!this.game)return Promise.reject(interrupted());
   // The app polls cheaply; capture/serialize only when due, and never queue
   // another automatic snapshot behind a save that is still in progress.
-  if(automatic){const now=this.now();if(this.pendingSaves||now<this.nextAutoAt)return Promise.resolve({skipped:true});checkpoint=checkpoint&&now>=this.nextStateAt;}
+  let trigger=null;
+  if(gameSave){
+   const now=this.now();trigger=this.saveTrigger.observe(core,now);
+   if(!trigger||this.pendingSaves||(this.autoFailures&&now<this.nextAutoAt))return Promise.resolve({skipped:true});
+   checkpoint=false;reason='game-save';
+  }else if(automatic){
+   const now=this.now(),stateDue=checkpoint&&now>=this.nextStateAt;
+   if(this.pendingSaves||(now<this.nextAutoAt&&(!stateDue||this.autoFailures)))return Promise.resolve({skipped:true});
+   checkpoint=stateDue;
+  }
   this.pendingSaves++;
   const generation=this.openGeneration,coreId=this.coreId,storageKey=this.storageKey;
   const next=guardUpdateTask(()=>this.queue.catch(()=>{}).then(async()=>{
@@ -71,6 +82,9 @@ export class SaveProtection {
     // Obtain the current owner only after any earlier ambiguous commit has
     // been fenced. Already queued saves remain valid within this open session.
     await this.resolveFence();const session=this.id;
+    // Recheck after an asynchronous fence: a new cartridge write, state load,
+    // rewind, import or reset must not persist a stale completion notification.
+    if(trigger&&!this.saveTrigger.matches(trigger)){this.onStatus(this.status);return {skipped:true};}
     const captured=checkpoint&&core.checkpoint?await core.checkpoint():null;
     const raw=captured?captured.save:await core.save(),bytes=raw?.length?new Uint8Array(raw):null,at=Date.now();
     let state=null,stateError=null;
@@ -109,12 +123,13 @@ export class SaveProtection {
      partial.name=stateError.name||'Error';partial.saveCommitted=true;throw partial;
     }
     this.deferAutomatic(null,checkpoint,recovery);
+    if(trigger)this.saveTrigger.committedSave(trigger,this.now());
     this.onStatus(this.status);
     return {save,recovery};
-   }catch(e){this.deferAutomatic(e,checkpoint,null);this.onStatus({...this.status,error:e.name==='QuotaExceededError'&&!e.saveCommitted?tr('容量不足で保存できません。セーブを書き出してください。'):e.message});throw e;}
+   }catch(e){if(trigger)this.saveTrigger.failed(trigger,this.now());this.deferAutomatic(e,checkpoint,null);this.onStatus({...this.status,error:e.name==='QuotaExceededError'&&!e.saveCommitted?tr('容量不足で保存できません。セーブを書き出してください。'):e.message});throw e;}
   }))().finally(()=>{this.pendingSaves--;});this.queue=next;return next;
  }
- async verify(record){if(!record?.bytes?.length)throw new Error(tr('保存データがありません。'));if(record.hash&&await hash(new Uint8Array(record.bytes))!==record.hash)throw new Error(tr('保存データに破損が見つかりました。別のバックアップを選んでください。'));return new Uint8Array(record.bytes);}
+ async verify(record){if(!record?.bytes?.length)throw new Error(tr('保存データがありません。'));if(record.hash&&await hash(new Uint8Array(record.bytes))!==record.hash){const error=new Error(tr('保存データに破損が見つかりました。別のバックアップを選んでください。'));error.code='SAVE_INTEGRITY_FAILED';throw error;}return new Uint8Array(record.bytes);}
  compatible(record){return compatibleState(this.coreId,record);}
  async restoreState(core,record){
   if(!this.compatible(record))throw new Error(tr('このステートは現在のコアで読み込めません。ゲーム内セーブから再開してください。'));
@@ -137,6 +152,7 @@ export class SaveProtection {
   // releasing it before allowing an awaited close/open cycle to continue.
   await this.lockTask?.catch(()=>{});this.lockTask=null;
   this.queue=Promise.resolve();
+  this.saveTrigger.reset();
   })();
   this.closeTask=task.finally(()=>{this.closeTask=null;});return this.closeTask;
  }

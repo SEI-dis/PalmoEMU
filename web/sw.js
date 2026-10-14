@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
+// App build: 0e3d5e0aa5be6c48
 // Message keys are localized by the requesting page.
 const tr=source=>source;
 importScripts('./offline-manifest.js');
@@ -6,6 +7,18 @@ importScripts('./src/updates/auto-update-worker.js');
 const base=new URL('./',self.location.href),prefix='manic-web:'+base.pathname+':',cacheName=prefix+APP_OFFLINE.version;
 const autoUpdate=automaticUpdateCoordinator(base);
 const urls=APP_OFFLINE.files.map(f=>new URL(f,base).href),allowed=new Set(urls);
+const integrities=new Map(APP_OFFLINE.files.map(file=>[new URL(file,base).href,APP_OFFLINE.integrity?.[file]]));
+async function cacheAsset(cache,url){
+ const hit=await cache.match(url);if(hit)return hit;
+ const integrity=integrities.get(url);
+ if(!/^sha256-[A-Za-z0-9+/]{43}=$/.test(integrity||''))throw new Error(tr('アプリのファイルを確認できませんでした。アプリを更新してから、もう一度お試しください。'));
+ // Integrity is checked by fetch before any bytes reach the cache or a caller.
+ // An old worker must never execute newly deployed core/vendor files alongside
+ // its old shell. Missing old resources require an application update instead.
+ let response;try{response=await fetch(url,{cache:'no-cache',integrity,redirect:'error'});}catch{throw new Error(tr('アプリのファイルを確認できませんでした。アプリを更新してから、もう一度お試しください。'));}
+ if(!response.ok)throw new Error(tr('ダウンロードに失敗しました。接続を確認してください。'));
+ await cache.put(url,response.clone());return response;
+}
 // A new Cache Storage version must not inherit still-fresh files from the HTTP cache.
 self.addEventListener('install',e=>e.waitUntil((async()=>{
  // First install loads the shell; updates stage the complete application.
@@ -14,7 +27,10 @@ self.addEventListener('install',e=>e.waitUntil((async()=>{
  const isUpdate=(await caches.keys()).some(name=>name.startsWith(prefix)&&name!==cacheName);
  const needed=isUpdate?urls:APP_OFFLINE.shell.map(f=>new URL(f,base).href);
  const cache=await caches.open(cacheName);
- await cache.addAll(needed.map(url=>new Request(url,{cache:'no-cache'})));
+ // Keep successful, verified downloads for a retry of this exact build. Only a
+ // fully staged install can activate; a failed attempt leaves the old worker.
+ let next=0,failure;await Promise.all(Array.from({length:4},async()=>{while(!failure&&next<needed.length){const url=needed[next++];try{await cacheAsset(cache,url);}catch(error){failure=error;}}}));
+ if(failure)throw failure;
 })()));
 self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const name of await caches.keys())if(name.startsWith(prefix)&&name!==cacheName)await caches.delete(name);await self.clients.claim();autoUpdate.activated();})()));
 self.addEventListener('fetch',e=>{
@@ -25,7 +41,7 @@ self.addEventListener('fetch',e=>{
  if(e.request.mode!=='navigate'&&(u.origin!==base.origin||u.search)){e.respondWith(new Response(null,{status:403}));return;}
  if(e.request.method!=='GET'||u.origin!==base.origin||u.search)return;
  if(u.href===base.href)u.pathname+='index.html';if(!allowed.has(u.href))return;
- e.respondWith((async()=>{const cache=await caches.open(cacheName),hit=await cache.match(u.href);if(hit)return hit;const response=await fetch(u.href,{cache:'no-cache'});if(response.ok)await cache.put(u.href,response.clone());return response;})());
+ e.respondWith((async()=>{try{return await cacheAsset(await caches.open(cacheName),u.href);}catch{return new Response(null,{status:503,statusText:'Application file unavailable for this version'});}})());
 });
 self.addEventListener('message',e=>{
  const port=e.ports[0];if(!port)return;
@@ -39,7 +55,7 @@ self.addEventListener('message',e=>{
   return;
  }
  e.waitUntil((async()=>{const cache=await caches.open(cacheName);if(e.data?.type==='download'){
-   let done=0;for(const url of urls){if(!await cache.match(url)){const response=await fetch(url,{cache:'no-cache'});if(!response.ok)throw new Error(tr('ダウンロードに失敗しました。接続を確認してください。'));await cache.put(url,response);}port.postMessage({progress:++done,total:urls.length});}
+   let done=0;for(const url of urls){await cacheAsset(cache,url);port.postMessage({progress:++done,total:urls.length});}
  }else if(e.data?.type!=='status')throw new Error(tr('オフライン保存を開始できませんでした。画面を開き直してください。'));
  let count=0;for(const url of urls)if(await cache.match(url))count++;port.postMessage({done:true,ready:count===urls.length,cached:count,total:urls.length,bytes:APP_OFFLINE.bytes,version:APP_OFFLINE.version});
  })().catch(err=>port.postMessage({done:true,error:err.message})));

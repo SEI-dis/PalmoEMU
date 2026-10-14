@@ -3,30 +3,29 @@
  * revision 58d463ebe2302e4fc70098760dcfc84ca69329db (MPL-2.0).
  * Original notice: Browser transport for upstream CelioNet, rom64 c5a0ba984.
  * Modified 2026-10-08: separate bounded transport, pinned relay, explicit start,
- * promise-based shutdown, and existing JS device adapter. See NOTICES.md.
+ * promise-based shutdown, and existing JS device adapter. See ../../NOTICES.md.
  * Modified 2026-10-09: clarified the secondary-license offer below.
  * Modified 2026-10-12: negotiate legacy/batched Celio events, acknowledge
  * commands/session events, and bound ordered delivery and outgoing retries.
+ * Modified 2026-10-14: accept explicitly selected, validated secure relays.
  * This Source Code Form remains subject to the Mozilla Public License 2.0.
  * Under MPL 2.0 section 3.3, this file (including this port's modifications)
  * is also offered under GNU Affero General Public License version 3 or later
- * as part of this combined work. No warranty. See ../LICENSE and
- * ../MPL_SECONDARY_LICENSE.md; the original MPL rights are retained.
+ * as part of this combined work. No warranty. See ../../LICENSE and
+ * ../../MPL_SECONDARY_LICENSE.md; the original MPL rights are retained.
  * This module has no ROM, save, storage, or file API.
  */
 import {tr} from '../i18n/index.js';
 import {CelioDevice,LinkStatus} from './celio-device.js';
-export const CELIO_RELAY='wss://celio-server.up.railway.app/socket.io/?EIO=4&transport=websocket';
+import {CELIO_RELAY,validateRelayURL} from './relay-settings.js';
+export {CELIO_RELAY} from './relay-settings.js';
 const commands=new Set([0,1,0x10,0x11,0x12,0x13,0xFF0A]);
 const validWords=data=>Array.isArray(data)&&data.length===32&&data.every(v=>Number.isInteger(v)&&v>=0&&v<=65535);
 const validPacket=p=>p&&Number.isSafeInteger(p.sequence)&&p.sequence>=0&&p.sequence<Number.MAX_SAFE_INTEGER&&validWords(p.data);
 const validUUID=value=>typeof value==='string'&&value.length>0&&value.length<=128;
 export class RoomLink {
   constructor(io,{onStatus=()=>{},onEnd=()=>{},server=CELIO_RELAY}={}){
-    // Loopback is allowed only for local protocol tests; the UI uses the fixed WSS relay.
-    const url=new URL(server);
-    if(server!==CELIO_RELAY&&!(location.hostname==='127.0.0.1'&&url.hostname==='127.0.0.1'&&url.protocol==='ws:'))throw new Error(tr('対応していない中継サーバーです。'));
-    this.server=server;this.io=io;this.onStatus=onStatus;this.onEnd=onEnd;
+    this.server=validateRelayURL(server,{loopback:globalThis.location?.hostname==='127.0.0.1'});this.io=io;this.onStatus=onStatus;this.onEnd=onEnd;
     this.closed=false;this.joined=false;this.connected=false;this.room='';this.sent=0;this.received=0;
     this.sequence=0;this.expected=0;this.pending=new Map();this.seen=new Set();
     this.batched=false;this.nextAck=1;this.outgoing=[];this.inFlight=new Map();this.outgoingCount=0;

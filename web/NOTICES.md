@@ -18,9 +18,12 @@ user-provided author screenshot). The source is the user-supplied attachment
 `6b3aece19d09e42dff7242924db19de0b654924b8b907de91a796d833d04e4e8`,
 whose destination-version metadata is 0.42.3. There is no independently
 verified public repository or upstream license statement for this attachment.
-The user's explicit request to incorporate and fix it is recorded as project
-provenance; it is not presented as an author-issued general redistribution
-license. The derived files in `vendor/start-save-migrate/` are not relabeled
+On 2026-10-14 the project maintainer confirmed author permission for
+incorporation into PalmoEMU, Web publication, modification and redistribution
+of modified source, with credit attribution as the stated condition. This
+records the maintainer's confirmation, not a verbatim author license; the
+original permission text was not independently inspected. No standard license
+or wider grant than that confirmation is asserted. The derived files in `vendor/start-save-migrate/` are not relabeled
 AGPL, MIT or another license by this project. The original author attribution
 and this distinction must be retained separately from the Web application's
 AGPL notices.
@@ -199,7 +202,7 @@ commit their saves. No new core binary, ROM, firmware or artwork is included.
 liru55/mgba-celio-web web/link-session.js (58d463ebe2302e4fc70098760dcfc84ca69329db):
 MPL-2.0 browser transport adapted into src/link/room-link.js. Original source and license
 are retained in sources/celio-web-transport. Modified 2026-10-08: bounded transport,
-fixed WSS relay endpoint, explicit start, separate existing JS device adapter, and
+default WSS relay endpoint, explicit start, separate existing JS device adapter, and
 shutdown callbacks. No ROM/save/file API is accessible to the transport.
 AGPL application changes add pre-link durable snapshots, suppressed autosaves and
 rollback on interrupted sessions. Core binaries have not changed for this feature.
@@ -779,3 +782,19 @@ and the expanded module/resource path checker are original AGPL-3.0-or-later
 work. Fixed core binaries, corresponding core archives and supplied converter
 files are unchanged; save formats, keys and transaction/session guards remain
 unchanged.
+
+## 0.3.29: local backup and runtime protection (2026-10-14)
+
+Original AGPL-3.0-or-later Web changes add selected and bounded split backups,
+trainer profile/play records and ROM-update original-save snapshots, v1 imports,
+opt-in local timing summaries, Screen Wake Lock, and a generated diagnostic
+source allowlist. No new dependency, artwork or cloud upload is added.
+The existing MPL-2.0 Celio transport now accepts a validated, explicitly selected
+WSS relay origin; upstream copyright and source remain intact. The new original
+AGPL metadata checker/workflow reports upstream candidates without adopting code.
+
+The MPL-2.0 mGBA bridge adds save-watch.h and per-core save observer exports.
+It uses the pinned core's dirty flags and quiet-frame callbacks; the full source
+archive, save/state formats and IDs are unchanged. Both native outputs match
+independent builds. Modified bridge source, build instructions and hashes are
+distributed in sources/mgba-web-port, SOURCES.json and build-evidence.json.

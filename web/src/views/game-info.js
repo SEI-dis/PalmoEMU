@@ -4,17 +4,19 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
 import {guardUpdateTask} from '../updates/update-activity.js';
-import {systems,escapeHTML as esc,icon,bytesLabel} from '../shared.js';
+import {systems,escapeHTML as esc,icon,bytesLabel,hash} from '../shared.js';
 import {coreRegistry,coreFor,saveKey,supportsGame} from '../core/core-registry.js';
 import * as db from '../storage/storage.js';
 import {gameInfoHero,groupedOptions,nativeAction,orderedOptionGroups,gameShortcuts} from '../components/manic-ui.js';
 import {createCoverDialog} from './cover.js';
 import {createROMUpdateDialog} from './rom-update.js';
+import {createSaveRescueView} from './save-rescue.js';
 import {categoryLabel} from '../library/library.js';
 
 export function createGameInfo(api){
  const coverDialog=createCoverDialog({...api,showGame:show});
  const romDialog=createROMUpdateDialog({...api,showGame:show});
+ const saveRescue=createSaveRescueView({...api,showGame:show});
  const $=s=>document.querySelector(s);
  const nativeSheet=(title,html)=>{api.sheet(title,html);$('#sheet').classList.add('native-menu');};
  const bind=handlers=>$('#sheet-body').querySelectorAll('[data-action]').forEach(b=>b.onclick=guardUpdateTask(()=>Promise.resolve().then(()=>handlers[b.dataset.action]?.()).catch(api.error)));
@@ -35,7 +37,7 @@ export function createGameInfo(api){
   nativeSheet(tr('セーフモード'),tr`<p class="sheet-note">チートを無効にし、自動ステートを復旧せず、ゲーム内セーブから起動します。設定や保存データは保持されます。</p><div class="sheet-actions"><button class="secondary" data-action="back">キャンセル</button><button class="primary" data-action="start">プレイ</button></div>`);
   bind({back:()=>show(game),start:()=>{api.closeSheet({dismiss:true});return api.launch(game,{safeMode:true});}});
  }
- async function exportSave(game){const record=await db.get('saves',saveKey(game));if(!record?.bytes?.length)throw Error(tr('保存されたゲーム内セーブがありません。'));api.download(record.bytes,game.name+'.'+coreFor(game).saveExtension);}
+ async function exportSave(game){const record=await db.get('saves',saveKey(game));if(!record?.bytes?.length)throw Error(tr('保存されたゲーム内セーブがありません。'));if(record.hash&&await hash(new Uint8Array(record.bytes))!==record.hash){await saveRescue.open(game);return;}api.download(record.bytes,game.name+'.'+coreFor(game).saveExtension);}
  function chooseCore(game){
   const selected=coreFor(game);
   nativeSheet(tr('コアを変更'),tr`<div class="settings-group">${coreRegistry[game.system].map(core=>`<button class="row native-row" data-core="${core.key}" ${supportsGame(core,game)?'':'disabled'}>${icon('core')}<span class="native-label">${esc(core.name)}${supportsGame(core,game)?'':tr`<small>このROM容量には未対応</small>`}</span>${selected.key===core.key?icon('check'):''}</button>`).join('')}</div><p class="sheet-note">セーブとステートはコアごとに保存します。元のコアに戻すと、以前の続きから遊べます。</p><button class="secondary wide-button" data-action="back">戻る</button>`);
@@ -60,6 +62,7 @@ export function createGameInfo(api){
   const cells={
    cover:nativeAction(tr('カバー変更'),'cover','image'),skins:nativeAction(tr('スキン設定'),'gameSkin','shirt'),category:nativeAction(tr('分類を変更'),'category','folder',categoryLabel(game)),
    stateList:nativeAction(tr('セーブステートを確認'),'states','state'),importSave:nativeAction(tr('セーブデータをインポート'),'importSave','saveImport'),shareSave:nativeAction(tr('セーブデータをエクスポート'),'exportSaved','saveExport'),
+   saveData:nativeAction(tr('セーブデータ・バックアップ'),'saveData','folder'),
    cheatCode:coreFor(game).cheats?nativeAction(tr('チートコード'),'cheats','code'):'',
    switchCore:nativeAction(tr('コアを変更'),'switchCore','core',coreFor(game).name),
    ...api.controlCells(game),gameOptionSort:nativeAction(tr('機能順序設定'),'optionOrder','layers'),gameShortcut:nativeAction(tr('ゲームショートカット'),'shortcuts','shortcuts'),
@@ -71,8 +74,8 @@ export function createGameInfo(api){
   $('#sheet-tools').innerHTML=tr`<button class="sheet-tool" id="game-info-button" aria-label="ゲーム情報">${icon('info')}</button><button class="sheet-tool" id="game-more-button" aria-label="その他の操作">${icon('more')}</button>`;
   $('#game-info-button').onclick=()=>info(game);$('#game-more-button').onclick=()=>more(game);
   api.bindSettings($('#sheet-body'));
-  bind({updateROM:()=>romDialog.open(game),restoreROM:()=>romDialog.open(game,{reattach:true}),detachROM:()=>romDialog.detach(game),previousROM:()=>romDialog.previous(game),exportPrevious:()=>romDialog.exportPrevious(game),category:()=>api.showCategory(game),resetPreferences:()=>api.resetPreferences?.(game),switchCore:()=>chooseCore(game),play:()=>{api.closeSheet({dismiss:true});return api.launch(game);},safeMode:()=>safeMode(game),rename:()=>rename(game),cover:()=>coverDialog.open(game),gameSkin:()=>api.showSkins(game.system,game),states:()=>api.showStates(game),importSave:()=>api.importSave(game),exportSaved:()=>exportSave(game),cheats:()=>api.showCheats(game),controllers:api.showControllers,optionOrder:()=>sortOptions(game,cells),shortcuts:()=>shortcuts(game),copyLink:()=>copyLink(game),delete:()=>remove(game)});
+  bind({updateROM:()=>romDialog.open(game),restoreROM:()=>romDialog.open(game,{reattach:true}),detachROM:()=>romDialog.detach(game),previousROM:()=>romDialog.previous(game),exportPrevious:()=>romDialog.exportPrevious(game),category:()=>api.showCategory(game),resetPreferences:()=>api.resetPreferences?.(game),switchCore:()=>chooseCore(game),play:()=>{api.closeSheet({dismiss:true});return api.launch(game);},safeMode:()=>safeMode(game),rename:()=>rename(game),cover:()=>coverDialog.open(game),gameSkin:()=>api.showSkins(game.system,game),states:()=>api.showStates(game),saveData:()=>saveRescue.open(game),importSave:()=>api.importSave(game),exportSaved:()=>exportSave(game),cheats:()=>api.showCheats(game),controllers:api.showControllers,optionOrder:()=>sortOptions(game,cells),shortcuts:()=>shortcuts(game),copyLink:()=>copyLink(game),delete:()=>remove(game)});
   $('.native-options').scrollTop=scrollTop;
  }
- return {show,updateROM:romDialog.open};
+ return {show,updateROM:romDialog.open,showSaveData:saveRescue.open};
 }

@@ -99,7 +99,7 @@ class ReleasePackageTests(unittest.TestCase):
             self.write(name, data)
         for name in ['prepare-release.py', 'package_source.py']:
             self.write('scripts/' + name, (source/'scripts'/name).read_bytes())
-        for name in ['ci.yml', 'web-pages.yml', 'core-candidate.yml']:
+        for name in ['ci.yml', 'web-pages.yml', 'core-candidate.yml', 'upstream-watch.yml']:
             path = self.root / '.github/workflows' / name
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(b'# workflow fixture: ' + name.encode())
@@ -136,7 +136,7 @@ class ReleasePackageTests(unittest.TestCase):
                 self.assertEqual(z.read(name), data)
                 self.assertEqual((self.staged/name).read_bytes(), data)
                 self.assertEqual((self.web/name).read_bytes(), data)
-            for name in ['ci.yml', 'web-pages.yml', 'core-candidate.yml']:
+            for name in ['ci.yml', 'web-pages.yml', 'core-candidate.yml', 'upstream-watch.yml']:
                 self.assertEqual(z.read('.github/workflows/' + name),
                                  (self.root/'.github/workflows'/name).read_bytes())
             source_names = [name for name in names if not name.startswith('.github/')]

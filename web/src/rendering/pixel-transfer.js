@@ -5,7 +5,7 @@
 // Modified 2026-10-13: synthetic cartridge/frame only, bounded startup sampling,
 // equality check, and transferable cached views that survive WASM memory growth.
 // MPL-covered adaptation additionally offered under AGPL-3.0-or-later for this
-// combined application under MPL section 3.3; see ../MPL_SECONDARY_LICENSE.md.
+// combined application under MPL section 3.3; see ../../MPL_SECONDARY_LICENSE.md.
 
 export function createPixelTransfer(m,width,height,preferred='rows'){
  let mode=preferred==='packed'&&typeof m._web_rgba_pixels==='function'?'packed':'rows';

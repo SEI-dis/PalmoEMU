@@ -38,11 +38,11 @@
     },
     "mgba": {
       "js": {
-        "sha256": "9ee6e96e43685cec04e4c32359794e94af3f0a56dbaeec6fac0f1f52e97bebe6",
+        "sha256": "bdb9009bfbf98e3eebf81ccfafcc38a89422bb0209768df63e88d571c570b995",
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "6fc73034dd28806ef9836cd15a758696c28a1fe20ecb16c26a22ad9f8629de7f",
+        "sha256": "2e5a366b1ccb1cae4962882cd8c7fb5c08a5da3b706377bd6936b518969d9604",
         "rebuildMatches": true
       }
     }
@@ -109,6 +109,32 @@
       "mgba-web-port/link.h": "afd65148934ff4ed99bb6a45df8400f967d0af02fcc1987de38fd8c86e4ee629",
       "mgba-web-port/options.h": "c5c975d07444f6073d93a9536f94e7510ca9dced790a84bb49832b8be84f537a",
       "mgba-web-port/gb-link.h": "11794818a31e6a9328aa880f2d306b1038c46f9b83f67abb40793f68c87b258f"
+    }
+  },
+  "saveCompletionBuild": {
+    "date": "2026-10-14",
+    "sourceCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
+    "sourceArchiveSha256": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16",
+    "method": "Two independent source archive extractions and bridge/build directories with Emscripten 4.0.15, CMake 3.31.6 and Ninja 1.11.1. JS/WASM hashes match. Native settled-save observer only; source archive, battery/state layouts and compatibility IDs unchanged. Recompiled bridge in both independent directories after correcting the license-file comment; outputs still match the shipped binaries.",
+    "outputs": {
+      "mgba.js": {
+        "sha256": "bdb9009bfbf98e3eebf81ccfafcc38a89422bb0209768df63e88d571c570b995",
+        "rebuildMatches": true
+      },
+      "mgba.wasm": {
+        "sha256": "2e5a366b1ccb1cae4962882cd8c7fb5c08a5da3b706377bd6936b518969d9604",
+        "rebuildMatches": true
+      }
+    },
+    "bridgeFiles": {
+      "mgba-web-port/bridge.c": "9c035c489357a93017492ff98f9fd27ad6c781fc286b56d744c6cff58ee42112",
+      "mgba-web-port/BUILD.md": "53885b1b2c94617a260529907d413b6861196d9769929f6a556c6f61eb6e019b",
+      "mgba-web-port/CMakeLists.txt": "43b4e296249f68ed7f4b69176afd59ae1693a109f0c66db91ae5ecd9d0f3fee2",
+      "mgba-web-port/gb-link.h": "11794818a31e6a9328aa880f2d306b1038c46f9b83f67abb40793f68c87b258f",
+      "mgba-web-port/link.h": "afd65148934ff4ed99bb6a45df8400f967d0af02fcc1987de38fd8c86e4ee629",
+      "mgba-web-port/options.h": "c5c975d07444f6073d93a9536f94e7510ca9dced790a84bb49832b8be84f537a",
+      "mgba-web-port/save-watch.h": "539244aab3e08f07accd6603288efdd7c7b2806b0704b1156c5886cdb31c144a",
+      "mgba-web-port/upstream.json": "db9d454c9837306956d68c2c5383832fb911bba4bbb5bee83b28a509eee1d50c"
     }
   }
 }

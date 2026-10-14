@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.28",
+  "version": "0.3.29",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
@@ -115,7 +115,20 @@
     "test:module-links": "node tests/module-links.cjs",
     "test:start-save-component": "node tests/start-save-component.cjs",
     "check:start-save-component": "node scripts/start-save-migrate/check.mjs",
-    "test:start-save-update-range": "node tests/start-save-update-range.cjs"
+    "test:start-save-update-range": "node tests/start-save-update-range.cjs",
+    "test:runtime-tools": "node tests/runtime-tools.cjs",
+    "test:runtime-tools-browser": "node tests/runtime-tools-browser.cjs",
+    "test:backup-enhancements": "node tests/backup-enhancements.cjs",
+    "test:mgba-save-completion": "node tests/mgba-save-completion.cjs",
+    "test:save-completion": "node tests/save-completion.cjs",
+    "test:upstream-watch": "node tests/upstream-watch.cjs",
+    "test:relay-settings": "node tests/relay-settings.cjs",
+    "test:relay-config": "node tests/relay-config.cjs",
+    "test:security-policy": "node tests/security-policy.cjs",
+    "test:pause-exit": "node tests/pause-exit.cjs",
+    "test:audio-lifecycle": "node tests/audio-lifecycle.cjs",
+    "test:save-rescue": "node tests/save-rescue.cjs",
+    "test:update-safety": "node tests/update-safety.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

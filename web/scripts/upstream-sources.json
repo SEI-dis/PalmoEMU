@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "sources": [
+    {"id":"mgba64","label":"mGBA celio edition (64 MiB)","sourcePath":["mgba"],"commitKey":"sourceCommit","branch":"rom64"},
+    {"id":"desmume2015","label":"DeSmuME 2015","sourcePath":["nds"]},
+    {"id":"fceumm","label":"FCEUmm","sourcePath":["otherCores","sources","fceumm"]},
+    {"id":"mesen-s","label":"Mesen-S","sourcePath":["otherCores","sources","mesen-s"]},
+    {"id":"clownmdemu","label":"ClownMDEmu","sourcePath":["otherCores","sources","clownmdemu"]},
+    {"id":"vba-next","label":"VBA-Next","sourcePath":["alternateCores","sources","vba-next"]},
+    {"id":"melonds","label":"melonDS","sourcePath":["alternateCores","sources","melonds"]},
+    {"id":"jgenesis","label":"jgenesis","sourcePath":["alternateCores","sources","jgenesis"]},
+    {"id":"manicemu","label":"ManicEMU UI","sourcePath":["manicemu"]},
+    {"id":"celio-web","label":"mgba-celio-web","sourcePath":["celio","webTransport"]},
+    {"id":"celio-device","label":"Celio device","sourcePath":["celio","device"]},
+    {"id":"celio-server","label":"Celio server","sourcePath":["celio","modernSessionReference"]},
+    {"id":"rom-patcher","label":"RomPatcher.js","sourcePath":["romPatcher"]}
+  ],
+  "converter": {
+    "metadata":"vendor/start-save-migrate/component.json",
+    "feed":null,
+    "note":"The author supplies packages directly. No verified public update feed is available. Configure a reviewed GitHub release repository and adoptedTag only after the author supplies one."
+  }
+}

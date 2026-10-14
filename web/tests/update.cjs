@@ -5,6 +5,9 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
  const root=path.resolve(__dirname,'..'),manifestScope={self:{}};
  vm.runInNewContext(fs.readFileSync(path.join(root,'offline-manifest.js'),'utf8'),manifestScope);
  const lazyAsset=manifestScope.self.APP_OFFLINE.files.find(name=>name.startsWith('cores/')&&name.endsWith('.js'));
+ // Keep each simulated deployment immutable, even while other test workers or
+ // release generation update the checkout. SRI must describe these exact bytes.
+ const sourceFiles=new Map([...manifestScope.self.APP_OFFLINE.files,'sw.js','offline-manifest.js'].map(name=>[name,fs.readFileSync(path.join(root,name))]));
  assert.ok(lazyAsset);let revision=1,staleBootstrap=true,failAsset=null,originUnavailable=false,holdAsset=null;
  // The ROM-update Play handoff also crosses a new release. Its release notice
  // must wait until the requested game exits, without swallowing the Play action.
@@ -12,15 +15,8 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
  const stageDeadline=1200,buildChecks=[];
  const heldRequests=[],shots=process.env.SCREENSHOT_DIR||path.join(root,'test-results','update-flow-'+browserName);fs.mkdirSync(shots,{recursive:true});
  const releaseHeld=()=>{holdAsset=null;for(const finish of heldRequests.splice(0))finish();};
- const server=http.createServer((req,res)=>{
-  if(originUnavailable){req.socket.destroy();return;}
-  const name=new URL(req.url,'http://localhost').pathname,file=path.resolve(root,'.'+name);
-  if(!file.startsWith(root+path.sep)||!fs.existsSync(file)){res.writeHead(404).end();return;}
-  if(name===failAsset){const fail=()=>res.writeHead(503,{'Cache-Control':'no-store'}).end('Simulated interrupted update');if(name===holdAsset)heldRequests.push(fail);else fail();return;}
-  const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.wasm':'application/wasm','.json':'application/json','.svg':'image/svg+xml','.txt':'text/plain','.md':'text/plain'};
-  res.setHeader('Content-Type',types[path.extname(file)]||'application/octet-stream');
-  // Reproduce a static host's still-fresh HTTP cache independently of Cache Storage.
-  res.setHeader('Cache-Control','public, max-age=3600');let bytes=fs.readFileSync(file);
+ function resourceBytes(name){
+  let bytes=sourceFiles.get(name.slice(1))||fs.readFileSync(path.resolve(root,'.'+name));
   if(name==='/sw.js')bytes=Buffer.concat([bytes,Buffer.from('\n// update-test revision '+revision)]);
   if(name==='/src/updates/auto-update-worker.js'&&[3,8].includes(revision))bytes=Buffer.from(bytes.toString().replace('await self.skipWaiting();','await new Promise(resolve=>setTimeout(resolve,1500));await self.skipWaiting();'));
   if(name==='/src/updates/auto-update.js'){
@@ -31,19 +27,36 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    assert.equal(matches,1,'Expected exactly one 60-second staging timer');
    bytes=Buffer.concat([bytes,Buffer.from('\nglobalThis.updateTestAutoHash='+JSON.stringify(require('node:crypto').createHash('sha256').update(source).digest('hex'))+';')]);
   }
-  if(name==='/offline-manifest.js')bytes=Buffer.from(bytes.toString().replace(/"version":"[^"]+"/,`"version":"update-test-${revision}"`));
+  if(name==='/offline-manifest.js'){
+   const manifest={...manifestScope.self.APP_OFFLINE,version:`update-test-${revision}`};
+   // The fixture changes application bytes; its release hashes must describe
+   // those exact bytes, just like the production build manifest.
+   manifest.integrity=Object.fromEntries(manifest.files.map(file=>[file,'sha256-'+require('node:crypto').createHash('sha256').update(resourceBytes('/'+file)).digest('base64')]));
+   bytes=Buffer.from('self.APP_OFFLINE = '+JSON.stringify(manifest)+';');
+  }
   if(name==='/index.html')bytes=Buffer.from(bytes.toString()
    .replace(/(<meta name="app-build" content=")[^"]+/,`$1update-test-${revision}`)
    .replace(/(<meta name="app-version" content=")[^"]+/,`$1${releaseVersion()}`)
    .replace(/(<template id="latest-update-notes" data-version=")[^"]+/,`$1${releaseVersion()}`)
    .replace(/(<p class="update-note-version"[^>]*>)[^<]+/,`$1${releaseVersion()}`));
+  if(name==='/src/views/settings.js')bytes=Buffer.concat([bytes,Buffer.from('\nglobalThis.updateTestRevision='+revision+';')]);
+  if(name==='/src/storage/storage.js')bytes=Buffer.from(bytes.toString().replace('async function setGamePreferences(id,preferences){','async function setGamePreferences(id,preferences){if(globalThis.holdUpdatePreference)await globalThis.holdUpdatePreference;'));
+  if(name==='/'+lazyAsset)bytes=Buffer.concat([bytes,Buffer.from('\n// lazy asset revision '+revision)]);
+  return bytes;
+ }
+ const server=http.createServer((req,res)=>{
+  if(originUnavailable){req.socket.destroy();return;}
+  const name=new URL(req.url,'http://localhost').pathname,file=path.resolve(root,'.'+name);
+  if(!file.startsWith(root+path.sep)||!fs.existsSync(file)){res.writeHead(404).end();return;}
+  if(name===failAsset){const fail=()=>res.writeHead(503,{'Cache-Control':'no-store'}).end('Simulated interrupted update');if(name===holdAsset)heldRequests.push(fail);else fail();return;}
+  const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.wasm':'application/wasm','.json':'application/json','.svg':'image/svg+xml','.txt':'text/plain','.md':'text/plain'};
+  res.setHeader('Content-Type',types[path.extname(file)]||'application/octet-stream');
+  // Reproduce a static host's still-fresh HTTP cache independently of Cache Storage.
+  res.setHeader('Cache-Control','public, max-age=3600');let bytes=resourceBytes(name);
   if(name==='/index.html'&&req.url.includes('new-tab=1')){
    res.setHeader('Cache-Control','no-store');
    if(staleBootstrap){staleBootstrap=false;bytes=Buffer.from(bytes.toString().replace(/(<meta name="app-build" content=")[^"]+/,`$1update-test-${revision-1}`));}
   }
-  if(name==='/src/views/settings.js')bytes=Buffer.concat([bytes,Buffer.from('\nglobalThis.updateTestRevision='+revision+';')]);
-  if(name==='/src/storage/storage.js')bytes=Buffer.from(bytes.toString().replace('async function setGamePreferences(id,preferences){','async function setGamePreferences(id,preferences){if(globalThis.holdUpdatePreference)await globalThis.holdUpdatePreference;'));
-  if(name==='/'+lazyAsset)bytes=Buffer.concat([bytes,Buffer.from('\n// lazy asset revision '+revision)]);
   if(name===holdAsset)heldRequests.push(()=>res.end(bytes));else res.end(bytes);
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port+'/';
@@ -374,6 +387,15 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage/storage.js')).get('saves','keep')).bytes]),[7,9]);
   assert.equal(await second.getByRole('button',{name:'Original-update-testの設定を開く',exact:true}).count(),1,'Manual retry retains the imported cartridge');
   console.log('PASS: real asset failure shows manual update/later actions, preserves cached play and saves, and manual retry succeeds with one app tab.');
+  // Model a native picker that returned without change/cancel. Disable the
+  // element only during dispatch so the fixture does not open an OS dialog.
+  await second.evaluate(()=>{const input=document.querySelector('#rom-input');input.disabled=true;input.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true}));input.disabled=false;});
+  revision=16;await second.evaluate(async()=>{await(await navigator.serviceWorker.ready).update();});
+  const pickerDeadline=Date.now()+30000;while(!await second.evaluate(async()=>!!(await navigator.serviceWorker.getRegistration()).waiting)){assert.ok(Date.now()<pickerDeadline,'Waiting update after silent picker cancellation');await second.waitForTimeout(50);}
+  await second.waitForTimeout(2200);assert.equal(await second.evaluate(()=>globalThis.updateTestRevision),15,'Unresolved native selection blocks activation');
+  await second.keyboard.press('Escape');await second.waitForFunction(()=>globalThis.updateTestRevision===16,{},{timeout:30000});
+  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage/storage.js')).get('saves','keep')).bytes]),[7,9]);
+  console.log('PASS: a picker without change/cancel releases its update guard on the next page gesture.');
   await second.goto('about:blank');
   }
  }finally{await browser.close();server.close();}

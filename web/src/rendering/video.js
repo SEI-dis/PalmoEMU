@@ -2,6 +2,7 @@
 // Pixel art edge interpolation. Does not add detail to the game's native image.
 // Scale4x applies this port's Scale2x pass twice: https://www.scale2x.it/algorithm
 import {createGPUFilter} from './gpu-filter.js';
+import {performanceDiagnostics} from '../runtime/performance.js';
 import {tr} from '../i18n/index.js';
 export const videoFilters=[['pixel',tr('ピクセル')],['smooth',tr('なめらか')],['scanlines',tr('スキャンライン')],['edge2x',tr('輪郭補正2倍')],['edge4x',tr('輪郭補正4倍（高品質）')],['lcd','LCD'],['crt','CRT'],['xbrz','xBRZ']];
 
@@ -45,6 +46,8 @@ export class VideoOutput {
  }
  draw(image){
   if(this.disposed)return;
+  const measuring=performanceDiagnostics.measuring,start=measuring?performance.now():0;
+  try{
   this.preview=null;
   if(this.sourceImage!==image){this.sourceImage=image;this.sourceWords=new Uint32Array(image.data.buffer,image.data.byteOffset,this.width*this.height);}
   if(this.gpuMode){const filtered=this.gpu.render(image,this.mode,this.strength);if(filtered)this.ctx.drawImage(filtered,0,0);else{this.fallbackCanvas??=document.createElement('canvas');if(this.fallbackCanvas.width!==this.width)this.fallbackCanvas.width=this.width;if(this.fallbackCanvas.height!==this.height)this.fallbackCanvas.height=this.height;this.fallbackCanvas.getContext('2d').putImageData(image,0,0);this.ctx.imageSmoothingEnabled=false;this.ctx.drawImage(this.fallbackCanvas,0,0,this.canvas.width,this.canvas.height);}this.canvas.dataset.filterFallback=String(this.gpu.failed);present(this.canvas);return;}
@@ -52,6 +55,7 @@ export class VideoOutput {
   if(this.intermediate){scale2x(this.sourceWords,this.intermediate,this.width,this.height);scale2x(this.intermediate,this.enlargedWords,this.width*2,this.height*2);}
   else scale2x(this.sourceWords,this.enlargedWords,this.width,this.height);
   this.ctx.putImageData(this.enlarged,0,0);present(this.canvas);
+  }finally{if(measuring)performanceDiagnostics.frame(this.canvas,start,performance.now());}
  }
  dispose(){this.disposed=true;this.gpu?.dispose();this.gpu=null;this.sourceImage=this.sourceWords=this.preview=this.fallbackCanvas=this.enlarged=this.enlargedWords=this.intermediate=null;}
  restorePreview(image){if(this.disposed)return;this.preview=image;this.ctx.imageSmoothingEnabled=false;this.ctx.drawImage(image,0,0,this.canvas.width,this.canvas.height);present(this.canvas);}

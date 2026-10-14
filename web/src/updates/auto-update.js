@@ -108,15 +108,22 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  for(const type of inputs)window.addEventListener(type,event=>{
   if(prepared||launchCheck||((staging||failed)&&!indicator.contains(event.target))){event.preventDefault();event.stopImmediatePropagation();return;}
   lastInput=Date.now();
+  // Some native file pickers return without firing change or cancel. A new
+  // gesture in this page proves the native picker has closed; focus alone does
+  // not, since some browsers keep focus while their picker remains open.
+  if(pickers.size&&['pointerdown','keydown'].includes(type))pickers.clear();
   if(event.target?.matches?.('input[type=file]')){if(type==='click')pickers.add(event.target);if(type==='change')pickers.delete(event.target);}
  },{capture:true});
  window.addEventListener('cancel',event=>{if(event.target?.matches?.('input[type=file]'))pickers.delete(event.target);},{capture:true});
  window.addEventListener('pageshow',event=>{if(event.persisted){restorePending=true;refresh();}});
  async function cancel(token){
   if(prepared?.token!==token)return;
-  const old=prepared;clearTimeout(old.timer);old.port.close();
+  // Once skipWaiting has been requested, the page must remain prepared until
+  // the new controller arrives. Resuming now could start a game on old code.
+  if(prepared.committed||prepared.cancelling)return;
+  const old=prepared;old.cancelling=true;clearTimeout(old.timer);old.port.close();old.worker.removeEventListener('statechange',old.checkWorker);
   await acquire();
-  if(navigator.serviceWorker.controller!==old.controller){reloadUpdated();return;}
+  if(navigator.serviceWorker.controller!==old.controller||old.controller?.state==='redundant'){reloadUpdated();return;}
   prepared=null;lastInput=Date.now();
   if(staging&&candidate()===staging&&navigator.onLine){showStage();freeze(tr('ほかのタブの操作が終わると更新します。'),0,{update:true,canContinue:true,phase:'waiting'});}
   else closeStage();
@@ -127,9 +134,10 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
   if(type==='local-play-update-probe'){port.postMessage({ready:ready()});port.close();return;}
   if(type!=='local-play-update-prepare')return;
   if(!ready()){port.postMessage({ready:false});port.close();return;}
-  prepared={token,port,controller:navigator.serviceWorker.controller,timer:null};clearTimeout(stageTimer);freeze(tr('更新中…'),0,{update:true,phase:'applying'});release();
+  const worker=event.source,checkWorker=()=>{if(prepared?.token===token&&prepared.committed&&worker.state==='redundant')reloadUpdated();};
+  prepared={token,port,worker,checkWorker,controller:navigator.serviceWorker.controller,timer:null};worker.addEventListener('statechange',checkWorker);clearTimeout(stageTimer);freeze(tr('更新中…'),0,{update:true,phase:'applying'});release();
   prepared.timer=setTimeout(()=>cancel(token).catch(()=>location.reload()),15000);
-  port.onmessage=message=>{if(message.data?.type==='cancel')cancel(token).catch(()=>location.reload());};
+  port.onmessage=message=>{if(prepared?.token!==token)return;if(message.data?.type==='commit'){prepared.committed=true;clearTimeout(prepared.timer);checkWorker();}else if(message.data?.type==='abort'){prepared.committed=false;cancel(token).catch(()=>location.reload());}else if(message.data?.type==='cancel')cancel(token).catch(()=>location.reload());};
   port.postMessage({ready:true});
  });
  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(prepared)reloadUpdated();});

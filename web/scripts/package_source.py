@@ -22,6 +22,8 @@ def source_files():
     if workflow.is_file(): yield workflow,'.github/workflows/ci.yml'
     workflow=root.parent/'.github/workflows/core-candidate.yml'
     if workflow.is_file(): yield workflow,'.github/workflows/core-candidate.yml'
+    workflow=root.parent/'.github/workflows/upstream-watch.yml'
+    if workflow.is_file(): yield workflow,'.github/workflows/upstream-watch.yml'
 
 if __name__=='__main__':
     files=dict((name,file) for file,name in source_files())
