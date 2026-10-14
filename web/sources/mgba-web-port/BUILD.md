@@ -174,3 +174,19 @@ that heap. `tests/mgba-memory.cjs` checks output parity with the copying ABI and
 repeated invalid/valid loads without allocation accumulation. Structural-probe,
 old/new state, 6 MiB save and GB local-link tests cover the transfer path too.
 Both separately extracted native builds match; see `../build-evidence.json`.
+
+### Startup allocation failure audit (2026-10-15)
+
+The pinned GBA initializer can report success without its 16 MiB extended RAM.
+The bridge checks mandatory GBA work/extended/video RAM and the audio buffer
+before loading or executing a cartridge. Failure destroys the partial core,
+closes the borrowed VFile and frees the transferred ROM. `web_load_owned`
+returns -1 for these allocation failures (including VFile allocation), 0 for
+rejected data and 1 for success. The legacy copying export retains its 0/1 ABI.
+
+`tests/mgba-allocation.cjs` refuses heap growth during initialization of an
+authored 64 MiB cartridge. It checks three failed loads, no execution after
+failure, cleanup, and a successful retry with matching rendering when growth
+is allowed again. This tests the extended-RAM failure path, not every native
+allocation. Smaller unchecked allocations in the pinned core remain outside
+this guard; no claim of comprehensive out-of-memory recovery is made.

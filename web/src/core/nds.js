@@ -2,7 +2,7 @@
 // Adapter for the source-built DeSmuME 2015 core. See sources/nds-web/BUILD.md.
 import {tr} from '../i18n/index.js';
 import {normalizeNDSSave} from './nds-save.js';
-import {MGBACore} from './mgba.js';
+import {MGBACore,cleanupCoreResources} from './mgba.js';
 import {loadCoreResource} from './load-resource.js';
 import {VideoOutput} from '../rendering/video.js';
 import {screenBounds} from '../skins/control-layout.js';
@@ -38,7 +38,9 @@ export class NDSCore extends MGBACore {
  }
  async load(bytes,game={system:'nds'}){
   if(bytes instanceof Blob)bytes=new Uint8Array(await bytes.arrayBuffer());
-  this.core=coreFor(game);this.m=await loadCoreResource(async()=>{const create=await loadFactory(this.core.directory);return create({locateFile:()=>new URL(`../../cores/${this.core.directory}/core.wasm`,import.meta.url).href});});
+  this.core=coreFor(game);const module=await loadCoreResource(async()=>{const create=await loadFactory(this.core.directory);return create({locateFile:()=>new URL(`../../cores/${this.core.directory}/core.wasm`,import.meta.url).href});});
+  if(this.closed)throw new DOMException('Core closed during loading','AbortError');
+  this.m=module;
   // Firmware is created during core initialization. Live settings are retained
   // for the next launch, never applied by resetting the current game.
   this.m._web_set_language?.(ndsLanguages.indexOf(this.ndsLanguage||'default')-1);
@@ -100,5 +102,8 @@ export class NDSCore extends MGBACore {
   const enabled=list.filter(c=>c.enabled);if(enabled.some(c=>c.code.length>=1024||!/^[\da-fA-F\s+]+$/.test(c.code)))throw Error(tr('NDSはAction Replay形式（16進数、1023文字以内）で入力してください。'));
   this.m._web_cheat_reset();const enc=new TextEncoder();enabled.forEach((c,i)=>this.copyIn(enc.encode(c.code.replace(/\n/g,'+')+'\0'),p=>this.m._web_cheat_set(i,1,p)));
  }
- close(){this.stopBlowing();for(const video of this.videos)video.dispose();this.releaseTouch();super.close();this.display.remove();}
+ close(){
+  if(this.closed)return;
+  cleanupCoreResources([()=>this.stopBlowing(),...this.videos.map(video=>()=>video.dispose()),()=>this.releaseTouch(),()=>super.close(),()=>this.display.remove()]);
+ }
 }

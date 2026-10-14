@@ -77,6 +77,14 @@ const cases=[{name:'recognized structure',accepted:true},
      const transfers=[];
      for(const limit of [131072,6291455,NaN,Infinity,6291456])transfers.push(await probe(original,limit,{owned:true,grow:true}));
      const transferFailure=await probe(original,6291456,{owned:true,failAt:1});
+     // -1 is the native allocation-failure result. The owned loader already
+     // consumed its ROM pointer; the browser must report memory pressure and
+     // must not free it again (or treat a negative result as success).
+     let ownedFrees=0,callerFrees=0,ownedLoads=0,allocationMessage=null;
+     const allocationCore={HEAPU8:new Uint8Array(8208),_malloc:()=>8,_free:()=>callerFrees++,
+      _web_gba_save_capacity:()=>6291456,_web_load_owned(){ownedLoads++;ownedFrees++;return -1;}};
+     try{await loadCompatibleMGBA(allocationCore,original.subarray(0,8192));}catch(error){allocationMessage=error.message;}
+     const ownedAllocationFailure={message:allocationMessage,ownedFrees,callerFrees,ownedLoads};
      // Import an actual pre-correction snapshot into the corrected core, then
      // round-trip a new snapshot and an unchanged 6MiB battery save.
      const old=await createMGBA({print:()=>{},printErr:()=>{}});
@@ -87,7 +95,7 @@ const cases=[{name:'recognized structure',accepted:true},
      const bytesSave=old._web_save_export(),oldSave=old.HEAPU8.slice(old._web_save_data(),old._web_save_data()+bytesSave);old._web_close();
      testCore.loadState(oldState);const restored=testCore.save(),checkpoint=testCore.state();testCore.reset();testCore.loadState(checkpoint);
      testCore.restore(oldSave);const reloaded=testCore.save();
-     return {gates,modified,growth,failures,transfers,transferFailure,saveBytes:restored.length,saveEqual:restored.every((b,i)=>b===oldSave[i])&&reloaded.every((b,i)=>b===oldSave[i]),compatibility:testCore.compatibility};
+     return {gates,modified,growth,failures,transfers,transferFailure,ownedAllocationFailure,saveBytes:restored.length,saveEqual:restored.every((b,i)=>b===oldSave[i])&&reloaded.every((b,i)=>b===oldSave[i]),compatibility:testCore.compatibility};
     },{id,offset,otherOffset});
     for(const gate of checks.gates)assert.deepEqual(gate,{correction:null,error:false,loads:[0],otherLoads:[0],freed:1,originalByte:0});
     for(const [i,entry]of checks.modified.entries()){assert.equal(entry.correction,i===0?'expanded-save-detection':null);assert.equal(entry.error,false);assert.equal(entry.loads.length,i===0?2:1);assert.equal(entry.freed,1);if(i===1)assert.equal(entry.loads[0],1);}
@@ -95,6 +103,7 @@ const cases=[{name:'recognized structure',accepted:true},
     for(const entry of checks.failures){assert.equal(entry.error,true);assert.equal(entry.freed,1);assert.equal(entry.originalByte,0);assert.ok(entry.otherLoads.every(byte=>byte===0),'Unrelated ROM bytes are never patched');}
     for(const [i,entry]of checks.transfers.entries())assert.deepEqual(entry,{correction:i===4?'expanded-save-detection':null,error:false,loads:[i===4?1:0],otherLoads:[0],freed:1,originalByte:0},'Transferred load checks compiled capacity and frees exactly once');
     assert.deepEqual(checks.transferFailure,{correction:null,error:true,loads:[1],otherLoads:[0],freed:1,originalByte:0});
+    assert.deepEqual(checks.ownedAllocationFailure,{message:'メモリを確保できませんでした。',ownedFrees:1,callerFrees:0,ownedLoads:1},'Native allocation failure reports memory pressure without retrying or double-freeing the owned ROM');
     assert.equal(checks.saveBytes,6291456);assert.ok(checks.saveEqual);assert.equal(checks.compatibility,'expanded-save-detection');
    }
    assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);await context.close();console.log('PASS: '+name+' / original-ROM preservation. '+kind);

@@ -819,3 +819,11 @@ verified temporary correction, without changing the stored ROM or save identity.
 Original AGPL adapter cleanup releases module references after exit and rejects
 late initialization after cancellation. Save/state layouts and link drivers are
 unchanged. These changes add no dependency, permission or network endpoint.
+
+Further modified 2026-10-15: the MPL bridge rejects missing mandatory startup
+RAM/video/audio allocations before executing a cartridge and distinguishes the
+failure in the ownership-transfer API; the original copying ABI stays boolean.
+Original AGPL adapter cleanup attempts every owned resource even after an
+exception and extends late-initialization cancellation to NDS/Retro/jgenesis.
+Corresponding sources, build instructions and allocation/teardown regressions
+are included. The pinned upstream archive and license conditions are unchanged.

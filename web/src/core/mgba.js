@@ -23,6 +23,13 @@ function coreInstance(module,index){
     return methods.get(key);
   },set(target,key,value){methods.delete(key);return Reflect.set(target,key,value);}});
 }
+// A failed native/renderer/audio resource must not prevent the remaining
+// resources from being released. Report the original failure after cleanup.
+export function cleanupCoreResources(actions){
+  let failed=false,failure;
+  for(const action of actions)try{action();}catch(error){if(!failed){failed=true;failure=error;}}
+  if(failed)throw failure;
+}
 export class MGBACore {
   constructor(canvas){this.canvas=canvas;this.keys=0;this.speed=1;this.volume=.7;this.paused=true;this.sources=new Set();this.frames=0;this.presented=0;this.cheatCount=0;this.preservePitch=true;}
   async load(bytes,{sharedCore}={}){
@@ -116,8 +123,11 @@ export class MGBACore {
     try{this.ac?.suspend?.()?.catch?.(()=>{});}catch{}this.notifyAudioState();
   }
   disposeAudio(){
-    this.audioResume=null;this.observedAudio?.removeEventListener?.('statechange',this.audioStateListener);this.observedAudio=null;
-    this.stopAudio();const closing=closeAudioContext(this.ac);this.notifyAudioState();return closing;
+    const observed=this.observedAudio;this.audioResume=null;this.observedAudio=null;let closing;
+    cleanupCoreResources([
+      ()=>observed?.removeEventListener?.('statechange',this.audioStateListener),
+      ()=>this.stopAudio(),()=>{closing=closeAudioContext(this.ac);},()=>this.notifyAudioState()
+    ]);return closing;
   }
   audio(){
     const m=this.m,n=m._web_audio_read();if(!n)return;
@@ -156,7 +166,10 @@ export class MGBACore {
     this.rumble?.configure({enabled:options.gameRumble===true});
   }
   setKeys(mask){this.keys=mask;}
-  stopAudio(){for(const s of this.sources){s.onended=null;try{s.stop();}catch{}s.disconnect();}this.sources.clear();this.nextAudio=0;this.stretch?.reset();}
+  stopAudio(){
+    const sources=[...this.sources];this.sources.clear();this.nextAudio=0;
+    cleanupCoreResources([...sources.map(source=>()=>{source.onended=null;try{source.stop();}catch{}source.disconnect();}),()=>this.stretch?.reset()]);
+  }
   pause(value){this.paused=value;this.sensors?.pause(value);this.rumble?.pause(value);this.keys=0;this.clock=null;if(value){cancelAnimationFrame(this.raf);this.raf=null;this.suspendAudio();}else this.scheduleFrame();}
   setVolume(v){if(!v&&this.volume)this.stopAudio();this.volume=v;if(this.gain)this.gain.gain.value=v;}
   setPreservePitch(value){value=!!value;if(this.preservePitch===value)return;this.preservePitch=value;this.stopAudio();this.stretch=null;}
@@ -176,13 +189,16 @@ export class MGBACore {
   reset(){this.stopAudio();this.rumble?.stop();this.m._web_reset();this.saveEpoch=(this.saveEpoch||0)+1;this.m._web_overclock?.(this.overclock||1);this.applyClockOptions();this.clock=null;}
   close(){
     if(this.closed)return;
-    this.closed=true;this.sensors?.close();this.rumble?.close();this.pixelTransfer?.dispose();this.pixelTransfer=null;this.video?.dispose();cancelAnimationFrame(this.raf);this.disposeAudio();
-    try{this.m?._web_close();}finally{
+    this.closed=true;
+    try{cleanupCoreResources([
+      ()=>this.sensors?.close(),()=>this.rumble?.close(),()=>this.pixelTransfer?.dispose(),()=>this.video?.dispose(),
+      ()=>cancelAnimationFrame(this.raf),()=>this.disposeAudio(),()=>this.m?._web_close(),()=>this.gain?.disconnect?.()
+    ]);}finally{
       // A pending audio resume or UI callback can retain this adapter after
       // exit. Do not let that also retain a whole WASM heap. A linked peer
       // keeps its own module reference and its selected instance remains live.
-      this.m=null;this.nativeModule=null;this.tick=null;this.image=null;
-      this.sensors=null;this.rumble=null;this.stretch=null;this.gain?.disconnect?.();this.gain=null;
+      this.m=null;this.nativeModule=null;this.tick=null;this.image=null;this.raf=null;this.pixelTransfer=null;
+      this.sensors=null;this.rumble=null;this.stretch=null;this.gain=null;
     }
   }
 }

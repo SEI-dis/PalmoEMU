@@ -16,7 +16,9 @@ export class RetroCore extends MGBACore {
  constructor(container){const canvas=document.createElement('canvas');container.append(canvas);super(canvas);}
  async load(bytes,game){
   this.system=game.system;this.multiplayer=['nes','snes','md'].includes(game.system);const directory=coreFor(game).directory;
-  this.m=await loadCoreResource(async()=>{const create=await factory(directory);return create({locateFile:()=>new URL(`../../cores/${directory}/core.wasm`,import.meta.url).href});});
+  const module=await loadCoreResource(async()=>{const create=await factory(directory);return create({locateFile:()=>new URL(`../../cores/${directory}/core.wasm`,import.meta.url).href});});
+  if(this.closed)throw new DOMException('Core closed during loading','AbortError');
+  this.m=module;
   this.copyIn(bytes,(p,n)=>{if(!this.m._web_load(p,n))throw new Error(tr('このコアでROMを読み込めませんでした。'));});
   this.width=this.m._web_width();this.height=this.m._web_height();this.video?.dispose();this.video=new VideoOutput(this.canvas,this.width,this.height);this.image=new ImageData(this.width,this.height);this.fps=this.m._web_fps();this.startLoop();
  }

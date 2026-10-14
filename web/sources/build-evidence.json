@@ -42,7 +42,7 @@
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "0aa6e2708659e40f83bb430a39e1b6350ca39b2d05eb312a7559b89f4198ca35",
+        "sha256": "7edd217ed4d5ce7b59dd1fff49ea956f1ced74170ff9bdbdab77b985a4e9c093",
         "rebuildMatches": true
       }
     }
@@ -141,20 +141,20 @@
     "date": "2026-10-15",
     "sourceCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
     "sourceArchiveSha256": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16",
-    "method": "Two independent source archive extractions and bridge/build directories with Emscripten 4.0.15, CMake 3.31.6 and Ninja 1.11.1. JS/WASM hashes match. Native logging suppression and owned-ROM transfer with a pre-load compiled GBA save capacity query; original copying ABI retained. Source archive, emulated timing, battery/state layouts and compatibility IDs unchanged. Browser CPU automatic selection and module-reference cleanup are separate AGPL adapter changes.",
+    "method": "Two independent source archive extractions and bridge/build directories with Emscripten 4.0.15, CMake 3.31.6 and Ninja 1.11.1. JS/WASM hashes match. Native logging suppression and owned-ROM transfer with a pre-load compiled GBA save capacity query; original copying ABI retained. Source archive, emulated timing, battery/state layouts and compatibility IDs unchanged. Browser CPU automatic selection and module-reference cleanup are separate AGPL adapter changes. Subsequent self-audit adds mandatory startup allocation checks before CPU execution and a distinct owned-loader allocation-failure result; copying ABI remains boolean. The authored allocation-refusal test covers extended RAM failure and retry, not all native allocations.",
     "outputs": {
       "mgba.js": {
         "sha256": "fe8c6838117e05c709b74a34348d5816a840ea84f1ff0315ce852bd03836fccd",
         "rebuildMatches": true
       },
       "mgba.wasm": {
-        "sha256": "0aa6e2708659e40f83bb430a39e1b6350ca39b2d05eb312a7559b89f4198ca35",
+        "sha256": "7edd217ed4d5ce7b59dd1fff49ea956f1ced74170ff9bdbdab77b985a4e9c093",
         "rebuildMatches": true
       }
     },
     "bridgeFiles": {
-      "mgba-web-port/bridge.c": "8d8ec85664d28978cbedd1c9ea5c3e1b9072ddaf13259b1b909dfd5dea23f07c",
-      "mgba-web-port/BUILD.md": "20025bd782fc0f9813b4efeca34e28f39988de02b1774a1cad6b702952ea46a9",
+      "mgba-web-port/bridge.c": "4dc746a4b896d9da0712fc8547bc991e88dc0833c2e8001ea8b77531bbcc7301",
+      "mgba-web-port/BUILD.md": "016e94b2c7ee3ec40308655e3d0a4410181fdec35d60640a2e101750836bde48",
       "mgba-web-port/CMakeLists.txt": "43b4e296249f68ed7f4b69176afd59ae1693a109f0c66db91ae5ecd9d0f3fee2",
       "mgba-web-port/gb-link.h": "11794818a31e6a9328aa880f2d306b1038c46f9b83f67abb40793f68c87b258f",
       "mgba-web-port/link.h": "afd65148934ff4ed99bb6a45df8400f967d0af02fcc1987de38fd8c86e4ee629",

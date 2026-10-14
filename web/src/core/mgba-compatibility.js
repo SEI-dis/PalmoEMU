@@ -20,7 +20,9 @@ export async function loadCompatibleMGBA(m,bytes){
       const apply=!!correction&&Number.isFinite(limit)&&limit>=correction.requiredSaveBytes;
       if(apply)m.HEAPU8[p+correction.offset]=1;
       transferred=true;
-      if(!m._web_load_owned(p,bytes.length))throw new Error(tr('このROMを読み込めませんでした。形式を確認してください。'));
+      const result=m._web_load_owned(p,bytes.length);
+      if(result===-1)throw new Error(tr('メモリを確保できませんでした。'));
+      if(result!==1)throw new Error(tr('このROMを読み込めませんでした。形式を確認してください。'));
       return apply?'expanded-save-detection':null;
     }
     const load=()=>{if(!m._web_load(p,bytes.length))throw new Error(tr('このROMを読み込めませんでした。形式を確認してください。'));};

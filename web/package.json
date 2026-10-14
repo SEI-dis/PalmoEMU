@@ -6,6 +6,8 @@
     "dev": "node scripts/develop.mjs",
     "test": "node tests/core.cjs",
     "test:mgba-memory": "node tests/mgba-memory.cjs",
+    "test:mgba-allocation": "node tests/mgba-allocation.cjs",
+    "test:core-teardown": "node tests/core-teardown.cjs",
     "test:core-upgrade": "node tests/core-upgrade.cjs",
     "test:browser": "node tests/browser.cjs",
     "test:features": "node tests/features.cjs",

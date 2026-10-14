@@ -3,6 +3,7 @@
 #include <mgba/core/core.h>
 #include <mgba/core/cheats.h>
 #include <mgba/core/serialize.h>
+#include <mgba/internal/gba/gba.h>
 #include <mgba/internal/gba/savedata.h>
 #include <mgba-util/audio-buffer.h>
 #include <mgba-util/image.h>
@@ -69,17 +70,32 @@ EMSCRIPTEN_KEEPALIVE void web_close(void) {
 
 /* Consumes a malloc-owned input on success AND failure. VFileFromMemory does
  * not own its backing allocation; web_close releases it after core deinit.
- * Browser callers can transfer their input instead of retaining two ROMs. */
+ * Browser callers can transfer their input instead of retaining two ROMs.
+ * Returns 1 on success, 0 for rejected data, -1 for missing startup memory. */
 EMSCRIPTEN_KEEPALIVE int web_load_owned(void* data, size_t size) {
   if (!data || !size || size > 64 * 1024 * 1024) { free(data); return 0; }
   web_close();
   web_log_init();
   rom = data;
   struct VFile* vf = VFileFromMemory(rom, size);
-  if (!vf) { web_close(); return 0; }
+  if (!vf) { web_close(); return -1; }
   core = mCoreFindVF(vf);
   if (!core) { vf->close(vf); web_close(); return 0; }
-  if (!core->init(core)) { free(core); core = NULL; vf->close(vf); web_close(); return 0; }
+  if (!core->init(core)) { free(core); core = NULL; vf->close(vf); web_close(); return -1; }
+  /* The pinned core does not report failed RAM/video/audio allocations from
+   * init. In particular, its 16 MiB extension must exist before any CPU access.
+   * Do not reset/run a partially initialized machine. Config is not initialized
+   * yet, so deinit the machine directly before the ordinary buffer cleanup. */
+  struct mAudioBuffer* sound = core->getAudioBuffer(core);
+  bool memoryReady = sound && sound->data.data;
+  if (core->platform(core) == mPLATFORM_GBA) {
+    struct GBA* gba = core->board;
+    memoryReady = memoryReady && gba->memory.xram && gba->memory.wram && gba->video.vram;
+  }
+  if (!memoryReady) {
+    core->deinit(core); core = NULL;
+    vf->close(vf); web_close(); return -1;
+  }
   mCoreInitConfig(core, "web");
   /* Preserve hardware CPU timing and browser workload; fast-forward is separate. */
   mCoreConfigSetIntValue(&core->config, "overclock", 1);
@@ -106,7 +122,7 @@ EMSCRIPTEN_KEEPALIVE int web_load(const void* data, size_t size) {
   void* copy = malloc(size);
   if (!copy) return 0;
   memcpy(copy, data, size);
-  return web_load_owned(copy, size);
+  return web_load_owned(copy, size) == 1;
 }
 EMSCRIPTEN_KEEPALIVE unsigned web_width(void) { return width; }
 EMSCRIPTEN_KEEPALIVE unsigned web_height(void) { return height; }
