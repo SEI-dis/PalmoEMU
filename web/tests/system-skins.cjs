@@ -32,8 +32,9 @@ const mdBits={...retroBits,a:1,c:8,x:10,y:9,z:11};
   },buttons);assert.equal(variants,180);
   // Observe the native-facing input values, not merely the rendered labels.
   await p.evaluate(async()=>{
-   for(const [file,name]of [['mgba','MGBACore'],['retro','RetroCore']]){
-    const Type=(await import(`./src/${file}.js`))[name],set=Type.prototype.setKeys;
+   const [{MGBACore},{RetroCore}]=await Promise.all([import('./src/core/mgba.js'),import('./src/core/retro.js')]);
+   for(const Type of [MGBACore,RetroCore]){
+    const set=Type.prototype.setKeys;
     Type.prototype.setKeys=function(mask){set.call(this,mask);(window.skinInputs??=[]).push(this.keys);};
    }
   });
