@@ -123,8 +123,8 @@ async function verifyProviderAndWatcher(parent){
   for(const [value,pattern]of [['wrong-ids',/IDs/],['incomplete',/Incomplete/],['redirect',/fetch failed/]]){mode=value;await assert.rejects(()=>provider.translate('en',['保存']),pattern);}
   await provider.close();mode='valid';
   // Start the real dev command against a disposable, minimal application.
-  fs.mkdirSync(path.join(root,'scripts'),{recursive:true});fs.mkdirSync(path.join(root,'src/i18n/locales'),{recursive:true});
-  for(const file of ['develop.mjs','build-offline.cjs','build-release-notes.cjs','sync-i18n.mjs','serve.cjs'])fs.copyFileSync(path.join(source,'scripts',file),path.join(root,'scripts',file));
+  fs.mkdirSync(path.join(root,'scripts'),{recursive:true});fs.mkdirSync(path.join(root,'src/i18n/locales'),{recursive:true});fs.mkdirSync(path.join(root,'src/runtime'),{recursive:true});
+  for(const file of ['develop.mjs','build-offline.cjs','build-diagnostic-sources.cjs','build-release-notes.cjs','sync-i18n.mjs','serve.cjs'])fs.copyFileSync(path.join(source,'scripts',file),path.join(root,'scripts',file));
   fs.cpSync(path.join(source,'scripts/i18n'),path.join(root,'scripts/i18n'),{recursive:true,filter:file=>!file.endsWith('.sync.lock')});
   for(const file of ['format.js','languages.js'])fs.copyFileSync(path.join(source,'src/i18n',file),path.join(root,'src/i18n',file));
   const put=(file,value)=>fs.writeFileSync(path.join(root,file),typeof value==='string'?value:JSON.stringify(value));
@@ -134,7 +134,7 @@ async function verifyProviderAndWatcher(parent){
   put('release-notes.json',{releases:[{version:'1.0.0',date:'2026-10-13',changes:['更新'],changesEn:['Reviewed update'],translations:Object.fromEntries(targets.filter(x=>x.code!=='en').map(x=>[x.code,['Reviewed update']]))}]});
   put('scripts/i18n/state.json',{schema:1,messages:{'保存':hash('保存')},releases:{'1.0.0':hash(JSON.stringify(['更新']))}});
   put('index.html','<meta name="app-version" content="1.0.0"><meta name="app-build" content="0000000000000000"><!-- latest-update-notes:start --><!-- latest-update-notes:end -->');
-  put('licenses.html','<!-- latest-release:start --><!-- latest-release:end -->');put('notices.html','<!-- release-history:start --><!-- release-history:end -->');put('sw.js','');
+  put('licenses.html','<!-- latest-release:start --><!-- latest-release:end -->');put('notices.html','<!-- release-history:start --><!-- release-history:end -->');put('sw.js','// App build: 0000000000000000\n');
   const count=requests.length;child=spawn(process.execPath,['scripts/develop.mjs'],{cwd:root,env:{...process.env,PORT:'0'},windowsHide:true,stdio:['ignore','pipe','pipe']});
   child.stdout.on('data',data=>output+=data);child.stderr.on('data',data=>output+=data);
   await wait(()=>output.includes('PalmoEMU development:'),'Initial development build');assert.equal(requests.length,count,'Up-to-date development startup does not contact a model');
