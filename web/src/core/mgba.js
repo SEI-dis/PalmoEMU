@@ -8,6 +8,8 @@ import {loadCompatibleMGBA} from './mgba-compatibility.js';
 import {choosePixelTransfer,createPixelTransfer} from '../rendering/pixel-transfer.js';
 import {GameRumble} from '../input/game-rumble.js';
 import {performanceDiagnostics} from '../runtime/performance.js';
+import {resumeAudioContext,closeAudioContext} from './audio-activation.js';
+import {loadCoreResource} from './load-resource.js';
 // Bind every native operation to its own mCore. Heap views remain dynamic when
 // WASM memory grows, and the original exports remain usable by older callers.
 function coreInstance(module,index){
@@ -25,7 +27,7 @@ export class MGBACore {
   async load(bytes,{sharedCore}={}){
     this.stateIncludesSave=true; // The bridge restores SAVESTATE_SAVEDATA, including the active flash bank.
     if(sharedCore&&!sharedCore.supportsGBLink)throw Error(tr('通信機能を開始できません。'));
-    this.nativeModule=sharedCore?.nativeModule||await window.createMGBA({locateFile:p=>new URL('../../cores/mgba/'+p,import.meta.url).href});
+    this.nativeModule=sharedCore?.nativeModule||await loadCoreResource(()=>window.createMGBA({locateFile:p=>new URL('../../cores/mgba/'+p,import.meta.url).href}));
     this.instance=sharedCore?1:0;this.m=coreInstance(this.nativeModule,this.instance);
     this.pixelTransferChoice=sharedCore?.pixelTransferChoice||choosePixelTransfer(this.m);
     this.compatibility=await loadCompatibleMGBA(this.m,bytes);
@@ -60,25 +62,57 @@ export class MGBACore {
     if(!this.pixelTransfer.copy(this.image.data))return;
     output.draw(this.image);this.presented++;
   }
-  async unlockAudio(){
+  get audioState(){
+    if(this.closed)return 'closed';
+    if(this.audioPaused)return 'paused';
+    if(this.ac?.state==='running')return 'running';
+    if(this.audioResume)return 'pending';
+    return this.ac?'blocked':'unavailable';
+  }
+  notifyAudioState(){try{this.onAudioState?.(this.audioState);}catch{}}
+  observeAudioContext(){
+    if(this.observedAudio===this.ac)return;
+    this.observedAudio?.removeEventListener?.('statechange',this.audioStateListener);
+    this.observedAudio=this.ac;this.audioStateListener=()=>this.notifyAudioState();
+    this.ac?.addEventListener?.('statechange',this.audioStateListener);
+  }
+  trackAudioResume(promise){
+    const task={promise};this.audioResume=task;
+    promise.then(()=>{if(this.audioResume===task){this.audioResume=null;this.notifyAudioState();}});
+    return task;
+  }
+  adoptAudio(prepared){
+    if(this.closed||this.ac)return false;
+    const audio=prepared?.take();if(!audio?.context)return false;
+    this.ac=audio.context;this.audioPaused=false;this.observeAudioContext();this.trackAudioResume(audio.ready);this.notifyAudioState();return true;
+  }
+  async unlockAudio({retry=false}={}){
     if(this.closed)return false;
-    const AudioContext=window.AudioContext||window.webkitAudioContext;if(!AudioContext)return false;
+    const AudioContext=window.AudioContext||window.webkitAudioContext;if(!this.ac&&!AudioContext){this.notifyAudioState();return false;}
     const wasPaused=this.audioPaused;this.audioPaused=false;
     try{
-      this.ac??=new AudioContext();const ac=this.ac;
+      this.ac??=new AudioContext();const ac=this.ac;this.observeAudioContext();
       if(!this.gain){this.gain=ac.createGain();this.gain.connect(ac.destination);this.gain.gain.value=this.volume;}
       // Enqueue resume even if a preceding suspend has not changed state yet.
       // Call it synchronously so a real click/tap can supply user activation.
-      if(wasPaused||ac.state!=='running')await ac.resume();
+      if(wasPaused||ac.state!=='running'){
+        // An explicit enable-sound tap may retry a resume that the browser left
+        // pending. Automatic calls share it rather than flooding the control queue.
+        const task=(!retry&&this.audioResume)||this.trackAudioResume(resumeAudioContext(ac));this.notifyAudioState();await task.promise;
+      }
       if(this.audioPaused&&!this.closed)await ac.suspend();
-      return !this.audioPaused&&ac.state==='running';
+      this.notifyAudioState();return !this.closed&&!this.audioPaused&&ac.state==='running';
     }catch{return false;} // Autoplay/OS refusal must not reject an input handler.
   }
   suspendAudio(){
-    this.audioPaused=true;this.stopAudio();
+    this.audioPaused=true;this.audioResume=null;this.stopAudio();
     // A local-link child remains emulation-paused while its audio is selected;
     // therefore audio intent is separate from the core's paused flag.
-    try{this.ac?.suspend?.()?.catch?.(()=>{});}catch{}
+    try{this.ac?.suspend?.()?.catch?.(()=>{});}catch{}this.notifyAudioState();
+  }
+  disposeAudio(){
+    this.audioResume=null;this.observedAudio?.removeEventListener?.('statechange',this.audioStateListener);this.observedAudio=null;
+    this.stopAudio();const closing=closeAudioContext(this.ac);this.notifyAudioState();return closing;
   }
   audio(){
     const m=this.m,n=m._web_audio_read();if(!n)return;
@@ -134,5 +168,5 @@ export class MGBACore {
   }
   screenshot(){return this.canvas.toDataURL('image/png');}
   reset(){this.stopAudio();this.rumble?.stop();this.m._web_reset();this.saveEpoch=(this.saveEpoch||0)+1;this.m._web_overclock?.(this.overclock||1);this.applyClockOptions();this.clock=null;}
-  close(){this.closed=true;this.sensors?.close();this.rumble?.close();this.pixelTransfer?.dispose();this.pixelTransfer=null;this.video?.dispose();cancelAnimationFrame(this.raf);this.stopAudio();try{this.ac?.close()?.catch?.(()=>{});}catch{}this.m?._web_close();}
+  close(){this.closed=true;this.sensors?.close();this.rumble?.close();this.pixelTransfer?.dispose();this.pixelTransfer=null;this.video?.dispose();cancelAnimationFrame(this.raf);this.disposeAudio();this.m?._web_close();}
 }

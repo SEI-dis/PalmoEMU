@@ -1430,5 +1430,10 @@ export default {
  "ゲーム内の「レポート」などは自分で行ってください。自動保存では、mGBAは書き込みが落ち着いたあと、ほかのコアは約2分ごとに端末へ記録します。変更前のセーブも最大5回分残します。": "You still need to use the game’s own save command. With automatic saving, mGBA writes the data to your device once writing has settled; other cores do so about every 2 minutes. Up to 5 previous saves are also kept.",
  "「まとめてバックアップ」は、選んだゲームのセーブ・ステート・保存履歴、設定・操作配置、ROM更新の関連と退避原本をJSONファイルへ書き出します。トレーナーカードのニックネーム・画像・参加日、ゲーム名を含むプレイ記録も保存できます。ROM照合用のSHA-256・機種・容量・コア情報を含みます。ROM・BIOS、カバー・スキン画像、ステート画像、診断記録・キャッシュは含めません。自動送信やクラウドサービスへの接続はしません。": "“Full backup” exports the selected games’ in-game saves, save states and save history, settings and control layouts, ROM update links and preserved original data to a JSON file. It can also include your Trainer Card nickname, image and join date, plus play records containing game names. SHA-256 hashes, system, size and core information are included for matching ROMs. ROMs, BIOS files, cover and skin images, save-state images, diagnostic records and caches are excluded. Nothing is sent automatically, and no cloud service is contacted.",
  "ファイルは暗号化しません。プレイヤー名・プロフィール画像などを含むため、個人用として保管してください。大きいバックアップは分割でき、1ファイルの保存データは128 MiB、JSON全体は192 MiBまでです。復元するゲームと設定を確認し、プロフィールの復元も別途選べます。置き換え前の内容を端末内に退避します。同じ分割セットの復元中は退避を維持し、別の復元や途中の編集があれば新たに退避します。ROM・画像の利用権を付与する機能ではありません。": "Files are not encrypted. Keep them private because they contain player names, profile images and similar data. Large backups can be split: each file supports up to 128 MiB of saved data and a total JSON size of 192 MiB. Review the games and settings to restore; restoring the profile is a separate choice. The data being replaced is preserved on this device. That copy is retained while restoring the same split set; a different restoration or edits between parts create a new copy. This feature does not grant rights to use ROMs or images.",
- "更新日：2026年10月14日": "Last updated: October 14, 2026"
+ "更新日：2026年10月14日": "Last updated: October 14, 2026",
+ "音を有効にする": "Enable sound",
+ "ゲーム ⟪0⟫": "Game ⟪0⟫",
+ "通信状態を確認して、もう一度お試しください。改善しない場合はアプリを更新してください。": "Check your connection status and try again. If the issue persists, please update the app.",
+ "セーブデータは変更していません。": "Save data has not been changed.",
+ "再読み込み": "Reload"
 };

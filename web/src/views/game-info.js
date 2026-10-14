@@ -19,7 +19,7 @@ export function createGameInfo(api){
  const saveRescue=createSaveRescueView({...api,showGame:show});
  const $=s=>document.querySelector(s);
  const nativeSheet=(title,html)=>{api.sheet(title,html);$('#sheet').classList.add('native-menu');};
- const bind=handlers=>$('#sheet-body').querySelectorAll('[data-action]').forEach(b=>b.onclick=guardUpdateTask(()=>Promise.resolve().then(()=>handlers[b.dataset.action]?.()).catch(api.error)));
+ const bind=handlers=>$('#sheet-body').querySelectorAll('[data-action]').forEach(b=>b.onclick=guardUpdateTask(()=>{try{return Promise.resolve(handlers[b.dataset.action]?.()).catch(api.error);}catch(error){api.error(error);}}));
  async function update(game,changes){const fresh=Object.hasOwn(changes,'favorite')?(await db.setGamesLibraryMetadata([game.id],changes))[0]:await db.setGameDetails(game.id,changes);for(const key of Object.keys(game))delete game[key];Object.assign(game,fresh);await api.refresh();}
  function info(game){
   nativeSheet(tr('ゲーム情報'),tr`<div class="settings-group">${nativeAction(tr('ゲーム機'),'', 'game',systems[game.system].name)}${nativeAction(tr('コア'),'','core',coreFor(game).name)}${nativeAction(tr('ROM容量'),'','folder',bytesLabel(game.size))}</div><p class="sheet-note">ROM・セーブはこのブラウザ内に保存されます。速度・音量・映像・操作はゲームごとに保存します。未変更の項目には共通設定を使います。</p><p class="sheet-note"><a href="licenses.html">クレジット・ライセンス・対応ソース</a></p><button class="secondary wide-button" data-action="back">ゲーム詳細に戻る</button>`);

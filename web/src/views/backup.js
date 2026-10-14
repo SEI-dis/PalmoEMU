@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr,locale} from '../i18n/index.js';
-import {inspectBackup,restoreBackup,prepareBackupExport,createBackupPart} from '../storage/backup.js';
+import {inspectBackup,restoreBackup,prepareBackupExport,createBackupPart,backupErrorMessage} from '../storage/backup.js';
 import {readBackupData} from '../storage/storage.js';
 import {escapeHTML as esc,bytesLabel} from '../shared.js';
 import {row} from '../components/rows.js';
@@ -19,11 +19,11 @@ export function createBackupView({sheet,download,toast,settings,onRestored=()=>l
   for(const part of prepared.parts){const button=document.createElement('button');button.className='secondary wide-button';button.textContent=tr`ファイル ${part.index} / ${prepared.parts.length} を書き出す`;button.dataset.backupPart=String(part.index);button.onclick=()=>run(tr('バックアップを作成しています…'),async()=>{send(await createBackupPart(prepared,part.index),kind);button.dataset.exported='true';button.textContent=tr`ファイル ${part.index} / ${prepared.parts.length}：書き出し済み`;const count=container.querySelectorAll('[data-exported]').length;$('#backup-status').textContent=tr`${count} / ${prepared.parts.length} 個を書き出しました。`;});container.append(button);}
  }
  async function run(message,task){
-  if(busy)return;busy=true;const status=$('#backup-status');status.textContent=message;
+  if(busy)return;busy=true;const status=$('#backup-status');status.textContent=message;status.style.overflowWrap='anywhere';
   const buttons=[...$('#sheet-body').querySelectorAll('button,input')].map(button=>[button,button.disabled]);buttons.forEach(([button])=>button.disabled=true);
   const close=$('#close-sheet'),wasDisabled=close?.disabled;if(close)close.disabled=true;
   const dialog=$('#sheet'),cancel=e=>e.preventDefault();dialog?.addEventListener('cancel',cancel);
-  try{await task();}catch(e){status.textContent=e.name==='QuotaExceededError'?tr('保存容量が足りないため、操作を完了できませんでした。大切なセーブを書き出してから保存容量を確認してください。'):e instanceof DOMException?tr('ブラウザの保存機能でエラーが起きました。ページを開き直してからやり直してください。'):e.message||tr('バックアップ操作に失敗しました。');status.setAttribute('role','alert');}
+  try{await task();}catch(e){status.textContent=backupErrorMessage(e,e.name==='QuotaExceededError'?tr('保存容量が足りないため、操作を完了できませんでした。大切なセーブを書き出してから保存容量を確認してください。'):e instanceof DOMException?tr('ブラウザの保存機能でエラーが起きました。ページを開き直してからやり直してください。'):e.message||tr('バックアップ操作に失敗しました。'));status.setAttribute('role','alert');}
   finally{busy=false;buttons.forEach(([button,disabled])=>button.disabled=disabled);if(close)close.disabled=wasDisabled;dialog?.removeEventListener('cancel',cancel);}
  }
  function showBackup(){

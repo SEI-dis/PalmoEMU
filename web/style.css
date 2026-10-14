@@ -225,3 +225,6 @@ dialog.control-edit{width:min(1000px,calc(100% - 16px - env(safe-area-inset-left
 .skin-mini-tool[data-control=player-camera]{z-index:2}
 
 .player-camera.camera-moving{background:var(--accent);outline:3px solid #fff;outline-offset:3px;box-shadow:0 0 0 7px #0008;cursor:grabbing}.player-camera.camera-moving:active{transform:none}
+
+.enable-audio{position:absolute;z-index:20;top:calc(env(safe-area-inset-top) + 60px);left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);min-height:44px;padding:10px 16px;border:1px solid #fff4;border-radius:24px;background:#202029ed;color:#fff;font-size:14px;box-shadow:0 3px 12px #0004}
+.enable-audio:active{transform:translateX(-50%) scale(.96)}

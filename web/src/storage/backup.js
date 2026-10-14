@@ -19,6 +19,29 @@ const dataStores=['saves','states','backups','archives','recoveries','rom-update
 const validId=id=>typeof id==='string'&&/^[a-f0-9]{64}$/.test(id),validHash=validId;
 const plain=x=>!!x&&typeof x==='object'&&!Array.isArray(x)&&Object.getPrototypeOf(x)===Object.prototype;
 const fail=message=>{throw Error(message||tr('バックアップの形式が正しくありません。'));};
+// Private UI context only: never add ROM names/identities to Error.message,
+// stack, cause or enumerable fields that might reach diagnostic records.
+const failureGames=new WeakMap();
+const recordGame=record=>typeof record?.key==='string'?record.key.split(/[@:]/,1)[0]:null;
+function gameFailure(error,id){
+ if(error&&typeof error==='object'&&validId(id)&&!failureGames.has(error))failureGames.set(error,{id});
+ return error;
+}
+function checkGame(id,check){try{return check();}catch(error){throw gameFailure(error,id);}}
+const backupTask=task=>guardUpdateTask(async(...args)=>{
+ try{return await task(...args);}catch(error){
+  const target=error&&typeof error==='object'&&failureGames.get(error);
+  if(target){try{const game=await db.get('library',target.id);target.name=typeof game?.name==='string'?game.name.replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,120):'';}catch{/* Keep the identifier when local metadata cannot be read. */}}
+  throw error;
+ }
+});
+export function backupErrorMessage(error,message=error?.message||tr('バックアップ操作に失敗しました。')){
+ const target=error&&typeof error==='object'&&failureGames.get(error);
+ if(!target)return message;
+ // Full identity disambiguates same-named games, including matching prefixes.
+ const label=target.name?tr`「${target.name}」（${target.id}）`:tr`ゲーム ${target.id}`;
+ return tr`${label}：${message}`;
+}
 const keys=(value,allowed)=>{if(!plain(value)||Object.keys(value).some(key=>!allowed.includes(key)))fail();};
 function canonical(value){let nodes=0;function sort(x,depth=0){if(depth>12||++nodes>65536)fail(tr('設定データが複雑すぎます。'));return Array.isArray(x)?x.map(v=>sort(v,depth+1)):plain(x)?Object.fromEntries(Object.keys(x).sort().map(k=>[k,sort(x[k],depth+1)])):x;}return JSON.stringify(sort(value));}
 const strict=(value,clean)=>{if(canonical(value)!==canonical(clean))fail(tr('未対応または不正な設定が含まれています。'));return clean;};
@@ -48,7 +71,8 @@ function cheats(value){
  if(!Array.isArray(value)||value.length>100)fail(tr('チート設定が正しくありません。'));
  return value.map(item=>{keys(item,['name','code','type','enabled']);if(typeof item.name!=='string'||item.name.length>120||typeof item.code!=='string'||item.code.length>16384||!Number.isInteger(item.type)||item.type<0||item.type>4||typeof item.enabled!=='boolean')fail(tr('チート設定が正しくありません。'));return {...item};});
 }
-function cleanGame(game,importing=false){
+function cleanGame(game,importing=false){return checkGame(game?.id,()=>validateGame(game,importing));}
+function validateGame(game,importing=false){
  if(importing)keys(game,gameFields);
  if(!validId(game.id)||!Object.hasOwn(coreRegistry,game.system)||!Number.isSafeInteger(game.size)||game.size<1)fail(tr('ゲームの識別情報が正しくありません。'));
  const result={id:game.id,system:game.system,size:game.size};
@@ -75,11 +99,11 @@ function cleanProfile(value){
 }
 function cleanPlayRecords(records=[]){
  if(!Array.isArray(records)||records.length>backupLimits.records)fail(tr('プレイ記録の件数上限を超えています。'));
- const seen=new Set();return records.map(record=>{
+ const seen=new Set();return records.map(record=>checkGame(record?.id,()=>{
   keys(record,['id','system','name','added','lastPlayed','updatedAt','playDuration','previousIds']);
   if(!validId(record.id)||seen.has(record.id)||!Object.hasOwn(coreRegistry,record.system)||typeof record.name!=='string'||record.name.length>120||['added','lastPlayed','updatedAt','playDuration'].some(key=>!validTime(record[key]))||!Array.isArray(record.previousIds)||record.previousIds.length>backupLimits.games||record.previousIds.some(id=>!validId(id)||id===record.id)||new Set(record.previousIds).size!==record.previousIds.length)fail(tr('プレイ記録が正しくありません。'));
   seen.add(record.id);return {...record,previousIds:[...record.previousIds]};
- });
+ }));
 }
 function selectedPlayRecords(data,ids,all=false){
  const records=new Map((data.playRecords||[]).map(record=>[record.id,record]));
@@ -96,12 +120,12 @@ function recordCore(record,games){
  if(record.store==='rom-updates'&&(!game.romUpdate||game.romUpdate.coreKey!==core.key||record.key!==game.id+'@'+core.key))fail(tr('ROMの更新記録が正しくありません。'));return core;
 }
 function rawBytes(value){if(value instanceof Uint8Array)return value;if(value instanceof ArrayBuffer)return new Uint8Array(value);fail(tr('保存データを読めませんでした。'));}
-function cleanRecord(record){
+function cleanRecord(record){return checkGame(recordGame(record),()=>{
  const item=value=>{
   const result={bytes:rawBytes(value.bytes),hash:value.hash||null,at:value.at||0,coreId:value.coreId||'mgba-rom64-link-v1'};
   if(record.store==='states'||record.store==='recoveries'){result.save=value.save?rawBytes(value.save):null;result.saveHash=value.saveHash||null;}return result;
  };return {store:record.store,key:record.key,value:Array.isArray(record.value)?record.value.map(item):item(record.value)};
-}
+});}
 function base64(bytes){let text='';for(let i=0;i<bytes.length;i+=32768)text+=String.fromCharCode(...bytes.subarray(i,i+32768));return btoa(text);}
 function unbase64(text,budget){
  if(typeof text!=='string'||text.length%4||text.length>Math.ceil(backupLimits.bytes/3)*4||!/^[A-Za-z0-9+/]*={0,2}$/.test(text))fail(tr('保存データの符号化が正しくありません。'));
@@ -113,6 +137,7 @@ async function encodeData(data,settings,{part,latestOnly=false}={}){
  const games=data.games.map(g=>cleanGame(g)),byId=new Map(games.map(g=>[g.id,g])),records=[];let total=0;
  for(const entry of data.records){
   if(!byId.has(String(entry.key).split(/[@:]/,1)[0]))continue;
+  try{
   const record=cleanRecord(entry),core=recordCore(record,byId),items=Array.isArray(record.value)?record.value:[record.value],output=[];
   for(const item of items){
    total+=item.bytes.length+(item.save?.length||0);if(total>backupLimits.bytes)fail(tr('バックアップ内のデータは合計128 MiBまでです。'));
@@ -121,6 +146,7 @@ async function encodeData(data,settings,{part,latestOnly=false}={}){
    const out={...item,bytes:base64(item.bytes),hash:digest};
    if(Object.hasOwn(item,'save')){out.save=item.save?.length?base64(item.save):null;out.saveHash=out.save?await hash(item.save):null;if(item.saveHash&&item.saveHash!==out.saveHash)fail(tr('ステート内のセーブが破損しています。'));}output.push(out);
   }records.push({...record,value:Array.isArray(record.value)?output:output[0]});
+  }catch(error){throw gameFailure(error,recordGame(entry));}
  }
  const archive={format,version,createdAt:Date.now(),settings:sanitizeBackupSettings(settings),games,records,profile:cleanProfile(data.profile),playRecords:cleanPlayRecords(data.playRecords||[]),...(part?{part}:{}),...(latestOnly?{latestOnly:true}:{})};
  const text=JSON.stringify(archive);checkFileSize(text);
@@ -130,20 +156,31 @@ async function create(settings,{gameIds,latestOnly=false}={}){
  const data=await db.readBackupData({gameIds,latestOnly});data.playRecords=selectedPlayRecords(data,new Set(data.games.map(game=>game.id)),gameIds===undefined);return encodeData(data,settings,{latestOnly});
 }
 const exports=new WeakMap(),signature=data=>JSON.stringify({games:[...data.games].sort((a,b)=>a.id.localeCompare(b.id)),records:[...data.records].sort((a,b)=>(a.store+':'+a.key).localeCompare(b.store+':'+b.key)),profile:data.profile||null,playRecords:[...(data.playRecords||[])].sort((a,b)=>a.id.localeCompare(b.id)),at:data.at||0});
+function changedGame(before,after){
+ for(const field of ['games','records','playRecords']){
+  const key=row=>field==='records'?row.store+':'+row.key:row.id,previous=new Map((before[field]||[]).map(row=>[key(row),row])),current=new Map((after[field]||[]).map(row=>[key(row),row]));
+  for(const token of new Set([...previous.keys(),...current.keys()]))if(JSON.stringify(previous.get(token))!==JSON.stringify(current.get(token))){const row=current.get(token)||previous.get(token);return field==='records'?recordGame(row):row.id;}
+ }
+ return null; // Shared settings/profile changes have no single game owner.
+}
 async function prepareExport(settings,{gameIds,latestOnly=false,partBytes=64*1048576,previous=false}={}){
  if(!Number.isSafeInteger(partBytes)||partBytes<1||partBytes>backupLimits.bytes||typeof latestOnly!=='boolean'||typeof previous!=='boolean'||gameIds!==undefined&&(!Array.isArray(gameIds)||gameIds.some(id=>!validId(id))||new Set(gameIds).size!==gameIds.length))fail(tr('書き出すゲームを選び直してください。'));
  const data=previous?await db.readPreviousBackup({summary:true}):await db.readBackupData({summary:true,gameIds,latestOnly});if(!data)return null;
  if(gameIds?.some(id=>!data.games.some(game=>game.id===id)))fail(tr('ゲーム一覧が変わりました。やり直してください。'));
  if(data.games.length>backupLimits.games||data.records.length>backupLimits.records)fail(tr('バックアップの件数上限を超えています。'));
+ const byId=new Map(data.games.map(game=>[game.id,cleanGame(game)]));
  const parts=[];let chunk={records:[],bytes:0};
  for(const record of [...data.records].sort((a,b)=>(a.store+':'+a.key).localeCompare(b.store+':'+b.key))){
+  try{const core=recordCore(record,byId);
   for(const [index,item] of (Array.isArray(record.value)?record.value:[record.value]).entries()){
+   if(!compatibleState(core.id,item))fail(tr('このバージョンで読めないコアの保存データが含まれています。'));
    if(!Number.isSafeInteger(item.byteLength)||item.byteLength<1||item.byteLength>backupLimits.bytes)fail(tr('1件の保存データがバックアップの上限を超えています。'));
    if(chunk.records.length&&chunk.bytes+item.byteLength>partBytes){parts.push(chunk);chunk={records:[],bytes:0};}
    // An indivisible state/save may exceed the preferred 64 MiB target, but
    // never the format's hard bound. Individual payloads are never truncated.
    let selection=chunk.records.find(row=>row.store===record.store&&row.key===record.key);if(!selection){selection={store:record.store,key:record.key,indices:[]};chunk.records.push(selection);}selection.indices.push(index);chunk.bytes+=item.byteLength;
   }
+  }catch(error){throw gameFailure(error,recordGame(record));}
  }
  if(chunk.records.length||!parts.length)parts.push(chunk);
  const id=await hash(crypto.getRandomValues(new Uint8Array(32))),plan=Object.freeze({id,games:data.games.length,records:data.records.length,bytes:parts.reduce((sum,part)=>sum+part.bytes,0),parts:Object.freeze(parts.map((part,index)=>Object.freeze({index:index+1,bytes:part.bytes,records:part.records.length}))),previous});
@@ -153,7 +190,7 @@ async function createPart(plan,index){
  const prepared=exports.get(plan),selected=prepared?.parts[index-1];if(!selected||!Number.isInteger(index))fail(tr('書き出し内容を選び直してください。'));
  return withLocks(async()=>{
   const {gameIds,latestOnly,previous}=prepared,current=previous?await db.readPreviousBackup({summary:true}):await db.readBackupData({summary:true,gameIds,latestOnly});
-  if(!current||signature(current)!==prepared.fingerprint)fail(tr('保存データが変わりました。書き出し内容を選び直してください。'));
+  if(!current||signature(current)!==prepared.fingerprint)checkGame(current?changedGame(prepared.data,current):null,()=>fail(tr('保存データが変わりました。書き出し内容を選び直してください。')));
   const data=previous?await db.readPreviousBackup({selectedRecords:selected.records}):await db.readBackupData({gameIds,latestOnly,selectedRecords:selected.records});
   data.playRecords=prepared.playRecords;
   return encodeData(data,prepared.settings,{latestOnly,part:plan.parts.length>1?{id:plan.id,index,count:plan.parts.length}:undefined});
@@ -168,9 +205,10 @@ async function inspect(input){
  if(archive.latestOnly!==undefined&&archive.latestOnly!==true)fail();
  if(part){keys(part,['id','index','count']);if(!validId(part.id)||!Number.isSafeInteger(part.index)||!Number.isSafeInteger(part.count)||part.index<1||part.index>part.count||part.count>backupLimits.records)fail(tr('分割バックアップの情報が正しくありません。'));}
  if(!Array.isArray(archive.games)||archive.games.length>backupLimits.games||!Array.isArray(archive.records)||archive.records.length>backupLimits.records)fail(tr('バックアップの件数上限を超えています。'));
- const settings=strict(archive.settings,sanitizeBackupSettings(archive.settings)),games=archive.games.map(g=>cleanGame(g,true)),byId=new Map(games.map(g=>[g.id,g]));if(byId.size!==games.length)fail(tr('ゲームが重複しています。'));
+ const settings=strict(archive.settings,sanitizeBackupSettings(archive.settings)),games=archive.games.map(g=>cleanGame(g,true)),byId=new Map(games.map(g=>[g.id,g]));if(byId.size!==games.length)checkGame(games.find((game,index)=>games.findIndex(other=>other.id===game.id)!==index)?.id,()=>fail(tr('ゲームが重複しています。')));
  const records=[],seen=new Set(),budget={total:0};
  for(const record of archive.records){
+  try{
   keys(record,['store','key','value']);const core=recordCore(record,byId),token=record.store+':'+record.key;if(seen.has(token))fail(tr('保存先が重複しています。'));seen.add(token);
   const history=['backups','archives','recoveries'].includes(record.store);if(history&&(!Array.isArray(record.value)||record.value.length>(record.store==='archives'?10:5))||!history&&Array.isArray(record.value))fail(tr('保存履歴の形式が正しくありません。'));
   const output=[];for(const item of history?record.value:[record.value]){
@@ -181,9 +219,10 @@ async function inspect(input){
   }
   if(history){output.forEach(assertHistoryRecord);if(retainHistory(output,record.store==='archives'?10:5).length!==output.length)fail(tr('保存履歴の形式が正しくありません。'));}
   records.push({...record,value:history?output:output[0]});
+  }catch(error){throw gameFailure(error,recordGame(record));}
  }
  const local=await db.readBackupData({summary:true}),localMap=new Map(local.games.map(g=>[g.id,g])),matched=[],missing=[];
- for(const game of games){const target=localMap.get(game.id);if(target&&(target.system!==game.system||target.size!==game.size))fail(tr('同じ識別子のゲーム情報が一致しません。'));if(target&&(target.romMissing===true||await db.has('roms',game.id)))matched.push(game);else missing.push(game);}
+ for(const game of games){const target=localMap.get(game.id);if(target&&(target.system!==game.system||target.size!==game.size))checkGame(game.id,()=>fail(tr('同じ識別子のゲーム情報が一致しません。')));if(target&&(target.romMissing===true||await db.has('roms',game.id)))matched.push(game);else missing.push(game);}
  const byGame=list=>{const result=new Map();for(const record of list){const id=record.key.split(/[@:]/,1)[0],row=result.get(id)||{at:0,count:0};for(const value of Array.isArray(record.value)?record.value:[record.value])row.at=Math.max(row.at,value.at||0);row.count++;result.set(id,row);}return result;};
  const current=byGame(local.records),incoming=byGame(records),rows=matched.map(game=>Object.freeze({id:game.id,name:localMap.get(game.id).name||game.system.toUpperCase(),system:game.system,currentAt:current.get(game.id)?.at||0,backupAt:incoming.get(game.id)?.at||0,records:incoming.get(game.id)?.count||0,romMissing:localMap.get(game.id).romMissing===true}));
  if(archive.latestOnly&&records.some(record=>record.store!=='saves'))fail();
@@ -224,4 +263,4 @@ async function applyPending(){
  await db.remove('coverCatalogs',pendingKey);return true;
 }
 async function previous(){const data=await db.readPreviousBackup();return data?encodeData(data,data.settings):null;}
-export const createBackup=guardUpdateTask(create),inspectBackup=guardUpdateTask(inspect),restoreBackup=guardUpdateTask(restore),applyPendingBackupSettings=guardUpdateTask(applyPending),previousBackup=guardUpdateTask(previous),prepareBackupExport=guardUpdateTask(prepareExport),createBackupPart=guardUpdateTask(createPart);
+export const createBackup=backupTask(create),inspectBackup=backupTask(inspect),restoreBackup=backupTask(restore),applyPendingBackupSettings=backupTask(applyPending),previousBackup=backupTask(previous),prepareBackupExport=backupTask(prepareExport),createBackupPart=backupTask(createPart);

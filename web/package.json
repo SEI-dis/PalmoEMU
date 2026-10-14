@@ -128,7 +128,12 @@
     "test:pause-exit": "node tests/pause-exit.cjs",
     "test:audio-lifecycle": "node tests/audio-lifecycle.cjs",
     "test:save-rescue": "node tests/save-rescue.cjs",
-    "test:update-safety": "node tests/update-safety.cjs"
+    "test:update-safety": "node tests/update-safety.cjs",
+    "test:core-load-failure": "node tests/core-load-failure.cjs",
+    "test:backup-errors": "node tests/backup-errors.cjs",
+    "test:audio-activation": "node tests/audio-activation.cjs",
+    "test:audio-startup": "node tests/audio-startup.cjs",
+    "test:ui-navigation": "node tests/ui-navigation.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

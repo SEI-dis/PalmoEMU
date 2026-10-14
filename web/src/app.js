@@ -29,6 +29,8 @@ import {createImportProgress} from './library/import-progress.js';
 import {systems,detectSystem,escapeHTML as esc,icon,bytesLabel} from './shared.js';
 import * as db from './storage/storage.js';
 import {createCore} from './core/core-factory.js';
+import {prepareGameAudio} from './core/audio-activation.js';
+import {showCoreLoadFailure} from './views/core-load-failure.js';
 import {coreFor,saveKey,cheatsFor,linkModes} from './core/core-registry.js';
 import {videoFilters} from './rendering/video.js';
 import {setupOffline,offlineStatus} from './updates/offline.js';
@@ -118,7 +120,7 @@ let saveImportTarget=null,applyingSave=false,playRunAt=0;
 let dpadViews=[];
 const linkPanel=floatingPanel($('#link-panel'),{handle:$('#link-panel-drag'),trigger:$('#player-link'),close:$('#link-panel-close'),onInteract:release});
 const linkControls=createLinkControls({
- state:{get engine(){return engine;},set engine(v){if(engine!==v)void captureControls.stop('core-change');engine=v;},get current(){return current;},get protection(){return protection;},
+ state:{get engine(){return engine;},set engine(v){if(engine!==v)void captureControls.stop('core-change');engine=v;for(const core of v?.cores||[v])if(core)core.onAudioState=updateAudioButton;updateAudioButton();},get current(){return current;},get protection(){return protection;},
  get link(){return link;},set link(v){link=v;},get starting(){return linkStarting;},set starting(v){linkStarting=v;if(v){void rewindSession.clear();release();}},
  get message(){return linkMessage;},set message(v){linkMessage=v;},get blocked(){return linkSaveBlocked;},set blocked(v){linkSaveBlocked=v;}},
  setPause,release,applySettings,updateLinkButton,panel:linkPanel,toast,error,exitGame,download
@@ -127,14 +129,20 @@ $('#player-link').innerHTML=icon('wifi');$('#link-panel-icon').innerHTML=icon('w
 $('#player-link').onclick=()=>linkPanel.visible?linkPanel.hide():showLink();
 function toast(text){const el=$('#toast');($('#sheet').open?$('#sheet'):document.body).append(el);el.textContent=text;el.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('show'),3500);}
 function error(e){diagnostics.record(e,'handled');console.error(e);toast(e?.name==='QuotaExceededError'&&!e.saveCommitted?tr('保存容量が不足しています。セーブをファイルに書き出してください。'):e.message||String(e));}
+function audioTarget(){return engine?.cores?.[engine.view]||engine;}
+function updateAudioButton(){
+ const target=audioTarget();$('#enable-audio').hidden=!engine||paused||launching||exiting||document.hidden||settings.muted||!settings.volume||!['pending','blocked'].includes(target?.audioState);
+}
+$('#enable-audio').onclick=()=>{const target=audioTarget();if(!paused&&!launching&&!exiting)void target?.unlockAudio({retry:true});};
 function syncRuntime(){
+ updateAudioButton();
  const active=!!engine&&!paused&&!exiting&&!launching&&!document.hidden;
  screenAwake.set({active,allow:settings.keepScreenAwake!==false});
  const fps=current?.system==='nds'&&coreFor(current).renderLimit&&settings.ndsPowerSave!==false?30:Math.min(60,(engine?.fps||60)*(settings.speed||1));
  performanceDiagnostics.configure({enable:settings.measurePerformance===true,running:active,engine,fps});
 }
-function applySettings(){syncRuntime();$$('#quick-actions button').forEach(b=>b.disabled=!!link);document.documentElement.dataset.theme=settings.theme==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):settings.theme;$('#screen').className=settings.filter==='smooth'?'smooth':settings.filter==='scanlines'?'scanlines':'';engine?.setVolume(settings.muted?0:settings.volume);$('#screen').dataset.scaling=settings.screenScaling||'fit';engine?.setSpeed(link?1:settings.speed);engine?.setPreservePitch?.(true);updateSpeedButton();updateLinkButton();engine?.setFilter?.(settings.filter);engine?.video?.setStrength(settings.filterStrength??.5);engine?.videos?.forEach(video=>video.setStrength(settings.filterStrength??.5));$$('[data-filter-strength]').forEach(el=>el.hidden=!['lcd','crt'].includes(settings.filter));engine?.setCartridgeOptions?.(settings);engine?.setNDSOptions?.(settings);engine?.setRenderLimit?.(settings.ndsPowerSave!==false);$('#fps-meter').hidden=!settings.showFps;rewindSession.configure(settings.rewindEnabled);guardUpdateTask(()=>preferences.save())().catch(()=>{});}
-function bindActions(root,handlers){root.querySelectorAll('[data-action]').forEach(el=>el.onclick=guardUpdateTask(()=>Promise.resolve().then(()=>{if(!rewindSession.busy)return handlers[el.dataset.action]?.();}).catch(error)));}
+function applySettings(){syncRuntime();$$('#quick-actions button').forEach(b=>b.disabled=!!link);document.documentElement.dataset.theme=settings.theme==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):settings.theme;$('#screen').className=settings.filter==='smooth'?'smooth':settings.filter==='scanlines'?'scanlines':'';engine?.setVolume(settings.muted?0:settings.volume);updateAudioButton();$('#screen').dataset.scaling=settings.screenScaling||'fit';engine?.setSpeed(link?1:settings.speed);engine?.setPreservePitch?.(true);updateSpeedButton();updateLinkButton();engine?.setFilter?.(settings.filter);engine?.video?.setStrength(settings.filterStrength??.5);engine?.videos?.forEach(video=>video.setStrength(settings.filterStrength??.5));$$('[data-filter-strength]').forEach(el=>el.hidden=!['lcd','crt'].includes(settings.filter));engine?.setCartridgeOptions?.(settings);engine?.setNDSOptions?.(settings);engine?.setRenderLimit?.(settings.ndsPowerSave!==false);$('#fps-meter').hidden=!settings.showFps;rewindSession.configure(settings.rewindEnabled);guardUpdateTask(()=>preferences.save())().catch(()=>{});}
+function bindActions(root,handlers){root.querySelectorAll('[data-action]').forEach(el=>el.onclick=guardUpdateTask(()=>{try{return Promise.resolve(!rewindSession.busy?handlers[el.dataset.action]?.():undefined).catch(error);}catch(e){error(e);}}));}
 function sheet(title,html,resume=false){
  captureControls.hide();
  const dialog=$('#sheet');if(gameMenuReturn&&dialog.open&&dialog.classList.contains('game-info'))gameMenuReturn.scrollTop=$('.native-options')?.scrollTop||0;
@@ -142,7 +150,7 @@ function sheet(title,html,resume=false){
  dialog.classList.remove('port-menu','states-view','save-data','native-menu','game-info');$('#sheet-cover').hidden=true;$('#sheet-cover').removeAttribute('src');$('#sheet-tools').replaceChildren();$('#close-sheet').removeAttribute('data-action');$('#close-sheet').setAttribute('aria-label',tr('閉じる'));
  linkPanel.hide();dialogResume=resume;$('#sheet-title').textContent=title;$('#sheet-body').innerHTML=html;dialog.showModal();dialog.scrollTop=0;
 }
-function menuTools(tools,handlers){$('#sheet-tools').innerHTML=tools.map(([id,label,ic])=>`<button class="sheet-tool ${id==='exit'?'danger':''}" data-shortcut="${id}" aria-label="${label}" title="${label}">${icon(ic)}</button>`).join('');$$('[data-shortcut]').forEach(b=>b.onclick=guardUpdateTask(()=>Promise.resolve().then(()=>{if(!rewindSession.busy)return handlers[b.dataset.shortcut]();}).catch(error)));}
+function menuTools(tools,handlers){$('#sheet-tools').innerHTML=tools.map(([id,label,ic])=>`<button class="sheet-tool ${id==='exit'?'danger':''}" data-shortcut="${id}" aria-label="${label}" title="${label}">${icon(ic)}</button>`).join('');$$('[data-shortcut]').forEach(b=>b.onclick=guardUpdateTask(()=>{try{return Promise.resolve(!rewindSession.busy?handlers[b.dataset.shortcut]():undefined).catch(error);}catch(e){error(e);}}));}
 function closeSheet({dismiss=false}={}){
  if(rewindSession.busy||$('#close-sheet').disabled)return;
  // A child sheet replaces the DOM, but its owning GameInfoView stays active.
@@ -269,8 +277,10 @@ const protection=new SaveProtection(status=>{
 });
 const stateDialogs=createStateDialogs({runtime,sheet,closeSheet,setPause,persist,launch,showGameMenu,toast,error,download});
 async function launch(game,{safeMode=false,skipRecovery=false}={}){
- if(engine||launching||applyingSave)return false;launchContinuation.clear();launching=true;
- try{if(await autoUpdates?.beforeLaunch?.()===false){launchContinuation.remember(game,{safeMode,skipRecovery});launching=false;setTimeout(()=>autoUpdates?.refresh(),0);return false;}}catch(error){launching=false;throw error;}
+ if(engine||launching||applyingSave)return false;
+ // Reserve audio within the Play gesture, before update, IndexedDB or core awaits.
+ const preparedAudio=prepareGameAudio();launchContinuation.clear();launching=true;
+ try{if(await autoUpdates?.beforeLaunch?.()===false){launchContinuation.remember(game,{safeMode,skipRecovery});launching=false;preparedAudio.close();setTimeout(()=>autoUpdates?.refresh(),0);return false;}}catch(error){preparedAudio.close();launching=false;throw error;}
  gameMenuReturn=null;current=game;paused=false;$('#resume-game').hidden=true;$('#save-status').hidden=true;$('#fps-meter').hidden=true;$('#loading').hidden=false;$('#loading').textContent=tr('コアを読み込んでいます…');$('#player').hidden=false;
  try{
   await preferences.flush();const stored=await db.get('library',game.id);if(!stored)throw new Error(tr('ゲームが見つかりません。'));current=game=stored;settingsGame=null;
@@ -280,13 +290,13 @@ async function launch(game,{safeMode=false,skipRecovery=false}={}){
   const lockedGame=await db.get('library',game.id);if(!lockedGame)throw new Error(tr('ゲームが見つかりません。'));game.playDuration=lockedGame.playDuration||0;
   if(previous.interrupted)diagnostics.record(null,'previous-session');
   await reloadSkins(false);$('#screen').replaceChildren();
-  engine=createCore($('#screen'),game);
+  engine=createCore($('#screen'),game);engine.onAudioState=updateAudioButton;engine.adoptAudio?.(preparedAudio);
   engine.onKeyboard=showCoreKeyboard;engine.onError=e=>{diagnostics.record(e,'core');setPause(true);void rewindSession.clear({halt:true});error(e);};engine.unlockAudio()?.catch?.(()=>{});engine.setCartridgeOptions?.(settings);engine.setNDSOptions?.(settings);await engine.load(bytes,game,systems[game.system]);engine.pause(true);
   if(previous.save?.bytes)await engine.restore(await protection.verify(previous.save));
   engine.pause(false);
   engine.setCheats?.(safeMode||!coreFor(game).cheats?[]:cheatsFor(game));game.lastPlayed=Date.now();await db.setGameDetails(game.id,{lastPlayed:game.lastPlayed});paused=false;playRunAt=Date.now();$('#resume-game').hidden=true;rewindSession.attach(engine,{...game,coreKey:coreFor(game).key});applySettings();layoutSkin();$('#loading').hidden=true;$('#save-status').hidden=false;engine.unlockAudio()?.catch?.(()=>{});startPadPoll();
   if(!safeMode&&!skipRecovery&&previous.interrupted&&previous.recoveries.some(r=>protection.compatible(r))){setPause(true);await showRecovery(true);}
- }catch(e){diagnostics.record(e,'startup');await rewindSession.dispose();clearImportedSkin();releaseSkin();skinPair=null;await engine?.close();engine=null;current=null;settingsGame=null;await protection.close();$('#player').hidden=true;$('#loading').hidden=true;if(e.code==='SAVE_INTEGRITY_FAILED'){await gameInfo.showSaveData(game,{startupError:true});return false;}throw e;}finally{launching=false;if(engine&&document.hidden)setPause(true,'background');syncRuntime();}
+ }catch(e){diagnostics.record(e,'startup');await rewindSession.dispose();clearImportedSkin();releaseSkin();skinPair=null;await engine?.close();engine=null;current=null;settingsGame=null;await protection.close();$('#player').hidden=true;$('#loading').hidden=true;if(e.code==='SAVE_INTEGRITY_FAILED'){await gameInfo.showSaveData(game,{startupError:true});return false;}if(e.code==='CORE_LOAD_FAILED'){showCoreLoadFailure({sheet});return false;}throw e;}finally{preparedAudio.close();launching=false;if(engine&&document.hidden)setPause(true,'background');syncRuntime();}
 }
 function frameStyle(frame,map){return `left:${frame.x/map.width*100}%;top:${frame.y/map.height*100}%;width:${frame.width/map.width*100}%;height:${frame.height/map.height*100}%;`;}
 let layoutFrame=null,lastLayoutSize='',skinScreenCleanup=()=>{},skinInputs=null;

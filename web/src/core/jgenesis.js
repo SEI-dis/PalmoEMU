@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
 import {MGBACore} from './mgba.js';
+import {loadCoreResource} from './load-resource.js';
 import {VideoOutput} from '../rendering/video.js';
 let runtime;
 async function loadRuntime(){return runtime??=import('../../cores/jgenesis/core.js').then(async module=>({Game:module.Game,wasm:await module.default()})).catch(e=>{runtime=null;throw e;});}
 export class JgenesisCore extends MGBACore {
  constructor(container){const canvas=document.createElement('canvas');container.append(canvas);super(canvas);this.stateIncludesSave=true;}
  async load(bytes,game){
-  const {Game,wasm}=await loadRuntime();this.multiplayer=['nes','snes','md'].includes(game.system);this.Game=Game;this.wasm=wasm;this.rom=bytes;this.system={md:0,gb:1,gbc:2,nes:3,snes:4}[game.system];
+  const {Game,wasm}=await loadCoreResource(loadRuntime);this.multiplayer=['nes','snes','md'].includes(game.system);this.Game=Game;this.wasm=wasm;this.rom=bytes;this.system={md:0,gb:1,gbc:2,nes:3,snes:4}[game.system];
   this.game=new Game(this.system,bytes,new Uint8Array());
   const engine=this;
   this.m={_web_close:()=>{},_web_frame:keys=>engine.game.frame(keys),_web_audio_read:()=>engine.game.audio_len(),_web_audio:()=>engine.game.audio_ptr(),_web_audio_rate:()=>48000,get HEAP16(){return new Int16Array(wasm.memory.buffer);}};

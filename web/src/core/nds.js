@@ -3,6 +3,7 @@
 import {tr} from '../i18n/index.js';
 import {normalizeNDSSave} from './nds-save.js';
 import {MGBACore} from './mgba.js';
+import {loadCoreResource} from './load-resource.js';
 import {VideoOutput} from '../rendering/video.js';
 import {screenBounds} from '../skins/control-layout.js';
 import {coreFor} from './core-registry.js';
@@ -37,7 +38,7 @@ export class NDSCore extends MGBACore {
  }
  async load(bytes,game={system:'nds'}){
   if(bytes instanceof Blob)bytes=new Uint8Array(await bytes.arrayBuffer());
-  this.core=coreFor(game);const create=await loadFactory(this.core.directory);this.m=await create({locateFile:()=>new URL(`../../cores/${this.core.directory}/core.wasm`,import.meta.url).href});
+  this.core=coreFor(game);this.m=await loadCoreResource(async()=>{const create=await loadFactory(this.core.directory);return create({locateFile:()=>new URL(`../../cores/${this.core.directory}/core.wasm`,import.meta.url).href});});
   // Firmware is created during core initialization. Live settings are retained
   // for the next launch, never applied by resetting the current game.
   this.m._web_set_language?.(ndsLanguages.indexOf(this.ndsLanguage||'default')-1);

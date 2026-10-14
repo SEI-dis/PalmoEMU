@@ -78,7 +78,7 @@ export class ThreeDSCore extends NDSCore {
   if(this.closed)return;this.pause(true);cancelAnimationFrame(this.raf);
   const flags=this.keyboard&&new Int32Array(this.keyboard,0,4);if(flags){Atomics.store(flags,0,2);Atomics.notify(flags,0);}
   try{await Promise.race([this.call('close'),new Promise(r=>setTimeout(r,3000))]);}finally{
-   this.closed=true;this.worker?.terminate();for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(Error(tr('コアを終了しました。')));}this.pending.clear();this.stopAudio();await this.ac?.close();this.display.remove();
+   this.closed=true;this.worker?.terminate();for(const p of this.pending.values()){clearTimeout(p.timer);p.reject(Error(tr('コアを終了しました。')));}this.pending.clear();await this.disposeAudio();this.display.remove();
   }
  }
 }

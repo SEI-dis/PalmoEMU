@@ -3,7 +3,7 @@
 // or paused, and back to the game while playing. Copyright 2026 Manic EMU.
 // Modified for browser DOM controls, native text editing and focus on 2026-10-13.
 export function createUINavigation({active,capturing,release,back}){
- let previous=new Set(),repeats=new Map(),wasActive=false,frame;
+ let previous=new Set(),repeats=new Map(),wasActive=false,frame,destroyed=false;
  const editable=el=>el?.matches('input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=button]),textarea')||el?.isContentEditable;
  const scope=()=>document.querySelector('dialog[open]')||document.body;
  const targets=()=>[...scope().querySelectorAll('button,a[href],input,select,textarea,summary,[tabindex="0"]')].filter(el=>!el.disabled&&!el.closest('[hidden],[inert]')&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden'&&el.type!=='hidden');
@@ -33,14 +33,23 @@ export function createUINavigation({active,capturing,release,back}){
    if(pad.axes?.[0]<-.5)held.add('left');if(pad.axes?.[0]>.5)held.add('right');if(pad.axes?.[1]<-.5)held.add('up');if(pad.axes?.[1]>.5)held.add('down');
   }return held;
  };
+ function deactivate(){wasActive=false;previous.clear();repeats.clear();}
+ function schedule(){if(!destroyed)frame=requestAnimationFrame(tick);}
  function tick(time){
-  const held=commands(),enabled=!document.hidden&&active()&&!capturing();
-  if(enabled!==wasActive){if(enabled)release();repeats.clear();previous=held;wasActive=enabled;}
-  if(enabled)for(const key of held){const fresh=!previous.has(key),repeat=!['accept','back'].includes(key)&&time>=(repeats.get(key)??Infinity);if(fresh||repeat){if(!active()||capturing())break;action(key);repeats.set(key,time+(fresh?400:130));}}
-  for(const key of previous)if(!held.has(key))repeats.delete(key);previous=held;frame=requestAnimationFrame(tick);
+  if(destroyed)return;
+  // The running core or input capture already polls the controller. UI focus
+  // must not take a second snapshot while it has no input ownership.
+  if(document.hidden||!active()||capturing()){deactivate();schedule();return;}
+  const held=commands();
+  if(!wasActive){release();repeats.clear();previous=held;wasActive=true;}
+  for(const key of held){const fresh=!previous.has(key),repeat=!['accept','back'].includes(key)&&time>=(repeats.get(key)??Infinity);if(fresh||repeat){if(destroyed||document.hidden||!active()||capturing())break;action(key);repeats.set(key,time+(fresh?400:130));}}
+  for(const key of previous)if(!held.has(key))repeats.delete(key);previous=held;schedule();
  }
  const keydown=event=>{if(!active()||capturing()||event.altKey||event.metaKey||event.ctrlKey||editable(event.target)||event.target?.matches('select,input[type=range]'))return;const direction={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'}[event.key];if(direction){event.preventDefault();move(direction);}};
  const clear=()=>document.querySelectorAll('.controller-focus').forEach(el=>el.classList.remove('controller-focus'));
- document.addEventListener('keydown',keydown);document.addEventListener('pointerdown',clear);frame=requestAnimationFrame(tick);
- return {destroy(){cancelAnimationFrame(frame);document.removeEventListener('keydown',keydown);document.removeEventListener('pointerdown',clear);clear();}};
+ // Hidden documents may receive no animation frame at all. Reset on the
+ // visibility event so their first visible frame takes a new held baseline.
+ const visibility=()=>{if(document.hidden)deactivate();};
+ document.addEventListener('keydown',keydown);document.addEventListener('pointerdown',clear);document.addEventListener('visibilitychange',visibility);schedule();
+ return {destroy(){destroyed=true;cancelAnimationFrame(frame);deactivate();document.removeEventListener('keydown',keydown);document.removeEventListener('pointerdown',clear);document.removeEventListener('visibilitychange',visibility);clear();}};
 }
