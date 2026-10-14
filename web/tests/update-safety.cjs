@@ -71,7 +71,8 @@ const engine=process.env.BROWSER_ENGINE||'chromium',browserType=require('./brows
   async function waitAsync(predicate){const end=Date.now()+30000;while(!await page.evaluate(predicate)){if(Date.now()>=end){console.error('WORKER DIAGNOSTICS',JSON.stringify({engine,browser:browser.version(),snapshot:await snapshot(),trace,requests:Object.fromEntries(requests)},null,2));assert.fail('Timed out waiting for worker state');}await page.waitForTimeout(50);}}
   await page.evaluate(async()=>{localStorage.setItem('keep-save','unchanged');await navigator.serviceWorker.register('sw.js',{updateViaCache:'none'});await navigator.serviceWorker.ready;});
   await page.waitForFunction(()=>!!navigator.serviceWorker.controller);await page.reload();
-  revision=2;
+  // A browser can discover the new worker during the stale-download checks.
+  revision=2;failedAsset='assets/retry.js';
   const stale=await page.evaluate(async()=>{
    const results=[];for(const name of ['cores/test/core.js','vendor/test.js'])results.push((await fetch(name)).status);
    const cache=await caches.open('manic-web:/:safety-1');

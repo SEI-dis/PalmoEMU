@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.30",
+  "version": "0.3.31",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
@@ -137,7 +137,9 @@
     "test:backup-errors": "node tests/backup-errors.cjs",
     "test:audio-activation": "node tests/audio-activation.cjs",
     "test:audio-startup": "node tests/audio-startup.cjs",
-    "test:ui-navigation": "node tests/ui-navigation.cjs"
+    "test:ui-navigation": "node tests/ui-navigation.cjs",
+    "test:update-download": "node tests/update-download.cjs",
+    "test:update-recovery": "node tests/update-recovery.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

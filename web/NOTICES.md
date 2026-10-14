@@ -840,3 +840,9 @@ between CPU selection and the temporary save-probe correction, matching the
 pinned native raw GBA detector and rejecting BIOS-like entry tables. Retained
 GBA link IO no longer captures a closed module or invokes it after teardown.
 Native binaries, live link protocols and stored game data are unchanged.
+
+Version 0.3.31 (2026-10-15) adds original AGPL bounded retries for transient
+update/offline downloads and restores automatic update handling after a failed
+attempt recovers. Integrity verification, explicit user deferral and existing
+game/data locks remain in place. No new dependency, core binary, third-party
+asset, license, stored-data format, permission or network endpoint is added.

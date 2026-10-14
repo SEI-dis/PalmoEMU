@@ -55,7 +55,14 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
   clearTimeout(stageTimer);stageTimer=setTimeout(()=>{if(staging&&!prepared)continueButton.hidden=false;},60000);
  }
  function refresh(){
-  if(prepared||failed||launchCheck)return;
+  if(prepared||launchCheck)return;
+  // A failed attempt is not a permanent opt-out. The browser may finish or
+  // retry installation after reconnecting or on the next update check.
+  // Only the user's Continue/Later choice defers updates for this visit.
+  if(failed){
+   if(deferred||document.hidden||!safe()||!candidate())return;
+   failed=false;
+  }
   // A restored page may need a new worker/build, but gameplay, unsaved clips
   // and in-flight file operations still own their in-memory state.
   if(restorePending){if(!document.hidden&&safe()){restorePending=false;beforeReload();location.reload();}return;}
