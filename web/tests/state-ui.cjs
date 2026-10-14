@@ -9,7 +9,19 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   const errors=[];p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(15000);
   const screenshot=async name=>{await p.locator('#toast.show').waitFor({state:'hidden'});await p.waitForTimeout(250);await p.screenshot({path:path.join(process.env.SCREENSHOT_DIR||os.tmpdir(),name+'.png')});};
   const count=()=>p.evaluate(async()=>{const db=await import('./src/storage/storage.js');return(await db.all('states')).length;});
-  const menu=async()=>{if(await p.locator('#sheet').isVisible())await p.locator('#close-sheet').click();await p.locator('#player-menu').click();};
+  const menu=async()=>{
+   // Opening MENU now saves battery data asynchronously. Observe the real queue
+   // without replacing persistence, then take preservation snapshots only after
+   // that save has committed. A failed save must fail this test as well.
+   await p.evaluate(async()=>{
+    if(window.stateUiSaveObserver)return;
+    const {SaveProtection}=await import('./src/storage/save-safety.js'),save=SaveProtection.prototype.save;
+    window.stateUiSaveObserver={};
+    SaveProtection.prototype.save=function(...args){stateUiSaveObserver.protection=this;return save.apply(this,args);};
+   });
+   if(await p.locator('#sheet').isVisible())await p.locator('#close-sheet').click();await p.locator('#player-menu').click();
+   await p.evaluate(async()=>{const protection=stateUiSaveObserver.protection;if(!protection)throw Error('MENU did not request a battery save');await protection.queue;});
+  };
   const fits=async()=>{
    await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
    const problems=await p.locator('#sheet').evaluate(d=>{
@@ -54,11 +66,12 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await p.locator('#edit-states').click();await p.locator('[data-slot-load]').first().click();await p.locator('#sheet').waitFor({state:'hidden'});assert.equal(await count(),2,'Loading cannot overwrite manual states');
   // Confirmed deletion changes only selected manual records, not another game's
   // states, automatic checkpoints or battery save. Invalid mixed keys are atomic.
-  // Pause before the snapshot so the regular autosave timer cannot change its timestamp.
+  // Pause and finish the menu save before the snapshot. Stay in this menu until
+  // deletion: closing/reopening it is another legitimate battery-save operation.
   await menu();
   const before=await p.evaluate(async()=>{const db=await import('./src/storage/storage.js');const [g]=await db.all('library'),states=await db.stateEntries(g.id);await db.put('states','other-game:keep',states[0].value);return {id:g.id,keys:states.map(s=>s.key),save:JSON.stringify(await db.get('saves',g.id)),auto:JSON.stringify(await db.get('recoveries',g.id))};});
   assert.equal(await p.evaluate(async({id,keys})=>{const db=await import('./src/storage/storage.js');try{await db.removeStates(id,[keys[0],'other-game:keep']);return false;}catch{return(await db.stateEntries(id)).length===2&&!!await db.get('states','other-game:keep');}},before),true,'Reject cross-game removal before any deletion');
-  await menu();await p.locator('[data-action=states]').click();await p.locator('#edit-states').click();await p.locator('[data-state-select]').first().check();await p.locator('#delete-selected-states').click();await p.locator('#confirm-state-delete').click();await p.locator('[data-slot-load]').first().waitFor();
+  await p.locator('[data-action=states]').click();await p.locator('#edit-states').click();await p.locator('[data-state-select]').first().check();await p.locator('#delete-selected-states').click();await p.locator('#confirm-state-delete').click();await p.locator('[data-slot-load]').first().waitFor();
   assert.equal(await count(),2,'One manual and one other-game record remain');
   assert.deepEqual(await p.evaluate(async id=>{const db=await import('./src/storage/storage.js');return {other:!!await db.get('states','other-game:keep'),save:JSON.stringify(await db.get('saves',id)),auto:JSON.stringify(await db.get('recoveries',id))};},before.id),{other:true,save:before.save,auto:before.auto});
   // Restart cannot happen before confirmation; cancelled restart leaves autos.
@@ -66,8 +79,9 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await p.locator('[data-action=restart]').click();await p.locator('#confirm-restart').click();await p.locator('#sheet').waitFor({state:'hidden'});
   assert.ok(await p.evaluate(async ({id,auto})=>(await (await import('./src/storage/storage.js')).get('recoveries',id))[0].at>JSON.parse(auto)[0].at,before),'Restart checkpoints before resetting');
   // Battery backups are a separate operation and cannot restore on the first tap.
+  await menu();
   const battery=await p.evaluate(async id=>{const db=await import('./src/storage/storage.js'),value=await db.get('saves',id);await db.put('backups',id,[value]);return JSON.stringify(value);},before.id);
-  await menu();await p.locator('[data-action=saveData]').click();await p.locator('[data-action=backups]').click();await p.locator('[data-backup-restore]').first().click();
+  await p.locator('[data-action=saveData]').click();await p.locator('[data-action=backups]').click();await p.locator('[data-backup-restore]').first().click();
   await p.setViewportSize({width:240,height:844});await fits();await p.locator('#cancel-backup').click();
   assert.equal(await p.evaluate(async id=>JSON.stringify(await (await import('./src/storage/storage.js')).get('saves',id)),before.id),battery,'Cancelling backup restore leaves battery unchanged');
   // Observe the successful restore commit itself: a normal autosave may update

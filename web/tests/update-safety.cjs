@@ -74,7 +74,17 @@ const engine=process.env.BROWSER_ENGINE||'chromium',browserType=require('./brows
   await page.locator('#apply-update').click();await page.waitForURL(base+'index.html');
   assert.equal(await page.evaluate(()=>localStorage.getItem('keep-save')),'unchanged');
   assert.equal(await page.locator('p').textContent(),'Release 2');
-  await page.waitForFunction(()=>navigator.serviceWorker.controller?.state==='activated');
+  // controllerchange precedes the end of activate. Do not depend on that
+  // controller object's state notification surviving the ensuing navigation
+  // (it stalled in WebKit CI). Read the registration afresh while
+  // waiting, then verify both workers by their running build as well.
+  await waitAsync(async()=>{const registration=await navigator.serviceWorker.getRegistration();return registration?.active?.state==='activated'&&!!navigator.serviceWorker.controller;});
+  const activated=await page.evaluate(async()=>{
+   const registration=await navigator.serviceWorker.getRegistration();
+   const version=worker=>new Promise((resolve,reject)=>{const channel=new MessageChannel(),timer=setTimeout(()=>{channel.port1.close();reject(Error('Activated worker did not answer app-version'));},5000);channel.port1.onmessage=event=>{clearTimeout(timer);channel.port1.close();resolve(event.data.version);};worker.postMessage({type:'app-version'},[channel.port2]);});
+   return {active:await version(registration.active),controller:await version(navigator.serviceWorker.controller),oldCache:(await caches.keys()).includes('manic-web:/:safety-1')};
+  });
+  assert.deepEqual(activated,{active:'safety-2',controller:'safety-2',oldCache:false},'The activated registration and controlling worker must run the new build, with the old cache retired');
   console.log('PASS '+engine+': failed manual installation is actionable, retry completes safely and activation preserves local data.');
   // Deliberately exceed the former 10-second activation timeout. A real worker
   // and MessagePorts must keep prepared pages frozen until clients.claim().
