@@ -48,9 +48,10 @@ covered by authored compatibility tests. The adapter preserves save storage
 keys and accepts the verified previous state ID; it does not promise backward
 compatibility when returning to the old core.
 
-The Web bridge explicitly sets CPU overclock to 1, overriding the upstream
-new default of 2. This preserves hardware timing and avoids doubling CPU work
-on phones. The existing 1–5x play-speed control remains separate.
+The Web bridge starts at CPU overclock 1. Since 0.3.30 the browser's automatic
+CPU setting selects the upstream default of 2 for the extended-cartridge
+signature, and keeps ordinary cartridges at 1. Explicit settings are preserved.
+The existing 1–5x play-speed control remains separate.
 Qt automatic backup and physical USB link features are not compiled into this
 Web target. Web saves retain up to five local backup generations and
 five recovery snapshots, depending on their size. No upload endpoint is added.
@@ -137,3 +138,39 @@ distribution archive and separate bridge/build directories with Emscripten
 GBC and GBA programs cover continuously changing RAM, quiet notifications,
 6 MiB flash, initial/imported saves, state/reset suppression, independent
 instances and compatibility with the previous distributed core.
+
+## 2026-10-14 native logging policy (0.3.30)
+
+`logging.h` installs a native logger before loading a cartridge. The reference
+Web bridge at `pm-start/mgba-celio-web` commit
+`23235bc6db1b67009808c0dc7e1f25131eb75e7a` already uses a quiet native logger.
+Without one, mGBA's fallback prints BIOS/DMA traces inside frame execution.
+This port suppresses debug/info/stub/game-error traces before formatting or
+crossing into JavaScript. It retains the first eight engine warning/error
+messages per load and all fatal messages. It does not change emulated timing,
+save data, state layouts, identifiers, the pinned source archive or link code.
+
+The bridge was rebuilt from two independent extractions/build directories;
+both JS/WASM hashes match. `tests/mgba-logging.cjs` uses an authored scanline
+BIOS program to reproduce excessive logging on the previous core and verifies
+bounded output, rendering, reset/state restoration and a second GB instance.
+Save-completion, previous-state/save compatibility, peripherals and GB cable
+tests also pass. See `../build-evidence.json` for outputs and source hashes.
+
+## 2026-10-15 ROM allocation ownership (0.3.30)
+
+`web_load_owned` consumes a malloc-owned input on both success and failure.
+The memory-backed VFile borrows it; `web_close` frees it after core teardown.
+The existing `web_load` copying ABI remains available. The browser uses the
+compiled `web_gba_save_capacity` before applying its existing structurally
+verified temporary correction, then transfers the allocation once. Caller
+bytes, stored ROM identity, battery/state layouts and link drivers are unchanged.
+
+With an authored 64 MiB GBA cartridge, WASM heap capacity after load falls from
+155.875 MiB to 98.25 MiB. This is linear-memory capacity, not total browser
+resident memory or an iPhone measurement. The heap need not shrink on close;
+the browser adapter drops module references so an expired adapter cannot retain
+that heap. `tests/mgba-memory.cjs` checks output parity with the copying ABI and
+repeated invalid/valid loads without allocation accumulation. Structural-probe,
+old/new state, 6 MiB save and GB local-link tests cover the transfer path too.
+Both separately extracted native builds match; see `../build-evidence.json`.

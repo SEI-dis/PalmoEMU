@@ -38,11 +38,11 @@
     },
     "mgba": {
       "js": {
-        "sha256": "bdb9009bfbf98e3eebf81ccfafcc38a89422bb0209768df63e88d571c570b995",
+        "sha256": "fe8c6838117e05c709b74a34348d5816a840ea84f1ff0315ce852bd03836fccd",
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "2e5a366b1ccb1cae4962882cd8c7fb5c08a5da3b706377bd6936b518969d9604",
+        "sha256": "0aa6e2708659e40f83bb430a39e1b6350ca39b2d05eb312a7559b89f4198ca35",
         "rebuildMatches": true
       }
     }
@@ -132,6 +132,33 @@
       "mgba-web-port/CMakeLists.txt": "43b4e296249f68ed7f4b69176afd59ae1693a109f0c66db91ae5ecd9d0f3fee2",
       "mgba-web-port/gb-link.h": "11794818a31e6a9328aa880f2d306b1038c46f9b83f67abb40793f68c87b258f",
       "mgba-web-port/link.h": "afd65148934ff4ed99bb6a45df8400f967d0af02fcc1987de38fd8c86e4ee629",
+      "mgba-web-port/options.h": "c5c975d07444f6073d93a9536f94e7510ca9dced790a84bb49832b8be84f537a",
+      "mgba-web-port/save-watch.h": "539244aab3e08f07accd6603288efdd7c7b2806b0704b1156c5886cdb31c144a",
+      "mgba-web-port/upstream.json": "db9d454c9837306956d68c2c5383832fb911bba4bbb5bee83b28a509eee1d50c"
+    }
+  },
+  "loggingBuild": {
+    "date": "2026-10-15",
+    "sourceCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
+    "sourceArchiveSha256": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16",
+    "method": "Two independent source archive extractions and bridge/build directories with Emscripten 4.0.15, CMake 3.31.6 and Ninja 1.11.1. JS/WASM hashes match. Native logging suppression and owned-ROM transfer with a pre-load compiled GBA save capacity query; original copying ABI retained. Source archive, emulated timing, battery/state layouts and compatibility IDs unchanged. Browser CPU automatic selection and module-reference cleanup are separate AGPL adapter changes.",
+    "outputs": {
+      "mgba.js": {
+        "sha256": "fe8c6838117e05c709b74a34348d5816a840ea84f1ff0315ce852bd03836fccd",
+        "rebuildMatches": true
+      },
+      "mgba.wasm": {
+        "sha256": "0aa6e2708659e40f83bb430a39e1b6350ca39b2d05eb312a7559b89f4198ca35",
+        "rebuildMatches": true
+      }
+    },
+    "bridgeFiles": {
+      "mgba-web-port/bridge.c": "8d8ec85664d28978cbedd1c9ea5c3e1b9072ddaf13259b1b909dfd5dea23f07c",
+      "mgba-web-port/BUILD.md": "20025bd782fc0f9813b4efeca34e28f39988de02b1774a1cad6b702952ea46a9",
+      "mgba-web-port/CMakeLists.txt": "43b4e296249f68ed7f4b69176afd59ae1693a109f0c66db91ae5ecd9d0f3fee2",
+      "mgba-web-port/gb-link.h": "11794818a31e6a9328aa880f2d306b1038c46f9b83f67abb40793f68c87b258f",
+      "mgba-web-port/link.h": "afd65148934ff4ed99bb6a45df8400f967d0af02fcc1987de38fd8c86e4ee629",
+      "mgba-web-port/logging.h": "c6e0252250b07ae5f898e8921dfd2b142f53dcc67f652b930868282d8ee88da3",
       "mgba-web-port/options.h": "c5c975d07444f6073d93a9536f94e7510ca9dced790a84bb49832b8be84f537a",
       "mgba-web-port/save-watch.h": "539244aab3e08f07accd6603288efdd7c7b2806b0704b1156c5886cdb31c144a",
       "mgba-web-port/upstream.json": "db9d454c9837306956d68c2c5383832fb911bba4bbb5bee83b28a509eee1d50c"

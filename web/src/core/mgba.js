@@ -5,6 +5,7 @@ import {VideoOutput} from '../rendering/video.js';
 import {GBASensors} from './gba-options.js';
 import {TimeStretch} from '../rendering/time-stretch.js';
 import {loadCompatibleMGBA} from './mgba-compatibility.js';
+import {recommendedGBACPUClock,resolveGBACPUClock} from './mgba-clock.js';
 import {choosePixelTransfer,createPixelTransfer} from '../rendering/pixel-transfer.js';
 import {GameRumble} from '../input/game-rumble.js';
 import {performanceDiagnostics} from '../runtime/performance.js';
@@ -26,17 +27,21 @@ export class MGBACore {
   constructor(canvas){this.canvas=canvas;this.keys=0;this.speed=1;this.volume=.7;this.paused=true;this.sources=new Set();this.frames=0;this.presented=0;this.cheatCount=0;this.preservePitch=true;}
   async load(bytes,{sharedCore}={}){
     this.stateIncludesSave=true; // The bridge restores SAVESTATE_SAVEDATA, including the active flash bank.
+    this.recommendedOverclock=recommendedGBACPUClock(bytes);
     if(sharedCore&&!sharedCore.supportsGBLink)throw Error(tr('通信機能を開始できません。'));
-    this.nativeModule=sharedCore?.nativeModule||await loadCoreResource(()=>window.createMGBA({locateFile:p=>new URL('../../cores/mgba/'+p,import.meta.url).href}));
+    const nativeModule=sharedCore?.nativeModule||await loadCoreResource(()=>window.createMGBA({locateFile:p=>new URL('../../cores/mgba/'+p,import.meta.url).href}));
+    if(this.closed)throw new DOMException('Core closed during loading','AbortError');
+    this.nativeModule=nativeModule;
     this.instance=sharedCore?1:0;this.m=coreInstance(this.nativeModule,this.instance);
     this.pixelTransferChoice=sharedCore?.pixelTransferChoice||choosePixelTransfer(this.m);
     this.compatibility=await loadCompatibleMGBA(this.m,bytes);
+    if(this.closed)throw new DOMException('Core closed during loading','AbortError');
     this.saveEpoch=(this.saveEpoch||0)+1;
     this.width=this.m._web_width();this.height=this.m._web_height();this.video=new VideoOutput(this.canvas,this.width,this.height);this.image=new ImageData(this.width,this.height);this.pixelTransfer=createPixelTransfer(this.m,this.width,this.height,this.pixelTransferChoice.mode);this.fps=this.m._web_fps();this.sensors=new GBASensors((...values)=>this.m._web_sensors?.(...values));
     if(this.supportsGameRumble)this.rumble=new GameRumble({readStrength:()=>this.m._web_rumble_strength(),setEnabled:value=>this.m._web_rumble_enable(value)});
     // The app caches options before load. Apply the clock before the first
     // frame, including while asynchronous save verification is still pending.
-    this.applyClockOptions();
+    this.applyCPUClock();this.applyClockOptions();
     this.startLoop();
   }
   // Display refresh can exceed emulation refresh (for example, 120 Hz phones).
@@ -143,9 +148,10 @@ export class MGBACore {
   get supportsRTC(){return typeof this.m?._web_rtc_set==='function';}
   get supportsGBLink(){return this.m?._web_platform?.()===1&&typeof this.m?._web_gb_link_frame==='function'&&typeof this.m?._web_select==='function';}
   get supportsGameRumble(){return typeof this.m?._web_rumble_enable==='function'&&typeof this.m?._web_rumble_strength==='function';}
+  applyCPUClock(){this.overclock=resolveGBACPUClock(this.clockPreference,this.recommendedOverclock);this.m?._web_overclock?.(this.overclock);}
   applyClockOptions(){if(this.clockOptions&&this.supportsRTC)this.m._web_rtc_set(this.clockOptions.mode,this.clockOptions.offset);}
   setCartridgeOptions(options){
-    this.overclock=[1,2,4,8].includes(options.overclock)?options.overclock:1;this.m?._web_overclock?.(this.overclock);this.sensors?.configure(options);
+    this.clockPreference=options.overclock;this.applyCPUClock();this.sensors?.configure(options);
     this.clockOptions={mode:options.rtcMode==='offset'?1:0,offset:Number.isInteger(options.rtcOffset)&&Math.abs(options.rtcOffset)<=315576000?options.rtcOffset:0};this.applyClockOptions();
     this.rumble?.configure({enabled:options.gameRumble===true});
   }
@@ -168,5 +174,15 @@ export class MGBACore {
   }
   screenshot(){return this.canvas.toDataURL('image/png');}
   reset(){this.stopAudio();this.rumble?.stop();this.m._web_reset();this.saveEpoch=(this.saveEpoch||0)+1;this.m._web_overclock?.(this.overclock||1);this.applyClockOptions();this.clock=null;}
-  close(){this.closed=true;this.sensors?.close();this.rumble?.close();this.pixelTransfer?.dispose();this.pixelTransfer=null;this.video?.dispose();cancelAnimationFrame(this.raf);this.disposeAudio();this.m?._web_close();}
+  close(){
+    if(this.closed)return;
+    this.closed=true;this.sensors?.close();this.rumble?.close();this.pixelTransfer?.dispose();this.pixelTransfer=null;this.video?.dispose();cancelAnimationFrame(this.raf);this.disposeAudio();
+    try{this.m?._web_close();}finally{
+      // A pending audio resume or UI callback can retain this adapter after
+      // exit. Do not let that also retain a whole WASM heap. A linked peer
+      // keeps its own module reference and its selected instance remains live.
+      this.m=null;this.nativeModule=null;this.tick=null;this.image=null;
+      this.sensors=null;this.rumble=null;this.stretch=null;this.gain?.disconnect?.();this.gain=null;
+    }
+  }
 }

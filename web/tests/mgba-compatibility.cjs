@@ -31,9 +31,10 @@ const cases=[{name:'recognized structure',accepted:true},
     MGBACore.prototype.load=async function(bytes){
      const create=window.createMGBA;window.observedLoads=[];
      window.createMGBA=async options=>{
-      const m=await create(options),raw=m._web_load,frame=m._web_frame;let frames=0;
+      const m=await create(options),raw=m._web_load,owned=m._web_load_owned,frame=m._web_frame;let frames=0;
       m._web_frame=keys=>{frames++;return frame(keys);};
       m._web_load=(p,n)=>{observedLoads.push({n,byte:m.HEAPU8[p+offset],otherByte:m.HEAPU8[p+otherOffset],frames});return raw(p,n);};
+      m._web_load_owned=(p,n)=>{observedLoads.push({n,byte:m.HEAPU8[p+offset],otherByte:m.HEAPU8[p+otherOffset],frames});return owned(p,n);};
       return m;
      };
      try{await load.call(this,bytes);window.testCore=this;}finally{window.createMGBA=create;}
@@ -49,7 +50,7 @@ const cases=[{name:'recognized structure',accepted:true},
    assert.equal(result.id,id);assert.equal(result.hash,id,'Stored original and save identity stay unchanged');
    assert.equal(result.compatibility,accepted?'expanded-save-detection':null);
    assert.ok(result.loads.filter(l=>l.n===8192).every(l=>l.frames===0),'Calibration executes no game frames');
-   assert.deepEqual(result.loads.filter(l=>l.n===rom.length).map(({byte,otherByte,frames})=>({byte,otherByte,frames})),accepted?[{byte:0,otherByte:0,frames:0},{byte:1,otherByte:0,frames:0}]:[{byte:0,otherByte:0,frames:0}]);
+   assert.deepEqual(result.loads.filter(l=>l.n===rom.length).map(({byte,otherByte,frames})=>({byte,otherByte,frames})),[{byte:accepted?1:0,otherByte:0,frames:0}],'One transferred load, before any frame');
    if(accepted&&!layout){
     const checks=await page.evaluate(async({id,offset,otherOffset})=>{
      const {loadCompatibleMGBA}=await import('./src/core/mgba-compatibility.js'),db=await import('./src/storage/storage.js'),original=await db.get('roms',id);
@@ -59,11 +60,12 @@ const cases=[{name:'recognized structure',accepted:true},
      const changedInstruction=original.slice();changedInstruction[offset]=1;
      // Mock the core protocol to check capability gates, growth, failures and
      // cleanup without distributing or recreating a commercial ROM.
-     async function probe(bytes,limit,{missing=false,failAt=0,grow=false}={}){
+     async function probe(bytes,limit,{missing=false,failAt=0,grow=false,owned=false}={}){
       let heap=new Uint8Array(bytes.length+16),freed=0;const loads=[],otherLoads=[];
       const m={get HEAPU8(){return heap;},_malloc:()=>8,_free:()=>freed++,
        _web_load(p,n){loads.push(heap[p+offset]);otherLoads.push(heap[p+otherOffset]);if(grow){const next=new Uint8Array(heap.length+32);next.set(heap);heap=next;}return loads.length===failAt?0:1;}};
       if(!missing)m._web_save_limit=()=>limit;
+      if(owned){m._web_gba_save_capacity=()=>limit;m._web_load_owned=(p,n)=>{try{return m._web_load(p,n);}finally{freed++;}};}
       let correction=null,error=false;try{correction=await loadCompatibleMGBA(m,bytes);}catch{error=true;}
       return {correction,error,loads,otherLoads,freed,originalByte:bytes[offset]};
      }
@@ -72,6 +74,9 @@ const cases=[{name:'recognized structure',accepted:true},
      const modified=[await probe(revised,6291456),await probe(changedInstruction,6291456),await probe(original.subarray(0,8192),6291456)];
      const growth=await probe(original,6291456,{grow:true});
      const failures=[await probe(original,6291456,{failAt:1}),await probe(original,6291456,{failAt:2})];
+     const transfers=[];
+     for(const limit of [131072,6291455,NaN,Infinity,6291456])transfers.push(await probe(original,limit,{owned:true,grow:true}));
+     const transferFailure=await probe(original,6291456,{owned:true,failAt:1});
      // Import an actual pre-correction snapshot into the corrected core, then
      // round-trip a new snapshot and an unchanged 6MiB battery save.
      const old=await createMGBA({print:()=>{},printErr:()=>{}});
@@ -82,12 +87,14 @@ const cases=[{name:'recognized structure',accepted:true},
      const bytesSave=old._web_save_export(),oldSave=old.HEAPU8.slice(old._web_save_data(),old._web_save_data()+bytesSave);old._web_close();
      testCore.loadState(oldState);const restored=testCore.save(),checkpoint=testCore.state();testCore.reset();testCore.loadState(checkpoint);
      testCore.restore(oldSave);const reloaded=testCore.save();
-     return {gates,modified,growth,failures,saveBytes:restored.length,saveEqual:restored.every((b,i)=>b===oldSave[i])&&reloaded.every((b,i)=>b===oldSave[i]),compatibility:testCore.compatibility};
+     return {gates,modified,growth,failures,transfers,transferFailure,saveBytes:restored.length,saveEqual:restored.every((b,i)=>b===oldSave[i])&&reloaded.every((b,i)=>b===oldSave[i]),compatibility:testCore.compatibility};
     },{id,offset,otherOffset});
     for(const gate of checks.gates)assert.deepEqual(gate,{correction:null,error:false,loads:[0],otherLoads:[0],freed:1,originalByte:0});
     for(const [i,entry]of checks.modified.entries()){assert.equal(entry.correction,i===0?'expanded-save-detection':null);assert.equal(entry.error,false);assert.equal(entry.loads.length,i===0?2:1);assert.equal(entry.freed,1);if(i===1)assert.equal(entry.loads[0],1);}
     assert.deepEqual(checks.growth,{correction:'expanded-save-detection',error:false,loads:[0,1],otherLoads:[0,0],freed:1,originalByte:0});
     for(const entry of checks.failures){assert.equal(entry.error,true);assert.equal(entry.freed,1);assert.equal(entry.originalByte,0);assert.ok(entry.otherLoads.every(byte=>byte===0),'Unrelated ROM bytes are never patched');}
+    for(const [i,entry]of checks.transfers.entries())assert.deepEqual(entry,{correction:i===4?'expanded-save-detection':null,error:false,loads:[i===4?1:0],otherLoads:[0],freed:1,originalByte:0},'Transferred load checks compiled capacity and frees exactly once');
+    assert.deepEqual(checks.transferFailure,{correction:null,error:true,loads:[1],otherLoads:[0],freed:1,originalByte:0});
     assert.equal(checks.saveBytes,6291456);assert.ok(checks.saveEqual);assert.equal(checks.compatibility,'expanded-save-detection');
    }
    assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);await context.close();console.log('PASS: '+name+' / original-ROM preservation. '+kind);

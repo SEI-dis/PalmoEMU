@@ -9,7 +9,7 @@ const schema={volume:v=>Number.isFinite(v)&&v>=0&&v<=1,speed:values([1,2,3,4,5])
  haptics:boolean,hapticStrength:values([0,8,20]),deadZone:values([.1,.2,.3,.4,.5]),
  touchDpadMode:values(['eight','four']),touchDpadDeadZone:values([0,.06,.12,.18,.24]),touchDpadDiagonal:values([.35,.6,.85]),touchHitSlop:values([0,8,16,24]),
  screenScaling:values(['fit','stretch','fill']),touchControls:boolean,showFps:boolean,showCamera:boolean,
- overclock:values([1,2,4,8]),sunlight:v=>Number.isInteger(v)&&v>=0&&v<=10,
+ overclock:values([0,1,2,4,8]),sunlight:v=>Number.isInteger(v)&&v>=0&&v<=10,
  tiltX:v=>Number.isFinite(v)&&Math.abs(v)<=1,tiltY:v=>Number.isFinite(v)&&Math.abs(v)<=1,gyro:v=>Number.isFinite(v)&&Math.abs(v)<=1,
  rtcMode:values(['auto','offset']),rtcOffset:v=>Number.isInteger(v)&&Math.abs(v)<=315576000,gameRumble:boolean,
  ndsLanguage:values(['default','ja','en','fr','de','it','es']),ndsSwapScreens:boolean,ndsPowerSave:boolean,rewindEnabled:boolean};

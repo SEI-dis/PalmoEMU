@@ -54,7 +54,20 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
   await page.evaluate(()=>{const b=document.createElement('button');b.id='audio-enable-fixture';b.textContent='Enable sound';b.style.cssText='position:fixed;top:50px;left:0;z-index:99999';b.onclick=()=>{audioFixture.insideClick=true;audioFixture.mode='success';audioFixture.retry=audioFixture.core.unlockAudio({retry:true});audioFixture.insideClick=false;};document.body.append(b);});
   await page.locator('#audio-enable-fixture').click();
   assert.deepEqual(await page.evaluate(async()=>{const f=audioFixture;await f.retry;return {state:f.core.audioState,resumes:f.core.ac.calls.filter(c=>c.operation==='resume').length,lastInClick:f.core.ac.calls.at(-1).inClick};}),{state:'running',resumes:2,lastInClick:true},'An explicit enable-sound click can retry a browser promise left pending');
-  assert.equal(await page.evaluate(async()=>{const f=audioFixture;f.core.close();f.core.ac.pending.forEach(done=>done());await f.unlock;return f.core.ac.closed===1&&f.core.ac.state==='closed'&&f.core.audioState==='closed'&&await f.core.unlockAudio()===false;}),true,'A late activation cannot reopen a closed core');
+  assert.equal(await page.evaluate(async()=>{
+   const f=audioFixture;let closes=0;f.core.m={_web_close:()=>closes++};f.core.nativeModule={HEAPU8:new Uint8Array(1024)};
+   f.core.close();const released=f.core.m===null&&f.core.nativeModule===null;f.core.close();
+   f.core.ac.pending.forEach(done=>done());await f.unlock;
+   return released&&closes===1&&f.core.ac.closed===1&&f.core.ac.state==='closed'&&f.core.audioState==='closed'&&await f.core.unlockAudio()===false;
+  }),true,'A retained adapter releases its module even with pending audio, closes once and cannot reopen');
+  assert.equal(await page.evaluate(async()=>{
+   const {MGBACore}=await import('./src/core/mgba.js'),create=window.createMGBA,core=new MGBACore(document.createElement('canvas'));
+   let resolve;window.createMGBA=()=>new Promise(done=>resolve=done);
+   try{
+    const loading=core.load(new Uint8Array(8192)).then(()=>false,error=>error.name==='AbortError');core.close();resolve({});
+    return await loading&&core.m==null&&core.nativeModule==null&&core.tick==null;
+   }finally{window.createMGBA=create;}
+  }),true,'An asynchronously created module cannot attach or start after close');
   attempt=await begin('constructor-failure');await finish(attempt);
   assert.deepEqual(await page.evaluate(async()=>({adopted:audioFixture.adopted,playing:!audioFixture.core.paused,unlocked:await audioFixture.unlock})),{adopted:false,playing:true,unlocked:false},'Unavailable audio hardware does not reject launch');
   await page.evaluate(()=>audioFixture.core.close());

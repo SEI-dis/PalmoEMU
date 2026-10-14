@@ -1,10 +1,11 @@
 {
   "name": "palmoemu",
-  "version": "0.3.29",
+  "version": "0.3.30",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
     "test": "node tests/core.cjs",
+    "test:mgba-memory": "node tests/mgba-memory.cjs",
     "test:core-upgrade": "node tests/core-upgrade.cjs",
     "test:browser": "node tests/browser.cjs",
     "test:features": "node tests/features.cjs",
@@ -120,6 +121,7 @@
     "test:runtime-tools-browser": "node tests/runtime-tools-browser.cjs",
     "test:backup-enhancements": "node tests/backup-enhancements.cjs",
     "test:mgba-save-completion": "node tests/mgba-save-completion.cjs",
+    "test:mgba-logging": "node tests/mgba-logging.cjs",
     "test:save-completion": "node tests/save-completion.cjs",
     "test:upstream-watch": "node tests/upstream-watch.cjs",
     "test:relay-settings": "node tests/relay-settings.cjs",

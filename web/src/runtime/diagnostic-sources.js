@@ -25,6 +25,7 @@ export const diagnosticSources = [
  "src/core/gba-options.js",
  "src/core/jgenesis.js",
  "src/core/load-resource.js",
+ "src/core/mgba-clock.js",
  "src/core/mgba-compatibility.js",
  "src/core/mgba-save-probe.js",
  "src/core/mgba.js",

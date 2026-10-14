@@ -1,6 +1,75 @@
 {
   "releases": [
     {
+      "version": "0.3.30",
+      "date": "2026-10-15",
+      "changes": [
+        "マップ切り替えなどの演出中の動作を改善しました。",
+        "大きなROMの起動時に使うメモリを削減し、終了時の解放処理を改善しました。",
+        "ゲーム起動時に音が出ない場合の復帰操作を改善しました。",
+        "コアの読み込み失敗から復帰しやすくし、バックアップのエラー対象を分かりやすくしました。",
+        "ゲームパッド操作中の不要な処理を減らしました。"
+      ],
+      "changesEn": [
+        "Improved performance during map transitions and other effects.",
+        "Reduced memory use when loading large ROMs and improved cleanup after exit.",
+        "Improved recovery when audio is unavailable at game startup.",
+        "Improved recovery from core loading failures and identification of backup errors.",
+        "Reduced unnecessary processing during gamepad use."
+      ],
+      "translations": {
+        "zh-Hans": [
+          "改善了地图切换等特效期间的运行表现。",
+          "减少了加载大型 ROM 时的内存用量，并改善了退出后的清理。",
+          "改善了游戏启动时无声的恢复操作。",
+          "改善了核心加载失败后的恢复，并更清晰地指出备份错误的对象。",
+          "减少了使用手柄时不必要的处理。"
+        ],
+        "zh-Hant": [
+          "改善了地圖切換等特效期間的執行表現。",
+          "減少了載入大型 ROM 時的記憶體用量，並改善了結束後的清理。",
+          "改善了遊戲啟動時無聲的恢復操作。",
+          "改善了核心載入失敗後的恢復，並更清楚地指出備份錯誤的對象。",
+          "減少了使用控制器時不必要的處理。"
+        ],
+        "ko": [
+          "맵 전환 등 효과 표시 중 성능을 개선했습니다.",
+          "대용량 ROM을 불러올 때 메모리 사용량을 줄이고 종료 후 정리를 개선했습니다.",
+          "게임 시작 시 소리가 나지 않는 경우의 복구 조작을 개선했습니다.",
+          "코어 로딩 실패 시 복구를 개선하고 백업 오류 대상을 더 명확하게 표시합니다.",
+          "게임패드 사용 중 불필요한 처리를 줄였습니다."
+        ],
+        "es": [
+          "Se mejoró el rendimiento durante las transiciones de mapa y otros efectos.",
+          "Se redujo el uso de memoria al cargar ROM grandes y se mejoró la limpieza al salir.",
+          "Se mejoró la recuperación cuando no hay sonido al iniciar un juego.",
+          "Se mejoró la recuperación tras fallos al cargar el núcleo y la identificación de errores en las copias de seguridad.",
+          "Se redujo el procesamiento innecesario al usar un mando."
+        ],
+        "fr": [
+          "Amélioration des performances lors des transitions de carte et des autres effets.",
+          "Réduction de la mémoire utilisée pour charger les grandes ROM et amélioration du nettoyage à la fermeture.",
+          "Amélioration de la récupération lorsque le son est indisponible au démarrage du jeu.",
+          "Amélioration de la récupération après un échec de chargement du cœur et de l’identification des erreurs de sauvegarde.",
+          "Réduction des traitements inutiles lors de l’utilisation d’une manette."
+        ],
+        "de": [
+          "Die Leistung bei Kartenwechseln und anderen Effekten wurde verbessert.",
+          "Der Speicherverbrauch beim Laden großer ROMs wurde reduziert und die Freigabe nach dem Beenden verbessert.",
+          "Die Wiederherstellung der Tonausgabe beim Spielstart wurde verbessert.",
+          "Die Wiederherstellung nach fehlgeschlagenem Core-Laden und die Zuordnung von Sicherungsfehlern wurden verbessert.",
+          "Unnötige Verarbeitung bei der Verwendung eines Gamepads wurde reduziert."
+        ],
+        "pt": [
+          "Melhorámos o desempenho durante transições de mapa e outros efeitos.",
+          "Reduzimos a utilização de memória ao carregar ROMs grandes e melhorámos a limpeza ao sair.",
+          "Melhorámos a recuperação quando não há som ao iniciar um jogo.",
+          "Melhorámos a recuperação após falhas ao carregar o núcleo e a identificação de erros nas cópias de segurança.",
+          "Reduzimos o processamento desnecessário ao utilizar um comando."
+        ]
+      }
+    },
+    {
       "version": "0.3.29",
       "date": "2026-10-14",
       "changes": [

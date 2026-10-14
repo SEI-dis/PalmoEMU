@@ -29,6 +29,9 @@ const assert=require('node:assert/strict'),kind=process.env.BROWSER_ENGINE||'chr
   await page.locator('[data-setting=rtcMode]').selectOption('auto');assert.equal(await page.locator('#rtc-adjust').isVisible(),false);
   assert.equal(await page.evaluate(()=>optionPreferences.global.gameRumble),undefined);assert.equal(await page.evaluate(()=>otherOptionGame.preferences),undefined);
   await page.evaluate(()=>showOptionFixture('gba'));assert.equal(await page.locator('[data-sensor]').count(),3);assert.equal(await page.locator('[data-setting=overclock]').count(),1);
+  assert.equal(await page.locator('[data-setting=overclock]').inputValue(),'0','Untouched cartridges default to automatic CPU selection');
+  await page.locator('[data-setting=overclock]').selectOption('1');assert.equal(await page.evaluate(()=>optionGame.preferences.overclock),1);
+  await page.locator('[data-setting=overclock]').selectOption('0');assert.equal(await page.evaluate(()=>optionGame.preferences.overclock),0);
   await page.evaluate(()=>{optionEngine.supportsRTC=false;optionEngine.supportsGameRumble=false;showOptionFixture('gb');});assert.equal(await page.locator('[data-setting=rtcMode]').count(),0);assert.equal(await page.locator('[data-setting=gameRumble]').count(),0);
   const rtc=await page.evaluate(async()=>{
    const {MGBACore}=await import('./src/core/mgba.js');const engine=new MGBACore(document.createElement('canvas'));
@@ -42,6 +45,22 @@ const assert=require('node:assert/strict'),kind=process.env.BROWSER_ENGINE||'chr
     return {restored,reset,automatic,invalid,paused:engine.rumble.paused};
    }finally{engine.close();}
   });assert.deepEqual(rtc,{restored:3600,reset:3600,automatic:0,invalid:0,paused:true});
+  const clocks=await page.evaluate(async()=>{
+   const {MGBACore}=await import('./src/core/mgba.js'),{recommendedGBACPUClock}=await import('./src/core/mgba-clock.js');
+   const rom=new Uint8Array(0x02000008),view=new DataView(rom.buffer);view.setUint32(0,0xeafffffe,true);rom[0xb2]=0x96;
+   const plain=recommendedGBACPUClock(rom);view.setUint32(0x02000000,0x50534b50,true);view.setUint32(0x02000004,0x31534349,true);
+   const engine=new MGBACore(document.createElement('canvas')),initial=[];engine.startLoop=function(){initial.push(this.overclock);};
+   try{
+    engine.setCartridgeOptions({});await engine.load(rom);const auto=engine.overclock,calls=[],native=engine.m._web_overclock;
+    engine.m._web_overclock=value=>{calls.push(value);return native(value);};
+    const state=engine.state();engine.reset();engine.loadState(state);engine.linkIO().enable(true);engine.linkIO().enable(false);
+    const restored=calls.at(-1);engine.setCartridgeOptions({overclock:1});engine.loadState(state);const explicit=engine.overclock;
+    engine.setCartridgeOptions({overclock:0});const selectedAuto=engine.overclock;
+    rom[0x02000004]^=1;const unknown=recommendedGBACPUClock(rom);rom[0x02000004]^=1;
+    const padded=new Uint8Array(rom.length+3);padded.set(rom,3);const offsetView=recommendedGBACPUClock(padded.subarray(3));
+    return {plain,auto,initial,restored,explicit,selectedAuto,unknown,offsetView,resetAndState:calls.slice(0,2)};
+   }finally{engine.close();}
+  });assert.deepEqual(clocks,{plain:1,auto:2,initial:[2],restored:2,explicit:1,selectedAuto:2,unknown:1,offsetView:2,resetAndState:[2,2]},'Extended cartridges use the upstream CPU default without changing ordinary ROMs or explicit choices');
   // A real app launch must not execute while persistent-save verification waits.
   // This original program reads SRAM once and renders that byte, then loops.
   // Running even one frame before restore therefore leaves the wrong pixel.

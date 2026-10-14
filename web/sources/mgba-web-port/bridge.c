@@ -50,6 +50,7 @@ EMSCRIPTEN_KEEPALIVE int web_select(unsigned instance) {
 #include "options.h"
 #include "gb-link.h"
 #include "save-watch.h"
+#include "logging.h"
 
 EMSCRIPTEN_KEEPALIVE void web_close(void) {
   web_gb_link_stop();
@@ -66,12 +67,14 @@ EMSCRIPTEN_KEEPALIVE void web_close(void) {
   webSaveWatches[webSelected] = (struct WebSaveWatch){0};
 }
 
-EMSCRIPTEN_KEEPALIVE int web_load(const void* data, size_t size) {
-  if (!data || !size || size > 64 * 1024 * 1024) return 0;
+/* Consumes a malloc-owned input on success AND failure. VFileFromMemory does
+ * not own its backing allocation; web_close releases it after core deinit.
+ * Browser callers can transfer their input instead of retaining two ROMs. */
+EMSCRIPTEN_KEEPALIVE int web_load_owned(void* data, size_t size) {
+  if (!data || !size || size > 64 * 1024 * 1024) { free(data); return 0; }
   web_close();
-  rom = malloc(size);
-  if (!rom) return 0;
-  memcpy(rom, data, size);
+  web_log_init();
+  rom = data;
   struct VFile* vf = VFileFromMemory(rom, size);
   if (!vf) { web_close(); return 0; }
   core = mCoreFindVF(vf);
@@ -92,6 +95,18 @@ EMSCRIPTEN_KEEPALIVE int web_load(const void* data, size_t size) {
   web_save_watch_init();
   core->currentVideoSize(core, &width, &height);
   return 1;
+}
+/* The pre-load capability belongs to this compiled GBA core. It lets the
+ * browser correct a verified temporary GBA probe before ownership transfer. */
+EMSCRIPTEN_KEEPALIVE size_t web_gba_save_capacity(void) { return WEB_GBA_SAVE_LIMIT; }
+/* Retain the copying ABI for existing callers and saved tooling. */
+EMSCRIPTEN_KEEPALIVE int web_load(const void* data, size_t size) {
+  if (!data || !size || size > 64 * 1024 * 1024) return 0;
+  web_close();
+  void* copy = malloc(size);
+  if (!copy) return 0;
+  memcpy(copy, data, size);
+  return web_load_owned(copy, size);
 }
 EMSCRIPTEN_KEEPALIVE unsigned web_width(void) { return width; }
 EMSCRIPTEN_KEEPALIVE unsigned web_height(void) { return height; }

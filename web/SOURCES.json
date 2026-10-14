@@ -69,6 +69,19 @@
       "localBridge": "sources/mgba-web-port/save-watch.h",
       "license": "MPL-2.0",
       "changes": "Lightweight per-core dirty/quiet counters around the pinned native savedata callbacks; no frame-by-frame copy, filesystem or network I/O. Import/reset/state restore reset the observer baseline. Native source archive, battery/state layouts and compatibility identifiers remain unchanged. Both independent rebuild outputs match; see sources/build-evidence.json saveCompletionBuild."
+    },
+    "loggingPolicy": {
+      "modified": "2026-10-14",
+      "reference": "https://github.com/pm-start/mgba-celio-web/blob/23235bc6db1b67009808c0dc7e1f25131eb75e7a/web/bridge.c",
+      "localBridge": "sources/mgba-web-port/logging.h",
+      "license": "MPL-2.0",
+      "changes": "Native trace suppression before formatting/JS output; eight engine warnings/errors per load and all fatal messages retained. Save/state ABI and source archive unchanged. Two independent rebuilds match; see loggingBuild in build-evidence.json."
+    },
+    "romOwnership": {
+      "modified": "2026-10-15",
+      "license": "MPL-2.0",
+      "localBridge": "sources/mgba-web-port/bridge.c",
+      "changes": "Transfer temporary ROM allocation once; consume on success and failure. Expose compiled GBA save capacity before structural compatibility correction. Preserve copying ABI, stored original, battery/state layouts and link drivers. Two independent builds match."
     }
   },
   "otherCores": {
@@ -173,8 +186,8 @@
     "cores/md/core.wasm": "3877035cbe389b9738a3f617aaeda1e63010d5aff37e2a0e8dced5e24486f091",
     "cores/melonds/core.js": "25719a5678ec20664f81d8b2f10109a1f35db3db04dc79cbc8b25e56e961a3e4",
     "cores/melonds/core.wasm": "6a3ec8e00334c4474a9c2ce0f86ffe2e8ecb737e5cb11dfcf2a2348edcfdf6de",
-    "cores/mgba/mgba.js": "bdb9009bfbf98e3eebf81ccfafcc38a89422bb0209768df63e88d571c570b995",
-    "cores/mgba/mgba.wasm": "2e5a366b1ccb1cae4962882cd8c7fb5c08a5da3b706377bd6936b518969d9604",
+    "cores/mgba/mgba.js": "fe8c6838117e05c709b74a34348d5816a840ea84f1ff0315ce852bd03836fccd",
+    "cores/mgba/mgba.wasm": "0aa6e2708659e40f83bb430a39e1b6350ca39b2d05eb312a7559b89f4198ca35",
     "cores/nds/core.js": "1f60f3ad71bc94f18276d7c27532689433644f782150519f1bd2343596b8e912",
     "cores/nds/core.wasm": "53c3512e603df8581cee396ae9d8a7848541c3d4c3c3c5a7ab6f064178434160",
     "cores/nes/core.js": "cd3799a369fa1b87d6fd085cd8eaecac8289dc4305ec259b21715a60c5f66f67",
@@ -221,7 +234,7 @@
     "sources/alternate-web/battery.cpp": "52f9f71d55b34510b9de832dc1c70ccdb471eb73c2077d3c435ef1ac3cdd5982",
     "sources/alternate-web/gba-bridge.c": "a848d45253a7125d6cb645951abde1bd3f91884ae2c8dc7a900182ab285ef785",
     "sources/alternate-web/nds-bridge.c": "5f7b33b7a5775748e821b9923d1e2c1c02ede6fe321bd04441324bf8ff446e17",
-    "sources/build-evidence.json": "bf17820298440867d8a130cb3ef0648b6c30d46da3588606051af152e6b07a79",
+    "sources/build-evidence.json": "6ee4c2ede96d64b5b53e459a2bec8d0ec3844a2dca0ef6339e3a9e3a3f0ad4c3",
     "sources/celio-device-source.tar.gz": "0c0a5e7e2b2ae0626fd011571e73cf4084f01172889e28a17b2f031ff3ded907",
     "sources/celio-server-source.tar.gz": "3297aebba1cce33c696f6e472fb41b437ae0181c329c9fe7f1f44ef9837278e6",
     "sources/celio-web-transport/celio-serial.js": "2562ad97ccde5abbb7a9562d2b62b6e6560ab49084fbe7a4061c0855a119c8ac",
@@ -266,9 +279,9 @@
     "sources/manicemu-ui/SkinSettingsView.swift": "7a66934a6309cfe69bafde672433e1a1080b4308ecc786a7f731884ad2e9e7a7",
     "sources/mgba-celio-rom64-source.tar.gz": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16",
     "sources/mgba-celio-web-source.tar.gz": "7d40fa0d7134ee877a1724de940b59957768fe05cf73c7e9c41b7d4079f566ba",
-    "sources/mgba-web-port/BUILD.md": "53885b1b2c94617a260529907d413b6861196d9769929f6a556c6f61eb6e019b",
+    "sources/mgba-web-port/BUILD.md": "20025bd782fc0f9813b4efeca34e28f39988de02b1774a1cad6b702952ea46a9",
     "sources/mgba-web-port/CMakeLists.txt": "43b4e296249f68ed7f4b69176afd59ae1693a109f0c66db91ae5ecd9d0f3fee2",
-    "sources/mgba-web-port/bridge.c": "9c035c489357a93017492ff98f9fd27ad6c781fc286b56d744c6cff58ee42112",
+    "sources/mgba-web-port/bridge.c": "8d8ec85664d28978cbedd1c9ea5c3e1b9072ddaf13259b1b909dfd5dea23f07c",
     "sources/mgba-web-port/link.h": "afd65148934ff4ed99bb6a45df8400f967d0af02fcc1987de38fd8c86e4ee629",
     "sources/nds-build-evidence.json": "827935658af47236db6d213519bc706f3f76d2b9ce83ee7844c660f6d275535c",
     "sources/nds-web/BUILD.md": "da4168052c8acad5d703a7db9e1196af7a2869106c609f13a655b19d8a5cfb40",
@@ -312,7 +325,8 @@
     "vendor/start-save-migrate/component.json": "39496a231713dc937aabeb5947cf282229f79b1e63543d612bba4a41dbd3aed6",
     "vendor/start-save-migrate/README.md": "46e66d04c66925eff9b309af2be3dab37e16387f0c7b45de1ce35ea992dae996",
     "vendor/start-save-migrate/engine.js": "1c2bed4c9f0bd8cf94e009c1cdc32096f6428bb669d6cb7a5486d35d15924620",
-    "vendor/start-save-migrate/manifest.js": "8c275eb48192f22a3efa779c7ff62d8d54ebb9f267627cd0abde7f40296bb96c"
+    "vendor/start-save-migrate/manifest.js": "8c275eb48192f22a3efa779c7ff62d8d54ebb9f267627cd0abde7f40296bb96c",
+    "sources/mgba-web-port/logging.h": "c6e0252250b07ae5f898e8921dfd2b142f53dcc67f652b930868282d8ee88da3"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",

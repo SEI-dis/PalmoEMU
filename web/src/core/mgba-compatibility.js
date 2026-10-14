@@ -9,9 +9,20 @@ export async function loadCompatibleMGBA(m,bytes){
   // Checking and loading this same copy also avoids trusting a stale library ID.
   const p=m._malloc(bytes.length);
   if(!p)throw new Error(tr('メモリを確保できませんでした。'));
+  let transferred=false;
   try{
     m.HEAPU8.set(bytes,p);
     const correction=findExtendedSaveProbe(m.HEAPU8.subarray(p,p+bytes.length));
+    // New bridges consume the temporary allocation on success AND failure.
+    // Query the compiled capability first: there is no second ROM copy/load.
+    if(typeof m._web_load_owned==='function'&&typeof m._web_gba_save_capacity==='function'){
+      const limit=correction?m._web_gba_save_capacity():0;
+      const apply=!!correction&&Number.isFinite(limit)&&limit>=correction.requiredSaveBytes;
+      if(apply)m.HEAPU8[p+correction.offset]=1;
+      transferred=true;
+      if(!m._web_load_owned(p,bytes.length))throw new Error(tr('このROMを読み込めませんでした。形式を確認してください。'));
+      return apply?'expanded-save-detection':null;
+    }
     const load=()=>{if(!m._web_load(p,bytes.length))throw new Error(tr('このROMを読み込めませんでした。形式を確認してください。'));};
     load();
     // Query the loaded core before altering even its temporary ROM. No emulated
@@ -25,5 +36,5 @@ export async function loadCompatibleMGBA(m,bytes){
     m.HEAPU8[p+correction.offset]=1;
     load();
     return 'expanded-save-detection';
-  }finally{m._free(p);}
+  }finally{if(!transferred)m._free(p);}
 }

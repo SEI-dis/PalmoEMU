@@ -798,3 +798,24 @@ It uses the pinned core's dirty flags and quiet-frame callbacks; the full source
 archive, save/state formats and IDs are unchanged. Both native outputs match
 independent builds. Modified bridge source, build instructions and hashes are
 distributed in sources/mgba-web-port, SOURCES.json and build-evidence.json.
+
+## 0.3.30: native logging, ROM ownership and cartridge CPU defaults (2026-10-15)
+
+Modified MPL-2.0 bridge: `sources/mgba-web-port/logging.h` follows the native
+quiet-logger approach in liru55 and contributors' `pm-start/mgba-celio-web`
+commit `23235bc6db1b67009808c0dc7e1f25131eb75e7a`, retaining bounded engine
+warnings/errors and fatal messages. Both independent rebuilds match; source,
+instructions and hashes are distributed. The native source archive is unchanged.
+
+Original AGPL browser changes add automatic CPU selection by the extended
+cartridge hardware signature, using the Celio fork's default of 2 for that
+cartridge and 1 for ordinary games. Explicit settings and link restrictions
+are retained. No ROM content, game source, user saves or new assets are included.
+
+The modified MPL-2.0 bridge also accepts ownership of a temporary ROM allocation,
+avoiding a second full copy. The original copying export remains available.
+The compiled GBA save capacity is queried before the existing structurally
+verified temporary correction, without changing the stored ROM or save identity.
+Original AGPL adapter cleanup releases module references after exit and rejects
+late initialization after cancellation. Save/state layouts and link drivers are
+unchanged. These changes add no dependency, permission or network endpoint.
