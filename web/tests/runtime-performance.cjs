@@ -9,7 +9,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');
   const result=await page.evaluate(async rom=>{
-   const {MGBACore}=await import('./src/mgba.js'),{VideoOutput}=await import('./src/video.js');
+   const {MGBACore}=await import('./src/core/mgba.js'),{VideoOutput}=await import('./src/rendering/video.js');
    const check=(value,label)=>{if(!value)throw new Error(label);};
    const canvas=document.createElement('canvas'),core=new MGBACore(canvas);
    await core.load(new Uint8Array(rom));core.pause(true);

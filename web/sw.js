@@ -2,7 +2,7 @@
 // Message keys are localized by the requesting page.
 const tr=source=>source;
 importScripts('./offline-manifest.js');
-importScripts('./src/auto-update-worker.js');
+importScripts('./src/updates/auto-update-worker.js');
 const base=new URL('./',self.location.href),prefix='manic-web:'+base.pathname+':',cacheName=prefix+APP_OFFLINE.version;
 const autoUpdate=automaticUpdateCoordinator(base);
 const urls=APP_OFFLINE.files.map(f=>new URL(f,base).href),allowed=new Set(urls);

@@ -3,7 +3,7 @@
 // Modified 2026-10-13: bounded simulated blowing and boot-time firmware language.
 import {tr} from '../i18n/index.js';
 import {languages} from '../i18n/languages.js';
-import {nativeSelect} from '../manic-ui.js';
+import {nativeSelect} from '../components/manic-ui.js';
 export function showNDSOptions({sheet,closeSheet,engine,settings,applySettings,toast}){
  const choices=[['default',tr('コアの初期設定')],...['ja','en','fr','de','it','es'].map(code=>[code,code==='it'?'Italiano':languages.find(item=>item.code===code).name])];
  const unavailable=!!engine&&(!engine.canBlow||!engine.supportsNDSLanguage||!engine.canSetLid);

@@ -9,7 +9,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',pw=require('./browser-runtime.
   p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(12000);await p.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');
   // Verify geometry against independent coordinates, including unequal button sizes.
   const geometry=await p.evaluate(async()=>{
-   const {snapPosition,alignedPosition}=await import('./src/control-alignment.js'),{normalizedPosition}=await import('./src/control-layout.js');
+   const {snapPosition,alignedPosition}=await import('./src/skins/control-alignment.js'),{normalizedPosition}=await import('./src/skins/control-layout.js');
    const item={id:'a',frame:{x:20,y:20,width:40,height:40}},other={id:'b',frame:{x:80,y:140,width:40,height:40}},map={width:400,height:600};
    const items=[item,other,{id:'screen',screen:true,frame:{x:181,y:223,width:40,height:40}}];
    return {center:snapPosition(item,items,map,{x:183,y:227}),mirror:snapPosition(item,items,map,{x:279,y:144}),edge:snapPosition(item,items,map,{x:-30,y:999}),aligned:alignedPosition({...item,frame:{...item.frame,width:60,height:20}},other,map,'mirror'),nearlyFull:normalizedPosition({width:399.5,height:600},map,.25,0)};
@@ -73,7 +73,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',pw=require('./browser-runtime.
   });assert.ok(preview.hit&&preview.opacity==='0.45','Preview paints translucent button above the screen: '+JSON.stringify(preview));
   await p.getByRole('button',{name:'プレビューを閉じる',exact:true}).click();
   await p.screenshot({path:path.join(dir,kind+'-preview.png')});await close();await p.reload();await open();await p.locator('#edit-reset').click();await p.locator('#edit-cancel').click();assert.deepEqual(await stored(),saved,'Cancel preserves saved overlapped layout');await close();
-  await p.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js'),original=MGBACore.prototype.setKeys;window.keys=[];MGBACore.prototype.setKeys=function(k){keys.push(k);return original.call(this,k);};});
+  await p.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),original=MGBACore.prototype.setKeys;window.keys=[];MGBACore.prototype.setKeys=function(k){keys.push(k);return original.call(this,k);};});
   await p.locator('#rom-input').setInputFiles({name:'Original overlay.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
   for(const [width,height]of [[390,844],[844,390]]){
    await p.setViewportSize({width,height});await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));

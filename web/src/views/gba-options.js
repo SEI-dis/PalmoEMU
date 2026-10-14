@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
-import {nativeSelect,nativeToggle} from '../manic-ui.js';
+import {nativeSelect,nativeToggle} from '../components/manic-ui.js';
 const dateValue=time=>{const d=new Date(time),pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;};
 export function showGBAOptions({sheet,engine,system='gba',settings,applySettings,toast,onClose}){
  const gba=system==='gba',sliders=[['tiltX',tr('左右の傾き')],['tiltY',tr('前後の傾き')],...(gba?[['gyro',tr('回転')]]:[])];

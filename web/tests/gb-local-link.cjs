@@ -12,13 +12,13 @@ const {cartridge}=require('./gb-link-core.cjs');
   await page.addInitScript(()=>localStorage.setItem('palmo-language','ja'));
   page.on('pageerror',error=>errors.push(error.message));await page.goto(base);
   await page.evaluate(async()=>{
-   const {GBLocalLink}=await import('./src/local-link-core.js'),start=GBLocalLink.prototype.start;
+   const {GBLocalLink}=await import('./src/link/local-link-core.js'),start=GBLocalLink.prototype.start;
    GBLocalLink.prototype.start=async function(...args){window.gbLink=this;return start.apply(this,args);};
-   const {SaveProtection}=await import('./src/save-safety.js'),open=SaveProtection.prototype.open;window.gbProtections=[];
+   const {SaveProtection}=await import('./src/storage/save-safety.js'),open=SaveProtection.prototype.open;window.gbProtections=[];
    SaveProtection.prototype.open=async function(...args){const result=await open.apply(this,args);gbProtections.push(this);return result;};
   });
   await page.evaluate(async rom=>{
-   const {MGBACore}=await import('./src/mgba.js'),{LocalLinkCore,GBLocalLink}=await import('./src/local-link-core.js');
+   const {MGBACore}=await import('./src/core/mgba.js'),{LocalLinkCore,GBLocalLink}=await import('./src/link/local-link-core.js');
    const first=new MGBACore(document.createElement('canvas')),second=new MGBACore(document.createElement('canvas'));
    await first.load(new Uint8Array(rom));first.pause(true);await second.load(new Uint8Array(rom),{sharedCore:first});second.pause(true);
    [first,second].forEach((core,i)=>{const save=new Uint8Array(8192);save[0]=i===0?1:0;save[1]=i===0?0x31:0xa7;core.restore(save);});
@@ -31,7 +31,7 @@ const {cartridge}=require('./gb-link-core.cjs');
   await page.locator('#rom-input').setInputFiles({name:'Authored local cable.'+(color?'gbc':'gb'),mimeType:'application/octet-stream',buffer:Buffer.from(cartridge({color,idle:true}))});
   await page.locator('.game-launch').waitFor();
   await page.evaluate(async()=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),game=(await db.all('library'))[0];
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),game=(await db.all('library'))[0];
    window.gbGameId=game.id;
    for(const [suffix,byte]of [['',0x21],['@link-2p',0x42]]){const bytes=new Uint8Array(8192);bytes[0]=byte;await db.put('saves',game.id+suffix,{bytes,hash:await hash(bytes),at:Date.now(),coreId:'mgba-rom64-save6-v2'});}
    await db.setGamePreferences(game.id,{rtcMode:'offset',rtcOffset:3600,gameRumble:false});
@@ -50,24 +50,24 @@ const {cartridge}=require('./gb-link-core.cjs');
   await page.locator('#link-complete').click();
   await page.evaluate(()=>gbLink.paired.cores.forEach((core,i)=>{const bytes=core.save();bytes[0]=0x81+i;core.restore(bytes);}));
   await page.locator('#link-confirm-complete').click();await page.waitForFunction(()=>document.querySelector('#player-link').dataset.state==='idle');
-  const values=()=>page.evaluate(async()=>{const db=await import('./src/storage.js');return Promise.all(['','@link-2p'].map(async suffix=>(await db.get('saves',gbGameId+suffix)).bytes[0]));});
+  const values=()=>page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return Promise.all(['','@link-2p'].map(async suffix=>(await db.get('saves',gbGameId+suffix)).bytes[0]));});
   assert.deepEqual(await values(),[0x81,0x82],'Both separate save owners commit together');
-  const secondBefore=await page.evaluate(async()=>{const db=await import('./src/storage.js');return {save:await db.get('saves',gbGameId+'@link-2p'),recovery:await db.get('recoveries',gbGameId+'@link-2p')};});
+  const secondBefore=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return {save:await db.get('saves',gbGameId+'@link-2p'),recovery:await db.get('recoveries',gbGameId+'@link-2p')};});
   await page.locator('#link-2p-source').selectOption('blank');await page.locator('#link-local-start').click();await page.waitForFunction(()=>window.gbLink?.connected);
   assert.equal(await page.evaluate(()=>gbLink.paired.cores[1].save()[0]),0xff,'Blank 2P starts with erased RAM, independently of 1P and the prior 2P save');
   await page.locator('#link-stop').click();await page.waitForFunction(()=>document.querySelector('#player-link').dataset.state==='idle');
   assert.deepEqual(await values(),[0x81,0x82],'Cancellation rolls back 1P and retains the existing 2P save');
-  const secondAfter=await page.evaluate(async()=>{const db=await import('./src/storage.js');return {save:await db.get('saves',gbGameId+'@link-2p'),recovery:await db.get('recoveries',gbGameId+'@link-2p')};});
+  const secondAfter=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return {save:await db.get('saves',gbGameId+'@link-2p'),recovery:await db.get('recoveries',gbGameId+'@link-2p')};});
   assert.deepEqual(secondAfter,secondBefore);
   await page.locator('#link-2p-source').selectOption('saved');await page.locator('#link-local-start').click();await page.waitForFunction(()=>window.gbLink?.connected);
   await page.locator('#link-complete').click();
-  const durable=await page.evaluate(async()=>{const db=await import('./src/storage.js'),result={};for(const store of ['saves','backups','archives','recoveries'])result[store]=await Promise.all(['','@link-2p'].map(suffix=>db.get(store,gbGameId+suffix)));return result;});
+  const durable=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),result={};for(const store of ['saves','backups','archives','recoveries'])result[store]=await Promise.all(['','@link-2p'].map(suffix=>db.get(store,gbGameId+suffix)));return result;});
   await page.evaluate(()=>{
    gbLink.paired.cores.forEach((core,i)=>{const bytes=core.save();bytes[0]=0xe1+i;core.restore(bytes);});
    gbProtections.at(-1).id='authored-invalid-second-session';
   });
   await page.locator('#link-confirm-complete').click();await page.locator('#player').waitFor({state:'hidden'});
-  const retained=await page.evaluate(async()=>{const db=await import('./src/storage.js'),result={};for(const store of ['saves','backups','archives','recoveries'])result[store]=await Promise.all(['','@link-2p'].map(suffix=>db.get(store,gbGameId+suffix)));return result;});
+  const retained=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),result={};for(const store of ['saves','backups','archives','recoveries'])result[store]=await Promise.all(['','@link-2p'].map(suffix=>db.get(store,gbGameId+suffix)));return result;});
   assert.deepEqual(retained,durable,'Losing either save session aborts both saves and every retained generation');
   assert.deepEqual(errors,[]);await ctx.close();
  }

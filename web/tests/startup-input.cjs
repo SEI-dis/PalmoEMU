@@ -46,7 +46,7 @@ function slowStartup({bytes,failSettings=false}){
     try{
      await seed.goto(base);await seed.locator('#add-first').waitFor();
      await seed.evaluate(async version=>{
-      const db=await import('./src/storage.js');localStorage.setItem('manic-settings',JSON.stringify({theme:'dark',speed:1,volume:.7,filter:'pixel'}));
+      const db=await import('./src/storage/storage.js');localStorage.setItem('manic-settings',JSON.stringify({theme:'dark',speed:1,volume:.7,filter:'pixel'}));
       localStorage.setItem('palmo-release-seen:'+new URL('.',location.href).pathname,version);
       await db.put('coverCatalogs',db.backupMetadataPrefix+'pending',{settings:{theme:'light',speed:4,volume:.3,filter:'smooth',autosave:false,recovery:false}});
      },require('../package.json').version);
@@ -63,17 +63,17 @@ function slowStartup({bytes,failSettings=false}){
    if(scenario==='failed'){
     await page.getByRole('button',{name:'再読み込みして復元を完了',exact:true}).waitFor();
     await page.locator('[data-tab=games]').click();await page.waitForTimeout(100);
-    const status=await page.evaluate(async()=>{const db=await import('./src/storage.js');return {games:(await db.all('library')).length,pending:await db.has('coverCatalogs',db.backupMetadataPrefix+'pending'),settings:JSON.parse(localStorage.getItem('manic-settings'))};});
+    const status=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return {games:(await db.all('library')).length,pending:await db.has('coverCatalogs',db.backupMetadataPrefix+'pending'),settings:JSON.parse(localStorage.getItem('manic-settings'))};});
     assert.equal(status.games,0,'A failed settings recovery cannot replay queued ROM imports');assert.equal(status.pending,true,'Failed recovery retains its journal');assert.equal(status.settings.theme,'dark');assert.equal(await page.locator('#player').isVisible(),false);assert.equal(await page.locator('#sheet').isVisible(),false);assert.deepEqual(coreRequests,[],'Recovery failure cannot start a core');assert.ok(errors.length>0&&errors.every(message=>/設定を保存できません/.test(message)),JSON.stringify(errors));
    }else{
     await page.locator('.settings-page').waitFor();assert.equal(new URL(page.url()).hash,'#settings','A tab chosen after a queued import is applied last');
     assert.equal(await page.locator('[data-tab=settings]').getAttribute('aria-current'),'page');
-    const games=await page.evaluate(async()=>{const db=await import('./src/storage.js');return (await db.all('library')).map(g=>({name:g.name,size:g.size}));});assert.deepEqual(games,[{name:'Early startup',size:cartridge.length}]);
+    const games=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return (await db.all('library')).map(g=>({name:g.name,size:g.size}));});assert.deepEqual(games,[{name:'Early startup',size:cartridge.length}]);
     await page.locator('[data-action=audio]').click();assert.equal(await page.locator('[data-setting=speed]').inputValue(),scenario==='pending'?'4':'1');assert.equal(Number(await page.locator('[data-setting=volume]').inputValue()),scenario==='pending'?.3:.7);await page.locator('#close-sheet').click();
     if(scenario==='pending'){
      assert.equal(await page.locator('html').getAttribute('data-theme'),'light');
-     assert.equal(await page.evaluate(async()=>{const db=await import('./src/storage.js');return db.has('coverCatalogs',db.backupMetadataPrefix+'pending');}),false,'Successful recovery consumes the journal');
-     await page.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js'),speed=MGBACore.prototype.setSpeed;MGBACore.prototype.setSpeed=function(value){window.startupEngine=this;return speed.call(this,value);};});
+     assert.equal(await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return db.has('coverCatalogs',db.backupMetadataPrefix+'pending');}),false,'Successful recovery consumes the journal');
+     await page.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),speed=MGBACore.prototype.setSpeed;MGBACore.prototype.setSpeed=function(value){window.startupEngine=this;return speed.call(this,value);};});
      await page.locator('[data-tab=games]').click();await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
      assert.deepEqual(await page.evaluate(()=>({speed:startupEngine.speed,volume:startupEngine.volume,filter:startupEngine.video.mode})),{speed:4,volume:.3,filter:'smooth'},'The running core receives recovered settings, not stale defaults');
     }

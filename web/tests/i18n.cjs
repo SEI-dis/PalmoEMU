@@ -34,12 +34,12 @@ const japanese=/[ぁ-んァ-ヶ一-龯]/;
    await page.locator(`#content [data-action=${action}]`).click();await page.locator('#sheet[open]').waitFor();await clean(action);
    await page.locator('#close-sheet').click();await page.locator('#sheet').waitFor({state:'hidden'});
   }
-  await page.evaluate(async()=>{const db=await import('./src/storage.js');await db.addGame({id:'language-canary',name:'保存',system:'gba',size:4,added:1},new Uint8Array([1,2,3,4]));await db.put('saves','language-canary',{bytes:new Uint8Array([8,9])});});
+  await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');await db.addGame({id:'language-canary',name:'保存',system:'gba',size:4,added:1},new Uint8Array([1,2,3,4]));await db.put('saves','language-canary',{bytes:new Uint8Array([8,9])});});
   await page.locator('#app-language').selectOption('ja');await page.waitForFunction(()=>document.documentElement.lang==='ja');await page.locator('#app-language').waitFor();
   assert.equal(await page.locator('h1').textContent(),'設定');assert.equal(await page.locator('#app-language').inputValue(),'ja');
   await page.reload();await page.locator('#app-language').waitFor();assert.equal(await page.locator('html').getAttribute('lang'),'ja','Explicit choice persists');
   await page.locator('#app-language').selectOption('en');await page.waitForFunction(()=>document.documentElement.lang==='en');await page.locator('#app-language').waitFor();
-  const saved=await page.evaluate(async()=>{const db=await import('./src/storage.js');return {name:(await db.get('library','language-canary')).name,rom:[...await db.get('roms','language-canary')],save:[...(await db.get('saves','language-canary')).bytes]};});
+  const saved=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return {name:(await db.get('library','language-canary')).name,rom:[...await db.get('roms','language-canary')],save:[...(await db.get('saves','language-canary')).bytes]};});
   assert.deepEqual(saved,{name:'保存',rom:[1,2,3,4],save:[8,9]},'Language changes preserve user data');
   await page.locator('[data-tab=games]').click();await page.locator('[data-game=language-canary]').click();await clean('game menu');await page.locator('#close-sheet').click();
   await page.locator('#rom-input').setInputFiles({name:'English-test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});
@@ -71,9 +71,9 @@ const japanese=/[ぁ-んァ-ヶ一-龯]/;
     await p.locator('#app-language').selectOption('en');await p.waitForFunction(()=>document.documentElement.lang==='en');await p.locator('#app-language').waitFor();
     // Force a local file read abort inside an isolated worker, exercising the
     // explicit override when the browser's own language is still Japanese.
-    await p.route('**/src/rom-import-worker.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:'const NativeReader=self.FileReader;self.FileReader=class extends NativeReader{readAsArrayBuffer(file){super.readAsArrayBuffer(file);this.abort();}};\n'+await response.text()});});
-    assert.equal(await p.evaluate(async()=>{const {importROM}=await import('./src/rom-import.js');try{await importROM(new File([new Uint8Array(4)],'local.gb'),'gb');return 'unexpected success';}catch(e){return e.message;}}),'File reading was interrupted.');
-    await p.unroute('**/src/rom-import-worker.js');
+    await p.route('**/src/library/rom-import-worker.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:'const NativeReader=self.FileReader;self.FileReader=class extends NativeReader{readAsArrayBuffer(file){super.readAsArrayBuffer(file);this.abort();}};\n'+await response.text()});});
+    assert.equal(await p.evaluate(async()=>{const {importROM}=await import('./src/library/rom-import.js');try{await importROM(new File([new Uint8Array(4)],'local.gb'),'gb');return 'unexpected success';}catch(e){return e.message;}}),'File reading was interrupted.');
+    await p.unroute('**/src/library/rom-import-worker.js');
     await p.locator('#app-language').selectOption('auto');await p.waitForFunction(()=>document.documentElement.lang==='ja');
    }
    await c.close();

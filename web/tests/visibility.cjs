@@ -22,7 +22,7 @@ for(const [ext,bytes] of [['gba',cartridge(31,992)],['nes',nes()]]){
  // Hold the next real startup at save-session acquisition, after the player
  // becomes visible. Observe every DOM transition, not just the final frame.
  await page.evaluate(async()=>{
-  const {SaveProtection}=await import('./src/save-safety.js'),open=SaveProtection.prototype.open;
+  const {SaveProtection}=await import('./src/storage/save-safety.js'),open=SaveProtection.prototype.open;
   window.relaunchHeld=false;window.stalePauseSeen=false;
   const check=()=>{if(!document.querySelector('#player').hidden&&!document.querySelector('#loading').hidden&&!document.querySelector('#resume-game').hidden)stalePauseSeen=true;};
   window.relaunchObserver=new MutationObserver(check);relaunchObserver.observe(document.querySelector('#player'),{subtree:true,attributes:true,attributeFilter:['hidden']});

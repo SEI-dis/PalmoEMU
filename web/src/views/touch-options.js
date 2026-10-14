@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
 import {row} from '../components/rows.js';
-import {touchInputDefaults} from '../dpad-input.js';
+import {touchInputDefaults} from '../input/dpad-input.js';
 export function touchOptionsMarkup(settings){
  const value=key=>settings[key]??touchInputDefaults[key];
  const select=(key,choices)=>`<select data-touch-option="${key}">${choices.map(([id,label])=>`<option value="${id}" ${value(key)===id?'selected':''}>${label}</option>`).join('')}</select>`;

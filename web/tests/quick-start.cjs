@@ -12,7 +12,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   const ready=()=>page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy')&&localStorage.getItem('manic-settings')!==null);
   const close=async()=>{await page.locator('#close-sheet').click();await page.locator('#sheet').waitFor({state:'hidden'});};
   const observeCore=()=>page.evaluate(async()=>{
-   const {MGBACore}=await import('./src/mgba.js'),original=MGBACore.prototype.load;
+   const {MGBACore}=await import('./src/core/mgba.js'),original=MGBACore.prototype.load;
    window.quickStartLoads=0;window.quickStartFrames=0;window.quickStartCore=null;
    MGBACore.prototype.load=async function(...args){
     quickStartLoads++;const result=await original.apply(this,args);window.quickStartCore=this;
@@ -25,7 +25,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await page.locator('#rom-input').setInputFiles({name:'Quick start fixture.gb',mimeType:'application/octet-stream',buffer:rom});
   await page.locator('.game-launch').waitFor();
   const fixture=await page.evaluate(async()=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),[game]=await db.all('library'),rom=await db.get('roms',game.id);
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),[game]=await db.all('library'),rom=await db.get('roms',game.id);
    const missing={id:'quick-start-missing',name:'Missing ROM fixture',system:'gb',size:rom.length};
    await db.addGame(missing,rom);await db.put('saves',missing.id,{bytes:new Uint8Array([9,4,2]),at:7});await db.detachROM(missing.id);
    return {id:game.id,name:game.name,romHash:await hash(rom)};
@@ -76,7 +76,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await page.locator('[data-tab=games]').click();await game().waitFor();await observeCore();
   assert.equal(await game().getAttribute('aria-haspopup'),'dialog');await game().focus();await page.keyboard.press('Enter');await page.locator('#sheet.game-info').waitFor();
   assert.equal(await page.evaluate(()=>quickStartLoads),0,'Disabling restores details, including keyboard activation');await close();
-  const preserved=await page.evaluate(async id=>{const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js');return {romHash:await hash(await db.get('roms',id)),missingSave:[...(await db.get('saves','quick-start-missing')).bytes],missingROM:await db.has('roms','quick-start-missing'),perGame:(await db.get('library',id)).preferences?.quickStart};},fixture.id);
+  const preserved=await page.evaluate(async id=>{const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js');return {romHash:await hash(await db.get('roms',id)),missingSave:[...(await db.get('saves','quick-start-missing')).bytes],missingROM:await db.has('roms','quick-start-missing'),perGame:(await db.get('library',id)).preferences?.quickStart};},fixture.id);
   assert.deepEqual(preserved,{romHash:fixture.romHash,missingSave:[9,4,2],missingROM:false,perGame:undefined});
   assert.deepEqual(errors,[]);assert.ok(traffic.every(r=>r.method()==='GET'&&!r.postData()&&new URL(r.url()).origin===new URL(base).origin));
   await context.close();console.log(`PASS ${kind}: quick start defaults off, persisted on/off, real GB core launch, details ellipsis, missing-ROM reattach, selection/keyboard semantics, matching ARIA and unchanged ROM/save canary; zero uploads.`);

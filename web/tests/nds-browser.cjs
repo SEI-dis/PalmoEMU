@@ -29,9 +29,9 @@ const playwright=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGIN
   const chooser=page.waitForEvent('filechooser');await page.locator('[data-details]').click();await page.locator('[data-action=importSave]').click();await (await chooser).setFiles({name:'original.dsv',mimeType:'application/octet-stream',buffer:dsv});await page.getByText('セーブデータをインポートしました。',{exact:true}).waitFor();
   await page.locator('[data-action=play]').click();await page.locator('#loading').waitFor({state:'hidden'});await color('.nds-top',255,0,0);
   await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
-  const saved=await page.evaluate(async()=>{const db=await import('./src/storage.js'),[g]=await db.all('library');return [...(await db.get('saves',g.id)).bytes];});assert.deepEqual(saved,Array(8192).fill(0x36));
+  const saved=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),[g]=await db.all('library');return [...(await db.get('saves',g.id)).bytes];});assert.deepEqual(saved,Array(8192).fill(0x36));
   const preview=await page.evaluate(async()=>{
-   const {NDSCore}=await import('./src/nds.js'),core=new NDSCore(document.createElement('div')),image=document.createElement('canvas');image.width=256;image.height=384;
+   const {NDSCore}=await import('./src/core/nds.js'),core=new NDSCore(document.createElement('div')),image=document.createElement('canvas');image.width=256;image.height=384;
    const ctx=image.getContext('2d');ctx.fillStyle='#f00';ctx.fillRect(0,0,256,192);ctx.fillStyle='#00f';ctx.fillRect(0,192,256,192);
    await core.restorePreview(image.toDataURL());core.setFilter('edge4x');core.setFilter('pixel');const colors=core.screens.map(c=>[...c.getContext('2d').getImageData(0,0,1,1).data]);core.close();return colors;
   });assert.deepEqual(preview,[[255,0,0,255],[0,0,255,255]],'Paused filter changes preserve separate screen snapshots');

@@ -8,11 +8,11 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   const ctx=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,serviceWorkers:'block'}),p=await ctx.newPage(),errors=[];
   p.on('pageerror',e=>errors.push(e.message));
   await p.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');
-  const instrument=()=>p.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js'),original=MGBACore.prototype.setSpeed;MGBACore.prototype.setSpeed=function(v){window.testEngine=this;return original.call(this,v);};});await instrument();
+  const instrument=()=>p.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),original=MGBACore.prototype.setSpeed;MGBACore.prototype.setSpeed=function(v){window.testEngine=this;return original.call(this,v);};});await instrument();
   await p.locator('#rom-input').setInputFiles({name:'Original speed test.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});
   const launch=async()=>{await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});};
   await launch();const button=p.locator('#boost');
-  const expect=async speed=>{assert.equal(await button.textContent(),speed+'×');assert.equal(await p.evaluate(()=>testEngine.speed),speed);assert.equal(await p.evaluate(async()=>{const game=(await (await import('./src/storage.js')).all('library'))[0];return game.preferences?.speed??JSON.parse(localStorage.getItem('manic-settings')).speed;}),speed);assert.equal(await button.getAttribute('aria-label'),`速度 ${speed}倍。押すと${speed%5+1}倍`);};
+  const expect=async speed=>{assert.equal(await button.textContent(),speed+'×');assert.equal(await p.evaluate(()=>testEngine.speed),speed);assert.equal(await p.evaluate(async()=>{const game=(await (await import('./src/storage/storage.js')).all('library'))[0];return game.preferences?.speed??JSON.parse(localStorage.getItem('manic-settings')).speed;}),speed);assert.equal(await button.getAttribute('aria-label'),`速度 ${speed}倍。押すと${speed%5+1}倍`);};
   await expect(1);for(const speed of [2,3,4,5,1]){await button.tap();await expect(speed);}
   const r=await button.boundingBox();await p.mouse.move(r.x+r.width/2,r.y+r.height/2);await p.mouse.down();await p.waitForTimeout(650);await expect(1);await p.mouse.up();await expect(2);
   await p.keyboard.down('Tab');await expect(3);await p.keyboard.down('Tab');await expect(3);await p.keyboard.up('Tab');await expect(3);

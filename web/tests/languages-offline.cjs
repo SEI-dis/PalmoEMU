@@ -16,7 +16,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium';
   await page.goto(base+'index.html#settings');await page.locator('#app-language').waitFor();
   await page.evaluate(async()=>{
    await navigator.serviceWorker.ready;
-   const db=await import('./src/storage.js');await db.addGame({id:'language-canary',name:'保存 ⟪0⟫',system:'gba',size:4,added:1},new Uint8Array([1,2,3,4]));await db.put('saves','language-canary',{bytes:new Uint8Array([5,6])});
+   const db=await import('./src/storage/storage.js');await db.addGame({id:'language-canary',name:'保存 ⟪0⟫',system:'gba',size:4,added:1},new Uint8Array([1,2,3,4]));await db.put('saves','language-canary',{bytes:new Uint8Array([5,6])});
   });
   await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller));
   // Real origin outage exercises cached navigation in both engines. Playwright
@@ -31,7 +31,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium';
    const response=await page.reload();assert.equal(response.fromServiceWorker(),true);await page.locator('#app-language').waitFor();
    assert.equal(await page.locator('#app-language').inputValue(),code,'Offline choice persists');
   }
-  assert.deepEqual(await page.evaluate(async()=>{const db=await import('./src/storage.js');return {name:(await db.get('library','language-canary')).name,rom:[...await db.get('roms','language-canary')],save:[...(await db.get('saves','language-canary')).bytes]};}),{name:'保存 ⟪0⟫',rom:[1,2,3,4],save:[5,6]},'All offline language changes preserve data');
+  assert.deepEqual(await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return {name:(await db.get('library','language-canary')).name,rom:[...await db.get('roms','language-canary')],save:[...(await db.get('saves','language-canary')).bytes]};}),{name:'保存 ⟪0⟫',rom:[1,2,3,4],save:[5,6]},'All offline language changes preserve data');
   await Promise.all([page.waitForNavigation({waitUntil:'load'}),page.locator('#app-language').selectOption('es')]);await page.waitForFunction(()=>document.documentElement.lang==='es');
   const response=await page.goto(base+'notices.html');assert.equal(response.fromServiceWorker(),true);await page.waitForFunction(()=>document.documentElement.lang==='es');assert.equal(await page.locator('h1').textContent(),'Novedades');
   await context.close();console.log('PASS: cold navigation and every language switch during origin outage, localized release notes and unchanged user data.');

@@ -19,7 +19,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   assert.doesNotMatch(await documentation.locator('meta[name=viewport]').getAttribute('content'),/user-scalable\s*=\s*(?:no|0)|maximum-scale\s*=/i,'Documentation retains browser zoom');
   await documentation.close();await page.bringToFront();
   await page.evaluate(async()=>{
-   const {MGBACore}=await import('./src/mgba.js'),original=MGBACore.prototype.setKeys;
+   const {MGBACore}=await import('./src/core/mgba.js'),original=MGBACore.prototype.setKeys;
    window.testKeys=0;window.testKeyHistory=[];
    MGBACore.prototype.setKeys=function(keys){testKeys=keys;if(testKeyHistory.at(-1)!==keys)testKeyHistory.push(keys);return original.call(this,keys);};
   });

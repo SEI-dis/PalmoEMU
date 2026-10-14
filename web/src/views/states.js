@@ -2,12 +2,12 @@
    Created by Daiuno. Modified 2026-10-13. See sources/manicemu-ui/README.md. */
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr,locale} from '../i18n/index.js';
-import * as db from '../storage.js';
+import * as db from '../storage/storage.js';
 import {escapeHTML as esc,hash} from '../shared.js';
-import {saveKey,coreFor,compatibleState} from '../core-registry.js';
-import {stateRow} from '../manic-ui.js';
-import {exportState,inspectState,importState} from '../state-transfer.js';
-import {guardUpdateTask} from '../update-activity.js';
+import {saveKey,coreFor,compatibleState} from '../core/core-registry.js';
+import {stateRow} from '../components/manic-ui.js';
+import {exportState,inspectState,importState} from '../storage/state-transfer.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
 export function createStateDialogs(api){
  const {runtime,sheet,closeSheet,setPause,persist,launch,showGameMenu,toast,error,download}=api;
  const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];

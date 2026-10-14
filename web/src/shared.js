@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from './i18n/index.js';
-import {development3DS} from './development.js';
+import {development3DS} from './core/development.js';
 export const systems = {
   ...(development3DS?{'3ds':{name:tr('ニンテンドー3DS（開発版）'),short:'3DS',core:'azahar',ext:['3ds','cci','cxi','3dsx'],color:'#d85569'}}:{}),
   nds:{name:tr('ニンテンドーDS'),short:'NDS',core:'desmume2015',ext:['nds'],color:'#a5adbb'},

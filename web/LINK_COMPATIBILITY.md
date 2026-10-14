@@ -4,7 +4,7 @@
 
 ## 実装
 
-src/room-link.jsは、liru55/mgba-celio-webのMPL-2.0通信コードを移植したものです。
+src/link/room-link.jsは、liru55/mgba-celio-webのMPL-2.0通信コードを移植したものです。
 部屋作成・参加、Engine.IO 4 / Socket.IOイベント、32ワードのシリアルパケット、順序番号・ACK、状態・コマンドを合わせています。
 既存の64MiB対応コアへCelioDeviceを接続し、コアのバイナリやステート形式は変更していません。
 

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Conversion and ROM identification run off the UI thread. This worker never writes.
 import {tr,setWorkerLanguage} from '../i18n/index.js';
-import {sourceSave,readROMUpdateBackup} from '../rom-update.js';
-import {coreFor} from '../core-registry.js';
-import * as db from '../storage.js';
+import {sourceSave,readROMUpdateBackup} from '../library/rom-update.js';
+import {coreFor} from '../core/core-registry.js';
+import * as db from '../storage/storage.js';
 import {identifyStartROM,migrateStartSave,inspectStartUpdate,detectStartSaveVersion} from './migration.js';
 import {startVersionFromName} from './version.js';
 import {START_MIGRATION_VERSION,canApplyStartMigration} from './compatibility.js';

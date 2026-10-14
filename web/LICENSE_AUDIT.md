@@ -31,7 +31,7 @@ UIKitをブラウザ用DOMへ、RealmをIndexedDBへ置き換え、Web版では�
 | --- | --- | --- |
 | 既成WASMと対応ソースが不明確 | FC/SFC/MDを固定バージョンのソースとWeb用のlibretro接続部からビルド。mGBAを含め同梱するソースだけで再ビルドし、JS/WASM全8ファイルのSHA-256一致を確認 | sources/build-evidence.json、各BUILD.md |
 | 非商用コアとGPLコードとの組み合わせ | Snes9xとGenesis Plus GXを配布から除外。SFCはMesen-S、MDはClownMDEmuに置換。EmulatorJS・RetroArchフロントエンドも除外 | SOURCES.json、licenses/、ソースアーカイブ |
-| 本家画像・ロゴ等の権利 | メニュー・設定のAGPLコードは保持し、アプリロゴ・ゲーム機ロゴを配布しない。ManicEMU標準スキンのみ、下記CC BY 4.0の個別確認に従って同梱。標準スキン4色と幾何学アイコンは新規作成。フォントはOS標準のみ | src/skin-art.js、src/skins.js、src/shared.js、assets/、NOTICES.md |
+| 本家画像・ロゴ等の権利 | メニュー・設定のAGPLコードは保持し、アプリロゴ・ゲーム機ロゴを配布しない。ManicEMU標準スキンのみ、下記CC BY 4.0の個別確認に従って同梱。標準スキン4色と幾何学アイコンは新規作成。フォントはOS標準のみ | src/skins/skin-art.js、src/skins/skins.js、src/shared.js、assets/、NOTICES.md |
 | 元ソースに含まれる画像・フォント・テストROM | Webビルドの依存ファイルと必要なビルド定義、ライセンスだけを選別。アーカイブ内部までROM形式・署名・危険パス・未登録変更を検査 | scripts/audit-content.py、RELEASE_CONTENT.json |
 
 ## コア・依存物の扱い

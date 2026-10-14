@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
 import {escapeHTML as esc} from '../shared.js';
-import {guardUpdateTask} from '../update-activity.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
 import {START_SOURCE_VERSIONS} from '../start-save/migration.js';
 import {startSaveTask} from '../start-save/client.js';
 

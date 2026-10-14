@@ -137,10 +137,10 @@
       "commit": "58d463ebe2302e4fc70098760dcfc84ca69329db",
       "license": "MPL-2.0",
       "localSource": "sources/celio-web-transport",
-      "modifiedSource": "src/room-link.js",
+      "modifiedSource": "src/link/room-link.js",
       "additionalModifiedSources": [
-        "src/direct-link.js",
-        "src/celio-serial.js"
+        "src/link/direct-link.js",
+        "src/link/celio-serial.js"
       ]
     },
     "modernSessionReference": {
@@ -148,7 +148,7 @@
       "commit": "8f509bdcf2a8383b936e0f2f31b2f6553ae421ce",
       "license": "GPL-3.0",
       "localSource": "sources/celio-server-modern-source.tar.gz",
-      "use": "Unmodified test-only server source; backward-compatible browser protocol implementation in src/room-link.js. See UPSTREAM_REVIEW.md."
+      "use": "Unmodified test-only server source; backward-compatible browser protocol implementation in src/link/room-link.js. See UPSTREAM_REVIEW.md."
     }
   },
   "toolchain": {
@@ -285,7 +285,7 @@
     "vendor/rom-patcher/RomPatcher.format.ips.js": "aeff473533ef47b490f71dcd9796c1d6539a43e04807c14a1746a6aabfd61c36",
     "vendor/rom-patcher/RomPatcher.format.ups.js": "06de1b1630564d5b0d38b13eca5703316669a9ca21c71c4519a0c48744547ba9",
     "shaders/COPYING.txt": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
-    "shaders/README.md": "dd9e0b26c6f839cdd4a17d4c6d892c20d7b359860ee653fe99a27f8e69b38fdf",
+    "shaders/README.md": "ecac5a3fbac639141da6323aa05fe08fe0f80edb54380d8319f2d80381423f57",
     "shaders/xbrz-pass0.glsl": "bb33262daa8cba06026fe09bab2a29d60b4e89b4b966d6241aaabc9f8c5e640a",
     "shaders/xbrz-pass1.glsl": "8785f14f704a4ce4a644c5e34174eccf75dd58f85023aa9c6efde88956a7f64f",
     "sources/manicemu-ui/ControllersSettingView.swift": "a023ac910113b3fad2a0ffac4d7d37825564973958a15b72572a287a16a62f33",
@@ -294,7 +294,7 @@
     "sources/manicemu-ui/FocusSystem.swift": "6e8e53e50feffaeb99d73da10268c89ac4a7d880b5f5b087de67539d21903768",
     "sources/manicemu-ui/NDSSaveConverter.swift": "ece392b87580d52315ae151b2a82c2ad05b67f72947f0cea43dc095a92b9b48c",
     "sources/manicemu-ui/RomPatcherView.swift": "e4dc81314bb81750baaefe77889963cde10b8bff5107363471ffd9b89fee16b6",
-    "src/pixel-transfer.js": "21d6b6646d1111f48f8ace522154ce0e5768e9c7e2c1a4ad3475fdd015edaa45",
+    "src/rendering/pixel-transfer.js": "21d6b6646d1111f48f8ace522154ce0e5768e9c7e2c1a4ad3475fdd015edaa45",
     "sources/nds-web/lid.cpp": "9f6fff1656520afba496c2b454f7c7819a9dc2120c89781339191e49514b1127",
     "sources/alternate-web/lid.cpp": "fcd916c8c502c6e4da54a41c7ebbc063aeb706bfd6ef8830a79b868fbaa8752c",
     "sources/mgba-web-port/options.h": "c5c975d07444f6073d93a9536f94e7510ca9dced790a84bb49832b8be84f537a",
@@ -363,13 +363,13 @@
     "reviewed": "2026-10-10",
     "implementationLicense": "AGPL-3.0-or-later",
     "implementation": [
-      "src/game-preferences.js",
-      "src/input-controls.js",
+      "src/library/game-preferences.js",
+      "src/input/input-controls.js",
       "src/views/input-controls.js",
-      "src/backup.js",
+      "src/storage/backup.js",
       "src/views/backup.js",
-      "src/rewind.js",
-      "src/rewind-session.js"
+      "src/core/rewind.js",
+      "src/core/rewind-session.js"
     ],
     "changes": "Original browser modules for per-game preferences with shared inheritance/reset; per-system/device mappings and repeat/toggle-hold assistance; local versioned ROM-free settings/save/state backup; RAM-only GB/GBC/GBA rewind. Existing core/artwork pins and corresponding source retained. No new binary, native runtime, cloud SDK or third-party asset.",
     "referenceOnly": true,
@@ -514,7 +514,7 @@
   "browserLibraryOrganization": {
     "license": "AGPL-3.0-or-later",
     "localModules": [
-      "src/library.js",
+      "src/library/library.js",
       "src/views/library.js",
       "library.css"
     ],
@@ -675,7 +675,7 @@
     "repository": "https://github.com/pm-start/mgba-celio-web",
     "commit": "23235bc6db1b67009808c0dc7e1f25131eb75e7a",
     "license": "MPL-2.0",
-    "modifiedSource": "src/gpu-filter.js",
+    "modifiedSource": "src/rendering/gpu-filter.js",
     "shaders": {
       "repository": "https://github.com/libretro/glsl-shaders",
       "commit": "435612fe4f1023117b3aae48c88603fb413404a3",
@@ -688,7 +688,7 @@
     "commit": "23235bc6db1b67009808c0dc7e1f25131eb75e7a",
     "reference": "web/app.js: choosePixelTransfer/drawFrame",
     "license": "MPL-2.0; secondary AGPL-3.0-or-later offer under MPL 3.3",
-    "modifiedSource": "src/pixel-transfer.js",
+    "modifiedSource": "src/rendering/pixel-transfer.js",
     "changes": "Bounded startup calibration using an authored no-op cartridge and synthetic pixels, exact pixel comparison, conservative fallback, refreshed WASM memory views. No user ROM/save or networking."
   },
   "dsOperations": {

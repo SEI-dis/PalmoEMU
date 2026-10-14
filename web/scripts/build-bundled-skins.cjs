@@ -14,7 +14,7 @@ const root=path.resolve(__dirname,'..'),manifest=require('../BUNDLED_SKINS.json'
   const write=(file,bytes)=>{if(process.argv.includes('--check'))assert.ok(fs.readFileSync(file).equals(bytes),'Rebuilt skin differs: '+file);else fs.writeFileSync(file,bytes);};
   for(const entry of manifest.skins){
    const record=await page.evaluate(async entry=>{
-    const {importSkin}=await import('./src/skins.js');
+    const {importSkin}=await import('./src/skins/skins.js');
     const response=await fetch(entry.sourceArchive);if(!response.ok)throw Error('Missing skin source');
     const record=await importSkin(new File([await response.arrayBuffer()],entry.upstreamFile),entry.system);
     for(const image of Object.values(record.images)){let text='';for(const n of image.bytes)text+=String.fromCharCode(n);image.base64=btoa(text);delete image.bytes;}

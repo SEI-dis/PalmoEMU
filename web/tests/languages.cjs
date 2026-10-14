@@ -55,9 +55,9 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   // A Japanese device explicitly selecting Korean must propagate its choice to workers.
   const context=await browser.newContext({locale:'ja-JP',serviceWorkers:'block'}),page=await context.newPage();
   await context.addInitScript(()=>localStorage.setItem('palmo-language','ko'));
-  await page.route('**/src/rom-import-worker.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:'const R=self.FileReader;self.FileReader=class extends R{readAsArrayBuffer(file){super.readAsArrayBuffer(file);this.abort();}};\n'+await response.text()});});
+  await page.route('**/src/library/rom-import-worker.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:'const R=self.FileReader;self.FileReader=class extends R{readAsArrayBuffer(file){super.readAsArrayBuffer(file);this.abort();}};\n'+await response.text()});});
   await page.goto(base+'index.html#settings');await page.locator('#app-language').waitFor();
-  const result=await page.evaluate(async()=>{const {importROM}=await import('./src/rom-import.js');try{await importROM(new File([new Uint8Array(4)],'synthetic.gb'),'gb');}catch(e){return e.message;}});
+  const result=await page.evaluate(async()=>{const {importROM}=await import('./src/library/rom-import.js');try{await importROM(new File([new Uint8Array(4)],'synthetic.gb'),'gb');}catch(e){return e.message;}});
   const {default:ko}=await import(pathToFileURL(path.join(__dirname,'../src/i18n/locales/ko.js')));assert.equal(result,ko['ファイルの読み込みが中断されました。']);await context.close();
   const fallback=await browser.newContext({locale:'fr-FR',serviceWorkers:'block'}),fallbackPage=await fallback.newPage();
   await fallback.addInitScript(()=>localStorage.setItem('palmo-language','fr'));

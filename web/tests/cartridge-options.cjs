@@ -8,7 +8,7 @@ const assert=require('node:assert/strict'),kind=process.env.BROWSER_ENGINE||'chr
   page.on('pageerror',error=>errors.push(error.message));await page.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');await page.locator('#add-first').waitFor();
   await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
   await page.evaluate(async()=>{
-   const {showGBAOptions}=await import('./src/views/gba-options.js'),{createGamePreferences}=await import('./src/game-preferences.js');
+   const {showGBAOptions}=await import('./src/views/gba-options.js'),{createGamePreferences}=await import('./src/library/game-preferences.js');
    window.optionGame={id:'synthetic-options-a'},window.otherOptionGame={id:'synthetic-options-b'};window.optionSaved=[];window.optionToasts=[];
    window.optionPreferences=createGamePreferences({filter:'pixel'},{getGame:()=>optionGame,saveGame:(id,value)=>optionSaved.push({id,value})});window.optionSettings=optionPreferences.settings;
    window.optionEngine={supportsRTC:true,supportsGameRumble:true,sensors:{enabled:false,async enable(){this.enabled=true;return true;},disable(){this.enabled=false;}}};
@@ -31,7 +31,7 @@ const assert=require('node:assert/strict'),kind=process.env.BROWSER_ENGINE||'chr
   await page.evaluate(()=>showOptionFixture('gba'));assert.equal(await page.locator('[data-sensor]').count(),3);assert.equal(await page.locator('[data-setting=overclock]').count(),1);
   await page.evaluate(()=>{optionEngine.supportsRTC=false;optionEngine.supportsGameRumble=false;showOptionFixture('gb');});assert.equal(await page.locator('[data-setting=rtcMode]').count(),0);assert.equal(await page.locator('[data-setting=gameRumble]').count(),0);
   const rtc=await page.evaluate(async()=>{
-   const {MGBACore}=await import('./src/mgba.js');const engine=new MGBACore(document.createElement('canvas'));
+   const {MGBACore}=await import('./src/core/mgba.js');const engine=new MGBACore(document.createElement('canvas'));
    const rom=new Uint8Array(8192);new DataView(rom.buffer).setUint32(0,0xeafffffe,true);rom[0xb2]=0x96;
    try{
     engine.setCartridgeOptions({rtcMode:'offset',rtcOffset:3600,gameRumble:true});const start=engine.startLoop;let initialOffset;engine.startLoop=function(){initialOffset=this.m._web_rtc_offset();start.call(this);};
@@ -50,7 +50,7 @@ const assert=require('node:assert/strict'),kind=process.env.BROWSER_ENGINE||'chr
   const program=[0xe59f0020,0xe3a01003,0xe3811b01,0xe1c010b0,0xe59f0014,0xe5d01000,0xe5c01000,0xe59f000c,0xe1c010b0,0xeafffffe,0x04000000,0x0e000000,0x06000000];program.forEach((word,index)=>startupView.setUint32(0x100+index*4,word,true));startupROM.set(Buffer.from('SRAM_V113'),0x200);
   await page.locator('#rom-input').setInputFiles({name:'Original startup order.gba',mimeType:'application/octet-stream',buffer:Buffer.from(startupROM)});await page.locator('.game-launch').waitFor();
   await page.evaluate(async()=>{
-   const db=await import('./src/storage.js'),{saveKey,coreFor}=await import('./src/core-registry.js'),{hash}=await import('./src/shared.js'),{MGBACore}=await import('./src/mgba.js'),{SaveProtection}=await import('./src/save-safety.js');
+   const db=await import('./src/storage/storage.js'),{saveKey,coreFor}=await import('./src/core/core-registry.js'),{hash}=await import('./src/shared.js'),{MGBACore}=await import('./src/core/mgba.js'),{SaveProtection}=await import('./src/storage/save-safety.js');
    const game=(await db.all('library'))[0],fixture=new MGBACore(document.createElement('canvas'));let save;
    try{await fixture.load(await db.get('roms',game.id));fixture.pause(true);fixture.m._web_frame(0);fixture.m._web_frame(0);save=fixture.save();if(save?.length!==32768)throw Error('Synthetic SRAM fixture must export a valid 32 KiB save: '+save?.length);save[0]=31;}finally{fixture.close();}
    await db.put('saves',saveKey(game),{bytes:save,hash:await hash(save),at:Date.now(),coreId:coreFor(game).id});
@@ -67,7 +67,7 @@ const assert=require('node:assert/strict'),kind=process.env.BROWSER_ENGINE||'chr
   const started=await page.evaluate(()=>{const m=startupCore.m,p=m._web_pixels();return {restores:startupRestoreFrames,allAfterRestore:startupFrameEvents.every(frame=>frame.restored),pixel:[...m.HEAPU8.subarray(p,p+3)]};});
   assert.deepEqual(started.restores,[0]);assert.equal(started.allAfterRestore,true);assert.ok(started.pixel[0]>200&&started.pixel[1]<10&&started.pixel[2]<10,'The first SRAM read must see the restored red-pixel byte');
   await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
-  await page.evaluate(async()=>{const db=await import('./src/storage.js'),{saveKey}=await import('./src/core-registry.js'),game=(await db.all('library'))[0];await db.remove('saves',saveKey(game));startupGateEnabled=false;startupRestored=false;startupRestoreFrames=[];startupFrameEvents=[];});
+  await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),{saveKey}=await import('./src/core/core-registry.js'),game=(await db.all('library'))[0];await db.remove('saves',saveKey(game));startupGateEnabled=false;startupRestored=false;startupRestoreFrames=[];startupFrameEvents=[];});
   await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});await page.waitForFunction(()=>startupCore.frames>=2);
   assert.deepEqual(await page.evaluate(()=>({paused:startupCore.paused,waiting:startupVerifyWaiting,restores:startupRestoreFrames})),{paused:false,waiting:false,restores:[]},'A normal launch without a saved record still starts');
   await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});

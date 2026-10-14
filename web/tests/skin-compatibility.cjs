@@ -16,10 +16,10 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   ]};
   const info={name:'Original compatibility fixture',gameTypeIdentifier:'com.rileytestut.delta.game.gba',representations:{iphone:{edgeToEdge:{portrait:rep}},ipad:{standard:{portrait:{...rep,mappingSize:{width:768,height:1024}}}}}};
   const payload=zip({'info.json':JSON.stringify(info),'art.png':Buffer.from(png,'base64'),'sound.caf':Buffer.from('inert unsupported audio'),'unused.js':'throw new Error("must never execute")'});
-  const skin=await page.evaluate(async({bytes,version})=>{try{const{importSkin}=await import('./src/skins.js');const r=await importSkin(new File([new Uint8Array(bytes)],'fixture.manicskin'));localStorage.setItem('manic-settings',JSON.stringify({skins:{gba:r.id},haptics:false}));localStorage.setItem('palmo-release-seen:'+new URL('.',location.href).pathname,version);return {variants:r.variants,warnings:r.warnings};}catch(e){return {error:String(e),stack:e?.stack};}},{bytes:[...payload],version:require('../package.json').version});assert.ok(!skin.error,JSON.stringify(skin));
+  const skin=await page.evaluate(async({bytes,version})=>{try{const{importSkin}=await import('./src/skins/skins.js');const r=await importSkin(new File([new Uint8Array(bytes)],'fixture.manicskin'));localStorage.setItem('manic-settings',JSON.stringify({skins:{gba:r.id},haptics:false}));localStorage.setItem('palmo-release-seen:'+new URL('.',location.href).pathname,version);return {variants:r.variants,warnings:r.warnings};}catch(e){return {error:String(e),stack:e?.stack};}},{bytes:[...payload],version:require('../package.json').version});assert.ok(!skin.error,JSON.stringify(skin));
   assert.equal(skin.variants.length,2);assert.match(skin.warnings.join(' '),/CAF/);
   const semantics=await page.evaluate(async()=>{
-   const {normalizeSkin,chooseRepresentation}=await import('./src/skin-format.js');const db=await import('./src/storage.js');const saved=(await db.all('skins'))[0];
+   const {normalizeSkin,chooseRepresentation}=await import('./src/skins/skin-format.js');const db=await import('./src/storage/storage.js');const saved=(await db.all('skins'))[0];
    const unknown=structuredClone(saved.variants[0]);unknown.screens[0].filters=[{name:'CINotImplemented'}];unknown.items.push({inputs:['restart','quit'],frame:{x:0,y:0,width:20,height:20}});
    const result=normalizeSkin({representations:{iphone:{standard:{portrait:unknown}}}},'gba',x=>x);
    return {phone:chooseRepresentation(saved,390,844).device,tablet:chooseRepresentation(saved,768,1024).device,warnings:result.warnings,blocked:result.portrait.items.at(-1).inputs};
@@ -27,7 +27,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   assert.equal(semantics.phone,'iphone');assert.equal(semantics.tablet,'ipad');assert.equal(semantics.warnings.length,2);assert.deepEqual(semantics.blocked,['unsupportedMultipleActions']);
   // Verify actual pixels, source immutability, crop mapping, multi-screen updates and disposal.
   const pixels=await page.evaluate(async()=>{
-   const{VideoOutput}=await import('./src/video.js'),{mountSkinScreens}=await import('./src/skin-screens.js');
+   const{VideoOutput}=await import('./src/rendering/video.js'),{mountSkinScreens}=await import('./src/skins/skin-screens.js');
    const host=document.createElement('div');document.body.append(host);const sources=[0,1].map(()=>{const c=document.createElement('canvas');host.append(c);return c;});
    const videos=sources.map(c=>new VideoOutput(c,256,192)),paint=(video,r,g)=>{const img=new ImageData(256,192);for(let i=0;i<img.data.length;i+=4){img.data[i]=r;img.data[i+1]=g;img.data[i+3]=255;}video.draw(img);};paint(videos[0],255,0);paint(videos[1],0,255);
    const rep={mappingSize:{width:256,height:384},screens:[{inputFrame:{x:0,y:0,width:128,height:192},outputFrame:{x:0,y:0,width:128,height:192}},{inputFrame:{x:0,y:192,width:256,height:192},outputFrame:{x:0,y:192,width:256,height:192}}]};
@@ -35,7 +35,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   });
   assert.deepEqual(pixels.before,[[255,0,0,255],[0,255,0,255]]);assert.deepEqual(pixels.after[1],[50,100,0,255]);assert.deepEqual(pixels.source,[255,0,0,255]);assert.equal(pixels.count,0);
   const touch=await page.evaluate(async()=>{
-   const {mountSkinInputs}=await import('./src/skin-inputs.js'),{normalizeSkin}=await import('./src/skin-format.js');
+   const {mountSkinInputs}=await import('./src/skins/skin-inputs.js'),{normalizeSkin}=await import('./src/skins/skin-format.js');
    const host=document.createElement('div');host.style.cssText='position:fixed;left:0;top:0;width:256px;height:384px';document.body.append(host);let point;
    const frame={x:0,y:192,width:256,height:192},top={x:0,y:0,width:256,height:192};
    const rep={mappingSize:{width:256,height:384},screens:[{inputFrame:top,outputFrame:top},{inputFrame:frame,outputFrame:frame}],items:[{inputs:{x:'touchScreenX',y:'touchScreenY'},touch:true,frame}]};
@@ -52,7 +52,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
    }finally{Element.prototype.setPointerCapture=capture;host.remove();}
   });
   for(const [actual,expected]of [[touch.normal,[.25,.75]],[touch.rotated,[.75,.25]],[touch.swapped,[.25,.75]]])actual.forEach((n,i)=>assert.ok(Math.abs(n-expected[i])<.001));assert.equal(touch.splitHeight,292);
-  await page.reload();await page.evaluate(async()=>{const{MGBACore}=await import('./src/mgba.js'),original=MGBACore.prototype.setSpeed;MGBACore.prototype.setSpeed=function(v){window.testEngine=this;return original.call(this,v);};});
+  await page.reload();await page.evaluate(async()=>{const{MGBACore}=await import('./src/core/mgba.js'),original=MGBACore.prototype.setSpeed;MGBACore.prototype.setSpeed=function(v){window.testEngine=this;return original.call(this,v);};});
   await page.locator('#rom-input').setInputFiles({name:'Original compatibility.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
   await page.getByRole('button',{name:'toggleFastForward',exact:true}).tap();assert.equal(await page.evaluate(()=>testEngine.speed),2);
   await page.getByRole('button',{name:'quickSave',exact:true}).tap();await page.locator('#confirm-state-save').waitFor();assert.equal(await page.evaluate(()=>testEngine.paused),true);await page.locator('#confirm-state-save').click();await page.locator('#sheet').waitFor({state:'hidden'});

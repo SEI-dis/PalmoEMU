@@ -2,7 +2,7 @@
 // Synthetic WASM memory, authored cartridges and deterministic clocks; no user files.
 const assert=require('node:assert/strict'),path=require('node:path');
 (async()=>{
- const {createPixelTransfer,choosePixelTransfer}=await import('../src/pixel-transfer.js');
+ const {createPixelTransfer,choosePixelTransfer}=await import('../src/rendering/pixel-transfer.js');
  function module({rowCost=.002,packedCost=.001,corrupt=false}={}){
   const memory=new WebAssembly.Memory({initial:8}),width=240,height=160,raw=16384,packed=256000;
   const m={memory,time:0,loads:0,closes:0,frees:0,get HEAPU8(){return new Uint8Array(memory.buffer);},

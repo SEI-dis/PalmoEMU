@@ -27,7 +27,7 @@ const cases=[{name:'recognized structure',accepted:true},
    });
    await page.goto(base);
    await page.evaluate(async({offset,otherOffset})=>{
-    const {MGBACore}=await import('./src/mgba.js'),load=MGBACore.prototype.load;
+    const {MGBACore}=await import('./src/core/mgba.js'),load=MGBACore.prototype.load;
     MGBACore.prototype.load=async function(bytes){
      const create=window.createMGBA;window.observedLoads=[];
      window.createMGBA=async options=>{
@@ -42,7 +42,7 @@ const cases=[{name:'recognized structure',accepted:true},
    await page.locator('#rom-input').setInputFiles(fixture);
    await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
    const result=await page.evaluate(async id=>{
-    testCore.pause(true);const db=await import('./src/storage.js'),stored=await db.get('roms',id);
+    testCore.pause(true);const db=await import('./src/storage/storage.js'),stored=await db.get('roms',id);
     const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',stored)),b=>b.toString(16).padStart(2,'0')).join('');
     return {id:(await db.all('library'))[0].id,hash,compatibility:testCore.compatibility,loads:observedLoads};
    },id);
@@ -52,7 +52,7 @@ const cases=[{name:'recognized structure',accepted:true},
    assert.deepEqual(result.loads.filter(l=>l.n===rom.length).map(({byte,otherByte,frames})=>({byte,otherByte,frames})),accepted?[{byte:0,otherByte:0,frames:0},{byte:1,otherByte:0,frames:0}]:[{byte:0,otherByte:0,frames:0}]);
    if(accepted&&!layout){
     const checks=await page.evaluate(async({id,offset,otherOffset})=>{
-     const {loadCompatibleMGBA}=await import('./src/mgba-compatibility.js'),db=await import('./src/storage.js'),original=await db.get('roms',id);
+     const {loadCompatibleMGBA}=await import('./src/core/mgba-compatibility.js'),db=await import('./src/storage/storage.js'),original=await db.get('roms',id);
      // An unrelated ROM change remains eligible; changed probe instructions
      // or a cartridge without the extended header remain untouched.
      const revised=original.slice();revised[revised.length-1]^=1;

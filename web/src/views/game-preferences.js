@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
-import {hasGamePreferences} from '../game-preferences.js';
+import {hasGamePreferences} from '../library/game-preferences.js';
 import {escapeHTML as esc} from '../shared.js';
 export function gamePreferenceSummary(game){return tr`<div class="game-preferences-summary"><span>映像・音量・操作：<strong id="game-preferences-mode">${hasGamePreferences(game)?tr('このゲームの設定'):tr('共通設定を使用')}</strong></span><button class="secondary" data-action="resetPreferences" ${hasGamePreferences(game)?'':'disabled'}>共通設定に戻す</button></div>`;}
 export function confirmPreferenceReset({game,sheet,reset,back,error}){

@@ -4,7 +4,7 @@ const assert=require('node:assert/strict'),crypto=require('node:crypto');
 const {buildFixture,word,literal,branchLink}=require('./helpers/mgba-save-probe-fixture.cjs');
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 (async()=>{
- const {findExtendedSaveProbe:find}=await import('../src/mgba-save-probe.js');
+ const {findExtendedSaveProbe:find}=await import('../src/core/mgba-save-probe.js');
  const expected=f=>({offset:f.offset,requiredSaveBytes:6291456});
  const baseline=buildFixture(),before=digest(baseline.bytes);assert.deepEqual(find(baseline.bytes),expected(baseline));assert.equal(digest(baseline.bytes),before);
  // Function order, positive/negative BL distances and literal pool placement

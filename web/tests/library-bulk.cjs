@@ -5,7 +5,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage(),errors=[];
  page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));await page.goto(base);await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy')&&localStorage.getItem('manic-settings')!==null);
  await page.evaluate(async()=>{
-  window.db=await import('./src/storage.js');window.activity=await import('./src/update-activity.js');
+  window.db=await import('./src/storage/storage.js');window.activity=await import('./src/updates/update-activity.js');
   window.ids=['a','b','a-canary'];window.stores=['library','roms','saves','states','backups','archives','recoveries','sessions','skins','coverCatalogs'];
   window.snapshot=async()=>{const connection=await new Promise((resolve,reject)=>{const r=indexedDB.open('manicemu-web');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});try{return await new Promise((resolve,reject)=>{const tx=connection.transaction(stores),out={};for(const name of stores){out[name]=[];const r=tx.objectStore(name).openCursor();r.onsuccess=()=>{const c=r.result;if(c){out[name].push([c.key,c.value]);c.continue();}};}tx.oncomplete=()=>resolve(JSON.stringify(out));tx.onabort=()=>reject(tx.error);});}finally{connection.close();}};
   for(const id of ids){

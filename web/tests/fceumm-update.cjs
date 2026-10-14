@@ -49,7 +49,7 @@ function state(m){const n=m._web_state_export();assert.ok(n);return m.HEAPU8.sli
    const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage(),base=process.env.TEST_URL;
    await context.route(base+'__mapper176',route=>route.fulfill({contentType:'application/octet-stream',body:Buffer.from(rom)}));
    await page.goto(base);const result=await page.evaluate(async()=>{
-    const {createCore}=await import('./src/core-factory.js'),host=document.createElement('div');document.body.append(host);
+    const {createCore}=await import('./src/core/core-factory.js'),host=document.createElement('div');document.body.append(host);
     const bytes=new Uint8Array(await (await fetch('./__mapper176')).arrayBuffer());
     const game={system:'nes',name:'Original mapper test',size:bytes.length},core=createCore(host,game);
     try{

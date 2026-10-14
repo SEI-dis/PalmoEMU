@@ -7,7 +7,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
  try{
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),page=await context.newPage();await page.goto(base);await page.locator('#add-first').waitFor();await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
   const fixture=await page.evaluate(async()=>{
-   window.db=await import('./src/storage.js');window.backup=await import('./src/backup.js');const {hash}=await import('./src/shared.js');
+   window.db=await import('./src/storage/storage.js');window.backup=await import('./src/storage/backup.js');const {hash}=await import('./src/shared.js');
    const games=[];for(const [n,name] of [[1,'Selected game'],[2,'Unselected game']]){const rom=new Uint8Array([n,0,1]),game={id:await hash(rom),system:'gb',size:rom.length,name,preferences:{speed:n},favorite:false};await db.addGame(game,rom);games.push(game);}
    window.games=games;window.save=async(n,at)=>({bytes:new Uint8Array([n]),hash:await hash(new Uint8Array([n])),at,coreId:'mgba-rom64-save6-v2'});
    for(const [i,game] of games.entries()){await db.put('saves',game.id,await save(i+1,100));await db.put('states',game.id+':original',{...await save(i+3,200),save:null,saveHash:null});await db.put('archives',game.id,[await save(i+5,300)]);}

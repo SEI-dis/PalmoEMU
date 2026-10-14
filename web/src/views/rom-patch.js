@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Local file flow following ManicEMU RomPatcherView; no ROM is uploaded.
 import {tr} from '../i18n/index.js';
-import {applyROMPatch} from '../rom-patch.js';
-import {guardUpdateTask} from '../update-activity.js';
+import {applyROMPatch} from '../library/rom-patch.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
 export function showROMPatch({sheet,onClose,download,error}){
  sheet(tr('ROMパッチ'),tr('<p class="sheet-note">IPS・BPS・UPSに対応。元のROMとセーブは変更しません。</p><div class="settings-group"><label class="row"><span>元のROM</span><input id="patch-rom" type="file"></label><label class="row"><span>パッチ</span><input id="patch-file" type="file"></label></div><p class="sheet-note">各64 MiBまで。IPSにはROMの一致確認がありません。パッチ作者の指定するROMを選んでください。</p><button class="primary" id="apply-patch" disabled>適用して保存</button>'));
  const rom=document.querySelector('#patch-rom'),patch=document.querySelector('#patch-file'),button=document.querySelector('#apply-patch'),controller=new AbortController();let closed=false;

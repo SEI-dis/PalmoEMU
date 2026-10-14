@@ -13,7 +13,7 @@ const mdBits={...retroBits,a:1,c:8,x:10,y:9,z:11};
   p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(20000);
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';p.on('request',r=>{if(/^https?:/.test(r.url())&&(!r.url().startsWith(base)||r.method()!=='GET'))remote.push(r.url());});await p.goto(base);
   const variants=await p.evaluate(async expected=>{
-   const {builtinSkin,builtinLayout,builtins}=await import('./src/skin-art.js'),bodies=new Set();let count=0;
+   const {builtinSkin,builtinLayout,builtins}=await import('./src/skins/skin-art.js'),bodies=new Set();let count=0;
    for(const [system,keys]of Object.entries(expected))for(const [color]of builtins){
     const skin=builtinSkin(system,color);if(color==='classic')bodies.add(skin.images.background);
     for(const [w,h]of [[320,568],[390,844],[844,390],[750,369],[768,1024],[1024,768]]){
@@ -80,7 +80,7 @@ const mdBits={...retroBits,a:1,c:8,x:10,y:9,z:11};
   for(const wide of [false,true]){
    await p.setViewportSize({width:1200,height:wide?580:550});
    await p.evaluate(async wide=>{
-    const {builtinSkin,builtinLayout}=await import('./src/skin-art.js');document.body.replaceChildren();document.body.style.cssText='margin:0;padding:24px;background:#101114;color:#ededf1;font-family:Arial,sans-serif;overflow:hidden';
+    const {builtinSkin,builtinLayout}=await import('./src/skins/skin-art.js');document.body.replaceChildren();document.body.style.cssText='margin:0;padding:24px;background:#101114;color:#ededf1;font-family:Arial,sans-serif;overflow:hidden';
     const title=document.createElement('div');title.textContent='PalmoEMU / SYSTEM SKINS · '+(wide?'LANDSCAPE':'PORTRAIT');title.style.cssText='font-size:13px;letter-spacing:2px;margin-bottom:20px';document.body.append(title);
     const gallery=document.createElement('div');gallery.style.cssText=`display:grid;grid-template-columns:repeat(${wide?3:6},1fr);gap:20px`;document.body.append(gallery);
     const css=(f,map)=>`left:${f.x/map.width*100}%;top:${f.y/map.height*100}%;width:${f.width/map.width*100}%;height:${f.height/map.height*100}%;`;

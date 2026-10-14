@@ -34,7 +34,7 @@ if(require.main===module)(async()=>{
     await p.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');
     console.log('Link test: app loaded.');
     await p.evaluate(async roms=>{
-      const {MGBACore}=await import('./src/mgba.js'),{PeerLink}=await import('./src/peer-link.js');
+      const {MGBACore}=await import('./src/core/mgba.js'),{PeerLink}=await import('./src/link/peer-link.js');
       window.linkTest={cores:[],links:[],status:[],packets:[]};
       for(const rom of roms){const cv=document.createElement('canvas');const engine=new MGBACore(cv);await engine.load(new Uint8Array(rom));window.linkTest.cores.push(engine);}
       for(let i=0;i<2;i++){

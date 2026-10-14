@@ -25,17 +25,17 @@ const kind=process.env.BROWSER_ENGINE||'chromium',pw=require('./browser-runtime.
   const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=80;c.height=100;const x=c.getContext('2d');x.fillStyle='#167b81';x.fillRect(0,0,80,100);x.fillStyle='#ffc040';x.fillRect(12,12,56,56);return c.toDataURL('image/png').split(',')[1];}),'base64');
   const chooser=page.waitForEvent('filechooser');await page.locator('[data-action=cover-local]').click();
   await (await chooser).setFiles({name:'Original Artwork.png',mimeType:'image/png',buffer:png});await page.locator('.game-info-play').waitFor();
-  const saved=await page.evaluate(async()=>{const db=await import('./src/storage.js'),[g]=await db.all('library');return {g,rom:[...await db.get('roms',g.id)]};});
+  const saved=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),[g]=await db.all('library');return {g,rom:[...await db.get('roms',g.id)]};});
   assert.equal(saved.g.coverSource,'custom');assert.match(saved.g.cover,/^data:image\/(webp|png);base64,/);assert.ok(!saved.g.coverUrl);assert.deepEqual(Buffer.from(saved.rom),rom);
   await page.reload();assert.equal(await page.locator('.game-launch img').getAttribute('src'),saved.g.cover,'Local cover survives reload');
   // Old downloaded covers stay local and are never fetched again by their old URL.
-  await page.evaluate(async id=>{const db=await import('./src/storage.js'),g=await db.get('library',id);await db.put('library',id,{...g,coverSource:'libretro',coverUrl:'https://example.invalid/old-cover.png'});},saved.g.id);
+  await page.evaluate(async id=>{const db=await import('./src/storage/storage.js'),g=await db.get('library',id);await db.put('library',id,{...g,coverSource:'libretro',coverUrl:'https://example.invalid/old-cover.png'});},saved.g.id);
   await page.reload();assert.equal(await page.locator('.game-launch img').getAttribute('src'),saved.g.cover);
   await page.locator('.game-launch').click();await page.locator('[data-action=cover]').click();
   const bad=page.waitForEvent('filechooser');await page.locator('[data-action=cover-local]').click();
   await (await bad).setFiles({name:'not-an-image.png',mimeType:'image/png',buffer:Buffer.from('invalid')});
   await page.waitForFunction(()=>document.querySelector('#cover-input').value==='');
-  assert.equal(await page.evaluate(async id=>(await (await import('./src/storage.js')).get('library',id)).cover,saved.g.id),saved.g.cover,'Invalid input never replaces a saved cover');
+  assert.equal(await page.evaluate(async id=>(await (await import('./src/storage/storage.js')).get('library',id)).cover,saved.g.id),saved.g.cover,'Invalid input never replaces a saved cover');
   for(const r of requests){assert.equal(new URL(r.url).origin,new URL(base).origin);assert.ok(['GET','HEAD'].includes(r.method));assert.equal(r.body,null);}
   assert.deepEqual(errors,[]);console.log('PASS: legacy online preference is inert; local cover import, reload, migration and invalid-image preservation send no external requests or user content.');
  }finally{

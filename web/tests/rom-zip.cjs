@@ -54,7 +54,7 @@ function overlappingZip(){
   // Module-level imports below prepopulate a current-release library before UI startup.
   await page.evaluate(version=>localStorage.setItem('palmo-release-seen:'+new URL('.',location.href).pathname,version),require('../package.json').version);
   const result=await page.evaluate(async({fixtures,source,identity})=>{
-   const {listROMZip,extractROMZip}=await import('./src/rom-zip.js'),{importROM}=await import('./src/rom-import.js'),db=await import('./src/storage.js');
+   const {listROMZip,extractROMZip}=await import('./src/library/rom-zip.js'),{importROM}=await import('./src/library/rom-import.js'),db=await import('./src/storage/storage.js');
    const check=(value,message)=>{if(!value)throw Error(message);},archive=name=>new File([new Uint8Array(fixtures[name])],name+'.zip');
    const refuse=async action=>{let rejected=false;try{await action();}catch{rejected=true;}check(rejected,'Malformed archive must be rejected');};
    const normal=archive('normal'),entries=await listROMZip(normal);check(entries.length===2,'Only supported ROM entries are extracted');

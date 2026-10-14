@@ -33,11 +33,11 @@ const kind=process.env.BROWSER_ENGINE||'chromium',pw=require('./browser-runtime.
  await p.locator('#edit-reset').click();assert.equal(await p.locator('#edit-size').inputValue(),'100');await p.locator('[data-edit-orientation=landscape]').click();assert.equal(await p.locator('#edit-size').inputValue(),'75');
  await p.locator('#edit-cancel').click();assert.deepEqual(await stored(),saved);await close();
  await p.locator('#rom-input').setInputFiles({name:'Original layout.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
- await p.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js'),set=MGBACore.prototype.setKeys;window.keys=[];MGBACore.prototype.setKeys=function(k){keys.push(k);return set.call(this,k);};});
+ await p.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),set=MGBACore.prototype.setKeys;window.keys=[];MGBACore.prototype.setKeys=function(k){keys.push(k);return set.call(this,k);};});
  // Both the drawn control and its hit rectangle use the saved size. Screen is the same layout in preview and play.
  for(const [width,height]of [[390,844],[844,390],[320,568],[1024,768]]){
   await p.setViewportSize({width,height});await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
-  const expected=await p.evaluate(async()=>{const {builtinSkin,builtinLayout}=await import('./src/skin-art.js');const layout=JSON.parse(localStorage.getItem('manic-settings')).controlLayouts.gba,rep=builtinLayout(builtinSkin('gba'),innerWidth,innerHeight,layout[innerWidth>innerHeight?'landscape':'portrait']);return {screen:rep.screens[0].outputFrame,a:rep.items.find(i=>i.inputs?.[0]==='a').frame};});
+  const expected=await p.evaluate(async()=>{const {builtinSkin,builtinLayout}=await import('./src/skins/skin-art.js');const layout=JSON.parse(localStorage.getItem('manic-settings')).controlLayouts.gba,rep=builtinLayout(builtinSkin('gba'),innerWidth,innerHeight,layout[innerWidth>innerHeight?'landscape':'portrait']);return {screen:rep.screens[0].outputFrame,a:rep.items.find(i=>i.inputs?.[0]==='a').frame};});
   for(const [selector,key]of [['#screen','screen'],['.skin-button[aria-label=A]','a']]){const actual=await p.locator(selector).boundingBox();for(const prop of ['x','y','width','height'])assert.ok(Math.abs(actual[prop]-expected[key][prop])<.15,key+prop);}
  }
   await p.setViewportSize({width:390,height:844});await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));const hit=await p.locator('.skin-button[aria-label=A]').boundingBox();await p.mouse.move(hit.x+hit.width/2,hit.y+hit.height/2);await p.mouse.down();await p.mouse.up();assert.ok(await p.evaluate(()=>keys.includes(1)));
@@ -45,7 +45,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',pw=require('./browser-runtime.
  assert.deepEqual(await p.locator('#screen').boundingBox(),withControls,'Hiding controls retains custom screen geometry');
  await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').uncheck();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
  // Bad and old preferences never place controls outside the screen or distort aspect ratios.
- await p.evaluate(async()=>{const {builtinSkin,builtinLayout}=await import('./src/skin-art.js');for(const system of ['gb','gba','nds','nes','snes','md'])for(const [w,h]of [[240,320],[320,568],[844,390]]){
+ await p.evaluate(async()=>{const {builtinSkin,builtinLayout}=await import('./src/skins/skin-art.js');for(const system of ['gb','gba','nds','nes','snes','md'])for(const [w,h]of [[240,320],[320,568],[844,390]]){
   const rep=builtinLayout(builtinSkin(system),w,h,{screen:{scale:20,x:-4,y:8},a:{scale:8,x:4,y:-1},dpad:{scale:-5}});
   for(const item of [...rep.items,...rep.actions,...rep.screens]){const f=item.frame||item.outputFrame,b=item.baseFrame;if(f.x<0||f.y<0||f.x+f.width>w+.01||f.y+f.height>h+.01||Math.abs(f.width/f.height-b.width/b.height)>.001)throw Error('Invalid sizing');}
  }});

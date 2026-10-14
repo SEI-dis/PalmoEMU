@@ -4,8 +4,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr,locale} from '../i18n/index.js';
 import {escapeHTML as esc,icon} from '../shared.js';
-import {guardUpdateTask} from '../update-activity.js';
-import {trainerAvatarSource} from '../trainer-profile.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
+import {trainerAvatarSource} from '../library/trainer-profile.js';
 import {editTrainerAvatar} from './trainer-avatar.js';
 import {fitInputDialog} from './input-dialog.js';
 

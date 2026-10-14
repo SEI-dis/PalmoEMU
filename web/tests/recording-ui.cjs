@@ -17,13 +17,13 @@ function cartridge(){
  // installing a worker. Pending clips must block it after leaving gameplay.
  await context.route('**/*',async route=>{
   const request=route.request(),url=new URL(request.url());requests.push({origin:url.origin,method:request.method()});assert.equal(url.origin,new URL(base).origin);assert.equal(request.method(),'GET');
-  if(url.pathname.endsWith('/src/auto-update.js')){const response=await route.fetch(),source=await response.text(),marker=' if(!navigator.serviceWorker||!navigator.locks||!isSecureContext)return;';assert.ok(source.includes(marker));return route.fulfill({response,body:source.replace(marker,' window.recordingCanUpdate=canUpdate;\n'+marker)});}
+  if(url.pathname.endsWith('/src/updates/auto-update.js')){const response=await route.fetch(),source=await response.text(),marker=' if(!navigator.serviceWorker||!navigator.locks||!isSecureContext)return;';assert.ok(source.includes(marker));return route.fulfill({response,body:source.replace(marker,' window.recordingCanUpdate=canUpdate;\n'+marker)});}
   return route.continue();
  });
  await page.goto(base);await page.locator('#add-first').waitFor();await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy')&&window.recordingCanUpdate?.());
  await page.evaluate(async()=>{
   Object.defineProperty(window,'showSaveFilePicker',{configurable:true,writable:true,value:undefined});
-  const {MGBACore}=await import('./src/mgba.js'),load=MGBACore.prototype.load;MGBACore.prototype.load=function(...args){window.recordingCore=this;return load.apply(this,args);};
+  const {MGBACore}=await import('./src/core/mgba.js'),load=MGBACore.prototype.load;MGBACore.prototype.load=function(...args){window.recordingCore=this;return load.apply(this,args);};
   Object.defineProperty(navigator,'canShare',{configurable:true,value:({files})=>files?.length===1&&files[0].type.startsWith('video/')});
   Object.defineProperty(navigator,'share',{configurable:true,value:async({files})=>{window.recordingShared={name:files[0].name,type:files[0].type,size:files[0].size};if(window.cancelRecordingShare)throw new DOMException('Synthetic share cancellation','AbortError');}});
  });
@@ -34,7 +34,7 @@ function cartridge(){
  const out=process.env.SCREENSHOT_DIR||path.join(__dirname,'../../work/recording-ui');fs.mkdirSync(out,{recursive:true});
  const shot=(locator,name)=>locator.screenshot({path:path.join(out,`${kind}-${name}.png`)});
  await camera.tap();await menu.waitFor();assert.equal(await page.evaluate(()=>recordingCore.paused),false);assert.equal(await menu.getAttribute('aria-modal'),'false');
- const native=await page.evaluate(async()=>(await import('./src/game-recorder.js')).recordingSupported());
+ const native=await page.evaluate(async()=>(await import('./src/capture/game-recorder.js')).recordingSupported());
  if(kind==='chromium')assert.equal(native,true,'Edge fixture must exercise a real MediaRecorder');
  if(!native){
   assert.equal(await page.locator('[data-capture-record]').isDisabled(),true);assert.match(await page.locator('[data-capture-note]').textContent(),/対応していません/);await shot(menu,'unsupported');
@@ -47,7 +47,7 @@ function cartridge(){
    // This Windows WebKit runtime has no Web Audio. Substitute the detached
    // audio branch and drain emulated samples without claiming sound coverage.
    window.AudioContext=class{constructor(){this.state='running';this.destination={};}createMediaStreamDestination(){return {stream:new Stream([new Track('audio')])};}createGain(){return {gain:{value:1},connect(){},disconnect(){}};}resume(){return Promise.resolve();}close(){this.state='closed';return Promise.resolve();}};
-   const {MGBACore}=await import('./src/mgba.js');MGBACore.prototype.audio=function(){this.m._web_audio_read();};
+   const {MGBACore}=await import('./src/core/mgba.js');MGBACore.prototype.audio=function(){this.m._web_audio_read();};
    window.MediaRecorder=class{static isTypeSupported(){return true;}constructor(stream,{mimeType}){this.mimeType=mimeType;this.state='inactive';}start(){this.state='recording';}stop(){this.state='inactive';queueMicrotask(()=>{this.ondataavailable?.({data:new Blob(['synthetic video UI fixture'],{type:this.mimeType})});this.onstop?.();});}};
   });await camera.tap();await menu.waitFor();
  }

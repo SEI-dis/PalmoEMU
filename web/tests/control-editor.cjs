@@ -18,7 +18,7 @@ const {cartridge}=require('./link.cjs');
   const draftButton=id=>p.locator(`[data-edit-control="${id}"]`);
   const move=async(id,dx,dy)=>{const b=await draftButton(id).boundingBox();await p.mouse.move(b.x+b.width/2,b.y+b.height/2);await p.mouse.down();await p.mouse.move(b.x+b.width/2+dx,b.y+b.height/2+dy,{steps:8});await p.mouse.up();};
   const common=()=>p.evaluate(()=>JSON.parse(localStorage.getItem('manic-settings')).controlLayouts?.gba);
-  const games=()=>p.evaluate(async()=>{const db=await import('./src/storage.js');return(await db.all('library')).sort((a,b)=>a.name.localeCompare(b.name));});
+  const games=()=>p.evaluate(async()=>{const db=await import('./src/storage/storage.js');return(await db.all('library')).sort((a,b)=>a.name.localeCompare(b.name));});
   const openGame=async name=>{await p.getByRole('button',{name:name+'のメニュー',exact:true}).click();await p.locator('[data-action=gameSkin]').click();await p.locator('#skin-preview .skin-mini').waitFor();};
   await openShared();await edit();
   const before=await draftButton('a').boundingBox();await move('a',-15,-30);const after=await draftButton('a').boundingBox();assert.ok(after.y<before.y-20,'Drag moves artwork');
@@ -42,7 +42,7 @@ const {cartridge}=require('./link.cjs');
   await save();let records=await games();assert.equal(records[0].controlLayout.portrait.a.opacity,.8);assert.equal(records[1].controlLayout,undefined);assert.deepEqual(await common(),saved);
   await close();await p.reload();
   // Observe actual core inputs, including absence of gameplay actions while editing.
-  await p.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js');const old=MGBACore.prototype.setKeys;window.keyLog=[];MGBACore.prototype.setKeys=function(mask){keyLog.push(mask);return old.call(this,mask);};});
+  await p.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js');const old=MGBACore.prototype.setKeys;window.keyLog=[];MGBACore.prototype.setKeys=function(mask){keyLog.push(mask);return old.call(this,mask);};});
   await p.getByRole('button',{name:'Demo Oneの設定を開く',exact:true}).click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
   assert.equal(await p.locator('.skin-button[aria-label=A]').evaluate(e=>e.style.opacity),'0.8');
   const actual=await p.locator('.skin-button[aria-label=A]').boundingBox(),aConfig=(await games())[0].controlLayout.portrait.a;
@@ -50,7 +50,7 @@ const {cartridge}=require('./link.cjs');
   await p.mouse.move(actual.x+actual.width/2,actual.y+actual.height/2);await p.mouse.down();await p.mouse.up();assert.ok(await p.evaluate(()=>keyLog.includes(1)),'Moved A sends A to core: '+JSON.stringify(await p.evaluate(({x,y,width,height})=>({keys:keyLog,paused:!document.querySelector('#resume-game').hidden,hit:document.elementFromPoint(x+width/2,y+height/2)?.outerHTML.slice(0,200)}),actual)));
   await p.locator('#player-menu').click();await p.locator('#sheet [data-action=skins]').click();await edit();await p.evaluate(()=>{keyLog=[];});
   await move('quick-save',4,4);await move('quick-load',-4,-4);await draftButton('a').focus();await p.keyboard.press('ArrowLeft');assert.ok(await p.evaluate(()=>keyLog.every(k=>k===0)),'Editing cannot control game');
-  assert.equal(await p.evaluate(async()=>{const db=await import('./src/storage.js');return(await db.all('states')).length;}),0,'Editing shortcuts cannot save a state');
+  assert.equal(await p.evaluate(async()=>{const db=await import('./src/storage/storage.js');return(await db.all('states')).length;}),0,'Editing shortcuts cannot save a state');
   // Touch drag and edge clamps, then all relevant viewport sizes without clipping tools.
   const touch=await ctx.newCDPSession(p),box=await draftButton('dpad').boundingBox();
   await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.x+box.width/2,y:box.y+box.height/2}]});
@@ -65,9 +65,9 @@ const {cartridge}=require('./link.cjs');
   await p.locator('#edit-inherit').click();await save();assert.equal((await games())[0].controlLayout,undefined,'Inherit clears override');
   await close();await p.locator('#player-menu').click();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
   // Atomic preference writes preserve newer game metadata, ROM bytes and save records.
-  await p.evaluate(async()=>{const db=await import('./src/storage.js'),g=(await db.all('library'))[0],rom=await db.get('roms',g.id);await db.put('library',g.id,{...g,name:'New name',favorite:true});await db.put('saves',g.id,{bytes:new Uint8Array([1,2,3])});await db.setGameControls(g.id,{portrait:{a:{opacity:.5}}});const now=await db.get('library',g.id);if(now.name!=='New name'||!now.favorite)throw Error('Lost metadata');if(String(await db.get('roms',g.id))!==String(rom)||String((await db.get('saves',g.id)).bytes)!=='1,2,3')throw Error('ROM or save changed');});
+  await p.evaluate(async()=>{const db=await import('./src/storage/storage.js'),g=(await db.all('library'))[0],rom=await db.get('roms',g.id);await db.put('library',g.id,{...g,name:'New name',favorite:true});await db.put('saves',g.id,{bytes:new Uint8Array([1,2,3])});await db.setGameControls(g.id,{portrait:{a:{opacity:.5}}});const now=await db.get('library',g.id);if(now.name!=='New name'||!now.favorite)throw Error('Lost metadata');if(String(await db.get('roms',g.id))!==String(rom)||String((await db.get('saves',g.id)).bytes)!=='1,2,3')throw Error('ROM or save changed');});
   // Apply malformed/old coordinates safely at different sizes for every system.
-  await p.evaluate(async()=>{const {builtinSkin,builtinLayout}=await import('./src/skin-art.js');for(const system of ['gba','gb','gbc','nes','snes','md'])for(const [w,h] of [[320,568],[568,320],[844,390],[820,1180],[1280,720]]){const r=builtinLayout(builtinSkin(system),w,h,{a:{x:4,y:-2,opacity:0},dpad:{x:.9,y:.9,opacity:.4}});for(const i of [...r.items,...r.actions]){const f=i.frame;if(f.x<0||f.y<0||f.x+f.width>w+.1||f.y+f.height>h+.1||i.opacity<.2)throw Error('Invalid control bounds');}}});
+  await p.evaluate(async()=>{const {builtinSkin,builtinLayout}=await import('./src/skins/skin-art.js');for(const system of ['gba','gb','gbc','nes','snes','md'])for(const [w,h] of [[320,568],[568,320],[844,390],[820,1180],[1280,720]]){const r=builtinLayout(builtinSkin(system),w,h,{a:{x:4,y:-2,opacity:0},dpad:{x:.9,y:.9,opacity:.4}});for(const i of [...r.items,...r.actions]){const f=i.frame;if(f.x<0||f.y<0||f.x+f.width>w+.1||f.y+f.height>h+.1||i.opacity<.2)throw Error('Invalid control bounds');}}});
   assert.deepEqual(errors,[]);assert.deepEqual(uploads,[]);await ctx.close();
   console.log('PASS: pointer/touch/keyboard moves, hit targets, opacity, separate orientations, cancel/reset/inherit, restart, game isolation, storage failure/retry, 7 editor viewports, safe bounds, metadata preservation, no gameplay actions or uploads.');
  }finally{await Promise.race([browser.close(),new Promise(r=>setTimeout(r,2500))]);}

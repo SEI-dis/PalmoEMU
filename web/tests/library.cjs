@@ -5,7 +5,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),page=await context.newPage(),errors=[];
  page.setDefaultTimeout(15000);page.on('pageerror',error=>errors.push(error.message));await page.goto(base);await page.locator('#add-first').waitFor();await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
  // Original metadata fixtures, no third-party game files or user database.
- await page.evaluate(async()=>{const db=await import('./src/storage.js');for(const game of [
+ await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');for(const game of [
   {id:'a',name:'Alpha 10',system:'gba',added:100,lastPlayed:300,playDuration:100},
   {id:'b',name:'Alpha 2',system:'gba',added:300,lastPlayed:100,playDuration:200,category:'playing'},
   {id:'c',name:'Beta',system:'nds',added:200,lastPlayed:200,playDuration:300,favorite:true,category:'completed'},
@@ -32,9 +32,9 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await page.locator('[data-game=a]').click();await page.locator('#sheet.game-info').waitFor();await page.locator('[data-action=category]').click();await page.locator('#close-sheet').click();await page.locator('#sheet.game-info').waitFor();
  await page.locator('[data-action=category]').click();await page.locator('[data-library-category=playing]').click();await page.locator('#sheet.game-info').waitFor();assert.match(await page.locator('[data-action=category]').textContent(),/プレイ中/);assert.equal(await page.locator('#player').isVisible(),false);
  // A stale, already-open menu must not revive a category removed elsewhere.
- await page.evaluate(async()=>{const db=await import('./src/storage.js');await db.setGamesLibraryMetadata(['a'],{category:''});});
+ await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');await db.setGamesLibraryMetadata(['a'],{category:''});});
  await page.locator('#game-more-button').click();await page.locator('[data-action=favorite]').click();await page.locator('#sheet.game-info').waitFor();
- const patched=await page.evaluate(async()=>{const db=await import('./src/storage.js');return db.get('library','a');});assert.equal(patched.category,undefined);assert.equal(patched.favorite,true);await close();
+ const patched=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return db.get('library','a');});assert.equal(patched.category,undefined);assert.equal(patched.favorite,true);await close();
  await page.locator('#library-select').click();await page.locator('[data-game=a]').click();await page.locator('[data-game=c]').click();assert.equal(await page.locator('#library-selected-count').textContent(),'2件を選択');assert.equal(await page.locator('#sheet').isVisible(),false);
  await page.locator('#library-category').click();assert.equal(await page.locator('[data-library-category][aria-pressed=true]').count(),0,'Mixed categories are not preselected');await page.locator('[data-library-category=backlog]').click();await page.locator('#sheet').waitFor({state:'hidden'});
  await page.locator('#category-filter').selectOption('backlog');assert.deepEqual(await ids(),['c','a','d']);
@@ -46,7 +46,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await page.locator('#library-select-all').click();assert.equal(await page.locator('#library-selected-count').textContent(),'3件を選択');
  await page.locator('#search').fill('alpha');assert.equal(await page.locator('#library-selected-count').textContent(),'0件を選択');assert.equal(await page.locator('#library-delete').isDisabled(),true);
  await page.locator('#library-select-all').click();await page.locator('#library-favorite').click();await page.locator('#library-favorite-add').click();await page.locator('#sheet').waitFor({state:'hidden'});
- const metadata=await page.evaluate(async()=>{const db=await import('./src/storage.js');return db.all('library');});assert.equal(metadata.find(g=>g.id==='a').favorite,true);assert.equal(metadata.find(g=>g.id==='b').favorite,undefined);
+ const metadata=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return db.all('library');});assert.equal(metadata.find(g=>g.id==='a').favorite,true);assert.equal(metadata.find(g=>g.id==='b').favorite,undefined);
  await page.locator('#category-filter').selectOption('all');await page.locator('#search').fill('');await page.locator('#library-select-all').click();
  // Portrait, small portrait, landscape and desktop do not overflow or hide
  // batch controls under the navigation/tab bar. Buttons use native keyboard

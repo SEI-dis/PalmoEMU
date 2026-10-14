@@ -27,7 +27,7 @@ const cartridges=require('./cartridges.cjs');
   assert.equal(await p.locator('#player').isVisible(),true,system+' failed to start');
   if(system==='gba'){const rgba=await p.locator('#screen canvas').evaluate(c=>[...c.getContext('2d').getImageData(0,0,1,1).data]);assert.ok(rgba[1]>200&&rgba[0]<10&&rgba[2]<10,rgba.toString());}
   if(['nes','snes','md'].includes(system)){
-   await p.evaluate(async()=>{const {RetroCore}=await import('./src/retro.js');const old=RetroCore.prototype.setKeys;window.inputLog=[];RetroCore.prototype.setKeys=function(mask){old.call(this,mask);inputLog.push(this.keys);};});
+   await p.evaluate(async()=>{const {RetroCore}=await import('./src/core/retro.js');const old=RetroCore.prototype.setKeys;window.inputLog=[];RetroCore.prototype.setKeys=function(mask){old.call(this,mask);inputLog.push(this.keys);};});
    const a=p.locator('.skin-button[aria-label=A]');const pos=await a.boundingBox();await p.mouse.move(pos.x+pos.width/2,pos.y+pos.height/2);await p.mouse.down();await p.waitForTimeout(100);await p.mouse.up();
    const input=await p.evaluate(()=>inputLog);assert.ok(input.includes(1<<(system==='md'?1:8)),system+' A mapping');assert.ok(input.includes(0),system+' A release');
   }

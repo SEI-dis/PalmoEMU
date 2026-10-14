@@ -15,7 +15,7 @@
 | 同 `migration.js` | 入力制限、原本のコピー、保存版の照合、中断、変換後の検査 |
 | 同 `rom-profile.js`・`compatibility.js`・`version.js` | ROMの最低対応セーブ版の読取り、変換要否、版の表記 |
 | 同 `client.js`・`worker.js` | Workerの呼出し、保存元の変更検知、結果の受け渡し |
-| `web/src/rom-update.js`・`web/src/storage.js` | ROM更新と既存の原子的保存・バックアップ処理 |
+| `web/src/library/rom-update.js`・`web/src/storage/storage.js` | ROM更新と既存の原子的保存・バックアップ処理 |
 | `web/src/views/start-save-migrate.js` | 変換画面。提供エンジンを直接操作しない |
 
 ファイル名の変換先、変換結果の版の照合、対応版一覧は `manifest.js` から取得します。保存先のキーやデータベース構造は更新対象にしません。ROMの最低対応版と変換ツールの出力版は別の情報です。古いROM向けの確認済み互換性範囲を、ツールの最新版に合わせて自動的に広げないでください。

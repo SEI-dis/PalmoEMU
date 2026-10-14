@@ -12,14 +12,14 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
   await page.waitForTimeout(1000);await page.locator('#player-menu').click();
   await page.locator('[data-action=newState]').click();await page.locator('#confirm-state-save').click();await page.locator('[data-slot-load]').first().waitFor();
-  const saved=await page.evaluate(async()=>{const db=await import('./src/storage.js'),[game]=await db.all('library'),[entry]=await db.stateEntries(game.id);const s=entry.value;return {id:game.id,stateBytes:s.bytes.length,saveBytes:s.save.length,first:s.save[0],lastBank:s.save[95*65536],core:s.coreId};});
+  const saved=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),[game]=await db.all('library'),[entry]=await db.stateEntries(game.id);const s=entry.value;return {id:game.id,stateBytes:s.bytes.length,saveBytes:s.save.length,first:s.save[0],lastBank:s.save[95*65536],core:s.coreId};});
   assert.ok(saved.stateBytes>22*1048576);assert.equal(saved.saveBytes,6*1048576);assert.equal(saved.first,0x5a);assert.equal(saved.lastBank,0x3c);assert.equal(saved.core,'mgba-rom64-save6-v2');
   await page.locator('[data-slot-load]').first().click();await page.locator('#sheet').waitFor({state:'hidden'});
   await page.locator('#player-menu').click();await page.locator('[data-action=importSave]').click();
   const bytes=Buffer.alloc(6*1048576,0xff);bytes[0]=0x41;bytes[bytes.length-1]=0x27;
   await page.locator('#save-input').setInputFiles({name:'Authored-flash.sav',mimeType:'application/octet-stream',buffer:bytes});
   await page.getByText('セーブを読み込みました。ゲームを再起動します。',{exact:true}).waitFor();
-  const result=await page.evaluate(async id=>{const db=await import('./src/storage.js'),save=await db.get('saves',id),backups=await db.get('backups',id)||[],states=await db.get('recoveries',id)||[],manual=await db.stateEntries(id);return {length:save.bytes.length,last:save.bytes.at(-1),backup:backups.some(s=>s.bytes.length===6*1048576&&s.bytes[0]===0x5a),recovery:states.some(s=>s.bytes.length>22*1048576),manual:manual.some(s=>s.value.bytes.length>22*1048576)};},saved.id);
+  const result=await page.evaluate(async id=>{const db=await import('./src/storage/storage.js'),save=await db.get('saves',id),backups=await db.get('backups',id)||[],states=await db.get('recoveries',id)||[],manual=await db.stateEntries(id);return {length:save.bytes.length,last:save.bytes.at(-1),backup:backups.some(s=>s.bytes.length===6*1048576&&s.bytes[0]===0x5a),recovery:states.some(s=>s.bytes.length>22*1048576),manual:manual.some(s=>s.value.bytes.length>22*1048576)};},saved.id);
   assert.deepEqual(result,{length:6*1048576,last:0x27,backup:true,recovery:false,manual:true});
   assert.deepEqual(errors,[]);assert.ok(requests.every(r=>r.method()==='GET'&&!r.postData()&&new URL(r.url()).origin===new URL(base).origin));
   await context.close();console.log('PASS: 6 MiB UI import, manual state, paired recovery, retained battery backup and no uploads.');
@@ -32,7 +32,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await capacityContext.route('**/*',route=>new URL(route.request().url()).origin===new URL(base).origin?route.continue():route.abort());
   await capacityPage.goto(base);await capacityPage.waitForFunction(()=>typeof window.createMGBA==='function');
   const capacity=await capacityPage.evaluate(async encoded=>{
-   const [{MGBACore},{SaveProtection},db,{hash},{historyRecordBytes}]=await Promise.all([import('./src/mgba.js'),import('./src/save-safety.js'),import('./src/storage.js'),import('./src/shared.js'),import('./src/save-history.js')]);
+   const [{MGBACore},{SaveProtection},db,{hash},{historyRecordBytes}]=await Promise.all([import('./src/core/mgba.js'),import('./src/storage/save-safety.js'),import('./src/storage/storage.js'),import('./src/shared.js'),import('./src/storage/save-history.js')]);
    const core=new MGBACore(document.createElement('canvas')),protection=new SaveProtection(()=>{}),coreId='mgba-rom64-save6-v2';
    const rom=new Uint8Array(64*1048576);rom.set(Uint8Array.from(atob(encoded),c=>c.charCodeAt(0)));
    const game={id:'synthetic-extended-save-capacity',system:'gba',name:'Authored 64 MiB flash capacity',size:rom.length};

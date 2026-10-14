@@ -2,7 +2,7 @@
 // Pure model tests: no browser, IndexedDB, ROMs, save data, or network.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 (async()=>{
- const source=fs.readFileSync(path.join(__dirname,'../src/trainer-profile.js'),'utf8');
+ const source=fs.readFileSync(path.join(__dirname,'../src/library/trainer-profile.js'),'utf8');
  const {trainerProfileKey,playRecordPrefix,playRecord,trainerStats,initialTrainerProfile}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
  const clock=Date.now,now=2000000000000;Date.now=()=>now;
  try{

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Original ROM-free browser input inspector; does not dispatch game actions.
 import {tr} from '../i18n/index.js';
-import {gameInputsFor,inputLabels} from '../input-controls.js';
-import {builtinDpadDirections} from '../dpad-input.js';
-import {configureBuiltinTouchTargets} from '../touch-targets.js';
-import {createSkinPointers} from '../skin-pointers.js';
+import {gameInputsFor,inputLabels} from '../input/input-controls.js';
+import {builtinDpadDirections} from '../input/dpad-input.js';
+import {configureBuiltinTouchTargets} from '../input/touch-targets.js';
+import {createSkinPointers} from '../skins/skin-pointers.js';
 const directions=['up','down','left','right'];
 export function inputTestMarkup(system){
  return tr`<p class="sheet-note">キーやゲームパッド、下の画面ボタンを押して確認できます。ゲームは動きません。</p><div class="input-test-preview">

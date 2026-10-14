@@ -10,12 +10,12 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',error=>errors.push(error.message));context.on('request',request=>requests.push(request));
   await context.addInitScript(()=>{window.coreAttempts=0;});
-  await context.route('**/src/core-factory.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createCore(){globalThis.coreAttempts++;throw Error("Synthetic CRC fixtures must never execute");}'}));
+  await context.route('**/src/core/core-factory.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createCore(){globalThis.coreAttempts++;throw Error("Synthetic CRC fixtures must never execute");}'}));
   const fixture=fixture35(),compatibleFixture=fixture35({stamp:0x2800,second:true}),unknownFixture=fixture35({stamp:0x2402,second:true}),mixedFixture=fixture35({stamp:0x2800,second:true,secondStamp:0});
   for(const [name,bytes]of Object.entries({old:fixture,compatible:compatibleFixture,unknown:unknownFixture,mixed:mixedFixture}))await context.route('**/__start-fixture-'+name,route=>route.fulfill({body:Buffer.from(bytes),contentType:'application/octet-stream'}));
   await page.goto(base);await page.locator('#add-first').waitFor();
   const ids=await page.evaluate(async({oldROM,newROM})=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/rom-import.js');
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/library/rom-import.js');
    const source=(await importROM(new File([new Uint8Array(oldROM)],'START-0.35.0.gba'),'gba')).id;
    const bytes=new Uint8Array(await (await fetch('./__start-fixture-old')).arrayBuffer());await db.put('saves',source,{bytes,hash:await hash(bytes),at:100});
    const inspected=await importROM(new File([new Uint8Array(newROM)],'START-0.42.3.gba'),'gba',null,{inspectOnly:true});
@@ -23,7 +23,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
    return {source,target:inspected.id,targetGame:inspected.game};
   },{oldROM:[...fakeROM(2749620783)],newROM:[...fakeROM(47924504)]});
   const result=await page.evaluate(async({source,targetGame,newROM})=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{startSaveTask}=await import('./src/start-save/client.js'),{prepareROMUpdate,readROMUpdateBackup}=await import('./src/rom-update.js'),{importROM}=await import('./src/rom-import.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{startSaveTask}=await import('./src/start-save/client.js'),{prepareROMUpdate,readROMUpdateBackup}=await import('./src/library/rom-update.js'),{importROM}=await import('./src/library/rom-import.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
    const original=await db.get('saves',source),inspection=await startSaveTask({action:'inspect',id:source});
    const input={action:'convert',id:source,from:'0.35.0',hash:inspection.hash,at:inspection.at},converted=await startSaveTask(input);
    const valid=inspectStartSave(converted.bytes,'0.42.3').slots[0].valid;
@@ -71,7 +71,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   assert.equal(await page.locator('#start-save-version').isVisible(),true);assert.equal(await page.locator('#start-save-apply').isDisabled(),true);assert.equal(await page.locator('#start-save-export').isDisabled(),true);
   await page.locator('#start-save-version').selectOption('0.35.0');await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled);
   assert.equal(await page.locator('#start-save-apply').isDisabled(),true);assert.equal(await page.locator('#start-save-export').isDisabled(),true);assert.equal(await page.locator('#start-save-download').count(),0);
-  assert.equal(await page.evaluate(async id=>[...(await (await import('./src/storage.js')).get('saves',id)).bytes].join(','),ids.target),'91,92,93');
+  assert.equal(await page.evaluate(async id=>[...(await (await import('./src/storage/storage.js')).get('saves',id)).bytes].join(','),ids.target),'91,92,93');
   // Reselecting the already-added target ROM rescues the original snapshot;
   // it must not run prepareROMUpdate against the intentionally invalid save.
   await page.locator('#start-save-back').click();await page.locator('#rom-update-file').setInputFiles({name:'START-0.42.3.gba',mimeType:'application/octet-stream',buffer:Buffer.from(fakeROM(47924504))});
@@ -80,7 +80,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   // Exercise the real application, real workers and IndexedDB. Fresh-target
   // update commits never launch a core, so authored CRC fixtures remain data.
   const sources=await page.evaluate(async entries=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/rom-import.js'),out={};
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/library/rom-import.js'),out={};
    for(const [key,rom,name,fixture]of entries){const game=await importROM(new File([new Uint8Array(rom)],name),'gba'),bytes=new Uint8Array(await(await fetch('./__start-fixture-'+fixture)).arrayBuffer());await db.put('saves',game.id,{bytes,hash:await hash(bytes),at:300});out[key]=game.id;}return out;
   },[
    ['compatible',[...fakeROM(1805207701)],'START-0.40.0.gba','compatible'],
@@ -90,7 +90,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
    ['mixed',[...fakeROM(0x55667788)],'PokemonStart-v0.40.0.gba','mixed']
   ]);
   const workerPolicy=await page.evaluate(async sources=>{
-   const {startSaveTask:task}=await import('./src/start-save/client.js'),db=await import('./src/storage.js'),out={};
+   const {startSaveTask:task}=await import('./src/start-save/client.js'),db=await import('./src/storage/storage.js'),out={};
    for(const key of Object.keys(sources))out[key]=await task({action:'inspect',id:sources[key]});
    for(const key of ['compatible','unknown','mismatch','mixed']){
     const info=out[key];try{await task({action:'convert',id:sources[key],from:info.version,hash:info.hash,at:info.at,allowUnverified:key==='compatible'});out[key+'Rejected']=false;}catch{out[key+'Rejected']=true;}
@@ -106,9 +106,9 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   assert.equal(workerPolicy.corrected.compatibility.status,'convert');
   const openUpdate=async id=>{await page.reload();await page.locator(`[data-game="${id}"]`).waitFor();if(await page.locator('#sheet.release-notice[open]').count())await page.locator('#close-sheet').click();await page.locator(`[data-game="${id}"]`).click();await page.locator('[data-action="updateROM"]').click();};
   const selectTarget=()=>page.locator('#rom-update-file').setInputFiles({name:'START-0.42.3.gba',mimeType:'application/octet-stream',buffer:Buffer.from(fakeROM(47924504))});
-  const removeTarget=()=>page.evaluate(async id=>{await(await import('./src/storage.js')).removeGame(id);},ids.target);
+  const removeTarget=()=>page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},ids.target);
   const committed=(source,version='0.42.3')=>page.evaluate(async({source,target,version})=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{readROMUpdateBackup}=await import('./src/rom-update.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{readROMUpdateBackup}=await import('./src/library/rom-update.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
    const game=await db.get('library',target),save=await db.get('saves',target),backup=await readROMUpdateBackup(game);
    return {target:await hash(save.bytes),source:await hash((await db.get('saves',source)).bytes),backup:await hash(backup.save.bytes),migration:game.romUpdate.migration??null,valid:inspectStartSave(save.bytes,version).slots.filter(s=>s.valid).length};
   },{source,target:ids.target,version});
@@ -136,4 +136,5 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   assert.deepEqual(errors,[]);assert(requests.filter(r=>/^https?:/.test(r.url())).every(r=>new URL(r.url()).origin===new URL(base).origin&&['GET','HEAD'].includes(r.method())&&!r.postData()));
   await context.close();console.log('PASS: START real worker/application UI; compatible byte-for-byte copy, explicit unknown conversion/copy gates, old conversion/exports, malformed/mismatched/mixed-slot rejection, immutable originals/snapshots, rollback/stale refusal and no synthetic core execution. '+kind);
  }finally{await browser.close();}
-})().catch(error=>{console.error(error);process.exitCode=1;});
+// All assertions and owned-browser cleanup finish before terminating the runner.
+})().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1)});

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 const assert=require('node:assert/strict');
 (async()=>{
- const {createLaunchContinuation:create}=await import('../src/launch-continuation.js');
+ const {createLaunchContinuation:create}=await import('../src/updates/launch-continuation.js');
  const values=new Map(),storage=()=>({getItem:key=>values.get(key)||null,setItem:(key,value)=>values.set(key,value),removeItem:key=>values.delete(key)});
  let time=1000;const make=(build='old',scope='/app/')=>create({build,scope,storage,now:()=>time}),key='palmo-launch-after-update:/app/';
  const old=make();old.remember({id:'selected-new-rom',name:'Must not persist this title'},{skipRecovery:true});

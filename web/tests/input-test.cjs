@@ -10,7 +10,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   await page.route('**/src/app.js',route=>route.fulfill({contentType:'text/javascript',body:'/* isolated input component fixture */'}));
   await page.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');
   await page.evaluate(async()=>{
-   const {createInputControls}=await import('./src/input-controls.js'),{createInputControlsView}=await import('./src/views/input-controls.js'),{createGamePreferences}=await import('./src/game-preferences.js'),{touchInputDefaults}=await import('./src/dpad-input.js');
+   const {createInputControls}=await import('./src/input/input-controls.js'),{createInputControlsView}=await import('./src/views/input-controls.js'),{createGamePreferences}=await import('./src/library/game-preferences.js'),{touchInputDefaults}=await import('./src/input/dpad-input.js');
    document.documentElement.removeAttribute('aria-busy');window.fixtureGame=null;window.fixtureGlobal={...touchInputDefaults};window.fixtureSaves=[];window.fixtureActions=[];window.fixturePads=[];window.fixturePressed=new Map();window.fixtureMasks=[];
    window.fixturePreferences=createGamePreferences(fixtureGlobal,{getGame:()=>fixtureGame,saveGame:async(id,preferences)=>fixtureSaves.push({id,preferences})});
    Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>fixturePads});
@@ -38,7 +38,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   // A hit in the expanded region reaches the closest visible control, even if
   // another button's transparent extension happens to be the DOM target.
   const hit=await page.evaluate(async()=>{
-   const {configureBuiltinTouchTargets}=await import('./src/touch-targets.js');const box=document.createElement('div');box.style.cssText='position:fixed;top:10px;left:10px;width:200px;height:80px';box.innerHTML='<button class="skin-button" style="left:0;top:0;width:40px;height:40px">A</button><button class="skin-button" style="left:50px;top:0;width:40px;height:40px">B</button>';document.querySelector('#sheet').append(box);
+   const {configureBuiltinTouchTargets}=await import('./src/input/touch-targets.js');const box=document.createElement('div');box.style.cssText='position:fixed;top:10px;left:10px;width:200px;height:80px';box.innerHTML='<button class="skin-button" style="left:0;top:0;width:40px;height:40px">A</button><button class="skin-button" style="left:50px;top:0;width:40px;height:40px">B</button>';document.querySelector('#sheet').append(box);
    const buttons=[...box.children],seen=[];buttons.forEach((button,i)=>button.onpointerdown=()=>seen.push(i));configureBuiltinTouchTargets(box,{touchHitSlop:16});const r=buttons[0].getBoundingClientRect();buttons[1].querySelector('span').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerType:'touch',clientX:r.left+20,clientY:r.top+20}));
    configureBuiltinTouchTargets(box,null);const count=box.querySelectorAll('.touch-hit-extension').length;box.remove();return {seen,count};
   });assert.deepEqual(hit,{seen:[0],count:0});

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr,locale} from '../i18n/index.js';
-import {createBackup,inspectBackup,restoreBackup,previousBackup} from '../backup.js';
+import {createBackup,inspectBackup,restoreBackup,previousBackup} from '../storage/backup.js';
 import {escapeHTML as esc,bytesLabel} from '../shared.js';
 import {row} from '../components/rows.js';
 export function createBackupView({sheet,download,toast,settings,onRestored=()=>location.reload()}){

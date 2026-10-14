@@ -11,7 +11,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-run
   await page.evaluate(version=>{localStorage.setItem('manic-settings',JSON.stringify({skins:{gba:'builtin:mint'},haptics:false}));localStorage.setItem('palmo-release-seen:'+new URL('.',location.href).pathname,version);},require('../package.json').version);await page.reload();
   await page.locator('#rom-input').setInputFiles({name:'Orientation.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});await page.locator('.game-launch').waitFor();
   await page.evaluate(async()=>{
-   const db=await import('./src/storage.js'),game=(await db.all('library'))[0];await db.setGameSkin(game.id,'builtin:sunset');
+   const db=await import('./src/storage/storage.js'),game=(await db.all('library'))[0];await db.setGameSkin(game.id,'builtin:sunset');
    const c=document.createElement('canvas');c.width=256;c.height=192;c.getContext('2d').fillRect(0,0,256,192);
    const blob=await new Promise(r=>c.toBlob(r)),image={bytes:new Uint8Array(await blob.arrayBuffer())};
    const rep={mappingSize:{width:844,height:390},assets:{resizable:'art'},screens:[{outputFrame:{x:200,y:20,width:450,height:300}}],items:[{inputs:['a'],frame:{x:700,y:100,width:80,height:80}}]};
@@ -28,7 +28,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-run
   const close=()=>page.locator('#close-sheet').click();
   const openShared=async()=>{await page.locator('[data-tab=settings]').click();await page.locator('#content [data-action=skins]').click();};
   const openGame=async()=>{await page.locator('[data-tab=games]').click();await page.getByRole('button',{name:'Orientationのメニュー',exact:true}).click();await page.locator('[data-action=gameSkin]').click();};
-  const stored=()=>page.evaluate(async()=>{const db=await import('./src/storage.js');return(await db.all('library'))[0];});
+  const stored=()=>page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return(await db.all('library'))[0];});
   await openShared();assert.equal(await selected(),'builtin:mint');await orientation('landscape');assert.equal(await selected(),'builtin:mint');
   await choose('bundled:manic-gba');await orientation('portrait');assert.equal(await selected(),'builtin:mint');
   assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('manic-settings')).skins.gba),{portrait:'builtin:mint',landscape:'bundled:manic-gba'});await close();
@@ -37,7 +37,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-run
   await choose('skin:orientation');assert.deepEqual((await stored()).skinId,{landscape:'skin:orientation'});
   if(process.env.SCREENSHOT_DIR){fs.mkdirSync(process.env.SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,`skin-orientation-${kind}.png`)});}
   await close();await page.reload();
-  await page.evaluate(async()=>{const{MGBACore}=await import('./src/mgba.js'),load=MGBACore.prototype.load;MGBACore.prototype.load=function(...args){window.orientationCore=this;return load.apply(this,args);};});
+  await page.evaluate(async()=>{const{MGBACore}=await import('./src/core/mgba.js'),load=MGBACore.prototype.load;MGBACore.prototype.load=function(...args){window.orientationCore=this;return load.apply(this,args);};});
   await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
   const expectLive=async id=>page.waitForFunction(id=>document.querySelector('#player')?.dataset.skinId===id,id);
   await expectLive('builtin:mint');
@@ -60,13 +60,13 @@ const kind=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-run
   assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('manic-settings')).skins.gba),{landscape:'bundled:manic-gba'});
   await orientation('landscape');assert.equal(await page.locator('#skin-inherit').isChecked(),true);assert.equal(await selected(),'bundled:manic-gba');await close();
   // Atomic updates preserve the other orientation and unrelated game metadata.
-  const atomic=await page.evaluate(async()=>{const db=await import('./src/storage.js'),g=(await db.all('library'))[0];await db.put('library',g.id,{...g,favorite:true});await Promise.all([db.setGameSkin(g.id,'builtin:mint','portrait'),db.setGameSkin(g.id,'builtin:sunset','landscape')]);return db.get('library',g.id);});
+  const atomic=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),g=(await db.all('library'))[0];await db.put('library',g.id,{...g,favorite:true});await Promise.all([db.setGameSkin(g.id,'builtin:mint','portrait'),db.setGameSkin(g.id,'builtin:sunset','landscape')]);return db.get('library',g.id);});
   assert.deepEqual(atomic.skinId,{portrait:'builtin:mint',landscape:'builtin:sunset'});assert.equal(atomic.favorite,true);
-  assert.equal(await page.evaluate(async()=>{const db=await import('./src/storage.js');return(await db.all('roms')).length;}),1);
+  assert.equal(await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return(await db.all('roms')).length;}),1);
   // Both orientation loads share image ownership; failed or superseded work
   // must not revoke the current skin or leak its temporary Blob URLs.
   const lifetime=await page.evaluate(async()=>{
-   const db=await import('./src/storage.js'),loader=await import('./src/skins.js');
+   const db=await import('./src/storage/storage.js'),loader=await import('./src/skins/skins.js');
    const originalCreate=URL.createObjectURL,originalRevoke=URL.revokeObjectURL,originalFetch=window.fetch;
    const created=[],revoked=[];URL.createObjectURL=blob=>{const url=originalCreate(blob);created.push(url);return url;};URL.revokeObjectURL=url=>{revoked.push(url);originalRevoke(url);};
    const rep={mappingSize:{width:256,height:192},assets:{resizable:'art'},screens:[],items:[]};

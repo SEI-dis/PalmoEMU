@@ -14,7 +14,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',error=>errors.push(error.message));context.on('request',request=>requests.push(request));
   await context.addInitScript(()=>{window.coreAttempts=0;});
-  await context.route('**/src/core-factory.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createCore(){globalThis.coreAttempts++;throw Error("Synthetic ROM profiles must never execute");}'}));
+  await context.route('**/src/core/core-factory.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createCore(){globalThis.coreAttempts++;throw Error("Synthetic ROM profiles must never execute");}'}));
   const original=fixture35({second:true}),compatible=fixture35({stamp:0x2800,second:true});
   await context.route('**/__range-save-old',route=>route.fulfill({body:Buffer.from(original),contentType:'application/octet-stream'}));
   await context.route('**/__range-save-compatible',route=>route.fulfill({body:Buffer.from(compatible),contentType:'application/octet-stream'}));
@@ -22,7 +22,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await context.route('**/__range-target',route=>route.fulfill({path:targetFile,contentType:'application/octet-stream'}));
   await page.goto(base);await page.locator('#add-first').waitFor();
   const sources=await page.evaluate(async entries=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/rom-import.js'),result={};
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/library/rom-import.js'),result={};
    for(const [key,rom,name]of entries){
     const game=await importROM(new File([new Uint8Array(rom)],name),'gba');
     const bytes=new Uint8Array(await(await fetch('./__range-save-'+key)).arrayBuffer());
@@ -41,14 +41,14 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    targetFile=path.join(directory,`PokemonStart_v${version}-min${minimum}.gba`);files.push(targetFile);
    fs.writeFileSync(targetFile,profileROM({stamp:stamp(version),minimum:stamp(minimum)}).bytes);
    return page.evaluate(async name=>{
-    const {importROM}=await import('./src/rom-import.js');
+    const {importROM}=await import('./src/library/rom-import.js');
     const file=new File([await(await fetch('./__range-target')).arrayBuffer()],name);
     const inspected=await importROM(file,'gba',null,{inspectOnly:true});
     return {id:inspected.id,profile:inspected.startROM};
    },path.basename(targetFile));
   };
   const committed=async(source,target,saveVersion)=>page.evaluate(async({source,target,saveVersion})=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{readROMUpdateBackup}=await import('./src/rom-update.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{readROMUpdateBackup}=await import('./src/library/rom-update.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
    const game=await db.get('library',target),save=await db.get('saves',target),backup=await readROMUpdateBackup(game);
    return {target:await hash(save.bytes),source:await hash((await db.get('saves',source)).bytes),backup:await hash(backup.save.bytes),migration:game.romUpdate.migration??null,validSlots:inspectStartSave(save.bytes,saveVersion).slots.filter(slot=>slot.valid).length};
   },{source,target,saveVersion});
@@ -74,7 +74,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   const target425=await selectProfile('0.42.5','0.36.2');
   assert.equal(target425.profile?.version,'0.42.5');assert.equal(target425.profile.minimumSaveVersion,'0.36.2');
   const forgedCopies=await page.evaluate(async({source,target,name})=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/rom-import.js'),{prepareROMUpdate}=await import('./src/rom-update.js');
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/library/rom-import.js'),{prepareROMUpdate}=await import('./src/library/rom-update.js');
    const file=new File([await(await fetch('./__range-target')).arrayBuffer()],name),inspected=await importROM(file,'gba',null,{inspectOnly:true});
    const plan=await prepareROMUpdate(source,inspected.game),rejections=[];
    for(const extra of [{},{startCopy:{from:'0.35.0'}}]){
@@ -95,7 +95,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   assert.deepEqual(await committed(sources.old,target425.id,'0.42.3'),converted425,'Inspecting the next update never changes the intermediate save or its backup');
 
   // A compatible source must retain every byte, including both slots and RTC.
-  await page.evaluate(async id=>{await(await import('./src/storage.js')).removeGame(id);},target425.id);
+  await page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},target425.id);
   await openUpdate(sources.compatible);await page.locator('#rom-update-confirm').waitFor();
   assert.equal(await page.locator('#start-save-apply').count(),0);
   assert.equal(await page.locator('#rom-update-compatible').isVisible(),false);
@@ -120,7 +120,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   assert.equal(await page.locator('#start-save-copy').isVisible(),false);
   assert.equal(await page.locator('#rom-update-confirm').count(),0);
   const denied=await page.evaluate(async({source,target,name})=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/rom-import.js'),{prepareROMUpdate}=await import('./src/rom-update.js');
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/library/rom-import.js'),{prepareROMUpdate}=await import('./src/library/rom-update.js');
    const file=new File([await(await fetch('./__range-target')).arrayBuffer()],name),inspected=await importROM(file,'gba',null,{inspectOnly:true});
    const plan=await prepareROMUpdate(source,inspected.game);let rejected=false;
    try{await importROM(file,'gba',null,{updatePlan:{...plan,startMigration:{from:'0.35.0',allowUnverified:true}}});}catch{rejected=true;}

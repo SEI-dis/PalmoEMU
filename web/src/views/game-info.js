@@ -3,14 +3,14 @@
    Modified for Web 2026-10-08. See sources/manicemu-ui/README.md. */
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
-import {guardUpdateTask} from '../update-activity.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
 import {systems,escapeHTML as esc,icon,bytesLabel} from '../shared.js';
-import {coreRegistry,coreFor,saveKey,supportsGame} from '../core-registry.js';
-import * as db from '../storage.js';
-import {gameInfoHero,groupedOptions,nativeAction,orderedOptionGroups,gameShortcuts} from '../manic-ui.js';
+import {coreRegistry,coreFor,saveKey,supportsGame} from '../core/core-registry.js';
+import * as db from '../storage/storage.js';
+import {gameInfoHero,groupedOptions,nativeAction,orderedOptionGroups,gameShortcuts} from '../components/manic-ui.js';
 import {createCoverDialog} from './cover.js';
 import {createROMUpdateDialog} from './rom-update.js';
-import {categoryLabel} from '../library.js';
+import {categoryLabel} from '../library/library.js';
 
 export function createGameInfo(api){
  const coverDialog=createCoverDialog({...api,showGame:show});

@@ -9,7 +9,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto((process.env.TEST_URL||'http://127.0.0.1:4173/')+'privacy.html');
   const result=await page.evaluate(async()=>{
-   const {SaveProtection}=await import('./src/save-safety.js'),db=await import('./src/storage.js');
+   const {SaveProtection}=await import('./src/storage/save-safety.js'),db=await import('./src/storage/storage.js');
    const check=(condition,message)=>{if(!condition)throw Error(message);};
    const reject=async promise=>{try{await promise;}catch(e){return e;}throw Error('Expected rejection');};
    const make=async(id,start=0)=>{

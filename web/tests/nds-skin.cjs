@@ -8,7 +8,7 @@ const pw=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||'chro
   const ctx=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,serviceWorkers:'block'}),p=await ctx.newPage(),errors=[];
   p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(15000);await p.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');
   const result=await p.evaluate(async()=>{
-   const {builtinSkin,builtinLayout}=await import('./src/skin-art.js'),{screenBounds}=await import('./src/control-layout.js');let count=0;
+   const {builtinSkin,builtinLayout}=await import('./src/skins/skin-art.js'),{screenBounds}=await import('./src/skins/control-layout.js');let count=0;
    const inside=(f,w,h)=>f.x>=-.01&&f.y>=-.01&&f.width>0&&f.height>0&&f.x+f.width<=w+.01&&f.y+f.height<=h+.01;
    const overlaps=(a,b)=>a.x<b.x+b.width-.01&&b.x<a.x+a.width-.01&&a.y<b.y+b.height-.01&&b.y<a.y+a.height-.01;
    for(const w of [240,320,390,430,568,734,844,932,1024,1366])for(const h of [200,300,390,568,730,844,1024]){
@@ -42,14 +42,14 @@ const pw=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||'chro
   await p.locator('[data-action=audio]').click();await p.locator('[data-setting=speed]').selectOption('2');await p.locator('#close-sheet').click();assert.deepEqual(await stored(),saved);
   await p.reload();await open();await p.locator('[data-edit-orientation=portrait]').click();await p.locator('#edit-selection').selectOption('screen-sub');assert.equal(await p.locator('#edit-size').inputValue(),'70');
   await p.locator('#edit-reset').click();assert.equal(await p.locator('#edit-size').inputValue(),'100');await p.locator('#edit-cancel').click();assert.deepEqual(await stored(),saved);await p.locator('#close-sheet').click();
-  await p.evaluate(async()=>{const {NDSCore}=await import('./src/nds.js'),load=NDSCore.prototype.load;NDSCore.prototype.load=async function(bytes){await load.call(this,bytes);const touch=this.m._web_touch;this.m._web_touch=(...args)=>{if(args[2])window.stylusCoordinates=args;return touch(...args);};};});
+  await p.evaluate(async()=>{const {NDSCore}=await import('./src/core/nds.js'),load=NDSCore.prototype.load;NDSCore.prototype.load=async function(bytes){await load.call(this,bytes);const touch=this.m._web_touch;this.m._web_touch=(...args)=>{if(args[2])window.stylusCoordinates=args;return touch(...args);};};});
   await p.locator('#rom-input').setInputFiles({name:'Original NDS skin.nds',mimeType:'application/octet-stream',buffer:require('./nds-cartridge.cjs')()});await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
   const settle=()=>p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));
   const pixel=async green=>p.waitForFunction(g=>document.querySelector('.nds-bottom').getContext('2d').getImageData(0,0,1,1).data[1]===(g?255:0),green);
   const touch=async()=>{const r=await p.locator('.nds-bottom').boundingBox();await p.mouse.move(r.x+r.width*.8,r.y+r.height*.3);await p.mouse.down();await pixel(true);const coords=await p.evaluate(()=>window.stylusCoordinates);if(coords){assert.ok(Math.abs(coords[0]-19660)<400&&Math.abs(coords[1]-9830)<300,'Stylus coordinates match resized/swapped canvas');}await p.mouse.up();await pixel(false);};
   for(const [width,height]of [[390,844],[844,390]]){
    await p.setViewportSize({width,height});await settle();
-   const expected=await p.evaluate(async()=>{const {builtinLayout,builtinSkin}=await import('./src/skin-art.js'),s=JSON.parse(localStorage.getItem('manic-settings'));return builtinLayout(builtinSkin('nds'),innerWidth,innerHeight,s.controlLayouts.nds[innerWidth>innerHeight?'landscape':'portrait']).screens.map(s=>s.outputFrame);});
+   const expected=await p.evaluate(async()=>{const {builtinLayout,builtinSkin}=await import('./src/skins/skin-art.js'),s=JSON.parse(localStorage.getItem('manic-settings'));return builtinLayout(builtinSkin('nds'),innerWidth,innerHeight,s.controlLayouts.nds[innerWidth>innerHeight?'landscape':'portrait']).screens.map(s=>s.outputFrame);});
    for(let i=0;i<2;i++){const actual=await p.locator('.nds-display canvas').nth(i).boundingBox();for(const key of ['x','y','width','height'])assert.ok(Math.abs(actual[key]-expected[i][key])<.1,'Gameplay matches edited '+key);}
    await touch();await p.locator('#player-menu').click();await p.locator('[data-setting=ndsSwapScreens]').check();await p.locator('#close-sheet').click();await touch();
    const frames=await p.locator('.nds-display canvas').evaluateAll(cs=>cs.map(c=>({x:c.getBoundingClientRect().x,y:c.getBoundingClientRect().y,width:c.getBoundingClientRect().width,height:c.getBoundingClientRect().height})));

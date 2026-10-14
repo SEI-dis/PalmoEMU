@@ -37,7 +37,7 @@ const sizes=[[240,320],[280,240],[320,320],[400,360],[480,240],[320,568],[360,80
   const out=process.env.SCREENSHOT_DIR;if(out){fs.mkdirSync(out,{recursive:true});await p.screenshot({path:path.join(out,'skin-picker.png')});}
   // Inspect all systems and widths, including split view. Screen/control rectangles may touch, never overlap.
   const checked=await p.evaluate(async sizes=>{
-   const {builtinSkin,builtinLayout}=await import('./src/skin-art.js');let n=0;
+   const {builtinSkin,builtinLayout}=await import('./src/skins/skin-art.js');let n=0;
    for(let w=240;w<=1600;w+=73)for(let h=200;h<=1200;h+=97)sizes.push([w,h]);
    for(const system of ['gba','gb','gbc','nes','snes','md'])for(const [w,h] of sizes){
     const skin=builtinSkin(system),rep=builtinLayout(skin,w,h),frames=[rep.screens[0].outputFrame,...rep.items.map(i=>i.frame),...rep.actions.map(i=>i.frame)];
@@ -70,12 +70,12 @@ const sizes=[[240,320],[280,240],[320,320],[400,360],[480,240],[320,568],[360,80
   await p.waitForFunction(()=>Math.abs(document.querySelector('#skin').getBoundingClientRect().width-760)<1);
   const safe=await p.locator('#skin').boundingBox();assert.equal(safe.x,44);assert.equal(safe.y,12);assert.equal(safe.height,358);
   await p.locator('#resume-game').evaluate(e=>{if(!e.hidden)e.click();});
-  const count=()=>p.evaluate(async()=>{const db=await import('./src/storage.js');return(await db.all('states')).length;});
+  const count=()=>p.evaluate(async()=>{const db=await import('./src/storage/storage.js');return(await db.all('states')).length;});
   await p.locator('#quick-save').click();await p.locator('#cancel-state-save').click();assert.equal(await count(),0);
   for(let i=0;i<2;i++){await p.locator('#quick-save').click();await p.locator('#confirm-state-save').click();await p.locator('#sheet').waitFor({state:'hidden'});}assert.equal(await count(),2);
   await p.locator('#quick-load').click();await p.locator('#cancel-quick-load').click();assert.equal(await count(),2);
   await p.locator('#quick-load').click();await p.locator('#confirm-quick-load').click();await p.locator('#sheet').waitFor({state:'hidden'});assert.equal(await count(),2);
-  assert.ok(await p.evaluate(async()=>{const db=await import('./src/storage.js');return(await db.all('recoveries')).flat().some(r=>r.bytes?.length&&r.hash&&Date.now()-r.at<5000);}),'Checkpoint before quick load');
+  assert.ok(await p.evaluate(async()=>{const db=await import('./src/storage/storage.js');return(await db.all('recoveries')).flat().some(r=>r.bytes?.length&&r.hash&&Date.now()-r.at<5000);}),'Checkpoint before quick load');
   await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').check();await p.locator('#close-sheet').click();
   assert.equal(await p.locator('.skin-button').count(),0);assert.equal(await p.locator('#quick-actions').isVisible(),false);
   const full=await p.locator('#screen').boundingBox();assert.ok(full.height>=358-.1,'Display-only uses all available height');

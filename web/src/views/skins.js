@@ -3,16 +3,16 @@
    See sources/manicemu-ui/README.md. */
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
-import {guardUpdateTask} from '../update-activity.js';
-import * as db from '../storage.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
+import * as db from '../storage/storage.js';
 import {systems,escapeHTML as esc,icon} from '../shared.js';
 import {row} from '../components/rows.js';
-import {builtins,importSkin,previewSkin,skinSupportsSystem} from '../skins.js';
-import {skinChoice,withSkinChoice,withoutSkinChoice} from '../skin-selection.js';
-import {bundledSkins} from '../bundled-skins.js';
-import {builtinColors} from '../skin-profiles.js';
-import {mountSkinPreview} from '../skin-preview.js';
-import {mountControlEditor} from '../control-editor.js';
+import {builtins,importSkin,previewSkin,skinSupportsSystem} from '../skins/skins.js';
+import {skinChoice,withSkinChoice,withoutSkinChoice} from '../skins/skin-selection.js';
+import {bundledSkins} from '../skins/bundled-skins.js';
+import {builtinColors} from '../skins/skin-profiles.js';
+import {mountSkinPreview} from '../skins/skin-preview.js';
+import {mountControlEditor} from '../skins/control-editor.js';
 export function createSkinSettings(api){
  const {runtime,settings,setPause,sheet,applySettings,layoutSkin,reloadSkins,refresh,toast,error,controlLayout,playerSize,frameStyle}=api;
  const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];

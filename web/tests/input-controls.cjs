@@ -10,7 +10,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
   // otherwise its asynchronous startup can overwrite the fixture's close hook.
   await page.locator('#add-first').waitFor();await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
   await page.evaluate(async()=>{
-   const {createInputControls}=await import('./src/input-controls.js');
+   const {createInputControls}=await import('./src/input/input-controls.js');
    window.testInputState={system:'gba',active:true,paused:false,linked:false,deadZone:.4};window.testInputSettings={};window.testInputActions=[];window.testInputMasks=[];window.testPads=[];window.testPressed=new Map();window.testInputSaved=0;
    Object.defineProperty(navigator,'getGamepads',{configurable:true,value:()=>testPads});
    const keybits={a:0,b:1,select:2,start:3,right:4,left:5,up:6,down:7,r:8,l:9,x:10,y:11,c:12,z:13};
@@ -34,7 +34,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    return {pulse,hold,paused,resumed,combined,linked,ended};
   });assert.deepEqual(assist,{pulse:[1,0,1,0],hold:[1,1,0,0],paused:0,resumed:0,combined:[1,1,0,1],linked:[1,0],ended:0});
   const gamepad=await page.evaluate(async()=>{
-   const {deviceKey}=await import('./src/input-controls.js');testInputs.setAssist('gba','a','hold');
+   const {deviceKey}=await import('./src/input/input-controls.js');testInputs.setAssist('gba','a','hold');
    const pad={index:0,id:'Synthetic pad',connected:true,buttons:Array.from({length:17},()=>({pressed:false,value:0})),axes:[0,0]};testPads=[pad];testInputs.poll(500);pad.buttons[0].pressed=true;testInputs.poll(510);const down=testInputMasks.at(-1);pad.buttons[0].pressed=false;testInputs.poll(520);const held=testInputMasks.at(-1);
    testPads=[];testInputs.poll(530);const disconnected=testInputMasks.at(-1);testPads=[pad];testInputs.poll(540);
    const key=deviceKey(pad);testInputs.assign('gba',key,'b','b0');pad.buttons[0].pressed=true;testInputs.poll(550);const remapped=testInputMasks.at(-1);pad.buttons[0].pressed=false;testInputs.poll(560);
@@ -43,7 +43,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
    return {down,held,disconnected,remapped,captured:capturedPad,otherSystem};
   });assert.deepEqual(gamepad,{down:1,held:1,disconnected:0,remapped:2,captured:'a0+',otherSystem:1});
   const sanitized=await page.evaluate(async()=>{
-   const {sanitizeInputControls}=await import('./src/input-controls.js');return sanitizeInputControls({profiles:{gba:{keyboard:{KeyJ:'a',UntrustedKey:'b',KeyK:'uploadROM'},'https://private-device.invalid':{b0:'a'}}},assist:{gba:{interval:-1,modes:{a:'turbo',b:'javascript',unknown:'hold'}}},privateData:'not retained'});
+   const {sanitizeInputControls}=await import('./src/input/input-controls.js');return sanitizeInputControls({profiles:{gba:{keyboard:{KeyJ:'a',UntrustedKey:'b',KeyK:'uploadROM'},'https://private-device.invalid':{b0:'a'}}},assist:{gba:{interval:-1,modes:{a:'turbo',b:'javascript',unknown:'hold'}}},privateData:'not retained'});
   });assert.deepEqual(sanitized,{version:1,profiles:{gba:{keyboard:{KeyJ:'a'}}},assist:{gba:{interval:100,modes:{a:'turbo'}}}});
   // Use the actual settings component and real focus/key capture in both engines.
   await page.evaluate(async()=>{

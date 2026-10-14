@@ -5,20 +5,28 @@
 | 場所 | 役割 |
 | --- | --- |
 | `web/index.html`・`web/src/app.js` | 起動、画面間の遷移、ゲーム実行と保存処理の接続 |
+| `web/src/shared.js`・`diagnostics.js` | 共通のDOM・設定ユーティリティと、許可した項目だけの端末内診断 |
 | `web/src/views/` | ライブラリ、設定、ゲーム情報、ステート、スキンなどの画面 |
-| `web/src/components/` | ManicEMU由来の共通行・選択欄、言語設定、保存容量の部品 |
+| `web/src/components/` | 共通の行・選択欄・ダイアログ、言語・容量・トレーナーカードの部品 |
+| `web/src/core/` | 各エミュレーターの接続、機種別オプション、保存形式・巻き戻し |
+| `web/src/rendering/` | 映像合成、フィルター、フレーム転送、音声の時間伸縮 |
+| `web/src/storage/` | IndexedDB、セーブの直列化・履歴・バックアップ・ステート持ち運び |
+| `web/src/library/` | ROMの追加・ZIP・パッチ・更新、ゲーム別設定とプレイ統計 |
+| `web/src/skins/` | スキンの形式・選択・描画・画面配置・編集・プレビュー |
+| `web/src/input/` | キー・パッド・タッチ・十字キーの入力と振動 |
+| `web/src/capture/` | スクリーンショットボタン、録画、撮影結果のプレビュー |
+| `web/src/link/` | Celio・端末内・直接通信、通信前の保存保護と入力接続 |
+| `web/src/updates/` | オフライン準備、自動／手動更新、更新完了の案内 |
+| `web/src/workers/` | 1回の要求で終了するWorkerの共通呼び出し。継続的なセーブWorkerは対象外 |
 | `web/src/start-save/` | PokemonStartセーブ変換の接続・保存保護・互換性判定。提供エンジンと分離 |
-| `web/scripts/start-save-migrate/` | 提供ツール更新時の候補検査と手順。候補を実行せず差分を確認 |
-| `web/src/i18n/` | 言語判定、翻訳、静的ページへの適用 |
-| `web/src/i18n/locales/` | 各表示言語の翻訳辞書 |
-| `web/scripts/i18n/` | Acornによる文言抽出、原文ハッシュ、翻訳差分、端末内の翻訳モデルへの接続。ブラウザからは読み込まない |
-| `web/scripts/develop.mjs` | 開発時の変更監視・翻訳生成・プレビュー |
-| `web/src/release-notice.js`・`web/scripts/build-release-notes.cjs` | 更新完了の案内と、共通の変更通知データからのHTML生成 |
-| `web/src/` のその他のモジュール | コアの接続、保存、入力、通信、レイアウトなど。画面の移動と一緒に保存キーや通信形式を変更しない |
+| `web/src/i18n/`・`locales/` | 言語判定、翻訳、静的ページへの適用と各言語の辞書 |
+| `web/scripts/start-save-migrate/` | 提供ツール更新時の候補検査と手順 |
+| `web/scripts/i18n/` | 文言抽出、原文ハッシュ、翻訳差分、端末内翻訳モデルへの接続。ブラウザからは読み込まない |
+| `web/scripts/`・`lib/` | 開発サーバー、検証・生成・公開準備の入口と共通処理 |
+| `web/tests/` | 自作データによる検証。[目的別の案内](tests/README.md) |
 | `web/cores/`・`web/vendor/` | 固定した版から取得・ビルドした配布物。手作業で書き換えない |
 | `web/assets/` | アイコンとスキン。第三者素材の通知を保持する |
 | `web/sources/`・`web/licenses/` | 対応ソース、ビルド記録、ライセンス原文 |
-| `web/tests/`・`web/scripts/` | 自作データによる検証と、生成・監査用の処理 |
 | `deployment/`・`.github/workflows/` | 検証後の公開手順とCI |
 | `work/` | 個別の作業・検証出力。Gitと公開対象から除外 |
 
@@ -26,7 +34,15 @@
 3DSの開発設定名、固定コアのビルド名、公開処理の排他グループと出力マーカーも内部の識別子です。
 アプリ名の表記変更だけを理由に一括置換しないでください。過去の改名記録とコミットメッセージは当時の名前を残します。
 
-画面はAPIを引数として受け取り、ゲームの起動・保存などを呼び出します。画面の部品からコアを直接操作せず、既存の保存・通信の保護処理を通してください。共有行の見た目は `components/rows.js`、プレイ中のメニュー構成は `manic-ui.js` を使用します。移植元の著作権・ライセンス表記は、ファイルを移動・分割しても保持します。
+画面はAPIを引数として受け取り、ゲームの起動・保存などを呼び出します。画面の部品からコアを直接操作せず、既存の保存・通信の保護処理を通してください。共有行の見た目は `components/rows.js`、プレイ中のメニュー構成は `components/manic-ui.js` を使用します。移植元の著作権・ライセンス表記は、ファイルを移動・分割しても保持します。
+
+## 境界と変更範囲
+
+`app.js`は画面とゲーム実行をつなぐ入口です。画面は渡されたAPIを呼び、部品が独自にセーブを書き込まないようにします。`storage/`の保存トランザクション・セッション所有権・遅延書き込みの遮断は、その層でまとめて管理します。`workers/task.js`はROM取り込みとセーブ変換の進捗・完了・失敗・終了処理だけを共通化し、継続セッションを持つ`storage/save-worker.js`には適用しません。
+
+フォルダー整理では保存キー、DBスキーマ、ゲームデータの形式、更新のURL範囲とロック名を変更しません。Worker・コア・画像などの相対URLも移動先から解決する必要があります。`check-modules.cjs`が通常のimport、Worker・静的リソースへの参照、動的パスの基底、HTMLのスクリプト入口を検査します。ファイル移動時には`SOURCES.json`と変更通知の参照先も更新し、移植元の著作権・ライセンス原文と固定配布物は保持します。
+
+検証スクリプトの公開コマンド名は維持しています。新しい共通処理は`scripts/lib/`へ置き、テストは既存の`package.json`と`test-all.cjs`から実行します。生成した対応ソースZIPは追跡せず、公開準備で再生成します。
 
 ## セーブ変換ツール
 
@@ -54,7 +70,7 @@
 
 ## 変更時の確認
 
-- `node web/scripts/check-modules.cjs`：移動したファイルの読み込み先。
+- `node web/scripts/check-modules.cjs`：import、Worker、静的リソースとHTML入口の読み込み先。
 - `node web/scripts/check-i18n.mjs`：全辞書のキー、空訳、差し込み位置と変更履歴の言語を確認。原文の変更、未登録文言、欠落・空訳を検出する。
 - `node web/tests/languages.cjs`と`languages-offline.cjs`：追加言語・地域判定・遅延読み込み・ワーカー・オフライン切り替え。
 - `node web/tests/i18n.cjs`：別途起動した検証サーバーに対する言語・保存・画面の検査。`TEST_URL`、`BROWSER_ENGINE`、`PLAYWRIGHT_MODULE` は他のブラウザ検証と共通。

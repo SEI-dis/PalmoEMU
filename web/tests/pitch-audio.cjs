@@ -10,7 +10,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   await page.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');
   await page.locator('#add-first').waitFor();await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
   const result=await page.evaluate(async()=>{
-   const {MGBACore}=await import('./src/mgba.js'),{RetroCore}=await import('./src/retro.js'),{NDSCore}=await import('./src/nds.js'),{JgenesisCore}=await import('./src/jgenesis.js'),{ThreeDSCore}=await import('./src/three-ds.js'),{LocalLinkCore}=await import('./src/local-link-core.js');
+   const {MGBACore}=await import('./src/core/mgba.js'),{RetroCore}=await import('./src/core/retro.js'),{NDSCore}=await import('./src/core/nds.js'),{JgenesisCore}=await import('./src/core/jgenesis.js'),{ThreeDSCore}=await import('./src/core/three-ds.js'),{LocalLinkCore}=await import('./src/link/local-link-core.js');
    const check=(ok,label)=>{if(!ok)throw Error(label);};
    for(const Core of [MGBACore,RetroCore,NDSCore,JgenesisCore,ThreeDSCore]){
     check(new Core(document.createElement(Core===MGBACore?'canvas':'div')).preservePitch===true,'Every core preserves pitch before settings are applied');
@@ -77,12 +77,12 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   else{assert.equal(result.cases.length,30);console.log('PASS: 30 rendered stereo cases (32.768/44.1/48 kHz, 1–5x, on/off), 1x sample identity, continuous timing, bounded queue and pause/mute/toggle/speed/state/reset/close cancellation.');}
   const pitch=page.locator('[data-setting=preservePitch],[data-menu-option=preservePitch]');
   const settings=async()=>{await page.locator('[data-tab=settings]').click();await page.locator('#content [data-action=audio]').click();};
-  const instrument=()=>page.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js'),original=MGBACore.prototype.setSpeed;MGBACore.prototype.setSpeed=function(v){window.testEngine=this;return original.call(this,v);};});
+  const instrument=()=>page.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),original=MGBACore.prototype.setSpeed;MGBACore.prototype.setSpeed=function(v){window.testEngine=this;return original.call(this,v);};});
   await settings();assert.equal(await pitch.count(),0,'Common audio settings have no pitch toggle');
   await page.locator('#close-sheet').click();await page.locator('[data-tab=games]').click();
   await page.locator('#rom-input').setInputFiles({name:'Original pitch test.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});
   await page.locator('.game-launch').waitFor();
-  await page.evaluate(async()=>{const db=await import('./src/storage.js'),game=(await db.all('library'))[0],settings=JSON.parse(localStorage.getItem('manic-settings'));settings.preservePitch=false;localStorage.setItem('manic-settings',JSON.stringify(settings));await db.setGamePreferences(game.id,{preservePitch:false});});
+  await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),game=(await db.all('library'))[0],settings=JSON.parse(localStorage.getItem('manic-settings'));settings.preservePitch=false;localStorage.setItem('manic-settings',JSON.stringify(settings));await db.setGamePreferences(game.id,{preservePitch:false});});
   await page.reload();await page.locator('.game-launch').waitFor();await instrument();
   await page.locator('[data-details]').click();assert.equal(await pitch.count(),0,'A legacy game override cannot restore the removed menu toggle');
   await page.locator('[data-action=play]').click();await page.locator('#loading').waitFor({state:'hidden'});
@@ -95,9 +95,9 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
   // Old backups remain readable, but their false value cannot disable audio
   // preservation after the restored settings are applied on the next launch.
-  await page.evaluate(async()=>{const backup=await import('./src/backup.js'),settings={speed:4,volume:.4,preservePitch:false,autosave:false,recovery:false};const saved=await backup.createBackup(settings),plan=await backup.inspectBackup(saved.text);await backup.restoreBackup(plan,{settings,includeSettings:true});});
+  await page.evaluate(async()=>{const backup=await import('./src/storage/backup.js'),settings={speed:4,volume:.4,preservePitch:false,autosave:false,recovery:false};const saved=await backup.createBackup(settings),plan=await backup.inspectBackup(saved.text);await backup.restoreBackup(plan,{settings,includeSettings:true});});
   assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('manic-settings')).preservePitch),false,'The fixture restored a real legacy false value');
-  assert.equal(await page.evaluate(async()=>(await (await import('./src/storage.js')).all('library'))[0].preferences.preservePitch),false,'Legacy per-game data remains readable');
+  assert.equal(await page.evaluate(async()=>(await (await import('./src/storage/storage.js')).all('library'))[0].preferences.preservePitch),false,'Legacy per-game data remains readable');
   await page.reload();await page.locator('.game-launch').waitFor();await instrument();await page.locator('.game-launch').click();assert.equal(await pitch.count(),0);await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
   assert.equal(await page.evaluate(()=>testEngine.preservePitch),true,'Restored legacy backup preferences cannot disable pitch preservation');await page.locator('#boost').click();assert.equal(await page.evaluate(()=>testEngine.preservePitch),true);
   await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});await settings();assert.equal(await pitch.count(),0);

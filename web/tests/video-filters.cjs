@@ -21,7 +21,7 @@ function cartridge(){
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');
   const result=await page.evaluate(async()=>{
-   const {VideoOutput}=await import('./src/video.js'),{RetroCore}=await import('./src/retro.js');
+   const {VideoOutput}=await import('./src/rendering/video.js'),{RetroCore}=await import('./src/core/retro.js');
    const check=(ok,message)=>{if(!ok)throw Error(message);};
    const canvas=document.createElement('canvas'),video=new VideoOutput(canvas,5,5),image=new ImageData(5,5),words=new Uint32Array(image.data.buffer);
    const black=0xff000000,white=0xffffffff;
@@ -83,7 +83,7 @@ function cartridge(){
    fs.mkdirSync(process.env.SCREENSHOT_DIR,{recursive:true});
    const comparison=await context.newPage();await comparison.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');await comparison.setViewportSize({width:960,height:380});
    await comparison.evaluate(async()=>{
-    const {VideoOutput}=await import('./src/video.js');document.body.replaceChildren();document.body.style.cssText='display:flex;gap:24px;padding:24px;background:#14151b;color:white;font:16px sans-serif;';
+    const {VideoOutput}=await import('./src/rendering/video.js');document.body.replaceChildren();document.body.style.cssText='display:flex;gap:24px;padding:24px;background:#14151b;color:white;font:16px sans-serif;';
     const image=new ImageData(32,32),words=new Uint32Array(image.data.buffer);
     for(let y=0;y<32;y++)for(let x=0;x<32;x++){const dx=x-15,dy=y-15;words[y*32+x]=dx*dx+dy*dy<150?0xffb8e6ff:0xff332820;}
     for(const [mode,title]of [['pixel','Pixel'],['edge2x','Edge 2x'],['edge4x','Edge 4x']]){
@@ -119,7 +119,7 @@ function cartridge(){
   await page.locator('[data-action=play]').click();await page.locator('#quick-save').click();await page.locator('#confirm-state-save').click();await page.locator('#sheet').waitFor({state:'hidden'});
   await page.locator('#quick-load').click();await page.locator('#confirm-quick-load').click();await page.locator('#sheet').waitFor({state:'hidden'});
   await page.locator('#player-menu').click();assert.deepEqual(await canvas.evaluate(c=>[c.width,c.height]),[960,640]);
-  assert.equal(await page.evaluate(async()=>{const db=await import('./src/storage.js'),[game]=await db.all('library'),[state]=await db.stateEntries(game.id),image=new Image();image.src=state.value.image;await image.decode();return image.width===960&&image.height===640;}),true,'Saved screenshot contains the filtered output');
+  assert.equal(await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),[game]=await db.all('library'),[state]=await db.stateEntries(game.id),image=new Image();image.src=state.value.image;await image.decode();return image.width===960&&image.height===640;}),true,'Saved screenshot contains the filtered output');
   await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
   assert.deepEqual(errors,[]);console.log('PASS: persisted UI selection, live and paused switching, narrow menus, filtered screenshots and state save/load.');
   await context.close();

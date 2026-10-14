@@ -83,7 +83,7 @@ function fixtureIndex(source,version){
     if(options.language)localStorage.setItem('palmo-language',options.language);
     if(options.existing)localStorage.setItem('manic-settings',JSON.stringify({theme:'dark',speed:1,volume:.37,filter:'pixel',autosave:false,recovery:false}));
     if(!options.game&&!options.personal)return null;
-    const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),bytes=new Uint8Array(cartridge),id=await hash(bytes);
+    const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),bytes=new Uint8Array(cartridge),id=await hash(bytes);
     await db.addGame({id,name:'Authored release notice test',filename:'notice-test.gb',system:'gb',size:bytes.length,added:100,lastPlayed:0,favorite:true,preferences:{volume:.29,speed:2},category:'backlog'},bytes);
     if(options.personal){
      const save={bytes:new Uint8Array([9,8,7,6]),hash:'synthetic-preservation-marker',at:101};
@@ -156,7 +156,7 @@ function fixtureIndex(source,version){
 
   await withContext({seen:previous,hidden:true},async({newPage})=>{
    const page=await newPage();await open(page);await absent(page,'A hidden tab cannot display or consume the update notice');assert.equal(await seen(page),previous);
-   await page.evaluate(async()=>{const {guardUpdateTask}=await import('./src/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishNoticeTask=resolve;}))();releaseFixtureVisibility(true);});
+   await page.evaluate(async()=>{const {guardUpdateTask}=await import('./src/updates/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishNoticeTask=resolve;}))();releaseFixtureVisibility(true);});
    await absent(page,'An outstanding save/import task defers the update notice');assert.equal(await seen(page),previous);
    await page.evaluate(()=>finishNoticeTask());await notice(page).waitFor();await closeNotice(page);
   });

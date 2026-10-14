@@ -29,7 +29,7 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
   const info={name:'Haptic fixture',gameTypeIdentifier:'com.rileytestut.delta.game.gba',representations:{iphone:{edgeToEdge:{portrait:{mappingSize:{width:390,height:844},assets:{Large:'art.png'},screens:[{outputFrame:{x:0,y:60,width:390,height:260}}],items:[{inputs:['a'],frame:{x:220,y:550,width:70,height:70}}]}}}}};
   const payload=zip({'info.json':JSON.stringify(info),'art.png':Buffer.from(png,'base64')});
   await p.evaluate(async bytes=>{
-   const {importSkin}=await import('./src/skins.js'),skin=await importSkin(new File([new Uint8Array(bytes)],'haptic.manicskin'));
+   const {importSkin}=await import('./src/skins/skins.js'),skin=await importSkin(new File([new Uint8Array(bytes)],'haptic.manicskin'));
    const settings=JSON.parse(localStorage.getItem('manic-settings'));settings.skins={gba:skin.id};settings.haptics=true;settings.hapticStrength=20;localStorage.setItem('manic-settings',JSON.stringify(settings));
   },[...payload]);
   await p.reload();await p.locator('.game-launch').click();assert.equal(await p.locator('[data-setting=hapticStrength]').inputValue(),'0','A game-specific off setting survives common changes');await p.locator('[data-setting=hapticStrength]').selectOption('20');await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
@@ -41,7 +41,7 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
   assert.equal(await p.locator('[data-setting=hapticStrength]').count(),0,'Unsupported game menu must not offer a working vibration setting');
   assert.match(await p.locator('[data-menu-option=haptic]').textContent(),/非対応/);await p.locator('#close-sheet').click();
   const unavailable=await p.evaluate(async()=>{
-   const {tapHaptic,stopHaptics}=await import('./src/haptics.js');
+   const {tapHaptic,stopHaptics}=await import('./src/input/haptics.js');
    Object.defineProperty(navigator,'vibrate',{configurable:true,value:()=>false});const denied=tapHaptic({haptics:true});stopHaptics();
    Object.defineProperty(navigator,'vibrate',{configurable:true,value:()=>{throw Error('unavailable');}});const failed=tapHaptic({haptics:true});stopHaptics();
    Object.defineProperty(navigator,'vibrate',{configurable:true,value:n=>{vibrations.push(n);return true;}});vibrations.length=0;

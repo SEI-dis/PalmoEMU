@@ -130,7 +130,7 @@ Modified 2026-10-08: ported library/navigation and grouped settings/game/state m
 to HTML/CSS/JavaScript; implemented browser storage, WASM adapters, offline caching,
 append-only manual states, local backup/recovery, focus/visibility pause and resume,
 cheats, input and scaling. Artwork in assets/ and the built-in controller skins
-(src/skin-art.js, src/skin-drawing.js and src/nds-skin.js) is newly authored for
+(src/skins/skin-art.js, src/skins/skin-drawing.js and src/skins/nds-skin.js) is newly authored for
 this port, under AGPL-3.0-or-later. It contains
 no bundled upstream controller images, game logos, game images, or downloaded fonts.
 Icon paths in shared.js are source-authored geometric shapes, not Apple SF Symbols.
@@ -145,7 +145,7 @@ Modified 2026-10-08: built-in skins compare bottom and side control layouts usin
 the available safe-area rectangle. Control groups stay together on large screens;
 previews use the current viewport, and duplicate resize events do not rebuild held
 inputs. Ported library/menu groups reflow by container width. Saved positions and
-imported skin mappings remain authoritative. Changes are in src/skin-art.js,
+imported skin mappings remain authoritative. Changes are in src/skins/skin-art.js,
 src/app.js and style.css, with responsive browser tests using synthetic data.
 
 Modified 2026-10-08: documented IndexedDB/localStorage/Cache Storage boundaries
@@ -162,7 +162,7 @@ and selection editing. ASListPage / ASListItemView / ASNavigationView inform the
 shared row and navigation layout. Narrow browser views reflow controls below labels.
 Manual deletion is transactional and confirmed; automatic checkpoints remain
 protected. Local battery-save history is a Web-specific subpage. These changes
-are in src/manic-ui.js, src/app.js, src/storage.js, index.html and style.css.
+are in src/components/manic-ui.js, src/app.js, src/storage/storage.js, index.html and style.css.
 
 mGBA: endrift and contributors, MPL-2.0. The onikoro334274-cell rom64 fork and
 liru55 Web bridge are credited and pinned in SOURCES.json. The bridge modifications
@@ -181,23 +181,23 @@ Full original per-file notices: licenses/Core-file-notices.txt and core source a
 No Snes9x, Genesis Plus GX, EmulatorJS runtime or RetroArch frontend is distributed.
 Mesen's upstream GPL filter code adapted from RetroArch retains its original notice.
 
-Celio-Link/Celio-mGBA-Link: original GPL-3.0 device logic ported to src/celio-device.js;
+Celio-Link/Celio-mGBA-Link: original GPL-3.0 device logic ported to src/link/celio-device.js;
 Celio-Link/Celio-Server: GPL-3.0 handshake reference. Pinned original sources and
 licenses are provided as sources/celio-*-source.tar.gz. Modified 2026-10-08:
 bounded word queues and optional room-based Celio relay transport.
-src/celio-device.js retains GPL-3.0-only; the GPL/AGPL combination follows section 13.
-The old AGPL src/peer-link.js remains only for the isolated legacy protocol test.
+src/link/celio-device.js retains GPL-3.0-only; the GPL/AGPL combination follows section 13.
+The old AGPL src/link/peer-link.js remains only for the isolated legacy protocol test.
 
 2026-10-09: The same pinned upstream web/celio-serial.js is retained verbatim.
-Local/USB coordination from link-session.js is adapted into src/direct-link.js;
-serial framing is adapted into src/celio-serial.js. Both modified files retain
+Local/USB coordination from link-session.js is adapted into src/link/direct-link.js;
+serial framing is adapted into src/link/celio-serial.js. Both modified files retain
 MPL-2.0, additionally offered under AGPL-3.0-or-later under MPL section 3.3.
 Changes add bounded validation, cancellable USB cleanup, and deferred shutdown.
 New AGPL application modules coordinate two independent cores and atomically
 commit their saves. No new core binary, ROM, firmware or artwork is included.
 
 liru55/mgba-celio-web web/link-session.js (58d463ebe2302e4fc70098760dcfc84ca69329db):
-MPL-2.0 browser transport adapted into src/room-link.js. Original source and license
+MPL-2.0 browser transport adapted into src/link/room-link.js. Original source and license
 are retained in sources/celio-web-transport. Modified 2026-10-08: bounded transport,
 fixed WSS relay endpoint, explicit start, separate existing JS device adapter, and
 shutdown callbacks. No ROM/save/file API is accessible to the transport.
@@ -246,7 +246,7 @@ Modified 2026-10-08: revised Japanese UI labels and help for clarity and brevity
 license originals and copyright notices are unchanged.
 
 Modified 2026-10-08: replaced the initial standard skins with original SVG case,
-bezel, button and control artwork in src/skin-art.js. Four palettes and portrait/
+bezel, button and control artwork in src/skins/skin-art.js. Four palettes and portrait/
 landscape layouts for six systems are supplied. No third-party skin images, logos
 or fonts were used. Existing user-imported skins remain local and separately licensed.
 
@@ -303,7 +303,7 @@ for the status labels on short portrait screens. Save contents and timing are un
 
 Modified 2026-10-09: ported the GameInfoView, GameInfoNavigationView,
 GameInfoDetailView and GameInfoCoverView structure into src/game-info.js,
-src/manic-ui.js and native-menu.css. The four unmodified upstream reference files
+src/components/manic-ui.js and native-menu.css. The four unmodified upstream reference files
 are retained under sources/manicemu-ui at the existing pinned revision. Added
 pre-play state/save access, safe launch, recorded playtime, option order, shortcut
 selection and local game launch links. ROM file sharing and its download fallback
@@ -328,7 +328,7 @@ That external catalog/network code was removed in the publication review below.
 Only local cover selection remains; no third-party artwork is bundled or fetched.
 
 Modified 2026-10-09: added original streaming WSOLA pitch preservation in
-src/time-stretch.js, shared by all Web core adapters. The independent analysis
+src/rendering/time-stretch.js, shared by all Web core adapters. The independent analysis
 clock and shared stereo alignment preserve pitch while compressing tempo;
 normal-speed playback bypasses processing. The default-on setting is available
 in audio settings and game menus. No external DSP code or dependencies are used.
@@ -372,7 +372,7 @@ AGPL-3.0-or-later, at the same pinned revision. Unmodified references are
 included. Native row builders are consolidated in src/ui.js; About follows
 the upstream Other section. Browser file validation remains local.
 
-MPL_SECONDARY_LICENSE.md and src/room-link.js clarify the MPL section 3.3
+MPL_SECONDARY_LICENSE.md and src/link/room-link.js clarify the MPL section 3.3
 secondary-license offer for this combined distribution, including this port's
 MPL modifications. Original MPL source and notices remain intact. The privacy
 notice distinguishes dumped proprietary BIOS from licensed replacement code.
@@ -521,7 +521,7 @@ informs input capture and local backup UX only; this app has no Delta Sync servi
 
 ## Library organization (modified 2026-10-10)
 
-Added original AGPL-3.0-or-later browser library modules in src/library.js,
+Added original AGPL-3.0-or-later browser library modules in src/library/library.js,
 src/library-view.js and library.css. They provide combined filters, sorting,
 grouped presentation, explicit selection of the visible results and confirmed
 batch operations. IndexedDB metadata patches and all-target deletion locks are
@@ -564,7 +564,7 @@ by the complete ROM SHA-256, expected instruction and the loaded core's 6MiB
 save capability. Only a temporary execution copy is changed; the stored original
 ROM and save identity are preserved. No ROM, game source, save, or game artwork
 is included in the distribution or CI. Existing core binaries and third-party
-licenses are unchanged. See src/mgba-compatibility.js and RELEASE_VALIDATION.md.
+licenses are unchanged. See src/core/mgba-compatibility.js and RELEASE_VALIDATION.md.
 
 Modified 2026-10-13: extended that correction to the separately reviewed
 PokemonStart v0.42.3 ROM hash and instruction location. The same full-hash,
@@ -574,7 +574,7 @@ function; no user save was read or modified. No ROM or extracted game code is
 distributed. This change does not alter or relicense the save migration tool.
 
 Modified 2026-10-13: replaced the per-ROM digest allowlist with an original
-Thumb instruction/control-flow recognizer in src/mgba-save-probe.js. It locates
+Thumb instruction/control-flow recognizer in src/core/mgba-save-probe.js. It locates
 the same extended-flash alias test after code/literal relocation, validates the
 cartridge signatures, sector pairs, comparison loop, flash read and bank-select
 paths, and rejects ambiguous or shared comparison helpers. The loaded core must
@@ -673,7 +673,7 @@ are omitted; all regular source files, LICENSE and AUTHORS remain unchanged.
 ## 2026-10-13: upstream feature ports
 
 - ManicEMU (AGPL-3.0-or-later): DSV conversion, FocusKit interaction, controller player assignment and local ROM patch import flow. Original selected Swift references and copyright headers are under sources/manicemu-ui. Browser adapters are marked as modified.
-- pm-start/mgba-celio-web (liru55 and contributors, MPL-2.0), 23235bc6: audio buffer/resampler, ARM and mode-0 renderer optimization backports in the mGBA source archive; packed framebuffer export; LCD/CRT/xBRZ driver adaptation in src/gpu-filter.js. Source files retain notices and dated changes.
+- pm-start/mgba-celio-web (liru55 and contributors, MPL-2.0), 23235bc6: audio buffer/resampler, ARM and mode-0 renderer optimization backports in the mGBA source archive; packed framebuffer export; LCD/CRT/xBRZ driver adaptation in src/rendering/gpu-filter.js. Source files retain notices and dated changes.
 - RomPatcher.js (Marc Robledo), 318388408682: unmodified MIT BinFile, HashCalculator and IPS/BPS/UPS modules in vendor/rom-patcher, including full LICENSE. No artwork is reused. The bounded worker and UI are original AGPL code.
 - xBRZ Freescale Multipass: unmodified GLSL from libretro/glsl-shaders 435612fe4f10, via liru. Hyllian permissive notice and Zenju GPL-3.0/exception text remain in both shaders, with full GPL text in shaders/COPYING.txt. GPL shader terms are retained alongside the AGPL application (GPLv3 section 13 permits the combination). Shader source is served and included in the corresponding Web source ZIP.
 
@@ -694,7 +694,7 @@ not part of this addition. See sources/nds-web/BUILD.md and
 sources/alternate-web/BUILD.md for the exact option names and build inputs.
 
 
-Modified 2026-10-13 (0.3.22): src/pixel-transfer.js adapts
+Modified 2026-10-13 (0.3.22): src/rendering/pixel-transfer.js adapts
 choosePixelTransfer/drawFrame from liru55 and contributors,
 pm-start/mgba-celio-web web/app.js at 23235bc6db1b67009808c0dc7e1f25131eb75e7a.
 It retains MPL-2.0 and the secondary-license offer documented in
@@ -770,3 +770,12 @@ The Web version uses its existing original app icon instead of the native mascot
 Per-ROM cumulative statistics, version-grouped rankings and browser date fallback
 are original AGPL adaptations. No new artwork, core binary, dependency or network
 service is added; profile and gameplay metadata remain on the device.
+
+Modified 2026-10-14 (unpublished maintenance): host Web modules are grouped
+by responsibility under src/. Relative module, Worker and asset paths, source
+references and diagnostic allowlists follow the new locations. Copyright
+headers and license terms are retained. The one-shot Worker lifecycle helper
+and the expanded module/resource path checker are original AGPL-3.0-or-later
+work. Fixed core binaries, corresponding core archives and supplied converter
+files are unchanged; save formats, keys and transaction/session guards remain
+unchanged.

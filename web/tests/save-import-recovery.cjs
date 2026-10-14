@@ -5,10 +5,10 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'http://127.0.0.1:4173/';
 (async()=>{const browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});try{
  const context=await browser.newContext({serviceWorkers:'block',locale:'ja-JP'}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
- await context.route('**/src/save-worker.js?import-reset-fault=1',route=>route.fulfill({contentType:'text/javascript',body:`const oldPut=IDBObjectStore.prototype.put;let failImport=true;IDBObjectStore.prototype.put=function(...args){if(this.name==='saves'&&failImport){failImport=false;throw new DOMException('Synthetic failed import','QuotaExceededError');}return oldPut.apply(this,args);};\n`+fs.readFileSync(path.join(__dirname,'../src/save-worker.js'),'utf8')}));
+ await context.route('**/src/storage/save-worker.js?import-reset-fault=1',route=>route.fulfill({contentType:'text/javascript',body:`const oldPut=IDBObjectStore.prototype.put;let failImport=true;IDBObjectStore.prototype.put=function(...args){if(this.name==='saves'&&failImport){failImport=false;throw new DOMException('Synthetic failed import','QuotaExceededError');}return oldPut.apply(this,args);};\n`+fs.readFileSync(path.join(__dirname,'../src/storage/save-worker.js'),'utf8')}));
  await page.goto(base+'privacy.html');
  const result=await page.evaluate(async()=>{
-  const db=await import('./src/storage.js'),{SaveProtection}=await import('./src/save-safety.js'),{hash}=await import('./src/shared.js'),{updateTasksPending}=await import('./src/update-activity.js');
+  const db=await import('./src/storage/storage.js'),{SaveProtection}=await import('./src/storage/save-safety.js'),{hash}=await import('./src/shared.js'),{updateTasksPending}=await import('./src/updates/update-activity.js');
   const check=(value,label)=>{if(!value)throw Error(label);},reject=async promise=>{try{await promise;}catch(error){return error;}throw Error('Expected rejection');};
   const NativeWorker=window.Worker;let workers=0,fault=false;
   window.Worker=class extends NativeWorker{constructor(url,options){const next=new URL(url);if(next.pathname.endsWith('/save-worker.js')){workers++;if(fault)next.searchParams.set('import-reset-fault','1');}super(next,options);}};

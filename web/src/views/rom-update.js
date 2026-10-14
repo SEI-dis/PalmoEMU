@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
 import {escapeHTML as esc,detectSystem,bytesLabel} from '../shared.js';
-import {coreRegistry,coreFor} from '../core-registry.js';
-import {importROM} from '../rom-import.js';
-import {prepareROMUpdate,readROMUpdateBackup} from '../rom-update.js';
-import {guardUpdateTask} from '../update-activity.js';
-import * as db from '../storage.js';
+import {coreRegistry,coreFor} from '../core/core-registry.js';
+import {importROM} from '../library/rom-import.js';
+import {prepareROMUpdate,readROMUpdateBackup} from '../library/rom-update.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
+import * as db from '../storage/storage.js';
 import {createStartSaveDialog} from './start-save-migrate.js';
 import {isStartName} from '../start-save/version.js';
 

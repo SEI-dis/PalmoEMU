@@ -2,7 +2,7 @@
 // Adversarial protocol checks run in each browser by room-link.cjs.
 module.exports=async page=>{
  const result=await page.evaluate(async()=>{
-  const {RoomLink}=await import('./src/room-link.js');
+  const {RoomLink}=await import('./src/link/room-link.js');
   const check=(value,message)=>{if(!value)throw Error(message);};
   const packet=(sequence,value=sequence)=>({sequence,data:Array(32).fill(value)});
   const create=()=>{

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 (async()=>{
- const {packSave,unpackSave}=await import(require('node:url').pathToFileURL(path.join(__dirname,'../src/three-ds-save.js')));
+ const {packSave,unpackSave}=await import(require('node:url').pathToFileURL(path.join(__dirname,'../src/core/three-ds-save.js')));
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'local-play-save-'));
  const local=p=>path.join(root,p);let failure='';
  const FS={readdir:p=>fs.readdirSync(local(p)),lstat:p=>fs.lstatSync(local(p)),isDir:m=>(m&0o170000)===0o040000,isFile:m=>(m&0o170000)===0o100000,readFile:p=>new Uint8Array(fs.readFileSync(local(p))),mkdirTree:p=>fs.mkdirSync(local(p),{recursive:true}),unlink:p=>fs.unlinkSync(local(p)),writeFile:(p,b)=>{if(p===failure){failure='';throw Error('write failed');}fs.writeFileSync(local(p),b);}};

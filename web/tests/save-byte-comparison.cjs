@@ -8,7 +8,7 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
   page.on('pageerror',e=>errors.push(e.message));context.on('request',r=>traffic.push(r));
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';await page.goto(base+'privacy.html');
   const result=await page.evaluate(async()=>{
-   const db=await import('./src/storage.js'),check=(v,message)=>{if(!v)throw Error(message);};
+   const db=await import('./src/storage/storage.js'),check=(v,message)=>{if(!v)throw Error(message);};
    const coreId='mgba-rom64-save6-v2',canonical=Uint8Array.from({length:33},(_,i)=>(i*13+7)&255);
    const view=(bytes,pad=123)=>{const backing=new Uint8Array(bytes.length+17).fill(pad);backing.set(bytes,5);return backing.subarray(5,5+bytes.length);};
    const asBytes=value=>ArrayBuffer.isView(value)?new Uint8Array(value.buffer,value.byteOffset,value.byteLength):new Uint8Array(value);

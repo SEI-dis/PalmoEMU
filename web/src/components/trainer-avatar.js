@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
 import {escapeHTML as esc} from '../shared.js';
-import {guardUpdateTask} from '../update-activity.js';
-import {trainerAvatarSource} from '../trainer-profile.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
+import {trainerAvatarSource} from '../library/trainer-profile.js';
 
 async function readAvatar(file){
  if(file.size>16*1048576||!/^image\/(png|jpeg|webp)$/.test(file.type))throw Error(tr('16MB以下のPNG・JPEG・WebP画像を選んでください。'));

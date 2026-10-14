@@ -22,8 +22,8 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   // Reproduce a static host's still-fresh HTTP cache independently of Cache Storage.
   res.setHeader('Cache-Control','public, max-age=3600');let bytes=fs.readFileSync(file);
   if(name==='/sw.js')bytes=Buffer.concat([bytes,Buffer.from('\n// update-test revision '+revision)]);
-  if(name==='/src/auto-update-worker.js'&&[3,8].includes(revision))bytes=Buffer.from(bytes.toString().replace('await self.skipWaiting();','await new Promise(resolve=>setTimeout(resolve,1500));await self.skipWaiting();'));
-  if(name==='/src/auto-update.js'){
+  if(name==='/src/updates/auto-update-worker.js'&&[3,8].includes(revision))bytes=Buffer.from(bytes.toString().replace('await self.skipWaiting();','await new Promise(resolve=>setTimeout(resolve,1500));await self.skipWaiting();'));
+  if(name==='/src/updates/auto-update.js'){
    const source=bytes.toString();let matches=0;
    // Only shorten the staging-help timer, leaving startup gates, coordinator
    // leases and network timeouts at their real product values.
@@ -42,7 +42,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    if(staleBootstrap){staleBootstrap=false;bytes=Buffer.from(bytes.toString().replace(/(<meta name="app-build" content=")[^"]+/,`$1update-test-${revision-1}`));}
   }
   if(name==='/src/views/settings.js')bytes=Buffer.concat([bytes,Buffer.from('\nglobalThis.updateTestRevision='+revision+';')]);
-  if(name==='/src/storage.js')bytes=Buffer.from(bytes.toString().replace('async function setGamePreferences(id,preferences){','async function setGamePreferences(id,preferences){if(globalThis.holdUpdatePreference)await globalThis.holdUpdatePreference;'));
+  if(name==='/src/storage/storage.js')bytes=Buffer.from(bytes.toString().replace('async function setGamePreferences(id,preferences){','async function setGamePreferences(id,preferences){if(globalThis.holdUpdatePreference)await globalThis.holdUpdatePreference;'));
   if(name==='/'+lazyAsset)bytes=Buffer.concat([bytes,Buffer.from('\n// lazy asset revision '+revision)]);
   if(name===holdAsset)heldRequests.push(()=>res.end(bytes));else res.end(bytes);
  });
@@ -89,7 +89,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    await shown.locator('#release-notice-done').click();await shown.locator('#sheet').waitFor({state:'hidden'});
    await noReleaseNotice(clients,version,'Acknowledging the release prevents another tab from showing it again');
   }
-  await page.evaluate(async()=>{await navigator.serviceWorker.ready;const db=await import('./src/storage.js');await db.put('saves','keep',{bytes:new Uint8Array([7,9]),at:1});});
+  await page.evaluate(async()=>{await navigator.serviceWorker.ready;const db=await import('./src/storage/storage.js');await db.put('saves','keep',{bytes:new Uint8Array([7,9]),at:1});});
   await page.waitForFunction(()=>globalThis.updateTestRevision===1);
   await page.waitForFunction(version=>localStorage.getItem('palmo-release-seen:/')===version,releaseVersion());
   assert.equal(await page.locator('#sheet.release-notice[open]').count(),0,'A first visit establishes the current release without an update notice');
@@ -105,7 +105,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    await page.locator('#rom-input').setInputFiles({name:'Restore-test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});
    await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
    await restoredGame(page);
-   await page.evaluate(async()=>{const {guardUpdateTask}=await import('./src/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishRestoreTask=resolve;}))();});
+   await page.evaluate(async()=>{const {guardUpdateTask}=await import('./src/updates/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishRestoreTask=resolve;}))();});
    await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
    await page.waitForTimeout(1100);assert.equal(await page.evaluate(()=>window.restoreGameMarker),'same-game','File operation still blocks the deferred reload after gameplay ends');
    await page.evaluate(()=>finishRestoreTask());await page.waitForFunction(()=>window.restoreGameMarker===undefined);await page.locator('.game-launch').waitFor();
@@ -124,7 +124,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await update.getByText('この画面以外のアプリのタブを閉じてください。',{exact:true}).waitFor();
   await page.close();await update.locator('#apply-update').click();await update.waitForURL(base+'index.html');
   await acknowledgeRelease([update],releaseVersion());
-  const data=await update.evaluate(async()=>{const db=await import('./src/storage.js');return [...(await db.get('saves','keep')).bytes];});
+  const data=await update.evaluate(async()=>{const db=await import('./src/storage/storage.js');return [...(await db.get('saves','keep')).bytes];});
   assert.deepEqual(data,[7,9]);assert.equal(await update.evaluate(()=>globalThis.updateTestRevision),2,'New worker must not install shell files from an old HTTP cache');
   assert.match(await update.evaluate(name=>fetch(name).then(r=>r.text()),lazyAsset),/lazy asset revision 2/,'First core request after update must bypass old HTTP cache');
   assert.deepEqual(await update.evaluate(()=>caches.keys()),['manic-web:/:update-test-2']);
@@ -143,13 +143,13 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await stays(2);assert.equal(await update.locator('#sheet').isVisible(),true,'An open settings dialog is not discarded');
   // Keep this fixture transition atomic even on a slow CI runner. The actual
   // offline download owns its own pending-task guard once its button is used.
-  await update.evaluate(async()=>{const {guardUpdateTask}=await import('./src/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishOpenOfflineDialog=resolve;}))();});
+  await update.evaluate(async()=>{const {guardUpdateTask}=await import('./src/updates/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishOpenOfflineDialog=resolve;}))();});
   await update.locator('#close-sheet').click();
   await update.evaluate(()=>{const send=ServiceWorker.prototype.postMessage;ServiceWorker.prototype.postMessage=function(message,...rest){if(message?.type==='download'){window.finishOfflineDownload=()=>{ServiceWorker.prototype.postMessage=send;send.call(this,message,...rest);};return;}return send.call(this,message,...rest);};});
   await update.locator('[data-action=offline]').click();await update.locator('#offline-download').click();
   await update.waitForFunction(()=>typeof window.finishOfflineDownload==='function');await update.evaluate(()=>finishOpenOfflineDialog());await update.locator('#close-sheet').click();
   await stays(2);
-  await update.evaluate(async()=>{const {guardUpdateTask}=await import('./src/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishUpdateTestTask=resolve;}))();});
+  await update.evaluate(async()=>{const {guardUpdateTask}=await import('./src/updates/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishUpdateTestTask=resolve;}))();});
   await update.evaluate(()=>finishOfflineDownload());
   await stays(2);
   const pickerEvent=update.waitForEvent('filechooser');await update.locator('#rom-input').evaluate(input=>input.click());const picker=await pickerEvent;
@@ -167,8 +167,8 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await acknowledgeRelease([update,second],releaseVersion());
   assert.equal(new URL(update.url()).hash,'#settings','Automatic reload retains the selected tab');
   assert.equal(await second.locator('.game-launch').count(),1,'Automatic reload retains the original cartridge');
-  assert.deepEqual(await update.evaluate(async()=>[...(await(await import('./src/storage.js')).get('saves','keep')).bytes]),[7,9]);
-  assert.equal(await update.evaluate(async()=>(await(await import('./src/offline.js')).offlineStatus()).ready),true,'Updated app includes every offline resource, including newly used cores');
+  assert.deepEqual(await update.evaluate(async()=>[...(await(await import('./src/storage/storage.js')).get('saves','keep')).bytes]),[7,9]);
+  assert.equal(await update.evaluate(async()=>(await(await import('./src/updates/offline.js')).offlineStatus()).ready),true,'Updated app includes every offline resource, including newly used cores');
   console.log('PASS: automatic update waits for another tab to exit a game, settings dialogs, asynchronous tasks and native file selection; then refreshes every idle tab, shows release changes in one tab, and preserves data.');
   await update.evaluate(()=>{
    let started;
@@ -182,7 +182,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await noReleaseNotice([update,second],releaseVersion(),'A new build of an acknowledged app version does not repeat the release notice');
   // Become busy after answering the probe. All prepared tabs must be released.
   await second.evaluate(async()=>{
-   const {guardUpdateTask}=await import('./src/update-activity.js');
+   const {guardUpdateTask}=await import('./src/updates/update-activity.js');
    const once=event=>{if(event.data?.type!=='local-play-update-probe')return;navigator.serviceWorker.removeEventListener('message',once);guardUpdateTask(()=>new Promise(resolve=>{window.finishLateUpdateTask=resolve;}))();};
    navigator.serviceWorker.addEventListener('message',once);
   });
@@ -224,7 +224,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   catch(error){console.error('Reconnection startup build checks:',JSON.stringify(buildChecks));throw error;}
   await connection(true);await cachedReload(second);
   assert.match(await second.evaluate(name=>fetch(name).then(r=>r.text()),lazyAsset),/lazy asset revision 7/,'Previously cached cores are refreshed before switching versions and remain available offline');
-  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage.js')).get('saves','keep')).bytes]),[7,9]);
+  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage/storage.js')).get('saves','keep')).bytes]),[7,9]);
   console.log('PASS: cached play survives failed update downloads; reconnection retries automatically and refreshed cores and saves remain available. Outage mode: '+(browserName==='webkit'?'origin unavailable with explicit online event':'browser offline with native online event'));
   await update.close();await exerciseUpdateFlow(second);await context.close();
   async function exerciseUpdateFlow(second){
@@ -233,14 +233,14 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   // Play action must hand off to staging without starting a core or save session.
   await second.locator('.game-launch').click();
   const originalSave=await second.evaluate(async()=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),[game]=await db.all('library');
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),[game]=await db.all('library');
    let save=await db.get('saves',game.id);if(!save){const bytes=new Uint8Array(8192);bytes[42]=73;save={bytes,at:1,hash:await hash(bytes)};await db.put('saves',game.id,save);}
    return {id:game.id,hash:await hash(save.bytes)};
   });
   const updatedROM=Buffer.from(require('./cartridges.cjs').gb());updatedROM[updatedROM.length-1]=2;
   await second.locator('[data-action=updateROM]').click();await second.locator('#rom-update-file').setInputFiles({name:'Updated-update-test.gb',mimeType:'application/octet-stream',buffer:updatedROM});
   await second.locator('#rom-update-compatible').check();await second.locator('#rom-update-confirm').click();await second.locator('#rom-update-play').waitFor();
-  await second.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js'),load=MGBACore.prototype.load;window.updateGateLoads=0;MGBACore.prototype.load=function(...args){updateGateLoads++;return load.apply(this,args);};});
+  await second.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),load=MGBACore.prototype.load;window.updateGateLoads=0;MGBACore.prototype.load=function(...args){updateGateLoads++;return load.apply(this,args);};});
   revision=8;holdAsset='/'+lazyAsset;await second.evaluate(async()=>{await(await navigator.serviceWorker.ready).update();});
   await second.waitForFunction(async()=>!!(await navigator.serviceWorker.ready).installing);
   assert.equal(await second.getByRole('dialog',{name:'アプリの更新',exact:true}).isVisible(),false,'An open game/settings sheet is not interrupted');
@@ -265,20 +265,20 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   releaseHeld();
   try{await second.locator('.update-progress[data-phase=applying]').waitFor();}
   catch(error){
-   console.error('Post-download update context:',await second.evaluate(async()=>{const reg=await navigator.serviceWorker.ready,dialog=document.querySelector('.update-progress');return {revision:globalThis.updateTestRevision,build:document.querySelector('meta[name=app-build]')?.content,hidden:document.hidden,active:document.activeElement?.outerHTML,phase:dialog?.dataset.phase,open:dialog?.open,status:dialog?.querySelector('[role=status]')?.textContent,tasks:(await import('./src/update-activity.js')).updateTasksPending(),locks:await navigator.locks.query(),waiting:reg.waiting?.state,installing:reg.installing?.state};}));throw error;
+   console.error('Post-download update context:',await second.evaluate(async()=>{const reg=await navigator.serviceWorker.ready,dialog=document.querySelector('.update-progress');return {revision:globalThis.updateTestRevision,build:document.querySelector('meta[name=app-build]')?.content,hidden:document.hidden,active:document.activeElement?.outerHTML,phase:dialog?.dataset.phase,open:dialog?.open,status:dialog?.querySelector('[role=status]')?.textContent,tasks:(await import('./src/updates/update-activity.js')).updateTasksPending(),locks:await navigator.locks.query(),waiting:reg.waiting?.state,installing:reg.installing?.state};}));throw error;
   }
   await screenshot('applying-portrait',390,844);await screenshot('applying-landscape',844,390);await second.setViewportSize({width:390,height:844});
   await second.waitForFunction(()=>globalThis.updateTestRevision===8,{},{timeout:30000});await second.locator('#player').waitFor({state:'visible'});await second.locator('#loading').waitFor({state:'hidden'});
   assert.equal(await second.locator('#sheet').isVisible(),false,'The explicit play request resumes without an intervening release notice');
   const resumed=await second.evaluate(async original=>{
-   const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),game=(await db.all('library')).find(g=>g.name==='Updated-update-test');
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),game=(await db.all('library')).find(g=>g.name==='Updated-update-test');
    return {id:game.id,previous:game.romUpdate.previousId,dirty:(await db.get('sessions',game.id))?.dirty,copy:await hash((await db.get('saves',game.id)).bytes),source:await hash((await db.get('saves',original.id)).bytes),intent:sessionStorage.getItem('palmo-launch-after-update:/')};
   },originalSave);
   assert.deepEqual({...resumed,id:undefined},{id:undefined,previous:originalSave.id,dirty:true,copy:originalSave.hash,source:originalSave.hash,intent:null},'Only the selected updated ROM starts; copied/original saves remain intact and the request is consumed');
   await second.locator('#player-menu').click();await second.locator('[data-action=exit]').click();await second.locator('#player').waitFor({state:'hidden'});
   await acknowledgeRelease([second],'0.0.4');
-  await second.evaluate(async id=>{await(await import('./src/storage.js')).removeGame(id);},resumed.id);
-  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage.js')).get('saves','keep')).bytes]),[7,9]);
+  await second.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},resumed.id);
+  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage/storage.js')).get('saves','keep')).bytes]),[7,9]);
   console.log('PASS: installing-candidate launch gate, slow download beyond staging deadline, download → apply window, portrait/landscape layout and unchanged saves. Screenshots: '+shots);
   // A stalled script check must not block cached startup or Play indefinitely.
   // A candidate found after the bounded gate must wait until this game exits.
@@ -289,13 +289,13 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.equal(await second.evaluate(()=>globalThis.updateTestRevision),8);assert.equal(await second.getByRole('dialog',{name:'アプリの更新',exact:true}).isVisible(),false,'A late network result cannot interrupt active play');
   await second.locator('#player-menu').click();await second.locator('[data-action=exit]').click();await second.locator('#player').waitFor({state:'hidden'});
   try{await second.waitForFunction(()=>globalThis.updateTestRevision===9,{},{timeout:30000});}catch(error){
-   console.error('Post-exit update context:',await second.evaluate(async()=>{const reg=await navigator.serviceWorker.ready;return {revision:updateTestRevision,hidden:document.hidden,hash:location.hash,active:document.activeElement?.outerHTML,dialogs:[...document.querySelectorAll('dialog[open]')].map(el=>el.outerHTML),tasks:(await import('./src/update-activity.js')).updateTasksPending(),locks:await navigator.locks.query(),waiting:reg.waiting?.state};}));throw error;
+   console.error('Post-exit update context:',await second.evaluate(async()=>{const reg=await navigator.serviceWorker.ready;return {revision:updateTestRevision,hidden:document.hidden,hash:location.hash,active:document.activeElement?.outerHTML,dialogs:[...document.querySelectorAll('dialog[open]')].map(el=>el.outerHTML),tasks:(await import('./src/updates/update-activity.js')).updateTasksPending(),locks:await navigator.locks.query(),waiting:reg.waiting?.state};}));throw error;
   }await second.locator('.game-launch').waitFor();
   console.log('PASS: stalled startup/launch network checks are bounded and a late update waits for the game to exit.');
   // Another tab can be busy indefinitely. Explain the wait and allow this page
   // to continue, without withdrawing any other tab's version lock.
   const playing=await context.newPage();await playing.goto(base+'index.html');const otherROM=Buffer.from(require('./cartridges.cjs').gb());otherROM[otherROM.length-1]^=1;
-  await playing.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js'),load=MGBACore.prototype.load;MGBACore.prototype.load=function(...args){window.updateWaitingCore=this;return load.apply(this,args);};});
+  await playing.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),load=MGBACore.prototype.load;MGBACore.prototype.load=function(...args){window.updateWaitingCore=this;return load.apply(this,args);};});
   await playing.locator('#rom-input').setInputFiles({name:'Other-update-test.gb',mimeType:'application/octet-stream',buffer:otherROM});await playing.getByRole('button',{name:'Other-update-testの設定を開く',exact:true}).click();await playing.locator('.game-info-play').click();await playing.locator('#loading').waitFor({state:'hidden'});
   await second.getByRole('button',{name:'Original-update-testの設定を開く',exact:true}).click();
   revision=10;await second.evaluate(async()=>{await(await navigator.serviceWorker.ready).update();});await second.waitForFunction(async()=>!!(await navigator.serviceWorker.ready).waiting,{},{timeout:30000});await second.locator('.game-info-play').click();await second.locator('.update-progress[data-phase=waiting]').waitFor();
@@ -305,7 +305,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.equal(await second.locator('.update-progress [role=status]').textContent(),'ほかのタブの操作が終わると更新します。');
   assert.equal(await playing.evaluate(()=>updateWaitingCore.paused),false,'Long staging never pauses the other game');
   assert.equal(await playing.evaluate(()=>globalThis.updateTestRevision),9,'Long staging never reloads the other game');
-  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage.js')).get('saves','keep')).bytes]),[7,9]);
+  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage/storage.js')).get('saves','keep')).bytes]),[7,9]);
   // Replace an already waiting candidate with a genuinely newer installation.
   // The old worker becoming redundant is supersession, not a failed download.
   await second.evaluate(async()=>{
@@ -329,7 +329,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await second.locator('#player-menu').click();await second.locator('[data-action=exit]').click();await second.locator('#player').waitFor({state:'hidden'});await second.waitForTimeout(2200);
   assert.equal(await second.evaluate(()=>globalThis.updateTestRevision),9,'Continue is respected for this visit even after other tabs finish');
   await second.reload();await second.waitForFunction(()=>globalThis.updateTestRevision===11,{},{timeout:30000});await second.locator('.game-launch').first().waitFor();
-  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage.js')).get('saves','keep')).bytes]),[7,9]);console.log('PASS: another active tab is never reloaded, long waits are dismissible, superseded waiting workers do not fail, and the next visit applies the newest update safely.');
+  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage/storage.js')).get('saves','keep')).bytes]),[7,9]);console.log('PASS: another active tab is never reloaded, long waits are dismissible, superseded waiting workers do not fail, and the next visit applies the newest update safely.');
   // Hold a real game-preference write after its menu closes. Both download
   // staging and activation must wait for this queued setting to commit.
   await second.evaluate(()=>{globalThis.holdUpdatePreference=new Promise(resolve=>{globalThis.finishUpdatePreference=resolve;});});
@@ -354,7 +354,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    assert.equal(report.source,'update');assert.equal(report.error.reason,'worker-redundant');
    assert.ok(['downloading','ready'].includes(report.error.phase),'Diagnostic records the phase before failure');
    assert.equal(report.error.worker,'redundant');assert.equal(report.error.online,true);
-   assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage.js')).get('saves','keep')).bytes]),[7,9]);
+   assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage/storage.js')).get('saves','keep')).bytes]),[7,9]);
    return dialog;
   }
   revision=13;failAsset=holdAsset='/'+lazyAsset;await second.evaluate(async()=>{await(await navigator.serviceWorker.ready).update();});
@@ -371,7 +371,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   failAsset=null;revision=15;await failedAgain.getByRole('link',{name:'手動で更新',exact:true}).click();await second.waitForURL(base+'update.html');
   await second.getByText('更新できます。',{exact:true}).waitFor();await second.locator('#apply-update:enabled').click();await second.waitForURL(base+'index.html');
   await second.waitForFunction(()=>globalThis.updateTestRevision===15,{},{timeout:30000});await second.locator('.game-launch').first().waitFor();
-  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage.js')).get('saves','keep')).bytes]),[7,9]);
+  assert.deepEqual(await second.evaluate(async()=>[...(await(await import('./src/storage/storage.js')).get('saves','keep')).bytes]),[7,9]);
   assert.equal(await second.getByRole('button',{name:'Original-update-testの設定を開く',exact:true}).count(),1,'Manual retry retains the imported cartridge');
   console.log('PASS: real asset failure shows manual update/later actions, preserves cached play and saves, and manual retry succeeds with one app tab.');
   await second.goto('about:blank');

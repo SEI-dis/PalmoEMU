@@ -4,7 +4,7 @@
 import {tr} from '../i18n/index.js';
 import {systems,escapeHTML as esc} from '../shared.js';
 import {row,nativeAction} from '../components/rows.js';
-import {gameInputsFor,specialInputs,inputLabels,inputName,assistModes} from '../input-controls.js';
+import {gameInputsFor,specialInputs,inputLabels,inputName,assistModes} from '../input/input-controls.js';
 import {inputTestMarkup,mountInputTest} from './input-test.js';
 import {touchOptionsMarkup,mountTouchOptions} from './touch-options.js';
 export function createInputControlsView({controls,sheet,onClose,getSystem=()=> 'gba',isPlaying=()=>false,settings={},applySettings=()=>{}}){

@@ -11,16 +11,16 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   // Disable periodic disk snapshots so rewind's own volatile behavior can be observed.
   await p.evaluate(()=>localStorage.setItem('manic-settings',JSON.stringify({autosave:false,recovery:false})));await p.reload();
   const instrument=()=>p.evaluate(async()=>{
-   const {MGBACore}=await import('./src/mgba.js'),speed=MGBACore.prototype.setSpeed,loadState=MGBACore.prototype.loadState,state=MGBACore.prototype.state;
+   const {MGBACore}=await import('./src/core/mgba.js'),speed=MGBACore.prototype.setSpeed,loadState=MGBACore.prototype.loadState,state=MGBACore.prototype.state;
    MGBACore.prototype.setSpeed=function(v){window.testEngine=this;return speed.call(this,v);};
    MGBACore.prototype.loadState=function(...args){window.restoreCount=(window.restoreCount||0)+1;return loadState.apply(this,args);};
    MGBACore.prototype.state=function(...args){window.captureCount=(window.captureCount||0)+1;return state.apply(this,args);};
   });await instrument();
   await p.locator('#rom-input').setInputFiles(['A','B'].map((label,i)=>({name:`Preferences ${label}.gba`,mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31+i,992+i))})));
   await p.getByRole('button',{name:'Preferences Bの設定を開く',exact:true}).waitFor();
-  const ids=await p.evaluate(async()=>Object.fromEntries((await (await import('./src/storage.js')).all('library')).map(g=>[g.name.slice(-1),g.id])));
+  const ids=await p.evaluate(async()=>Object.fromEntries((await (await import('./src/storage/storage.js')).all('library')).map(g=>[g.name.slice(-1),g.id])));
   const details=label=>p.locator(`.game-launch[data-game="${ids[label]}"]`).click();
-  const read=label=>p.evaluate(async id=>(await (await import('./src/storage.js')).get('library',id)).preferences||{},ids[label]);
+  const read=label=>p.evaluate(async id=>(await (await import('./src/storage/storage.js')).get('library',id)).preferences||{},ids[label]);
   const global=()=>p.evaluate(()=>JSON.parse(localStorage.getItem('manic-settings')));
   const range=async(value)=>p.locator('[data-setting=volume]').evaluate((el,value)=>{el.value=String(value);el.dispatchEvent(new Event('change',{bubbles:true}));},value);
   const settings=async(speed,volume,filter)=>{await p.locator('[data-setting=speed]').selectOption(String(speed));await range(volume);await p.locator('[data-setting=filter]').selectOption(filter);};
@@ -39,9 +39,9 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await p.locator('[data-action=video]').click();await p.locator('[data-setting=filter]').selectOption('smooth');await p.locator('[data-setting=showFps]').check();await p.locator('#close-sheet').click();await p.locator('[data-tab=games]').click();
   await details('A');await expectSettings(2,.25,'edge2x');assert.equal(await p.locator('[data-setting=preservePitch]').count(),0);await p.locator('#close-sheet').click();
   await details('B');await p.locator('[data-action=resetPreferences]').click();await p.locator('#preferences-cancel').click();await expectSettings(3,.45,'scanlines');
-  const before=await p.evaluate(async id=>{const db=await import('./src/storage.js');return {rom:[...await db.get('roms',id)],save:await db.get('saves',id),game:await db.get('library',id)};},ids.B);
+  const before=await p.evaluate(async id=>{const db=await import('./src/storage/storage.js');return {rom:[...await db.get('roms',id)],save:await db.get('saves',id),game:await db.get('library',id)};},ids.B);
   await p.locator('[data-action=resetPreferences]').click();await p.locator('#preferences-reset').click();await expectSettings(4,.6,'smooth');assert.equal(await p.locator('#game-preferences-mode').textContent(),'共通設定を使用');await p.locator('#close-sheet').click();
-  const after=await p.evaluate(async id=>{const db=await import('./src/storage.js');return {rom:[...await db.get('roms',id)],save:await db.get('saves',id),game:await db.get('library',id)};},ids.B);
+  const after=await p.evaluate(async id=>{const db=await import('./src/storage/storage.js');return {rom:[...await db.get('roms',id)],save:await db.get('saves',id),game:await db.get('library',id)};},ids.B);
   assert.deepEqual(after.rom,before.rom);assert.deepEqual(after.save,before.save);delete before.game.preferences;delete after.game.preferences;assert.deepEqual(after.game,before.game,'Reset preserves all other game metadata');assert.deepEqual(await read('B'),{});
   await p.reload();await instrument();await play('B');await expectEngine(4,.6,'smooth');assert.equal(await p.evaluate(()=>testEngine.preservePitch),true);await exit();
   await play('A');await expectEngine(2,.25,'edge2x');assert.equal(await p.locator('#fps-meter').isVisible(),true,'An untouched game field continues to inherit the common setting');
@@ -58,7 +58,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await p.locator('.skin-button[aria-label="A"]').tap();await p.waitForFunction(()=>testEngine.keys===1);await p.evaluate(()=>window.dispatchEvent(new Event('blur')));await p.locator('#resume-game').waitFor();assert.equal(await p.evaluate(()=>testEngine.keys),0);await p.locator('#resume-game').click();assert.equal(await p.evaluate(()=>testEngine.keys),0);
   // Rewind records only in memory, restores a real core state and resumes input/frame stepping.
   await p.locator('#player-menu').click();await p.locator('[data-setting=rewindEnabled]').check();await p.locator('#close-sheet').click();
-  const disk=()=>p.evaluate(async()=>{const db=await import('./src/storage.js');return {states:await db.all('states'),recoveries:await db.all('recoveries'),saves:await db.all('saves')};});const diskBefore=await disk();
+  const disk=()=>p.evaluate(async()=>{const db=await import('./src/storage/storage.js');return {states:await db.all('states'),recoveries:await db.all('recoveries'),saves:await db.all('saves')};});const diskBefore=await disk();
   const captures=await p.evaluate(()=>window.captureCount||0);await p.waitForFunction(n=>(window.captureCount||0)>=n+3,captures);const restores=await p.evaluate(()=>window.restoreCount||0);
   await p.locator('#player-menu').click();await p.locator('[data-action=rewind]').click();await p.locator('#sheet').waitFor({state:'hidden'});assert.equal(await p.evaluate(()=>window.restoreCount),restores+1);assert.equal(await p.evaluate(()=>testEngine.paused),false);
   const frame=await p.evaluate(()=>testEngine.frameCount());await p.waitForFunction(n=>testEngine.frameCount()>n+5,frame);assert.deepEqual(await disk(),diskBefore,'Rewind history does not write persistent states or saves');

@@ -8,9 +8,9 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';await context.route('**/*',route=>{assert.equal(new URL(route.request().url()).origin,new URL(base).origin);return route.continue();});
   await page.goto(base);await page.locator('#add-first').waitFor();await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
   const result=await page.evaluate(async()=>{
-   const {createGameRecorder,recordingSupported}=await import('./src/game-recorder.js'),check=(value,label)=>{if(!value)throw Error(label);},sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+   const {createGameRecorder,recordingSupported}=await import('./src/capture/game-recorder.js'),check=(value,label)=>{if(!value)throw Error(label);},sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
    const reports=[],native=recordingSupported();
-   const {recordingName}=await import('./src/recording-file.js'),date=new Date(2026,9,14,0,12,34),firstName=recordingName('A/B',date),secondName=recordingName('A/B',date);
+   const {recordingName}=await import('./src/capture/recording-file.js'),date=new Date(2026,9,14,0,12,34),firstName=recordingName('A/B',date),secondName=recordingName('A/B',date);
    check(firstName==='A_B_2026-10-14_00-12-34'&&secondName===firstName+'-2','Local timestamp includes seconds; same-second recordings do not collide');
    const canvas=(w=240,h=160,color='#ff0000')=>{const value=document.createElement('canvas');value.width=w;value.height=h;value.getContext('2d').fillStyle=color;value.getContext('2d').fillRect(0,0,w,h);return value;};
    const captureCanvas=()=>document.querySelector('[data-recording-canvas]');

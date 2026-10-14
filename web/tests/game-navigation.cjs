@@ -6,7 +6,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),page=await context.newPage(),errors=[];
  page.setDefaultTimeout(15000);page.on('pageerror',e=>errors.push(e.message));await page.goto(base);await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy')&&localStorage.getItem('manic-settings')!==null);
  await page.locator('#rom-input').setInputFiles({name:'Navigation fixture.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});await page.locator('.game-launch').waitFor();
- await page.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js'),load=MGBACore.prototype.load;window.navLoads=0;MGBACore.prototype.load=function(...args){navLoads++;window.navCore=this;return load.apply(this,args);};});
+ await page.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),load=MGBACore.prototype.load;window.navLoads=0;MGBACore.prototype.load=function(...args){navLoads++;window.navCore=this;return load.apply(this,args);};});
  const root=async()=>{await page.locator('#sheet.game-info .game-info-play').waitFor();assert.equal(await page.locator('#player').isVisible(),false);};
  await page.locator('.game-launch').click();await root();
  // Returning from every pre-play child keeps the same ROM and its scroll offset.
@@ -26,8 +26,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  // parent is rebuilt. A close must never retain an invisible capture listener.
  await page.locator('[data-action=controllers]').click();await page.locator('[data-action=map-a]').click();await page.locator('#close-sheet').click();await root();
  await page.locator('[data-setting=speed]').selectOption('3');await page.keyboard.press('j');
- await page.waitForFunction(async()=>{const db=await import('./src/storage.js'),[game]=await db.all('library');return game?.preferences?.speed===3;});
- const scope=await page.evaluate(async()=>{const db=await import('./src/storage.js'),[game]=await db.all('library');return {speed:game.preferences.speed,global:JSON.parse(localStorage.getItem('manic-settings')).speed};});assert.deepEqual(scope,{speed:3,global:1});
+ await page.waitForFunction(async()=>{const db=await import('./src/storage/storage.js'),[game]=await db.all('library');return game?.preferences?.speed===3;});
+ const scope=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),[game]=await db.all('library');return {speed:game.preferences.speed,global:JSON.parse(localStorage.getItem('manic-settings')).speed};});assert.deepEqual(scope,{speed:3,global:1});
  await page.locator('[data-action=gameSkin]').click();await page.locator('#edit-controls').click();await page.locator('.control-editor').waitFor();await page.keyboard.press('Escape');await root();assert.equal(await page.locator('#sheet.control-edit').count(),0);
  // Busy operations already disable the header close button. Esc/background
  // must honor that same guard instead of destroying the operation's UI.
@@ -39,7 +39,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await page.locator('[data-action=safeMode]').click();await page.locator('[data-action=start]').click();await page.locator('#loading').waitFor({state:'hidden'});await page.locator('#sheet').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>navCore.paused),false);
  await page.locator('#player-menu').click();await page.locator('[data-action=controllers]').click();assert.equal(await page.evaluate(()=>navCore.paused),true);await page.keyboard.press('Escape');await page.locator('#sheet').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>navCore.paused),false);
  await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
- assert.ok(await page.evaluate(async()=>{const db=await import('./src/storage.js');return (await db.all('library'))[0].playDuration>0;}),'First-play duration survives automatic cover storage');
+ assert.ok(await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return (await db.all('library'))[0].playDuration>0;}),'First-play duration survives automatic cover storage');
  // Deleting from a child confirmation dismisses the owner instead of reviving
  // a ROM menu for a game which no longer exists.
  await page.locator('.game-launch').click();await page.locator('[data-action=delete]').click();await page.locator('#confirm-delete').click();await page.locator('#sheet').waitFor({state:'hidden'});await page.locator('.game-launch').waitFor({state:'detached'});

@@ -9,7 +9,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   const ctx=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,serviceWorkers:'block'}),p=await ctx.newPage(),errors=[],uploads=[];
   p.on('pageerror',e=>errors.push(e.message));p.on('request',r=>{if(/^https?:/.test(r.url())&&(r.method()!=='GET'||!r.url().startsWith(base)))uploads.push(r.url());});
   await p.goto(base);
-  await p.evaluate(async()=>{const {MGBACore}=await import('./src/mgba.js');const old=MGBACore.prototype.setKeys;window.currentKeys=0;MGBACore.prototype.setKeys=function(k){currentKeys=k;return old.call(this,k);};});
+  await p.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js');const old=MGBACore.prototype.setKeys;window.currentKeys=0;MGBACore.prototype.setKeys=function(k){currentKeys=k;return old.call(this,k);};});
   await p.locator('#rom-input').setInputFiles({name:'Original test.gba',mimeType:'application/octet-stream',buffer:Buffer.from(require('./link.cjs').cartridge(31,992))});
   await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
   await p.waitForFunction(()=>!document.querySelector('#toast').classList.contains('show'));
@@ -44,7 +44,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   // Check both sides of every sector/dead-zone boundary without depending on
   // exact floating-point equality or browser rounding of pointer coordinates.
   const boundaries=await p.evaluate(async()=>{
-   const {builtinDpadDirections:directions}=await import('./src/dpad-input.js'),results=[];
+   const {builtinDpadDirections:directions}=await import('./src/input/dpad-input.js'),results=[];
    for(const sx of [-1,1])for(const sy of [-1,1])for(const swap of [false,true]){
     const h=sx<0?'left':'right',v=sy<0?'up':'down';
     for(const offset of [-.001,.001]){

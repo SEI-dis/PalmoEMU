@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Local, opt-out diagnostics. Never retain messages, raw stacks, URLs, file
 // names supplied by users, ROM identities, saves, screenshots or raw UA text.
-import {coreRegistry} from './core-registry.js';
-import {videoFilters} from './video.js';
+import {coreRegistry} from './core/core-registry.js';
+import {videoFilters} from './rendering/video.js';
 
 const key='palmo-diagnostics-v1',limit=5,frameLimit=8;
 const sources=new Set(['handled','global-error','unhandled-rejection','core','startup','import','save','previous-session','update']);
@@ -16,7 +16,7 @@ const browsers=new Set(['Chrome','Edge','Firefox','Safari','Other']),oses=new Se
 const errorNames=new Set(['Error','TypeError','RangeError','ReferenceError','SyntaxError','URIError','EvalError','AggregateError','DOMException','AbortError','QuotaExceededError','NotAllowedError','NotFoundError','NetworkError','DataCloneError','NotReadableError','SecurityError','InvalidStateError','OperationError','TimeoutError','UnknownError','RuntimeError','CompileError','LinkError']);
 // Exact source names prevent a fabricated stack from exporting a ROM filename
 // disguised as src/<private-name>.js. New source files can be added explicitly.
-const sourceNames=('library library-view startup-input backup backup-view game-preferences game-preferences-view input-controls input-controls-view rewind rewind-session app auto-update auto-update-worker bundled-skins celio-device celio-serial control-alignment control-editor control-layout core-factory core-registry cover-dialog development diagnostics diagnostics-view direct-link floating-panel game-info haptics import-progress jgenesis link-controls link-safety local-link-core local-link-save manic-ui mgba nds nds-skin offline peer-link retro rom-import rom-import-worker room-link save-safety settings-view shared skin-art skin-drawing skin-format skin-inputs skin-layout skin-preview skin-profiles skin-screens skin-selection skin-settings skin-zip skins state-dialogs storage three-ds three-ds-save three-ds-worker time-stretch ui update update-activity video').split(' ');
+const sourceNames=('library/library library-view input/startup-input storage/backup backup-view library/game-preferences game-preferences-view input/input-controls input-controls-view core/rewind core/rewind-session app updates/auto-update updates/auto-update-worker skins/bundled-skins link/celio-device link/celio-serial skins/control-alignment skins/control-editor skins/control-layout core/core-factory core/core-registry cover-dialog core/development diagnostics diagnostics-view link/direct-link components/floating-panel game-info input/haptics library/import-progress core/jgenesis link/link-controls link/link-safety link/local-link-core link/local-link-save components/manic-ui core/mgba core/nds skins/nds-skin updates/offline link/peer-link core/retro library/rom-import library/rom-import-worker link/room-link storage/save-safety settings-view shared skins/skin-art skins/skin-drawing skins/skin-format skins/skin-inputs skins/skin-layout skins/skin-preview skins/skin-profiles skins/skin-screens skins/skin-selection skin-settings skins/skin-zip skins/skins state-dialogs storage/storage core/three-ds core/three-ds-save core/three-ds-worker rendering/time-stretch ui updates/update updates/update-activity rendering/video start-save/client workers/task').split(' ');
 const files=new Set(sourceNames.map(name=>'src/'+name+'.js'));
 for(const core of cores)for(const name of ['core.js','core.wasm',...(core.key==='mgba'?['mgba.js','mgba.wasm']:[]),...(core.key==='jgenesis'?['core_bg.wasm']:[])])files.add(`cores/${core.directory}/${name}`);
 const base=new URL('../',import.meta.url);

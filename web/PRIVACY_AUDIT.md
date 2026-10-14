@@ -6,18 +6,18 @@
 
 | 対象 | 保存先・処理 | 確認箇所 |
 | --- | --- | --- |
-| ROM | IndexedDBのroms。起動時に端末のWASMメモリへコピー | src/app.js、src/storage.js、src/mgba.js、src/retro.js、src/nds.js |
-| セーブ、手動ステート、復旧用ステート、履歴 | IndexedDBのsaves、states、recoveries、backups | src/storage.js、src/save-safety.js |
-| ライブラリ、画像、スキン | IndexedDBのlibrary、skins。表示用に端末内のdata/blob URLを使用 | src/app.js、src/skins.js |
+| ROM | IndexedDBのroms。起動時に端末のWASMメモリへコピー | src/app.js、src/storage/storage.js、src/core/mgba.js、src/core/retro.js、src/core/nds.js |
+| セーブ、手動ステート、復旧用ステート、履歴 | IndexedDBのsaves、states、recoveries、backups | src/storage/storage.js、src/storage/save-safety.js |
+| ライブラリ、画像、スキン | IndexedDBのlibrary、skins。表示用に端末内のdata/blob URLを使用 | src/app.js、src/skins/skins.js |
 | カバー画像 | IndexedDBのlibrary。端末内の画像をdata URLに変換 | src/views/cover.js |
-| 設定・入力機器別割り当て | localStorageのmanic-settings。機器名ではなくIDハッシュを保持。ROM・セーブのバイト列は保存しない | src/game-preferences.js、src/input-controls.js |
-| ライブラリ表示設定 | localStorageのpalmo-library-view-v1。許可したsort/groupだけを保存し、検索語・ゲーム名は含めない | src/library.js、src/views/library.js |
-| 分類・お気に入り | IndexedDBのlibrary.category / library.favorite。一括バックアップの対象 | src/views/library.js、src/storage.js、src/backup.js |
-| ゲーム別設定 | IndexedDBのlibrary.preferences。共通設定への未変更項目の継承とリセット | src/game-preferences.js、src/storage.js |
-| 一括バックアップ | 手動で端末へJSONダウンロード。復元前の置き換え対象と設定はIndexedDBのcoverCatalogs内の予約名前空間に1世代保持 | src/backup.js、src/storage.js |
-| 巻き戻し | RAM内だけのstate／battery。保持履歴と復元コピー合計8MiB上限、終了時破棄 | src/rewind.js、src/rewind-session.js |
+| 設定・入力機器別割り当て | localStorageのmanic-settings。機器名ではなくIDハッシュを保持。ROM・セーブのバイト列は保存しない | src/library/game-preferences.js、src/input/input-controls.js |
+| ライブラリ表示設定 | localStorageのpalmo-library-view-v1。許可したsort/groupだけを保存し、検索語・ゲーム名は含めない | src/library/library.js、src/views/library.js |
+| 分類・お気に入り | IndexedDBのlibrary.category / library.favorite。一括バックアップの対象 | src/views/library.js、src/storage/storage.js、src/storage/backup.js |
+| ゲーム別設定 | IndexedDBのlibrary.preferences。共通設定への未変更項目の継承とリセット | src/library/game-preferences.js、src/storage/storage.js |
+| 一括バックアップ | 手動で端末へJSONダウンロード。復元前の置き換え対象と設定はIndexedDBのcoverCatalogs内の予約名前空間に1世代保持 | src/storage/backup.js、src/storage/storage.js |
+| 巻き戻し | RAM内だけのstate／battery。保持履歴と復元コピー合計8MiB上限、終了時破棄 | src/core/rewind.js、src/core/rewind-session.js |
 | オフライン用アプリ | Cache Storage。配布マニフェスト内の静的ファイルだけを保存 | sw.js、offline-manifest.js |
-| ゲーム実行 | 端末内のWASM・Canvas・Web Audio | src/mgba.js、src/retro.js、src/video.js |
+| ゲーム実行 | 端末内のWASM・Canvas・Web Audio | src/core/mgba.js、src/core/retro.js、src/rendering/video.js |
 | ユーザーによるセーブ等の書き出し | Blobから端末へのダウンロード。ROMの共有・書き出し機能は実装しない | src/app.jsのdownload、src/views/game-info.jsのexportSave |
 
 OPFSは利用していません。sessionStorageには自動更新完了の通知用に旧ビルド番号と時刻を保存します。また、プレイ操作をアプリ更新後へ引き継ぐ場合は、選んだゲームの端末内ID・起動オプション（セーフモード／復旧選択の省略）・旧ビルド番号・時刻・記録形式の版だけを、更新の再読み込み直前に一時保存します。起動時の読取りで削除し、5分を過ぎた記録や同じビルドの記録は使用しません。ゲーム名・ROM・セーブの内容は含めず、外部送信もしません。更新通知と起動の引き継ぎは配信パスごとに分けています。「IndexedDBだけ」はアプリによるROM・セーブの
@@ -34,7 +34,7 @@ OPFSは利用していません。sessionStorageには自動更新完了の通�
 
 ## 画像・動画の撮影（2026-10-13）
 
-`src/game-recorder.js` はゲームの描画Canvasと既存Web Audio出力だけを録画し、マイク・画面共有の取得や外部通信は行いません。30fps・長辺720px・5分／64MiBで制限し、小さな画面は補間せず2倍に拡大して圧縮します。停止後のFileはメモリ内のプレビューに保持します。`src/recording-preview.js` の明示操作でローカルダウンロード、または端末が対応するファイル共有を行います。共有先への送信はユーザーの操作によります。録画・画像は診断記録やセーブ用バックアップには追加しません。調査用に直近1回の入力待ち・一時停止・録画終了・プレビュー表示の所要時間だけをプレビューのDOM属性へ保持し、外部送信・永続保存しません。ゲーム名・映像・音声・ファイル内容はこの計測値に含めません。終了・再読み込み・OS終了に備えた永続保存はなく、必要な動画はユーザーが書き出します。プロフィール画像は既存IndexedDB内に256×256 PNGとして保存し、外部取得・送信は行いません。
+`src/capture/game-recorder.js` はゲームの描画Canvasと既存Web Audio出力だけを録画し、マイク・画面共有の取得や外部通信は行いません。30fps・長辺720px・5分／64MiBで制限し、小さな画面は補間せず2倍に拡大して圧縮します。停止後のFileはメモリ内のプレビューに保持します。`src/capture/recording-preview.js` の明示操作でローカルダウンロード、または端末が対応するファイル共有を行います。共有先への送信はユーザーの操作によります。録画・画像は診断記録やセーブ用バックアップには追加しません。調査用に直近1回の入力待ち・一時停止・録画終了・プレビュー表示の所要時間だけをプレビューのDOM属性へ保持し、外部送信・永続保存しません。ゲーム名・映像・音声・ファイル内容はこの計測値に含めません。終了・再読み込み・OS終了に備えた永続保存はなく、必要な動画はユーザーが書き出します。プロフィール画像は既存IndexedDB内に256×256 PNGとして保存し、外部取得・送信は行いません。
 
 ## カバー画像
 

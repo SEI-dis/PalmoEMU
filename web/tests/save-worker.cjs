@@ -10,20 +10,20 @@ const runtime=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';
   // Throw after earlier writes have been queued in the real Worker transaction.
   // Its abort must retain every previous store, including the clean marker.
-  await context.route('**/src/save-worker.js?fault=*',route=>{
+  await context.route('**/src/storage/save-worker.js?fault=*',route=>{
    const fault=new URL(route.request().url()).searchParams.get('fault');
    const injected=`const originalPut=IDBObjectStore.prototype.put;IDBObjectStore.prototype.put=function(...args){if(this.name==='recoveries')throw new DOMException('synthetic ${fault}', '${fault}');return originalPut.apply(this,args);};\n`;
-   return route.fulfill({contentType:'text/javascript',body:injected+fs.readFileSync(path.join(__dirname,'../src/save-worker.js'),'utf8')});
+   return route.fulfill({contentType:'text/javascript',body:injected+fs.readFileSync(path.join(__dirname,'../src/storage/save-worker.js'),'utf8')});
   });
   await page.goto(base+'privacy.html');
   const result=await page.evaluate(async()=>{
-   const db=await import('./src/storage.js'),{createSaveWriter}=await import('./src/save-writer.js'),{hash}=await import('./src/shared.js'),{updateTasksPending}=await import('./src/update-activity.js');
+   const db=await import('./src/storage/storage.js'),{createSaveWriter}=await import('./src/storage/save-writer.js'),{hash}=await import('./src/shared.js'),{updateTasksPending}=await import('./src/updates/update-activity.js');
    const check=(value,message)=>{if(!value)throw Error(message);},wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
    const entry=(id,n=1,size=1048576)=>{const bytes=new Uint8Array(size).fill(n),state=new Uint8Array(size+3).fill(n+10),sessionId='owner-'+id;return {id,sessionId,save:{bytes,at:n*400000,hash:'save-'+n,coreId:'synthetic'},recovery:{bytes:state,save:bytes,at:n*400000,hash:'state-'+n,sessionId,coreId:'synthetic'},clean:false};};
    const seed=async(id,n=1)=>{await db.put('sessions',id,{id:'owner-'+id,dirty:false,canary:'keep'});await db.commitProtectionBatch([entry(id,n)]);};
    const rejected=async promise=>{try{await promise;}catch(error){return error;}throw Error('Expected rejection');};
    const realWorkers=[];
-   const actualWorker=()=>{const worker=new Worker(new URL('./src/save-worker.js',location.href),{type:'module'});realWorkers.push(worker);return worker;};
+   const actualWorker=()=>{const worker=new Worker(new URL('./src/storage/save-worker.js',location.href),{type:'module'});realWorkers.push(worker);return worker;};
    // No Worker is created for small battery saves, preserving the old path.
    let created=0;const small=createSaveWriter({createWorker:()=>{created++;throw Error('Must not create');}});
    await db.put('sessions','small',{id:'owner-small'});await small.commit(entry('small',1,8));await small.close();check(created===0,'Small entry uses main');
@@ -58,21 +58,21 @@ const runtime=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||
     return Promise.all(records.map(async record=>{if(!record)return null;const rows=Array.isArray(record)?record:[record];return Promise.all(rows.map(async row=>({...row,bytes:row.bytes?await hash(row.bytes):null,save:row.save?await hash(row.save):null})));}));
    };
    for(const fault of ['DataCloneError','QuotaExceededError']){
-    const id='atomic-'+fault;await seed(id);const before=await snapshot(id),faulty=createSaveWriter({createWorker:()=>new Worker(new URL('./src/save-worker.js?fault='+fault,location.href),{type:'module'})});
+    const id='atomic-'+fault;await seed(id);const before=await snapshot(id),faulty=createSaveWriter({createWorker:()=>new Worker(new URL('./src/storage/save-worker.js?fault='+fault,location.href),{type:'module'})});
     const e=await rejected(faulty.commit({...entry(id,2),clean:true}));await faulty.close();
     check(e.name===fault&&e.message==='synthetic '+fault&&e.saveOutcomeUnknown===false,fault+' is a definite abort');
     check(JSON.stringify(await snapshot(id))===JSON.stringify(before),fault+' rolls back all five stores');
    }
    // A known quota abort of an automatic checkpoint may rescue its ordinary
    // save once. Do not delete old recoveries or capture a different snapshot.
-   const {SaveProtection}=await import('./src/save-safety.js');
+   const {SaveProtection}=await import('./src/storage/save-safety.js');
    for(const useWorker of [false,true]){
     const id='quota-rescue-'+useWorker,statuses=[],protection=new SaveProtection(s=>statuses.push(s),{useWorker:false});
     await protection.open({id,system:'gba'},'synthetic');
     await protection.save({save:()=>new Uint8Array([1]),state:()=>new Uint8Array([11])},{checkpoint:true});
     const previousRecovery=await hash((await db.get('recoveries',id))[0].bytes),previousStateAt=protection.stateAt;
     await protection.writer.close();
-    const writer=createSaveWriter({useWorker,createWorker:()=>new Worker(new URL('./src/save-worker.js?fault=QuotaExceededError',location.href),{type:'module'})});
+    const writer=createSaveWriter({useWorker,createWorker:()=>new Worker(new URL('./src/storage/save-worker.js?fault=QuotaExceededError',location.href),{type:'module'})});
     let commits=0,captures=0,stateCaptures=0;const entries=[],rawCommit=writer.commit;
     writer.commit=entry=>{commits++;entries.push({save:entry.save,hasRecovery:!!entry.recovery,clean:entry.clean});return rawCommit(entry);};protection.writer=writer;
     const put=IDBObjectStore.prototype.put;

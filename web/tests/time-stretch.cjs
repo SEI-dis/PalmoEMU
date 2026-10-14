@@ -8,7 +8,7 @@ const frequency=(data,rate)=>{
 const rms=data=>Math.sqrt(data.reduce((sum,v)=>sum+v*v,0)/data.length);
 module.exports={frequency,rms};
 if(require.main===module)(async()=>{
- const {TimeStretch}=await import('../src/time-stretch.js');let cases=0,maxMs=0;
+ const {TimeStretch}=await import('../src/rendering/time-stretch.js');let cases=0,maxMs=0;
  function run(rate,speed,seconds,left,right,chunkSizes=[541,17,2048,733,1]){
   const n=Math.round(rate*seconds),pcm=new Int16Array(n*2),stretch=new TimeStretch(rate,speed),output=[[],[]];
   for(let i=0;i<n;i++){pcm[i*2]=left(i/rate)*32767;pcm[i*2+1]=right(i/rate)*32767;}

@@ -17,7 +17,7 @@ function gba(){
   const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage(),requests=[];
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';page.on('request',r=>requests.push(r));await page.goto(base+'privacy.html');
   const unit=await page.evaluate(async()=>{
-   const {createRewind,supportsRewind}=await import('./src/rewind.js');
+   const {createRewind,supportsRewind}=await import('./src/core/rewind.js');
    const check=(value,message)=>{if(!value)throw Error(message);};
    let frames=0,ram=0,battery=0,stateCalls=0,saveCalls=0,loads=0,restores=0;
    const core={fps:60,paused:false,frameCount:()=>frames,state:()=>{stateCalls++;return new Uint8Array(80).fill(ram);},save:()=>{saveCalls++;return new Uint8Array(16).fill(battery);},loadState:b=>{loads++;ram=b[0];},restore:b=>{restores++;battery=b[0];}};
@@ -61,7 +61,7 @@ function gba(){
   await page.goto(base);
   for(const [system,coreKey,rom] of [['gb','mgba',carts.gb()],['gbc','mgba',carts.gbc()],['gba','mgba',gba()],['gb','jgenesis',carts.gb()],['gbc','jgenesis',carts.gbc()],['gba','vba-next',gba()]]){
    const result=await page.evaluate(async({system,coreKey,rom})=>{
-    const {createCore}=await import('./src/core-factory.js'),{createRewind}=await import('./src/rewind.js'),db=await import('./src/storage.js');
+    const {createCore}=await import('./src/core/core-factory.js'),{createRewind}=await import('./src/core/rewind.js'),db=await import('./src/storage/storage.js');
     const game={system,coreKey,size:rom.length,name:'Original rewind fixture'},holder=document.createElement('div');document.body.append(holder);
     const core=createCore(holder,game);let rewind;
     const equal=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);

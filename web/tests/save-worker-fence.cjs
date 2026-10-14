@@ -8,7 +8,7 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
   page.on('pageerror',e=>errors.push(e.message));context.on('request',r=>traffic.push(r));
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';await page.goto(base+'privacy.html');
   const result=await page.evaluate(async()=>{
-   const db=await import('./src/storage.js'),{SaveProtection}=await import('./src/save-safety.js'),{createSaveWriter}=await import('./src/save-writer.js'),{updateTasksPending}=await import('./src/update-activity.js');
+   const db=await import('./src/storage/storage.js'),{SaveProtection}=await import('./src/storage/save-safety.js'),{createSaveWriter}=await import('./src/storage/save-writer.js'),{updateTasksPending}=await import('./src/updates/update-activity.js');
    const check=(v,message)=>{if(!v)throw Error(message);},coreId='mgba-rom64-save6-v2',tick=()=>new Promise(resolve=>setTimeout(resolve,0));
    const wait=async fn=>{for(let i=0;i<1000;i++){if(fn())return;await tick();}throw Error('Timed out waiting for synthetic save stage');};
    const rejected=async promise=>{try{await promise;}catch(error){return error;}throw Error('Expected rejection');};

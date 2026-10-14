@@ -2,7 +2,7 @@
 // Synthetic controllers only. No ROM, user data, browser profile or hardware.
 const assert=require('node:assert/strict');
 (async()=>{
- const {GameRumble,supportsGameRumble}=await import('../src/game-rumble.js');
+ const {GameRumble,supportsGameRumble}=await import('../src/input/game-rumble.js');
  class Surface extends EventTarget {hidden=false;}
  function fixture(){
   const calls=[],core=[],visibility=new Surface(),events=new EventTarget();let strength=.4,time=0;

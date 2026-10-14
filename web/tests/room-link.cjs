@@ -50,7 +50,7 @@ const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
   });return c;
  }
  async function ours(p,own,wanted,speed=1){await p.goto(base);await p.evaluate(async({rom,speed})=>{
-   const {MGBACore}=await import('./src/mgba.js'),{RoomLink}=await import('./src/room-link.js');
+   const {MGBACore}=await import('./src/core/mgba.js'),{RoomLink}=await import('./src/link/room-link.js');
    const core=new MGBACore(document.createElement('canvas'));await core.load(new Uint8Array(rom));core.setSpeed(speed);window.test={core,status:[]};
    test.link=new RoomLink(core.linkIO(),{onStatus:s=>test.status.push(s),onEnd:(s,info)=>test.end={s,...info}});
  },{rom:[...cartridge(own,wanted)],speed});}
@@ -89,14 +89,14 @@ const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
   for(const page of pages){await page.locator('#link-room-number').waitFor();await page.locator('#link-panel-close').click();assert.equal(await page.locator('#boost').textContent(),'1×');assert.equal(await page.locator('#boost').isDisabled(),true);}
   console.log('UI joined.');
   await p.waitForFunction(()=>document.querySelector('#screen canvas').getContext('2d').getImageData(0,0,1,1).data[1]>200);
-  const before=await p.evaluate(async()=>{const db=await import('./src/storage.js'),[game]=await db.all('library'),rs=await db.get('recoveries',game.id);return {id:game.id,image:rs[0]?.image,cpu:[...rs[0].bytes.slice(0x20,0x60)],recoveries:rs.map(r=>r.hash),saved:await db.get('saves',game.id)};});assert.ok(before.recoveries.length>0);
+  const before=await p.evaluate(async()=>{const db=await import('./src/storage/storage.js'),[game]=await db.all('library'),rs=await db.get('recoveries',game.id);return {id:game.id,image:rs[0]?.image,cpu:[...rs[0].bytes.slice(0x20,0x60)],recoveries:rs.map(r=>r.hash),saved:await db.get('saves',game.id)};});assert.ok(before.recoveries.length>0);
   // Timer autosaves must not replace the pre-link save or recovery state.
   await p.waitForTimeout(10500);
-  assert.deepEqual(await p.evaluate(async id=>{const db=await import('./src/storage.js');return {recoveries:(await db.get('recoveries',id)).map(r=>r.hash),saved:await db.get('saves',id)};},before.id),{recoveries:before.recoveries,saved:before.saved});
+  assert.deepEqual(await p.evaluate(async id=>{const db=await import('./src/storage/storage.js');return {recoveries:(await db.get('recoveries',id)).map(r=>r.hash),saved:await db.get('saves',id)};},before.id),{recoveries:before.recoveries,saved:before.saved});
   relay.send('drop');try{await p.waitForFunction(()=>document.querySelector('#boost').textContent==='3×');}catch(e){console.log('Drop diagnostic',errors,await p.evaluate(()=>({toast:document.querySelector('#toast').textContent,speed:document.querySelector('#boost').textContent,playerHidden:document.querySelector('#player').hidden})));throw e;}
   const restoredImage=await p.evaluate(async url=>{const image=new Image();image.src=url;await image.decode();const c=document.createElement('canvas');c.width=image.width;c.height=image.height;c.getContext('2d').drawImage(image,0,0);const original=c.getContext('2d').getImageData(0,0,c.width,c.height).data,restored=document.querySelector('#screen canvas').getContext('2d').getImageData(0,0,c.width,c.height).data;let max=0;for(let i=0;i<original.length;i++)max=Math.max(max,Math.abs(original[i]-restored[i]));return {max,original:[...original.slice(0,4)],restored:[...restored.slice(0,4)]};},before.image);
   assert.equal(restoredImage.max,0,'Paused restore must show the paired backup screenshot');
-  assert.deepEqual(await p.evaluate(async id=>[...(await (await import('./src/storage.js')).get('recoveries',id))[0].bytes.slice(0x20,0x60)],before.id),before.cpu,'GBA r0-r15 including PC must return to the pre-link state');
+  assert.deepEqual(await p.evaluate(async id=>[...(await (await import('./src/storage/storage.js')).get('recoveries',id))[0].bytes.slice(0x20,0x60)],before.id),before.cpu,'GBA r0-r15 including PC must return to the pre-link state');
   if(!await p.locator('#link-panel').isVisible())await p.locator('#player-link').click();assert.match(await p.locator('#link-status').textContent(),/通信前/);
   console.log('PASS: visible room UI; 1× during link; no mid-link autosaves; disconnection restores pre-link CPU state and prior speed.');
   await a.close();await z.close();

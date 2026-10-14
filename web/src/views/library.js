@@ -2,9 +2,9 @@
 // Browser library components; behavior references are listed in NOTICES.md.
 import {tr} from '../i18n/index.js';
 import {systems,escapeHTML as esc,icon} from '../shared.js';
-import {libraryCategories,librarySorts,libraryDisplay,categoryOf,categoryLabel,visibleGames,groupGames} from '../library.js';
-import {guardUpdateTask} from '../update-activity.js';
-import * as db from '../storage.js';
+import {libraryCategories,librarySorts,libraryDisplay,categoryOf,categoryLabel,visibleGames,groupGames} from '../library/library.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
+import * as db from '../storage/storage.js';
 
 const displayKey='palmo-library-view-v1';
 export function createLibraryView(api){

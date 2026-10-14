@@ -533,32 +533,32 @@ iPhoneで使う場合は、端末からアクセスできるHTTPSの配信先を
 | ファイル | 担当 |
 | --- | --- |
 | `src/app.js` | アプリの状態、起動・保存・操作の連携 |
-| `src/library.js` / `src/views/library.js` / `library.css` | ライブラリの絞り込み・並べ替え・グループ表示、複数選択と一括操作 |
+| `src/library/library.js` / `src/views/library.js` / `library.css` | ライブラリの絞り込み・並べ替え・グループ表示、複数選択と一括操作 |
 | `src/components/rows.js` / `controls.css` | 共通の設定行・グループ・スイッチと、ボタン・入力部品の色・形 |
 | `src/views/settings.js` | 設定一覧、映像・音量・操作・保存案内・保存容量の画面 |
-| `src/game-preferences.js` | ゲーム別設定、共通設定からの継承、個別リセット |
-| `src/input-controls.js` / `src/views/input-controls.js` | 機種／機器別割り当て、連射・押しっぱなし、入力待ちUI |
-| `src/backup.js` / `src/views/backup.js` | ROMを除いた一括バックアップ、検証・確認・復元 |
-| `src/rewind.js` / `src/rewind-session.js` | RAM内の巻き戻し記録と入力・保存・ライフサイクルの連携 |
-| `src/views/skins.js` / `src/skin-preview.js` | スキン一覧・独立したプレビューと配置編集の呼び出し |
-| `src/skin-selection.js` | 縦横別の選択・旧形式の読み込み・指定の解除 |
-| `src/bundled-skins.js` / `BUNDLED_SKINS.json` | 許諾を確認した同梱スキンの選択肢・出典と固定ハッシュ |
-| `src/skins.js` / `src/skin-format.js` / `src/skin-zip.js` | 外部スキンの端末内取り込み・形式検査・配置の正規化 |
-| `src/skin-screens.js` / `src/skin-inputs.js` | 外部スキンの複数画面・表示効果・タッチとショートカット |
+| `src/library/game-preferences.js` | ゲーム別設定、共通設定からの継承、個別リセット |
+| `src/input/input-controls.js` / `src/views/input-controls.js` | 機種／機器別割り当て、連射・押しっぱなし、入力待ちUI |
+| `src/storage/backup.js` / `src/views/backup.js` | ROMを除いた一括バックアップ、検証・確認・復元 |
+| `src/core/rewind.js` / `src/core/rewind-session.js` | RAM内の巻き戻し記録と入力・保存・ライフサイクルの連携 |
+| `src/views/skins.js` / `src/skins/skin-preview.js` | スキン一覧・独立したプレビューと配置編集の呼び出し |
+| `src/skins/skin-selection.js` | 縦横別の選択・旧形式の読み込み・指定の解除 |
+| `src/skins/bundled-skins.js` / `BUNDLED_SKINS.json` | 許諾を確認した同梱スキンの選択肢・出典と固定ハッシュ |
+| `src/skins/skins.js` / `src/skins/skin-format.js` / `src/skins/skin-zip.js` | 外部スキンの端末内取り込み・形式検査・配置の正規化 |
+| `src/skins/skin-screens.js` / `src/skins/skin-inputs.js` | 外部スキンの複数画面・表示効果・タッチとショートカット |
 | `src/views/states.js` | 手動／自動ステート一覧・クイック保存／読み込み |
-| `src/auto-update.js` / `src/auto-update-worker.js` / `src/update-activity.js` | 全タブの確認・更新中の操作保護・処理完了の待機 |
-| `src/mgba.js` / `src/time-stretch.js` | 全コア共通の音声出力・キュー管理と、倍速時の音程維持処理 |
-| `src/mgba-compatibility.js` | ROM内の判定処理の構造とコア能力で対象を確認する、mGBA起動時の互換性補正 |
-| `src/skin-pointers.js` | 標準・同梱・追加スキン共通のポインター追跡と、終了・中断時の入力解除 |
-| `src/views/game-info.js` / `src/manic-ui.js` / `native-menu.css` | ゲーム詳細とManicEMU形式のメニュー |
+| `src/updates/auto-update.js` / `src/updates/auto-update-worker.js` / `src/updates/update-activity.js` | 全タブの確認・更新中の操作保護・処理完了の待機 |
+| `src/core/mgba.js` / `src/rendering/time-stretch.js` | 全コア共通の音声出力・キュー管理と、倍速時の音程維持処理 |
+| `src/core/mgba-compatibility.js` | ROM内の判定処理の構造とコア能力で対象を確認する、mGBA起動時の互換性補正 |
+| `src/skins/skin-pointers.js` | 標準・同梱・追加スキン共通のポインター追跡と、終了・中断時の入力解除 |
+| `src/views/game-info.js` / `src/components/manic-ui.js` / `native-menu.css` | ゲーム詳細とManicEMU形式のメニュー |
 | `src/views/cover.js` / `covers.css` | 端末内のカバー画像選択とプレビュー |
-| `src/control-editor.js` / `control-editor.css` | 画面・ボタンの配置編集と編集画面の表示 |
-| `src/control-layout.js` / `src/control-alignment.js` | 配置の座標計算、グリッド・吸着・中央／対称の配置補助 |
-| `src/skin-art.js` | 標準スキン生成の窓口 |
-| `src/skin-profiles.js` / `src/skin-layout.js` | 機種別の配色・ボタン構成と縦横の配置計算 |
-| `src/skin-drawing.js` / `skin-controls.css` | 本体・ボタンのSVG描画とスキン共通の補助操作 |
-| `src/nds-skin.js` / `nds-skin.css` | NDS専用の縦横レイアウト・ベクター画像・2画面の表示 |
-| `src/floating-panel.js` / `link-panel.css` | ゲーム中の通信パネル |
+| `src/skins/control-editor.js` / `control-editor.css` | 画面・ボタンの配置編集と編集画面の表示 |
+| `src/skins/control-layout.js` / `src/skins/control-alignment.js` | 配置の座標計算、グリッド・吸着・中央／対称の配置補助 |
+| `src/skins/skin-art.js` | 標準スキン生成の窓口 |
+| `src/skins/skin-profiles.js` / `src/skins/skin-layout.js` | 機種別の配色・ボタン構成と縦横の配置計算 |
+| `src/skins/skin-drawing.js` / `skin-controls.css` | 本体・ボタンのSVG描画とスキン共通の補助操作 |
+| `src/skins/nds-skin.js` / `nds-skin.css` | NDS専用の縦横レイアウト・ベクター画像・2画面の表示 |
+| `src/components/floating-panel.js` / `link-panel.css` | ゲーム中の通信パネル |
 
 部品の色・形は共通CSSで変更し、画面別のCSSでは配置を扱います。
 

@@ -114,6 +114,8 @@ node web/scripts/serve.cjs
 | --- | --- |
 | [詳しい使い方・仕様](web/README.md) | 保存形式、操作、機能の上限、開発テスト |
 | [プロジェクト構成](web/ARCHITECTURE.md) | ファイルの役割と実装上の方針 |
+| [検証の案内](web/tests/README.md) | 目的別のテストと実行方法 |
+| [セーブ変換ツールの更新](web/scripts/start-save-migrate/README.md) | 提供ツールの差し替えと互換性確認 |
 | [公開手順](deployment/README.md) | 配布物の生成、検証、GitHub Pagesへの公開 |
 | [コアの更新](web/CORE_UPDATES.md) | 更新候補の取得・ビルド・検証 |
 

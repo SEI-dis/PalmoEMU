@@ -11,7 +11,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await context.route('**/src/views/game-info.js',route=>route.fulfill({contentType:'text/javascript',body:source.replace('export function createGameInfo(api){','export function createGameInfo(api){ globalThis.testSaveAPI=api;')}));
  await page.goto(base+'privacy.html');
  await page.evaluate(async rom=>{
-  const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js'),bytes=new Uint8Array(8192).fill(9);
+  const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),bytes=new Uint8Array(8192).fill(9);
   localStorage.setItem('manic-settings',JSON.stringify({autosave:false,recovery:false}));
   for(const id of ['apply-fixture','other-fixture'])await db.addGame({id,name:id,system:'gb',size:rom.length},new Uint8Array(rom));
   const old={bytes,hash:await hash(bytes),at:1,coreId:'mgba-rom64-save6-v2'};
@@ -19,7 +19,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  },[...require('./cartridges.cjs').gb()]);
  await page.goto(base);await page.locator('[data-game-id="apply-fixture"],.game-launch').first().waitFor();
  await page.evaluate(async()=>{
-  const db=await import('./src/storage.js'),{MGBACore}=await import('./src/mgba.js');
+  const db=await import('./src/storage/storage.js'),{MGBACore}=await import('./src/core/mgba.js');
   window.testGame=await db.get('library','apply-fixture');window.testCalls={load:0,close:0,restore:0};
   const load=MGBACore.prototype.load,close=MGBACore.prototype.close,restore=MGBACore.prototype.restore;
   MGBACore.prototype.load=async function(...args){testCalls.load++;if(window.testLoadGate)await window.testLoadGate;return load.apply(this,args);};
@@ -28,7 +28,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   window.testSnapshot=async()=>JSON.stringify(await Promise.all(['saves','backups','archives','recoveries','states'].map(store=>db.get(store,store==='states'?'apply-fixture:manual':'apply-fixture'))));
  });
  const validation=await page.evaluate(async()=>{
-  const {coreFor}=await import('./src/core-registry.js'),before=await testSnapshot(),messages=[];
+  const {coreFor}=await import('./src/core/core-registry.js'),before=await testSnapshot(),messages=[];
   for(const value of [new ArrayBuffer(8),new Uint8Array(),new Uint8Array(coreFor(testGame).maxSave+1),new TextEncoder().encode('LPJGSV01payload')]){
    try{await testSaveAPI.applySave(testGame,value);throw Error('Accepted invalid save');}catch(error){messages.push(error.message);}
   }
@@ -37,7 +37,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  assert.deepEqual(validation.calls,{load:0,close:0,restore:0});assert.equal(validation.unchanged,true);assert.ok(validation.messages.slice(0,3).every(message=>message.includes('サイズ')));assert.match(validation.messages[3],/jgenesis/);
  const applied=await page.evaluate(async()=>{
   const bytes=new Uint8Array(8192).fill(22);await testSaveAPI.applySave(testGame,bytes);
-  const db=await import('./src/storage.js'),{updateTasksPending}=await import('./src/update-activity.js');
+  const db=await import('./src/storage/storage.js'),{updateTasksPending}=await import('./src/updates/update-activity.js');
   return {first:(await db.get('saves',testGame.id)).bytes[0],backup:(await db.get('backups',testGame.id))[0].bytes[0],recovery:await db.has('recoveries',testGame.id),manual:(await db.get('states',testGame.id+':manual')).bytes[0],input:bytes[0],lock:await navigator.locks.request('local-game:'+testGame.id,{ifAvailable:true},lock=>!!lock),pending:updateTasksPending(),calls:testCalls};
  });
  assert.deepEqual(applied,{first:22,backup:9,recovery:false,manual:9,input:22,lock:true,pending:false,calls:{load:1,close:1,restore:1}});
@@ -49,14 +49,14 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  for(const [name,bytes,pattern]of [['wrong.txt',Buffer.alloc(8192),/対応するセーブ/],['wrong.jgsav',Buffer.alloc(8192),/jgenesis/],['renamed.sav',Buffer.from('LPJGSV01payload'),/jgenesis/],['empty.sav',Buffer.alloc(0),/サイズ/]]){
   await choose(name,bytes);await page.waitForFunction(()=>document.querySelector('#save-input').value==='');assert.match(await page.locator('#toast').textContent(),pattern);
  }
- await choose('accepted.sav',Buffer.alloc(8192,33));await page.waitForFunction(async()=>{const db=await import('./src/storage.js');return (await db.get('saves','apply-fixture'))?.bytes[0]===33;});
+ await choose('accepted.sav',Buffer.alloc(8192,33));await page.waitForFunction(async()=>{const db=await import('./src/storage/storage.js');return (await db.get('saves','apply-fixture'))?.bytes[0]===33;});
  await page.waitForFunction(()=>document.querySelector('#save-input').value==='');assert.equal(await page.evaluate(()=>testCalls.load),2);
  console.log('PASS '+kind+': filename/type checks and valid file import share the direct-apply path');
  const failure=await page.evaluate(async()=>{
-  const before=await testSnapshot(),db=await import('./src/storage.js');let message;
+  const before=await testSnapshot(),db=await import('./src/storage/storage.js');let message;
   testRestoreFailure=true;testCloseFailure=true;
   try{await testSaveAPI.applySave(testGame,new Uint8Array(8192).fill(44));}catch(error){message=error.message;}finally{testRestoreFailure=false;testCloseFailure=false;}
-  return {message,unchanged:before===await testSnapshot(),lock:await navigator.locks.request('local-game:'+testGame.id,{ifAvailable:true},lock=>!!lock),disabled:document.querySelector('#close-sheet').disabled,pending:(await import('./src/update-activity.js')).updateTasksPending()};
+  return {message,unchanged:before===await testSnapshot(),lock:await navigator.locks.request('local-game:'+testGame.id,{ifAvailable:true},lock=>!!lock),disabled:document.querySelector('#close-sheet').disabled,pending:(await import('./src/updates/update-activity.js')).updateTasksPending()};
  });
  assert.deepEqual(failure,{message:'Synthetic close failure',unchanged:true,lock:true,disabled:false,pending:false});
  const peer=await context.newPage();await peer.goto(base+'privacy.html');
@@ -66,7 +66,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  const concurrent=await page.evaluate(async()=>{
   let release;window.testLoadGate=new Promise(resolve=>release=resolve);const applying=testSaveAPI.applySave(testGame,new Uint8Array(8192).fill(44));
   let message;try{await testSaveAPI.applySave(testGame,new Uint8Array(8192).fill(45));}catch(error){message=error.message;}
-  const during={message,launch:await testSaveAPI.launch(testGame),pending:(await import('./src/update-activity.js')).updateTasksPending(),disabled:document.querySelector('#close-sheet').disabled};
+  const during={message,launch:await testSaveAPI.launch(testGame),pending:(await import('./src/updates/update-activity.js')).updateTasksPending(),disabled:document.querySelector('#close-sheet').disabled};
   release();await applying;window.testLoadGate=null;return during;
  });
  assert.deepEqual(concurrent,{message:'処理が完了してからやり直してください。',launch:false,pending:true,disabled:true});
@@ -75,7 +75,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  // be imported into that engine, even when a stale picker finishes late.
  await page.locator('[data-action=play]').click();await page.locator('#loading').waitFor({state:'hidden'});await page.locator('#player-menu').click();
  const live=await page.evaluate(async()=>{
-  const db=await import('./src/storage.js'),other=await db.get('library','other-fixture'),before=await testSnapshot(),calls={...testCalls};let message;
+  const db=await import('./src/storage/storage.js'),other=await db.get('library','other-fixture'),before=await testSnapshot(),calls={...testCalls};let message;
   try{await testSaveAPI.applySave(other,new Uint8Array(8192).fill(55));}catch(error){message=error.message;}
   const unchanged=before===await testSnapshot();await testSaveAPI.applySave(testGame,new Uint8Array(8192).fill(55));
   return {message,unchanged,first:(await db.get('saves',testGame.id)).bytes[0],backup:(await db.get('backups',testGame.id))[0].bytes[0],load:testCalls.load-calls.load,close:testCalls.close-calls.close,recovery:await db.has('recoveries',testGame.id)};

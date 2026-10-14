@@ -5,8 +5,8 @@ import {tr} from '../i18n/index.js';
 import {languageSetting,bindLanguageSetting} from '../components/language-setting.js';
 import {row,action,detail,settingsGroup,switchControl} from '../components/rows.js';
 import {escapeHTML as esc,icon} from '../shared.js';
-import {supportsHaptics,hapticNote} from '../haptics.js';
-import {videoFilters} from '../video.js';
+import {supportsHaptics,hapticNote} from '../input/haptics.js';
+import {videoFilters} from '../rendering/video.js';
 import {createStorageSettings} from '../components/storage-settings.js';
 import {createTrainerCard} from '../components/trainer-card.js';
 export function videoFilterNote(filter){return tr`<p class="sheet-note" id="video-filter-note" ${filter==='edge4x'?'':'hidden'}>輪郭補正4倍は、元の色を保ちながら斜めの線や角を細かく整えます。処理負荷が増えるため、動作が重い場合は2倍やピクセルに戻してください。</p>`;}

@@ -8,7 +8,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),page=await context.newPage(),requests=[];
   context.on('request',r=>requests.push(r.url()));await page.goto(base);
   await page.locator('#add-first').waitFor();await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
-  await page.evaluate(async()=>{window.backup=await import('./src/backup.js');window.db=await import('./src/storage.js');window.digest=(await import('./src/shared.js')).hash;});
+  await page.evaluate(async()=>{window.backup=await import('./src/storage/backup.js');window.db=await import('./src/storage/storage.js');window.digest=(await import('./src/shared.js')).hash;});
   const fixture=await page.evaluate(async()=>{
    const a='a'.repeat(64),b='b'.repeat(64),canary='c'.repeat(64),missing='d'.repeat(64),at=1720000000000;
    window.fixture={a,b,canary,missing};
@@ -45,7 +45,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   assert.deepEqual(archive.settings.inputControls.profiles.gba.keyboard,{KeyX:'a'});
   assert.equal(archive.games[0].cheats[0].code.length,16384,'The full UI cheat-code limit remains portable');
   const barrier=await page.evaluate(async()=>{
-   const {updateTasksPending}=await import('./src/update-activity.js'),realGet=IDBObjectStore.prototype.get,realCursor=IDBObjectStore.prototype.openCursor;let romReads=0;
+   const {updateTasksPending}=await import('./src/updates/update-activity.js'),realGet=IDBObjectStore.prototype.get,realCursor=IDBObjectStore.prototype.openCursor;let romReads=0;
    IDBObjectStore.prototype.get=function(...args){if(this.name==='roms')romReads++;return realGet.apply(this,args);};
    IDBObjectStore.prototype.openCursor=function(...args){if(this.name==='roms')romReads++;return realCursor.apply(this,args);};
    try{const task=backup.createBackup(settings),during=updateTasksPending();await task;return {during,after:updateTasksPending(),romReads};}finally{IDBObjectStore.prototype.get=realGet;IDBObjectStore.prototype.openCursor=realCursor;}

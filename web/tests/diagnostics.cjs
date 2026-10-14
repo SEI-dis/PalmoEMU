@@ -34,18 +34,18 @@ function privateFree(value){
   assert.equal(await page.locator('#diagnostics-enabled').isChecked(),true);assert.deepEqual((await exportReport()).reports,[]);await page.locator('#close-sheet').click();
 
   const canaries=await page.evaluate(async marker=>{
-   const db=await import('./src/storage.js'),id='diagnostic-data-canary';
+   const db=await import('./src/storage/storage.js'),id='diagnostic-data-canary';
    await db.addGame({id,name:marker,filename:marker+'.nds',system:'nds',size:4},new Uint8Array([41,42,43,44]));
    await db.put('saves',id,{bytes:new Uint8Array([7,9,13]),note:'secret-save-bytes'});
    localStorage.setItem('diagnostic-unrelated',marker);
    diagnostics.setContext(()=>({phase:'play',system:'nds',core:'desmume2015',coreId:'desmume2015-web-v1',link:'local',speed:2,filter:'pixel',romMiB:128,memoryMiB:256,filename:marker+'.nds',hash:marker,save:'secret-save-bytes',url:'https://private.invalid/?'+marker}));
    const e=new TypeError(marker+' / private-user-name / private-file.nds');
-   e.stack='TypeError: '+marker+'\n at PRIVATE_FUNCTION ('+location.origin+'/src/app.js?'+marker+':123:7)\n at private-user-name (https://private.invalid/private-file.nds:44:5)\n at private-file.nds (file:///C:/Users/private-user-name/private-file.nds:3:2)';
+   e.stack='TypeError: '+marker+'\n at PRIVATE_FUNCTION ('+location.origin+'/src/app.js?'+marker+':123:7)\n at core ('+location.origin+'/src/core/mgba.js:77:4)\n at forged ('+location.origin+'/src/core/'+marker+'.js:88:2)\n at private-user-name (https://private.invalid/private-file.nds:44:5)\n at private-file.nds (file:///C:/Users/private-user-name/private-file.nds:3:2)';
    diagnostics.record(e,'handled');const before=diagnostics.list();diagnostics.record(e,'handled');
    return {before,after:diagnostics.list(),id};
   },marker);
   assert.equal(canaries.before.length,1);assert.equal(canaries.after.length,1,'Consecutive identical errors are deduplicated');privateFree(canaries.after);
-  assert.equal(canaries.after[0].source,'handled');assert.equal(canaries.after[0].context.system,'nds');
+  assert.equal(canaries.after[0].source,'handled');assert.equal(canaries.after[0].context.system,'nds');assert(canaries.after[0].frames.some(frame=>frame.file==='src/core/mgba.js'),'Moved sources remain diagnosable');
   // Real asynchronous exceptions reach the automatic window handlers. Their
   // raw messages intentionally contain a canary which must never be persisted.
   await page.evaluate(marker=>{const e=new RangeError(marker+' uncaught');setTimeout(()=>{throw e;},0);},marker);
@@ -97,7 +97,7 @@ function privateFree(value){
   await page.locator('[data-tab=settings]').click();await page.locator('[data-action=diagnostics]').click();
   await page.locator('#diagnostics-clear').click();await page.waitForFunction(()=>diagnostics.list().length===0);
   assert.equal(await page.locator('#diagnostics-enabled').isChecked(),false);assert.deepEqual((await exportReport()).reports,[],'Zero records export while collection remains disabled');
-  const preserved=await page.evaluate(async({id,marker})=>{const db=await import('./src/storage.js');return {rom:[...await db.get('roms',id)],save:[...(await db.get('saves',id)).bytes],name:(await db.get('library',id)).name,unrelated:localStorage.getItem('diagnostic-unrelated'),enabled:diagnostics.isEnabled()};},{id:canaries.id,marker});
+  const preserved=await page.evaluate(async({id,marker})=>{const db=await import('./src/storage/storage.js');return {rom:[...await db.get('roms',id)],save:[...(await db.get('saves',id)).bytes],name:(await db.get('library',id)).name,unrelated:localStorage.getItem('diagnostic-unrelated'),enabled:diagnostics.isEnabled()};},{id:canaries.id,marker});
   assert.deepEqual(preserved,{rom:[41,42,43,44],save:[7,9,13],name:marker,unrelated:marker,enabled:false});
   assert.equal(await page.evaluate(()=>diagnosticConnections),0,'Diagnostics must not open WebSocket or WebRTC connections');
   assert.ok(errors.every(text=>text.includes(marker)),'Unexpected application error: '+errors.join('; '));

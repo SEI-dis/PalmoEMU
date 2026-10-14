@@ -111,6 +111,8 @@
     "test:mgba-save-probe": "node tests/mgba-save-probe.cjs",
     "test:start-save-compatibility": "node tests/start-save-compatibility.cjs",
     "test:start-rom-profile": "node tests/start-rom-profile.cjs",
+    "test:worker-task": "node tests/worker-task.cjs",
+    "test:module-links": "node tests/module-links.cjs",
     "test:start-save-component": "node tests/start-save-component.cjs",
     "check:start-save-component": "node scripts/start-save-migrate/check.mjs",
     "test:start-save-update-range": "node tests/start-save-update-range.cjs"

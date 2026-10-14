@@ -12,7 +12,7 @@ function nds(){const rom=require('./nds-cartridge.cjs')();rom.write('LPTE',12);r
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';await page.goto(base);
   for(const [system,coreKey,rom] of [['gb','jgenesis',carts.gb()],['gbc','jgenesis',carts.gbc()],['nes','jgenesis',carts.nes()],['snes','jgenesis',carts.snes()],['md','jgenesis',carts.md()],['gba','vba-next',gba()],['nds','melonds',nds()]]){
    const result=await page.evaluate(async({system,coreKey,rom})=>{
-    const {createCore}=await import('./src/core-factory.js'),game={system,coreKey,size:rom.length,name:'Original fixture'},container=document.createElement('div');document.body.append(container);
+    const {createCore}=await import('./src/core/core-factory.js'),game={system,coreKey,size:rom.length,name:'Original fixture'},container=document.createElement('div');document.body.append(container);
     const core=createCore(container,game);try{
      await core.load(new Uint8Array(rom),game);core.pause(true);for(let i=0;i<90;i++)core.m._web_frame(0);core.draw();
      const save=core.save(),state=core.state(),pixel=[...core.canvas.getContext('2d').getImageData(0,0,1,1).data];
@@ -37,19 +37,19 @@ function nds(){const rom=require('./nds-cartridge.cjs')();rom.write('LPTE',12);r
   // Seed the existing/default save and state, then switch via native settings.
   await page.locator('#rom-input').setInputFiles({name:'Switch fixture.gb',mimeType:'application/octet-stream',buffer:Buffer.from(carts.gb())});
   await page.locator('.game-launch').waitFor();
-  const id=await page.evaluate(async()=>{const db=await import('./src/storage.js'),[game]=await db.all('library');await db.put('saves',game.id,{bytes:new Uint8Array(8192).fill(0x36),coreId:'mgba-rom64-link-v1'});await db.put('states',game.id+':original',{bytes:new Uint8Array([7]),at:1,coreId:'mgba-rom64-link-v1'});return game.id;});
+  const id=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),[game]=await db.all('library');await db.put('saves',game.id,{bytes:new Uint8Array(8192).fill(0x36),coreId:'mgba-rom64-link-v1'});await db.put('states',game.id+':original',{bytes:new Uint8Array([7]),at:1,coreId:'mgba-rom64-link-v1'});return game.id;});
   await page.locator('.game-launch').click();await page.locator('[data-action=switchCore]').click();await page.locator('[data-core=jgenesis]').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
   await page.waitForTimeout(250);await page.locator('#player-menu').click();assert.equal(await page.locator('[data-action=cheats]').count(),0);
-  const other=await context.newPage();await other.goto(base);assert.match(await other.evaluate(async id=>{try{await (await import('./src/storage.js')).setGameCore(id,'mgba');return 'unexpected';}catch(e){return e.message;}},id),/プレイ中/);await other.close();
+  const other=await context.newPage();await other.goto(base);assert.match(await other.evaluate(async id=>{try{await (await import('./src/storage/storage.js')).setGameCore(id,'mgba');return 'unexpected';}catch(e){return e.message;}},id),/プレイ中/);await other.close();
   await page.locator('[data-action=newState]').click();await page.locator('#confirm-state-save').click();await page.locator('[data-slot-load]').click();await page.locator('#sheet').waitFor({state:'hidden'});
   await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
-  const saved=await page.evaluate(async id=>{const db=await import('./src/storage.js');return {old:[...(await db.get('saves',id)).bytes],oldStates:(await db.stateEntries(id)).length,newSave:(await db.get('saves',id+'@jgenesis')).bytes.length,newStates:(await db.stateEntries(id+'@jgenesis')).length};},id);
+  const saved=await page.evaluate(async id=>{const db=await import('./src/storage/storage.js');return {old:[...(await db.get('saves',id)).bytes],oldStates:(await db.stateEntries(id)).length,newSave:(await db.get('saves',id+'@jgenesis')).bytes.length,newStates:(await db.stateEntries(id+'@jgenesis')).length};},id);
   assert.deepEqual(saved.old,Array(8192).fill(0x36));assert.equal(saved.oldStates,1);assert.equal(saved.newStates,1);assert.ok(saved.newSave>8192);
   await page.locator('.game-launch').click();await page.locator('[data-action=switchCore]').click();await page.locator('[data-core=mgba]').click();await page.locator('[data-action=states]').click();await page.locator('[data-slot-load]').waitFor();assert.equal(await page.locator('[data-slot-load]').count(),1);
   await page.locator('#close-sheet').click();await page.locator('.game-info-play').waitFor();await page.locator('#close-sheet').click();await page.locator('.game-launch').click();const chooser=page.waitForEvent('filechooser');await page.locator('[data-action=importSave]').click();await (await chooser).setFiles({name:'wrong-core.sav',mimeType:'application/octet-stream',buffer:Buffer.from('LPJGSV01invalid')});await page.getByText('このセーブはjgenesis用です。コアを変更してから読み込んでください。',{exact:true}).waitFor();
-  assert.deepEqual(await page.evaluate(async id=>[...(await (await import('./src/storage.js')).get('saves',id)).bytes],id),Array(8192).fill(0x36));
-  assert.equal(await page.evaluate(async()=>{const {coreRegistry,supportsGame}=await import('./src/core-registry.js');return supportsGame(coreRegistry.gba[1],{size:67108864});}),false,'64 MiB games cannot use the 32 MiB core');
-  await page.evaluate(async id=>{const db=await import('./src/storage.js');await db.removeGame(id);if(await db.get('saves',id+'@jgenesis')||(await db.stateEntries(id+'@jgenesis')).length)throw Error('Orphaned alternate data');},id);
+  assert.deepEqual(await page.evaluate(async id=>[...(await (await import('./src/storage/storage.js')).get('saves',id)).bytes],id),Array(8192).fill(0x36));
+  assert.equal(await page.evaluate(async()=>{const {coreRegistry,supportsGame}=await import('./src/core/core-registry.js');return supportsGame(coreRegistry.gba[1],{size:67108864});}),false,'64 MiB games cannot use the 32 MiB core');
+  await page.evaluate(async id=>{const db=await import('./src/storage/storage.js');await db.removeGame(id);if(await db.get('saves',id+'@jgenesis')||(await db.stateEntries(id+'@jgenesis')).length)throw Error('Orphaned alternate data');},id);
   assert.deepEqual(errors,[]);
   // WebKit may expose local Blob/File reads as same-origin requests.
   assert.ok(requests.every(r=>{const url=new URL(r.url());return url.origin===new URL(base).origin&&['http:','https:','blob:'].includes(url.protocol)&&['GET','HEAD'].includes(r.method())&&!r.postData();}));

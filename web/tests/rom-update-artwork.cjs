@@ -7,7 +7,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  page.on('pageerror',error=>errors.push(error.message));await context.route('**/*',route=>new URL(route.request().url()).origin===new URL(base).origin?route.continue():route.abort());
  await page.goto(base);await page.locator('#add-first').waitFor();
  const result=await page.evaluate(async()=>{
-  const db=await import('./src/storage.js'),{hash}=await import('./src/shared.js');
+  const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js');
   const image=color=>{const c=document.createElement('canvas');c.width=c.height=2;const ctx=c.getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,2,2);return c.toDataURL();};
   const oldImage=image('red'),selected=image('blue'),own=image('green');
   const game=(id,extra={})=>({id,name:id,system:'gba',size:4,added:1,lastPlayed:0,...extra});

@@ -3,7 +3,7 @@
 // no browser profile, network, user ROM/save, microphone or emulation is used.
 const assert=require('node:assert/strict');
 (async()=>{
- const {NDSCore,ndsLanguages}=await import('../src/nds.js');
+ const {NDSCore,ndsLanguages}=await import('../src/core/nds.js');
  const saved=new Map(),timers=new Map();let currentModule,time=0,nextTimer=0;
  const replace=(key,value)=>{saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{configurable:true,writable:true,value});};
  const advance=ms=>{time+=ms;for(const [id,timer] of [...timers])if(timer.at<=time){timers.delete(id);timer.callback();}};

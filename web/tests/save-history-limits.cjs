@@ -8,7 +8,7 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
   context.on('request',r=>traffic.push(r));page.on('pageerror',e=>errors.push(e.message));
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';await page.goto(base+'privacy.html');
   const result=await page.evaluate(async()=>{
-   const db=await import('./src/storage.js'),{SaveProtection}=await import('./src/save-safety.js'),{historyByteLimit,historyRecordBytes}=await import('./src/save-history.js');
+   const db=await import('./src/storage/storage.js'),{SaveProtection}=await import('./src/storage/save-safety.js'),{historyByteLimit,historyRecordBytes}=await import('./src/storage/save-history.js');
    const check=(v,message)=>{if(!v)throw Error(message);};
    // Battery histories can also exceed a single IndexedDB value's limit. Keep
    // the newest values within the budget, with unchanged max-count semantics.

@@ -2,10 +2,10 @@
 // Local image selection adapts ManicEMU's GameInfoCoverView to the browser.
 // Copyright © 2026 Manic EMU. Original view by Daiuno. Modified 2026-10-09.
 import {tr} from '../i18n/index.js';
-import {guardUpdateTask} from '../update-activity.js';
+import {guardUpdateTask} from '../updates/update-activity.js';
 import {escapeHTML as esc} from '../shared.js';
 import {action} from '../components/rows.js';
-import * as db from '../storage.js';
+import * as db from '../storage/storage.js';
 
 export function createCoverDialog(api){
  const $=s=>document.querySelector(s);

@@ -17,7 +17,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',playwright=require('./b
   });
   await p.goto(base);
   await p.evaluate(async()=>{
-   const {MGBACore}=await import('./src/mgba.js'),original=MGBACore.prototype.setSpeed;
+   const {MGBACore}=await import('./src/core/mgba.js'),original=MGBACore.prototype.setSpeed;
    MGBACore.prototype.setSpeed=function(v){window.testEngine=this;return original.call(this,v);};
    const keys=MGBACore.prototype.setKeys;window.testKeys=[];MGBACore.prototype.setKeys=function(v){testKeys.push(v);return keys.call(this,v);};
    Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:async text=>{window.copiedRoom=text;}}});
@@ -68,7 +68,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',playwright=require('./b
   assert.match(await p.locator('#link-status').textContent(),/通信前に戻しました/);assert.equal(await p.evaluate(()=>testEngine.paused),true);
   await p.locator('#link-panel-close').click();await p.locator('#resume-game').click();
   // Closing while asynchronous backup is pending must also stay closed after connection.
-  await p.evaluate(async()=>{const {SaveProtection}=await import('./src/save-safety.js'),save=SaveProtection.prototype.save;SaveProtection.prototype.save=async function(core,options){if(options?.reason==='before-link')await new Promise(r=>setTimeout(r,250));return save.call(this,core,options);};});
+  await p.evaluate(async()=>{const {SaveProtection}=await import('./src/storage/save-safety.js'),save=SaveProtection.prototype.save;SaveProtection.prototype.save=async function(core,options){if(options?.reason==='before-link')await new Promise(r=>setTimeout(r,250));return save.call(this,core,options);};});
   await trigger.tap();await p.locator('#link-input').fill('8969');await p.locator('#link-input').press('Enter');await p.locator('#link-panel-close').click();
   await p.waitForFunction(()=>document.querySelector('#player-link').dataset.state==='connected');assert.equal(await panel.isVisible(),false);
   await trigger.tap();await p.locator('#link-stop').click();await p.waitForFunction(()=>document.querySelector('#player-link').dataset.state==='idle');
