@@ -8,7 +8,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
  // Keep each simulated deployment immutable, even while other test workers or
  // release generation update the checkout. SRI must describe these exact bytes.
  const sourceFiles=new Map([...manifestScope.self.APP_OFFLINE.files,'sw.js','offline-manifest.js'].map(name=>[name,fs.readFileSync(path.join(root,name))]));
- assert.ok(lazyAsset);let revision=1,staleBootstrap=true,failAsset=null,originUnavailable=false,holdAsset=null;
+ assert.ok(lazyAsset);let revision=1,staleBootstrap=true,failAsset=null,originUnavailable=false,holdAsset=null,activationHeld=false;
  // The ROM-update Play handoff also crosses a new release. Its release notice
  // must wait until the requested game exits, without swallowing the Play action.
  const releaseVersion=()=>`0.0.${revision>=8?4:process.env.UPDATE_FLOW_ONLY?3:Math.min(revision,3)}`;
@@ -18,6 +18,9 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
  function resourceBytes(name){
   let bytes=sourceFiles.get(name.slice(1))||fs.readFileSync(path.resolve(root,'.'+name));
   if(name==='/sw.js')bytes=Buffer.concat([bytes,Buffer.from('\n// update-test revision '+revision)]);
+  if(name==='/sw.js'&&revision===3){
+   bytes=Buffer.from(bytes.toString().replace("self.addEventListener('activate',e=>e.waitUntil((async()=>{", "self.addEventListener('activate',e=>e.waitUntil((async()=>{await new Promise(resolve=>{self.finishUpdateTestActivation=resolve;void fetch(new URL('test-activation-held',self.location.href));});")+"\nself.addEventListener('message',event=>{if(event.data?.type==='test-finish-activation')self.finishUpdateTestActivation?.();});");
+  }
   if(name==='/src/updates/auto-update-worker.js'&&[3,8].includes(revision))bytes=Buffer.from(bytes.toString().replace('await self.skipWaiting();','await new Promise(resolve=>setTimeout(resolve,1500));await self.skipWaiting();'));
   if(name==='/src/updates/auto-update.js'){
    const source=bytes.toString();let matches=0;
@@ -47,6 +50,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
  const server=http.createServer((req,res)=>{
   if(originUnavailable){req.socket.destroy();return;}
   const name=new URL(req.url,'http://localhost').pathname,file=path.resolve(root,'.'+name);
+  if(name==='/test-activation-held'){activationHeld=true;res.writeHead(204,{'Cache-Control':'no-store'}).end();return;}
   if(!file.startsWith(root+path.sep)||!fs.existsSync(file)){res.writeHead(404).end();return;}
   if(name===failAsset){const fail=()=>res.writeHead(503,{'Cache-Control':'no-store'}).end('Simulated interrupted update');if(name===holdAsset)heldRequests.push(fail);else fail();return;}
   const types={'.html':'text/html','.js':'text/javascript','.mjs':'text/javascript','.css':'text/css','.wasm':'application/wasm','.json':'application/json','.svg':'image/svg+xml','.txt':'text/plain','.md':'text/plain'};
@@ -176,7 +180,17 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.equal(await update.locator('.update-spinner').evaluate(el=>getComputedStyle(el).animationName),'none');
   assert.equal(await second.locator('.update-spinner').evaluate(el=>getComputedStyle(el).animationName),'update-spin');
   await second.screenshot({path:path.join(shots,'update-existing-portrait.png')});
+  await update.waitForFunction(()=>navigator.serviceWorker.controller?.state==='activating');
+  const activationDeadline=Date.now()+30000;
+  while(!activationHeld){assert.ok(Date.now()<activationDeadline,'The activation fixture must reach its hold before release');await update.waitForTimeout(20);}
+  await update.waitForTimeout(500);
+  for(const client of [update,second]){
+   assert.equal(await client.evaluate(()=>globalThis.updateTestRevision),2,'Automatic update must keep the old page until activation completes');
+   assert.equal(await client.locator('.update-progress[data-phase=applying]').isVisible(),true,'Prepared pages stay frozen throughout activation');
+  }
+  await update.evaluate(()=>navigator.serviceWorker.controller.postMessage({type:'test-finish-activation'}));
   await update.waitForFunction(()=>globalThis.updateTestRevision===3,{},{timeout:30000});await second.waitForFunction(()=>globalThis.updateTestRevision===3);await second.locator('.game-launch').waitFor();await update.locator('.settings-page').waitFor();
+  for(const client of [update,second])assert.equal(await client.evaluate(()=>navigator.serviceWorker.controller.state),'activated','A refreshed page receives a fully activated controller');
   await acknowledgeRelease([update,second],releaseVersion());
   assert.equal(new URL(update.url()).hash,'#settings','Automatic reload retains the selected tab');
   assert.equal(await second.locator('.game-launch').count(),1,'Automatic reload retains the original cartridge');

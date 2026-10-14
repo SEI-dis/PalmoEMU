@@ -2,6 +2,7 @@
 import {tr} from '../i18n/index.js';
 import {setupOffline} from './offline.js';
 import {updateTasksPending} from './update-activity.js';
+import {afterControllerActivation} from './controller-activation.js';
 
 // Every app page holds a shared version lock. The waiting worker can take the
 // exclusive lock only after every known page has agreed and frozen its UI.
@@ -98,9 +99,11 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  if(!build||!currentBuild)return; // Unknown/older versions stay on the manual path.
  function reloadUpdated(){
   if(reloading)return;reloading=true;
-  try{sessionStorage.setItem(noticeKey,JSON.stringify({from:build,at:Date.now()}));}catch{}
-  beforeReload();
-  location.reload();
+  afterControllerActivation(()=>{
+   try{sessionStorage.setItem(noticeKey,JSON.stringify({from:build,at:Date.now()}));}catch{}
+   beforeReload();
+   location.reload();
+  });
  }
  // Capture before the app's handlers. Download staging keeps its shared lock
  // and can be dismissed; only the two-phase prepare releases that lock.

@@ -120,6 +120,7 @@ export const diagnosticSources = [
  "src/storage/storage.js",
  "src/updates/auto-update-worker.js",
  "src/updates/auto-update.js",
+ "src/updates/controller-activation.js",
  "src/updates/launch-continuation.js",
  "src/updates/offline.js",
  "src/updates/release-notice.js",
