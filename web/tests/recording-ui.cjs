@@ -124,8 +124,10 @@ function cartridge(){
  // Leaving gameplay retains the review, and its unsaved clip blocks automatic
  // updates until an explicit discard. Saving alone does not drop the clip.
  await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});assert.equal(await preview.isVisible(),true);assert.equal(await page.evaluate(()=>recordingCanUpdate()),false);await discard();await page.waitForFunction(()=>recordingCanUpdate());
- await launch();await start();await page.locator('#player-menu').click();await preview.waitFor();assert.equal(await page.evaluate(()=>recordingCore.paused),true);assert.match(await preview.locator('[data-video-status]').textContent(),/中断/);await page.locator('#close-sheet').click();await discard();
- await start();await page.evaluate(()=>window.dispatchEvent(new Event('blur')));await preview.waitFor();assert.equal(await page.evaluate(()=>recordingCore.paused),true);assert.match(await preview.locator('[data-video-status]').textContent(),/中断/);await discard();
+ // The panel is visible during encoder flush too. Interruption text belongs
+ // to the completed preview, so wait for finalization rather than visibility.
+ await launch();await start();await page.locator('#player-menu').click();await page.locator('#recording-preview[aria-busy="false"]').waitFor();assert.equal(await page.evaluate(()=>recordingCore.paused),true);assert.match(await preview.locator('[data-video-status]').textContent(),/中断/);await page.locator('#close-sheet').click();await discard();
+ await start();await page.evaluate(()=>window.dispatchEvent(new Event('blur')));await page.locator('#recording-preview[aria-busy="false"]').waitFor();assert.equal(await page.evaluate(()=>recordingCore.paused),true);assert.match(await preview.locator('[data-video-status]').textContent(),/中断/);await discard();
  // A failing encoder must also close the preparation panel and release its
  // update barrier, without offering a broken download or trapping the camera.
  await page.locator('#resume-game').click();await start();await page.evaluate(()=>{const stop=MediaRecorder.prototype.stop;MediaRecorder.prototype.stop=function(){MediaRecorder.prototype.stop=stop;const fail=this.onerror;stop.call(this);fail?.({error:Error('Synthetic finalization failure')});};});
