@@ -17,8 +17,8 @@
     },
     {
       "path": "ARCHITECTURE.md",
-      "bytes": 14458,
-      "sha256": "85d2e854cb4b0296cab3814d8429dcac647cd7cd920ecb879ac56313760f18a3",
+      "bytes": 14923,
+      "sha256": "6401286cb2f98c9756597a7d6f1953010245c913a699fc3d38e4c7fa8d2439e7",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -47,8 +47,8 @@
     },
     {
       "path": "LICENSE_AUDIT.md",
-      "bytes": 28772,
-      "sha256": "b47b6ff77314f4b1a0a6bfac47c35d0e0692dcfc21862f5c0ffcb6538a946536",
+      "bytes": 28770,
+      "sha256": "2ac76fdbdd7dd0e7f20d2958618ccb7d13680d4fa59fccbd77cab8232cb615cd",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -77,8 +77,8 @@
     },
     {
       "path": "NOTICES.md",
-      "bytes": 52136,
-      "sha256": "571057d97a0203706eddf91c24e1f2fc14875dedfe98d4d7dfdb993e3d508907",
+      "bytes": 52132,
+      "sha256": "7ee2e4de02c1c986221e1a7d74b650cf0864f2a0bf519deacdcc449cbcaea45c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -89,14 +89,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 85169,
-      "sha256": "cd4874f591d9e5c1048cb9237e3faf900966aff45407cf487772cfdb282e3300",
+      "bytes": 87191,
+      "sha256": "94757749305968dde59724779d505d373fe75687ef21eaa797b64a481ebcf3b7",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 144066,
-      "sha256": "959705b8c2436688c60048ecce79cadbcd20e13787575253aad2a0b13b8b739b",
+      "bytes": 146961,
+      "sha256": "54e42149a627cb633046952ee01cb99f444f2bfa893c5e86e200298b2bb9764c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -108,7 +108,7 @@
     {
       "path": "SOURCES.json",
       "bytes": 47511,
-      "sha256": "7a4454ef73feaeb04b68e5489fa0936af0b3389eb9e2b0af911dcaaeca97103f",
+      "sha256": "5ce096d37ad6200a22bfff9a66e5ba46340cd9c964ff1bed4408bc6d658a35d1",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -167,8 +167,8 @@
     },
     {
       "path": "assets/icon.svg",
-      "bytes": 1896,
-      "sha256": "f5e6c8d8e24f13233d1b4aef69ea2c4e0ee6232c8c8637f0495e1e583cdec422",
+      "bytes": 1894,
+      "sha256": "5c52d0b85c61a6f436072b3bb28c08eae09d3038cd9780bd50b9cafe2dfcf20a",
       "component": "original-web-artwork"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 7554,
-      "sha256": "88917e447f05b9c749b2b3a0f66a038b48f8bb35f0ff1a24155ac1dc77fe9eb8",
+      "sha256": "221c9f3563dbe236ab0f8804feb434f708e5e10a967ec2cf7cedc77897d8efd1",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1301,8 +1301,8 @@
     },
     {
       "path": "scripts/package_source.py",
-      "bytes": 2635,
-      "sha256": "102fed006be6ae2ef6896e7942d2d87386f90be44d6a65d8430bbb3bb5e9c6ff",
+      "bytes": 2739,
+      "sha256": "cb7c0166c80c7916fd5e51437bb147fb9ba18c294291f88224c8a94bd9918924",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1319,8 +1319,8 @@
     },
     {
       "path": "scripts/prepare-release.py",
-      "bytes": 1982,
-      "sha256": "8ec03463055ecc4cb23305309c1ee1110673b68bc4603a077cadf3255eddba87",
+      "bytes": 2320,
+      "sha256": "e9a756f4b5faf7c5b6885db8f83b2ce5136cb1ba4ada8c510dafc288fa8c0a15",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41345,8 +41345,8 @@
     },
     {
       "path": "tests/audit-content.py",
-      "bytes": 5646,
-      "sha256": "e833fd3623cc178bf67a5d10dfb55a518e99809077a7f0eea4f956e3b651a3c6",
+      "bytes": 10666,
+      "sha256": "10e88d5640017b02633629155dfff6b2df8359129139e22a69389602367622a3",
       "component": "web-port-code-and-documentation"
     },
     {

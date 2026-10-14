@@ -31,6 +31,8 @@ node_modules/
 __pycache__/
 playwright-report/
 test-results/
+# Generated from the checked-out source during release preparation.
+/web/sources/web-ui-source.zip
 .DS_Store
 Thumbs.db
 

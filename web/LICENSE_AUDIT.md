@@ -1,6 +1,6 @@
 # Web版の公開に向けた確認記録 — 2026-10-13
 
-対象はこの `web/`、検査CIとGitHub Pages用テンプレート、Local-Playの公開対象Git履歴です。
+対象はこの `web/`、検査CIとGitHub Pages用テンプレート、PalmoEMUの公開対象Git履歴です。
 ManicEMUの元のiOSリポジトリ全体やその履歴は取り込んでいません。
 配布ファイルの一覧とハッシュは RELEASE_CONTENT.json、確認結果は RELEASE_REVIEW.json に記録しています。
 これはコード・配布物の確認であり、あらゆる国の法的紛争が絶対に起きないという保証ではありません。

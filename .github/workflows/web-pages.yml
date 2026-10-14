@@ -54,7 +54,8 @@ jobs:
       - run: node web/tests/core-container.cjs
       - run: node web/tests/nds-core.cjs
       - run: python3 -B web/tests/audit-content.py
-      # Never regenerate/approve changed content during publication.
+      # Generate only the source ZIP from this checkout. Never regenerate the
+      # reviewed inventory, approval records, translations or offline manifest.
       - run: python3 -B web/scripts/prepare-release.py
       - run: node work/release/web/scripts/check-release.cjs
       - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5

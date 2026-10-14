@@ -160,7 +160,7 @@
   "files": {
     "assets/controller.svg": "54b0d8289d04e610aabdd79a4e3246e0a9e9089510ef1d35dc284fc7901b130a",
     "assets/empty.svg": "54b0d8289d04e610aabdd79a4e3246e0a9e9089510ef1d35dc284fc7901b130a",
-    "assets/icon.svg": "f5e6c8d8e24f13233d1b4aef69ea2c4e0ee6232c8c8637f0495e1e583cdec422",
+    "assets/icon.svg": "5c52d0b85c61a6f436072b3bb28c08eae09d3038cd9780bd50b9cafe2dfcf20a",
     "cores/jgenesis/core.js": "8aabeec2af5b9caf258476df0f88b1e3607324925c7f152f83aaaf512c669008",
     "cores/jgenesis/core_bg.wasm": "f4de98ee17a437c1190ba1e13a0483a1c0b4c5ff467e20ff248f01a4f368af93",
     "cores/md/core.js": "bb2fab117a8029d064342e6cf8095768514bfe6a9b6f569a9c634faacbc0e300",

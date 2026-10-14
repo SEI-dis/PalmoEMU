@@ -1,14 +1,15 @@
 """SPDX-License-Identifier: AGPL-3.0-or-later
-Copy a clean publication tree into the ignored work/release directory.
+Copy a clean publication tree and generate its corresponding Web source ZIP.
 This never grants release approval or changes the content/review records.
 """
 from pathlib import Path
-import shutil
+import shutil, subprocess, sys
 
 ROOT = Path(__file__).resolve().parents[2]
 TARGET = ROOT / 'work' / 'release'
 MARKER = '.local-play-release'
 EXCLUDED = {'.git', 'node_modules', '__pycache__', 'test-results', 'playwright-report'}
+SOURCE_ZIP = Path('web/sources/web-ui-source.zip')
 
 
 def prepare():
@@ -28,6 +29,9 @@ def prepare():
             continue
         if file.is_symlink():
             raise ValueError('Symlink in publication input: ' + str(rel))
+        # Never distribute a stale or locally substituted generated archive.
+        if rel == SOURCE_ZIP:
+            continue
         if file.is_file():
             dest = target / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
@@ -39,6 +43,8 @@ def prepare():
             dest = target / name
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(file, dest)
+    subprocess.run([sys.executable, '-B', '-X', 'utf8',
+                    str(target / 'web/scripts/package_source.py')], check=True)
     print('Prepared clean release:', target / 'web')
 
 

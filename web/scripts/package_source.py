@@ -6,7 +6,7 @@ import sys, zipfile
 root=Path(__file__).resolve().parent.parent
 target=root/'sources/web-ui-source.zip'
 def source_files():
-    for file in sorted(root.rglob('*')):
+    for file in sorted(root.rglob('*'), key=lambda p: p.relative_to(root).as_posix()):
         rel=file.relative_to(root)
         if any(part in {'node_modules','test-results','playwright-report','__pycache__','.git'} for part in rel.parts): continue
         if file.is_symlink(): raise ValueError('Symlink in source tree: '+str(rel))
@@ -31,6 +31,7 @@ if __name__=='__main__':
             for name,file in files.items(): assert src.read(name)==file.read_bytes(),'Stale source zip member: '+name
         print('PASS: source zip matches all current editable Web source files and workflow.')
     else:
+        target.parent.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as out:
             for name,file in files.items():
                 info=zipfile.ZipInfo(name,date_time=(2026,1,1,0,0,0))
