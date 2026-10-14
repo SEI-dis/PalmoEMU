@@ -43,6 +43,8 @@ const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
  negative('Wrong PKSP header',bytes=>bytes[0x2000000]^=1);
  negative('Wrong ICS1 header',bytes=>bytes[0x2000004]^=1);
  negative('Invalid cartridge header',bytes=>bytes[0xb2]=0);
+ negative('Missing GBA entry branch',bytes=>bytes[3]=0);
+ negative('BIOS interrupt table instead of cartridge entry',bytes=>{for(let i=0;i<7;i++)literal(bytes,i*4,0xea000000);});
  negative('Second direct caller shares comparator',bytes=>branchLink(bytes,0x9000,baseline.helper));
  negative('External tail branch shares comparator',bytes=>word(bytes,baseline.helper-0x80,0xe03e));
  negative('External conditional branch shares comparator',bytes=>word(bytes,baseline.helper-0x80,0xd03e));

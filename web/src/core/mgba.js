@@ -158,7 +158,18 @@ export class MGBACore {
   setFilter(mode){if(this.video?.mode!==mode)this.video?.setMode(mode);}
   setFilterStrength(value){this.video?.setStrength(value);}
   frameCount(){return this.frames;}
-  linkIO(){const m=this.m;if(!m._web_link_enable||m._web_platform()!==0)throw new Error(tr('このコアはGBA通信に対応していません。'));const io={event:null,enable:on=>{if(!m._web_link_enable(on?1:0))throw new Error(tr('通信機能を開始できません。'));if(!on)m._web_overclock?.(this.overclock||1);},read:p=>m._web_link_read(p),write:(p,v)=>m._web_link_write(p,v),mask:v=>m._web_link_mask(v)};m.webLinkEvent=kind=>io.event?.(kind);return io;}
+  linkIO(){
+    if(this.closed||!this.m?._web_link_enable||this.m._web_platform()!==0)throw new Error(tr('このコアはGBA通信に対応していません。'));
+    // Closing network/USB operations may outlive the game. Retain the adapter,
+    // whose close releases its module, rather than capturing the WASM heap.
+    const live=()=>this.closed?null:this.m;
+    const io={event:null,enable:on=>{
+      const m=live();if(!m){if(on)throw new Error(tr('通信機能を開始できません。'));return;}
+      if(!m._web_link_enable(on?1:0))throw new Error(tr('通信機能を開始できません。'));
+      if(!on)m._web_overclock?.(this.overclock||1);
+    },read:p=>live()?._web_link_read(p)??0,write:(p,v)=>live()?._web_link_write(p,v),mask:v=>live()?._web_link_mask(v)};
+    this.m.webLinkEvent=kind=>{if(!this.closed)io.event?.(kind);};return io;
+  }
   setCheats(list){for(let i=this.cheatCount-1;i>=0;i--)this.m._web_cheat_remove(i);this.cheatCount=0;const enc=new TextEncoder();for(const cheat of list){const index=this.copyIn(enc.encode(cheat.name+'\0'),p=>this.copyIn(enc.encode(cheat.code+'\0'),q=>this.m._web_cheat_add(p,q,Number(cheat.type))));if(index<0)throw new Error(index===-1000?tr('チートの数・長さを確認してください。'):tr`「${cheat.name}」の${-index}行目を読み込めません。`);this.cheatCount++;this.m._web_cheat_enable(index,cheat.enabled?1:0);}}
   get supportsRTC(){return typeof this.m?._web_rtc_set==='function';}
   get supportsGBLink(){return this.m?._web_platform?.()===1&&typeof this.m?._web_gb_link_frame==='function'&&typeof this.m?._web_select==='function';}

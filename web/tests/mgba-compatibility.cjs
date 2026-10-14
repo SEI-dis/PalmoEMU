@@ -7,17 +7,26 @@ const {buildFixture,word}=require('./helpers/mgba-save-probe-fixture.cjs');
 const digest=b=>crypto.createHash('sha256').update(b).digest('hex');
 const cases=[{name:'recognized structure',accepted:true},
  {name:'relocated structure and revised ROM',accepted:true,layout:{helper:0x23002,caller:0x18002,reader:0x28002,trampoline:0x29002,helperPool:0x23200,callerPool:0x18180,readerPool:0x28200}},
- {name:'unrecognized near-match structure',accepted:false}];
+ {name:'unrecognized near-match structure',accepted:false},
+ {name:'GB with extended GBA probe bytes',accepted:false,gb:true},
+ {name:'GB with BIOS-like GBA entry table',accepted:false,gb:true,biosEntry:true}];
 (async()=>{
  const browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
  const fixture=path.join(os.tmpdir(),'palmo-compatibility-'+crypto.randomUUID()+'.gba');
  try{
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';
-  for(const {accepted,name,layout} of cases){
+  for(const {accepted,name,layout,gb=false,biosEntry=false} of cases){
    const assembled=buildFixture(layout),rom=assembled.bytes,{offset}=assembled,otherOffset=0x1230;
    if(layout){rom[0x300000]^=0x5a;rom[rom.length-1]^=0xa5;}
-   if(!accepted)word(rom,assembled.helper+48,0x4290);
-   const id=digest(rom);fs.writeFileSync(fixture,rom);
+   if(!accepted&&!gb)word(rom,assembled.helper+48,0x4290);
+   if(gb){
+    // Keep the entire eligible Thumb probe, b2 byte and 32MiB signature, but
+    // make the native detector select GB. GBLoadROM accepts the large file.
+    const header=require('./cartridges.cjs').gb();rom.set(header.subarray(0x100,0x180),0x100);
+    if(biosEntry){const view=new DataView(rom.buffer);for(let i=0;i<7;i++)view.setUint32(i*4,0xea000000,true);}
+    else rom[3]=0;
+   }
+   const inputFile=gb?fixture.replace(/\.gba$/,'.gb'):fixture,id=digest(rom);fs.writeFileSync(inputFile,rom);
    const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage(),errors=[],unexpected=[];
    page.setDefaultTimeout(45000);page.on('pageerror',e=>errors.push(e.message));
    await context.route('**/*',route=>{
@@ -34,20 +43,24 @@ const cases=[{name:'recognized structure',accepted:true},
       const m=await create(options),raw=m._web_load,owned=m._web_load_owned,frame=m._web_frame;let frames=0;
       m._web_frame=keys=>{frames++;return frame(keys);};
       m._web_load=(p,n)=>{observedLoads.push({n,byte:m.HEAPU8[p+offset],otherByte:m.HEAPU8[p+otherOffset],frames});return raw(p,n);};
-      m._web_load_owned=(p,n)=>{observedLoads.push({n,byte:m.HEAPU8[p+offset],otherByte:m.HEAPU8[p+otherOffset],frames});return owned(p,n);};
+      m._web_load_owned=(p,n)=>{window.loadedROMPointer=p;observedLoads.push({n,byte:m.HEAPU8[p+offset],otherByte:m.HEAPU8[p+otherOffset],frames});return owned(p,n);};
       return m;
      };
      try{await load.call(this,bytes);window.testCore=this;}finally{window.createMGBA=create;}
     };
    },{offset,otherOffset});
-   await page.locator('#rom-input').setInputFiles(fixture);
+   await page.locator('#rom-input').setInputFiles(inputFile);
    await page.locator('.game-launch').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
-   const result=await page.evaluate(async id=>{
+   const result=await page.evaluate(async({id,gb})=>{
     testCore.pause(true);const db=await import('./src/storage/storage.js'),stored=await db.get('roms',id);
-    const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',stored)),b=>b.toString(16).padStart(2,'0')).join('');
-    return {id:(await db.all('library'))[0].id,hash,compatibility:testCore.compatibility,loads:observedLoads};
-   },id);
+    const sha=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
+    const hash=await sha(stored),temporaryHash=gb?await sha(testCore.m.HEAPU8.subarray(loadedROMPointer,loadedROMPointer+stored.length)):null;
+    return {id:(await db.all('library'))[0].id,hash,temporaryHash,platform:testCore.m._web_platform(),cpu:testCore.overclock,compatibility:testCore.compatibility,loads:observedLoads};
+   },{id,gb});
    assert.equal(result.id,id);assert.equal(result.hash,id,'Stored original and save identity stay unchanged');
+   assert.equal(result.platform,gb?1:0,'The native core confirms the actual cartridge platform');
+   assert.equal(result.cpu,gb?1:2,'Only extended GBA cartridges select automatic 2x CPU');
+   if(gb)assert.equal(result.temporaryHash,id,'Every byte of the loaded GB cartridge remains unchanged');
    assert.equal(result.compatibility,accepted?'expanded-save-detection':null);
    assert.ok(result.loads.filter(l=>l.n===8192).every(l=>l.frames===0),'Calibration executes no game frames');
    assert.deepEqual(result.loads.filter(l=>l.n===rom.length).map(({byte,otherByte,frames})=>({byte,otherByte,frames})),[{byte:accepted?1:0,otherByte:0,frames:0}],'One transferred load, before any frame');
@@ -109,5 +122,5 @@ const cases=[{name:'recognized structure',accepted:true},
    assert.deepEqual(errors,[]);assert.deepEqual(unexpected,[]);await context.close();console.log('PASS: '+name+' / original-ROM preservation. '+kind);
   }
   console.log('PASS: production structural recognition without source substitution, relocation/revision tolerance, capability gates, memory growth/cleanup, original ROM/save identity, old/new states, 6MiB saves and no uploads. '+kind);
- }finally{try{await browser.close();}finally{if(fs.existsSync(fixture))fs.unlinkSync(fixture);}}
+ }finally{try{await browser.close();}finally{for(const file of [fixture,fixture.replace(/\.gba$/,'.gb')])if(fs.existsSync(file))fs.unlinkSync(file);}}
 })().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});

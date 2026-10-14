@@ -834,3 +834,9 @@ and add opt-in aggregate audio queue/drop measurements. Native binaries, audio
 processing, save formats, third-party source, permissions and endpoints remain
 unchanged from the preceding self-audit. No PCM or user game data is recorded
 by these additional measurements.
+
+Final original AGPL audit follow-up shares the extended-cartridge header guard
+between CPU selection and the temporary save-probe correction, matching the
+pinned native raw GBA detector and rejecting BIOS-like entry tables. Retained
+GBA link IO no longer captures a closed module or invokes it after teardown.
+Native binaries, live link protocols and stored game data are unchanged.

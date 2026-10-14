@@ -42,6 +42,22 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
    assert.deepEqual([...result.calls].sort(),(adapter==='nds'?['microphone','video-0','video-1','touch','native','audio']:['video','native','game','audio']).sort(),adapter+' cleanup continues after '+failing+' fails');
    assert.deepEqual({sameError:result.sameError,second:result.second,released:result.released,closed:result.closed,displayRemoved:result.displayRemoved},{sameError:true,second:true,released:true,closed:true,displayRemoved:true});
   }
+  const staleLink=await page.evaluate(async()=>{
+   const {MGBACore}=await import('./src/core/mgba.js'),core=new MGBACore(document.createElement('canvas'));
+   const calls=[];let events=0;
+   const native={_web_platform:()=>0,_web_link_enable:value=>{calls.push(['enable',value]);return 1;},
+    _web_link_read:port=>{calls.push(['read',port]);return 123;},_web_link_write:(...args)=>calls.push(['write',...args]),
+    _web_link_mask:value=>calls.push(['mask',value]),_web_overclock:value=>calls.push(['clock',value]),_web_close:()=>calls.push(['close'])};
+   core.m=core.nativeModule=native;core.overclock=2;
+   const io=core.linkIO();io.event=()=>events++;io.enable(true);const liveRead=io.read(0x200);io.write(0x202,128);io.mask(0x600B);native.webLinkEvent(0);io.enable(false);
+   const liveCalls=calls.slice();core.close();const before=calls.length;
+   // A closing socket or OS serial request may retain this IO after exit.
+   // Neither a late callback nor a stale command may touch the old module.
+   const closedRead=io.read(0x200);io.write(0x202,128);io.mask(0x600B);io.enable(false);native.webLinkEvent(1);
+   let enableRejected=false;try{io.enable(true);}catch{enableRejected=true;}
+   return {liveRead,liveCalls,closedRead,enableRejected,events,lateCalls:calls.slice(before),released:!core.m&&!core.nativeModule};
+  });
+  assert.deepEqual(staleLink,{liveRead:123,liveCalls:[['enable',1],['read',0x200],['write',0x202,128],['mask',0x600B],['enable',0],['clock',2]],closedRead:0,enableRejected:true,events:1,lateCalls:[],released:true},'Retained link IO must not access a closed native module or deliver late events');
   await context.close();
   for(const adapter of ['nds','retro','jgenesis']){
    const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage();
@@ -64,6 +80,6 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
    assert.deepEqual(result,{error:'AbortError',nativeLoads:0,lateGameCreated:false,released:true,closed:true},adapter+' must not attach a late module or cartridge after cancellation');
    await context.close();
   }
-  console.log('PASS '+kind+': teardown faults release all resources once; cancelled NDS, Retro and jgenesis loads cannot retain a late module or cartridge.');
+  console.log('PASS '+kind+': teardown faults release all resources once; retained link IO is inactive after close; cancelled NDS, Retro and jgenesis loads cannot retain a late module or cartridge.');
  }finally{await browser.close();}
 })().catch(error=>{console.error(error);process.exitCode=1;});

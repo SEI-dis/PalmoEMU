@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Recognize the extended-flash capability test by its Thumb control flow and
 // read ABI, not a game version, filename, digest or absolute code address.
+import {hasExtendedGBACartridgeHeader} from './mgba-clock.js';
 const romBase=0x08000000;
 export function findExtendedSaveProbe(bytes){
- if(!(bytes instanceof Uint8Array)||bytes.length<0x02000008||bytes.length>64*1048576||bytes[0xb2]!==0x96)return null;
+ if(!hasExtendedGBACartridgeHeader(bytes))return null;
  const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
  const u16=p=>p>=0&&p+2<=bytes.length?view.getUint16(p,true):-1;
  const u32=p=>p>=0&&p+4<=bytes.length?view.getUint32(p,true):-1;
- // The extended cartridge header and the signature checked by the function.
- if(u32(0x02000000)!==0x50534b50||u32(0x02000004)!==0x31534349)return null;
  const words=(p,values)=>values.every((word,i)=>word===null||u16(p+i*2)===word);
  const literal=(p,reg)=>{const op=u16(p);return (op&0xff00)===(0x4800|reg<<8)?u32(((p+4)&~3)+(op&255)*4):-1;};
  const pointer=value=>value>=romBase&&value<romBase+bytes.length?value-romBase:-1;
