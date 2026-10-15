@@ -36,10 +36,10 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    await page.locator(`[data-game="${source}"]`).click();await page.locator('[data-action="updateROM"]').click();
    await page.locator('#rom-update-file').setInputFiles(targetFile);
   };
-  const selectProfile=async(version,minimum,rangeGate=false)=>{
+  const selectProfile=async(version,minimum,rangeGate=false,upperImmediate=false)=>{
    const stamp=value=>{const [,minor,patch]=value.split('.').map(Number);return minor*256+patch;};
    targetFile=path.join(directory,`PokemonStart_v${version}-min${minimum}.gba`);files.push(targetFile);
-   fs.writeFileSync(targetFile,profileROM({stamp:stamp(version),minimum:stamp(minimum),rangeGate}).bytes);
+   fs.writeFileSync(targetFile,profileROM({stamp:stamp(version),minimum:stamp(minimum),rangeGate,upperImmediate}).bytes);
    return page.evaluate(async name=>{
     const {importROM}=await import('./src/library/rom-import.js');
     const file=new File([await(await fetch('./__range-target')).arrayBuffer()],name);
@@ -117,7 +117,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
 
   // Updating to 0.48 must not stamp 0.48 into an old save before the game has
   // performed its native corrections. Both slots retain the reviewed bridge.
-  const latest=await selectProfile('0.48.0','0.36.2',true);
+  // The upper range predicate builds 0x3000 with MOVS/LSLS, without a literal.
+  const latest=await selectProfile('0.48.0','0.36.2',true,true);
   const convertedLatest=await convert(latest.id,'0.48.0');assert.equal(convertedLatest.migration.via,'0.42.5');
   await page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},latest.id);
   await openUpdate(sources.compatible);await page.locator('#rom-update-confirm').waitFor();
@@ -133,7 +134,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
 
   // A future incompatible format cannot receive the old converter output,
   // either through the UI or through a forged conversion plan.
-  const incompatible=await selectProfile('0.48.0','0.43.0',true);
+  const incompatible=await selectProfile('0.48.0','0.43.0',true,true);
   assert.equal(incompatible.profile.minimumSaveVersion,'0.43.0');
   await openUpdate(sources.old);await page.locator('#start-save-apply').waitFor();
   await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled);

@@ -1,6 +1,39 @@
 {
   "releases": [
     {
+      "version": "0.3.33",
+      "date": "2026-10-16",
+      "changes": [
+        "PokemonStart 0.48.0へのROM更新で、対応しているセーブの変換・引き継ぎが「未対応」と表示されて進めない問題を修正しました。"
+      ],
+      "changesEn": [
+        "Fixed an issue where supported save conversion or transfer to PokemonStart 0.48.0 was incorrectly marked as unsupported during a ROM update."
+      ],
+      "translations": {
+        "zh-Hans": [
+          "修复了更新到PokemonStart 0.48.0时，支持的存档转换或迁移被误判为不支持、导致无法继续的问题。"
+        ],
+        "zh-Hant": [
+          "修正了更新至PokemonStart 0.48.0時，支援的存檔轉換或移轉被誤判為不支援，導致無法繼續的問題。"
+        ],
+        "ko": [
+          "PokemonStart 0.48.0으로 ROM을 업데이트할 때 지원되는 세이브 변환이나 이전이 지원되지 않는 것으로 잘못 표시되어 진행할 수 없던 문제를 수정했습니다."
+        ],
+        "es": [
+          "Se corrigió un error que impedía convertir o transferir partidas guardadas compatibles a PokemonStart 0.48.0 al marcarlas incorrectamente como no admitidas durante la actualización de la ROM."
+        ],
+        "fr": [
+          "Correction d’un problème qui empêchait la conversion ou le transfert de sauvegardes compatibles vers PokemonStart 0.48.0 en les signalant à tort comme non pris en charge lors de la mise à jour de la ROM."
+        ],
+        "de": [
+          "Ein Fehler wurde behoben, durch den unterstützte Spielstandkonvertierungen oder -übertragungen beim ROM-Update auf PokemonStart 0.48.0 fälschlich als nicht unterstützt angezeigt und blockiert wurden."
+        ],
+        "pt": [
+          "Corrigimos um problema que impedia a conversão ou transferência de saves compatíveis para o PokemonStart 0.48.0, marcando-os incorretamente como não suportados durante a atualização da ROM."
+        ]
+      }
+    },
+    {
       "version": "0.3.32",
       "date": "2026-10-16",
       "changes": [

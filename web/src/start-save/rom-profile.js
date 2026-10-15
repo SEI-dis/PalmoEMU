@@ -17,6 +17,16 @@ export function readStartROMProfile(bytes){
  const u32=p=>p>=0&&p+4<=bytes.length?view.getUint32(p,true):-1;
  const words=(p,values)=>values.every((word,i)=>word===null||u16(p+i*2)===word);
  const literal=(p,reg)=>{const op=u16(p);return (op&0xff00)===(0x4800|reg<<8)?u32(((p+4)&~3)+(op&255)*4):-1;};
+ const constant=(p,reg)=>{
+  if(p<0||(p&1))return null;
+  const value=literal(p,reg);if(value>=0)return {value,next:p+2};
+  // Equivalent Thumb constant construction; the following CMP replaces flags.
+  const move=u16(p),shift=u16(p+2);
+  if((move&0xff00)!==(0x2000|reg<<8)||(shift&0xf800)!==0||
+   (shift&7)!==reg||((shift>>>3)&7)!==reg)return null;
+  const shifted=(move&255)*2**((shift>>>6)&31);
+  return shifted<=0xffff?{value:shifted,next:p+4}:null;
+ };
  const bl=p=>{
   const hi=u16(p),lo=u16(p+2);if((hi&0xf800)!==0xf000||(lo&0xf800)!==0xf800)return -1;
   let distance=((hi&0x7ff)<<12)|((lo&0x7ff)<<1);if(distance&0x400000)distance-=0x800000;
@@ -51,10 +61,10 @@ export function readStartROMProfile(bytes){
    tail(p+28)>=0&&tail(p+28)===tail(p+52)&&tail(p+28)===tail(p+82)){
    const lower=bl(p+8),upper=bl(p+36);
    // lower: maxOld >= saved; upper: saved > current (unsigned Thumb).
-   if(words(lower,[0x2300,null,0x4282,0x415b,0x0018,0x4770])&&
-    words(upper,[null,0x4283,0x4180,0x4240,0x4770])){
-    const maximum=literal(lower+2,2),current=literal(upper,3);
-    if(validStamp(maximum)&&validStamp(current)&&maximum<current){minimum=maximum+1;maximumAccepted=current;gateCount++;}
+   const maximum=constant(lower+2,2),current=constant(upper,3);
+   if(u16(lower)===0x2300&&maximum&&words(maximum.next,[0x4282,0x415b,0x0018,0x4770])&&
+    current&&words(current.next,[0x4283,0x4180,0x4240,0x4770])){
+    if(validStamp(maximum.value)&&validStamp(current.value)&&maximum.value<current.value){minimum=maximum.value+1;maximumAccepted=current.value;gateCount++;}
    }
   }
  }
