@@ -880,3 +880,8 @@ reviewed intermediate stamp accepted by the actual ROM and leaves later native
 updates to the game; compatible newer saves stay unchanged. This supersedes the
 historical 1.0.5 / 0.42.3 output descriptions above. Full gameplay and iPhone
 hardware verification remain outside the synthetic test coverage.
+
+
+### 2026-10-16 — Translation review workflow and release-note proofreading
+
+Made translation generation a draft step followed by explicit agent proofreading and targeted validation before committing completed changes. Reviewed all eight translations of the six additions in releases 0.3.32 and 0.3.33; corrected 33 lines for clarity, terminology and faithful descriptions of audio retry, save transfer protection and diagnostics. Japanese source text, application version, runtime, stored data and third-party materials are unchanged. This is an agent language review, not human-native certification. Publication is held.

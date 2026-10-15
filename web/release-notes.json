@@ -7,14 +7,14 @@
         "PokemonStart 0.48.0へのROM更新で、対応しているセーブの変換・引き継ぎが「未対応」と表示されて進めない問題を修正しました。"
       ],
       "changesEn": [
-        "Fixed an issue where supported save conversion or transfer to PokemonStart 0.48.0 was incorrectly marked as unsupported during a ROM update."
+        "Fixed an issue that incorrectly blocked supported save conversions and transfers when updating a ROM to PokemonStart 0.48.0."
       ],
       "translations": {
         "zh-Hans": [
-          "修复了更新到PokemonStart 0.48.0时，支持的存档转换或迁移被误判为不支持、导致无法继续的问题。"
+          "修复了将 ROM 更新到 PokemonStart 0.48.0 时，原本支持的存档转换或迁移被误判为不支持、导致无法继续的问题。"
         ],
         "zh-Hant": [
-          "修正了更新至PokemonStart 0.48.0時，支援的存檔轉換或移轉被誤判為不支援，導致無法繼續的問題。"
+          "修正了將 ROM 更新至 PokemonStart 0.48.0 時，原本支援的存檔轉換或移轉被誤判為不支援，導致無法繼續的問題。"
         ],
         "ko": [
           "PokemonStart 0.48.0으로 ROM을 업데이트할 때 지원되는 세이브 변환이나 이전이 지원되지 않는 것으로 잘못 표시되어 진행할 수 없던 문제를 수정했습니다."
@@ -23,13 +23,13 @@
           "Se corrigió un error que impedía convertir o transferir partidas guardadas compatibles a PokemonStart 0.48.0 al marcarlas incorrectamente como no admitidas durante la actualización de la ROM."
         ],
         "fr": [
-          "Correction d’un problème qui empêchait la conversion ou le transfert de sauvegardes compatibles vers PokemonStart 0.48.0 en les signalant à tort comme non pris en charge lors de la mise à jour de la ROM."
+          "Correction d’un problème qui empêchait de convertir ou de transférer des sauvegardes vers PokemonStart 0.48.0 en indiquant à tort que ces opérations n’étaient pas prises en charge."
         ],
         "de": [
           "Ein Fehler wurde behoben, durch den unterstützte Spielstandkonvertierungen oder -übertragungen beim ROM-Update auf PokemonStart 0.48.0 fälschlich als nicht unterstützt angezeigt und blockiert wurden."
         ],
         "pt": [
-          "Corrigimos um problema que impedia a conversão ou transferência de saves compatíveis para o PokemonStart 0.48.0, marcando-os incorretamente como não suportados durante a atualização da ROM."
+          "Corrigimos um problema que bloqueava a conversão ou transferência de dados salvos para PokemonStart 0.48.0, indicando incorretamente que essas operações não tinham suporte."
         ]
       }
     },
@@ -44,60 +44,60 @@
         "メモリ不足の診断情報と各言語の表現を改善しました。"
       ],
       "changesEn": [
-        "Improved audio startup and added retry on a normal tap when game audio does not start.",
+        "Improved audio startup when launching a game. If there is no sound, tap the screen to try again.",
         "Updated the PokemonStart save converter to the 0.48.0-compatible release and fixed checks for new moves and held items, along with save transfer handling.",
         "Added PokemonStart update notifications and improved save compatibility checks for newer ROMs.",
         "Added protection against transferring newer saves to older PokemonStart ROMs.",
-        "Improved memory allocation diagnostics and wording across languages."
+        "Improved diagnostics for memory allocation failures and refined wording across languages."
       ],
       "translations": {
         "zh-Hans": [
-          "改进了游戏启动时的音频初始化；没有声音时，可通过普通点击操作重试。",
-          "将PokemonStart存档转换工具更新至支持0.48.0的版本，并修复了新招式、携带道具的检查及存档转移处理。",
-          "新增了PokemonStart更新通知，并改进了新版ROM的存档兼容性检查。",
-          "增加了保护，防止将新版存档转移到旧版PokemonStart ROM。",
-          "改进了内存分配失败的诊断信息和各语言的表述。"
+          "改进了游戏启动时的音频初始化。没有声音时，可轻点屏幕重试。",
+          "将 PokemonStart 存档转换工具更新至支持 0.48.0 的版本，并修复了新招式、携带道具的检查及存档迁移处理。",
+          "新增了 PokemonStart 更新通知，并改进了新版 ROM 的存档兼容性检查。",
+          "新增保护，防止将新版存档迁移到旧版 PokemonStart ROM。",
+          "改进了内存不足时的诊断信息和各语言的表述。"
         ],
         "zh-Hant": [
-          "改善了遊戲啟動時的音訊初始化；沒有聲音時，可透過一般點按操作重試。",
-          "將PokemonStart存檔轉換工具更新至支援0.48.0的版本，並修正了新招式、攜帶道具的檢查及存檔轉移處理。",
-          "新增了PokemonStart更新通知，並改善了新版ROM的存檔相容性檢查。",
-          "增加了保護，防止將新版存檔轉移到舊版PokemonStart ROM。",
-          "改善了記憶體配置失敗的診斷資訊和各語言的表述。"
+          "改善了遊戲啟動時的音訊初始化。沒有聲音時，可輕點螢幕重試。",
+          "將 PokemonStart 存檔轉換工具更新至支援 0.48.0 的版本，並修正了新招式、攜帶道具的檢查及存檔移轉處理。",
+          "新增了 PokemonStart 更新通知，並改善了新版 ROM 的存檔相容性檢查。",
+          "新增保護，防止將新版存檔移轉到舊版 PokemonStart ROM。",
+          "改善了記憶體不足時的診斷資訊和各語言的表述。"
         ],
         "ko": [
-          "게임 시작 시 오디오 초기화를 개선하고, 소리가 나지 않을 때 일반적인 탭 조작으로 다시 시도할 수 있도록 했습니다.",
-          "PokemonStart 세이브 변환 도구를 0.48.0 대응 버전으로 업데이트하고, 새로운 기술·지닌 도구의 검사와 세이브 이전 처리를 수정했습니다.",
+          "게임 실행 시 오디오 시작 처리를 개선했습니다. 소리가 나지 않으면 화면을 탭해 다시 시도할 수 있습니다.",
+          "PokemonStart 세이브 변환 도구를 0.48.0을 지원하는 버전으로 업데이트하고, 새로운 기술과 지닌 도구의 검사 및 세이브 이전 처리를 수정했습니다.",
           "PokemonStart 업데이트 알림을 추가하고 새 ROM의 세이브 호환성 검사를 개선했습니다.",
-          "최신 세이브를 이전 버전의 PokemonStart ROM으로 이전하지 못하도록 보호 기능을 추가했습니다.",
-          "메모리 할당 실패 진단 정보와 각 언어의 표현을 개선했습니다."
+          "새 버전에서 저장한 세이브를 이전 버전의 PokemonStart ROM으로 옮기지 못하도록 보호 기능을 추가했습니다.",
+          "메모리 부족 시 진단 정보와 각 언어의 표현을 개선했습니다."
         ],
         "es": [
-          "Se mejoró el inicio del audio y se añadió un reintento al tocar la pantalla cuando el juego no tiene sonido.",
-          "Se actualizó el conversor de partidas de PokemonStart a la versión compatible con 0.48.0 y se corrigieron las comprobaciones de movimientos y objetos equipados nuevos, así como la transferencia de partidas.",
+          "Se mejoró el inicio del audio del juego. Si no se oye sonido, puedes tocar la pantalla para volver a intentarlo.",
+          "Se actualizó el conversor de partidas guardadas de PokemonStart a la versión compatible con 0.48.0 y se corrigieron las comprobaciones de nuevos movimientos y objetos equipados, así como la transferencia de partidas guardadas.",
           "Se añadieron avisos de actualización de PokemonStart y se mejoraron las comprobaciones de compatibilidad de las partidas guardadas con ROM más recientes.",
           "Se añadió protección para impedir transferir partidas guardadas de versiones más recientes a ROM antiguas de PokemonStart.",
-          "Se mejoraron los diagnósticos de asignación de memoria y la redacción en los distintos idiomas."
+          "Se mejoraron los diagnósticos de fallos al asignar memoria y la redacción en los distintos idiomas."
         ],
         "fr": [
-          "Amélioration du démarrage audio et ajout d’une nouvelle tentative lors d’un appui normal si le son du jeu ne démarre pas.",
+          "Amélioration du démarrage du son à l’ouverture d’un jeu. Si aucun son ne se fait entendre, touchez l’écran pour réessayer.",
           "Mise à jour du convertisseur de sauvegardes PokemonStart vers la version compatible avec 0.48.0, et correction des contrôles des nouvelles capacités et des objets tenus, ainsi que du transfert des sauvegardes.",
           "Ajout de notifications de mise à jour de PokemonStart et amélioration des contrôles de compatibilité des sauvegardes avec les ROM plus récentes.",
           "Ajout d’une protection empêchant le transfert de sauvegardes plus récentes vers d’anciennes ROM de PokemonStart.",
-          "Amélioration des diagnostics d’allocation mémoire et des formulations dans les différentes langues."
+          "Amélioration des diagnostics en cas de mémoire insuffisante et des formulations dans les différentes langues."
         ],
         "de": [
-          "Der Audiostart wurde verbessert. Wenn der Spielton nicht startet, wird er bei normalem Antippen erneut versucht.",
+          "Die Audioinitialisierung beim Spielstart wurde verbessert. Falls kein Ton zu hören ist, versucht die App beim nächsten Antippen des Bildschirms erneut, die Audiowiedergabe zu starten.",
           "Der PokemonStart-Spielstandkonverter wurde auf die mit 0.48.0 kompatible Version aktualisiert. Die Prüfung neuer Attacken und getragener Items sowie die Spielstandübertragung wurden korrigiert.",
           "Update-Hinweise für PokemonStart wurden hinzugefügt und die Prüfung der Spielstandkompatibilität mit neueren ROMs wurde verbessert.",
-          "Neuere Spielstände werden vor der Übertragung auf ältere PokemonStart-ROMs geschützt.",
-          "Die Diagnose bei Speicherzuweisungsfehlern und die Formulierungen in den verschiedenen Sprachen wurden verbessert."
+          "Eine Schutzprüfung verhindert, dass Spielstände aus neueren Versionen auf ältere PokemonStart-ROMs übertragen werden.",
+          "Die Diagnose bei fehlgeschlagenen Speicherzuweisungen und die Formulierungen in den verschiedenen Sprachen wurden verbessert."
         ],
         "pt": [
-          "Melhoramos a inicialização do áudio e adicionamos uma nova tentativa ao tocar normalmente na tela quando o jogo fica sem som.",
-          "Atualizamos o conversor de saves do PokemonStart para a versão compatível com 0.48.0 e corrigimos as verificações de novos golpes e itens equipados, além do processo de transferência de saves.",
-          "Adicionamos avisos de atualização do PokemonStart e melhoramos a verificação de compatibilidade dos saves com ROMs mais recentes.",
-          "Adicionamos proteção para impedir a transferência de saves mais recentes para ROMs antigas do PokemonStart.",
+          "Melhoramos a inicialização do áudio ao abrir um jogo. Se não houver som, toque na tela para tentar novamente.",
+          "Atualizamos o conversor de dados salvos do PokemonStart para a versão compatível com 0.48.0 e corrigimos as verificações de novos golpes e itens equipados, além do processo de transferência desses dados.",
+          "Adicionamos avisos de atualização do PokemonStart e melhoramos a verificação de compatibilidade dos dados salvos com ROMs mais recentes.",
+          "Adicionamos proteção para impedir a transferência de dados salvos em versões mais recentes para ROMs antigas do PokemonStart.",
           "Melhoramos os diagnósticos de falhas na alocação de memória e os textos nos diferentes idiomas."
         ]
       }

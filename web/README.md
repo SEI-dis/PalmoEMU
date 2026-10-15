@@ -600,7 +600,7 @@ FCEUmmの修正は `node tests/fceumm-update.cjs` で検査します。旧コア
 ## 変更後の生成ファイル
 
 以下は `web` フォルダーで実行します。Node.jsとPython 3が必要です。
-`build-offline.cjs` は先に翻訳を自動更新します。新しい文言の生成には [翻訳用の初回準備](LOCALIZATION_REVIEW.md#開発pcの初回準備) が必要です。変更通知は日本語の `changes` だけを追加・編集できます。生成後は訳を確認してください。
+`build-offline.cjs` は先に翻訳を自動更新します。新しい文言の生成には [翻訳用の初回準備](LOCALIZATION_REVIEW.md#開発pcの初回準備) が必要です。変更通知は日本語の `changes` だけを追加・編集できます。自動生成は下書きとし、担当エージェントが追加・変更した文言を全8翻訳言語で校正してください。校正後に再生成・整合性検査・対象画面の確認を行い、結果を記録してからコミット・pushへ進みます。詳しくは [差分校正の手順](LOCALIZATION_REVIEW.md#文言変更通知の更新) を参照してください。
 開発中は `npm run dev` が変更を監視し、同じ生成処理を実行します。`npm run i18n:sync` で翻訳だけ、`npm run i18n:check` で検査だけを実行できます。
 macOS / Linuxでは、例の `python` を `python3` に読み替えてください。
 
