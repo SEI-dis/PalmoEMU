@@ -10,43 +10,43 @@
       ],
       "changesEn": [
         "App updates and offline downloads now retry temporary download failures.",
-        "Fixed automatic updates remaining blocked after a failed download recovered.",
-        "Fixed updates sometimes remaining on standby after preparation finished."
+        "Fixed the manual-update prompt remaining visible after an update downloaded successfully.",
+        "Fixed updates sometimes remaining on hold after preparation finished."
       ],
       "translations": {
         "zh-Hans": [
-          "应用更新和离线保存现在会自动重试临时下载失败。",
-          "修复了下载恢复成功后，自动更新仍被阻止并继续显示手动更新提示的问题。",
+          "应用更新和离线保存时，如果下载暂时失败，现在会自动重试。",
+          "修复了成功获取更新后仍显示手动更新提示的问题。",
           "修复了更新准备完成后有时仍一直等待的问题。"
         ],
         "zh-Hant": [
-          "應用程式更新和離線儲存現在會自動重試暫時的下載失敗。",
-          "修正了下載恢復成功後，自動更新仍被阻止並繼續顯示手動更新提示的問題。",
+          "應用程式更新和離線儲存時，如果下載暫時失敗，現在會自動重試。",
+          "修正了成功取得更新後仍顯示手動更新提示的問題。",
           "修正了更新準備完成後有時仍持續等待的問題。"
         ],
         "ko": [
-          "앱 업데이트와 오프라인 저장 중 일시적인 다운로드 실패를 자동으로 재시도합니다.",
-          "다운로드가 복구된 뒤에도 자동 업데이트가 진행되지 않고 수동 업데이트 안내가 남는 문제를 수정했습니다.",
+          "앱 업데이트와 오프라인 저장 중 다운로드가 일시적으로 실패하면 자동으로 재시도합니다.",
+          "업데이트를 성공적으로 받은 뒤에도 수동 업데이트 안내가 남는 문제를 수정했습니다.",
           "업데이트 준비가 끝난 뒤에도 대기 상태가 계속되는 문제를 수정했습니다."
         ],
         "es": [
-          "Las actualizaciones de la aplicación y las descargas sin conexión ahora reintentan los fallos temporales de descarga.",
-          "Se corrigió un problema que bloqueaba las actualizaciones automáticas tras recuperarse de un fallo de descarga.",
+          "Si una descarga falla temporalmente durante una actualización de la aplicación o una descarga para uso sin conexión, ahora se vuelve a intentar automáticamente.",
+          "Se corrigió un problema por el que el aviso de actualización manual seguía apareciendo después de descargar la actualización correctamente.",
           "Se corrigió un problema por el que las actualizaciones podían seguir esperando después de terminar la preparación."
         ],
         "fr": [
           "Les mises à jour de l’application et les téléchargements hors ligne réessaient désormais en cas d’échec temporaire du téléchargement.",
-          "Correction du blocage des mises à jour automatiques après la reprise d’un téléchargement ayant échoué.",
+          "Correction d’un problème laissant l’invitation à mettre à jour manuellement affichée même après le téléchargement réussi de la mise à jour.",
           "Correction d’un problème pouvant laisser les mises à jour en attente après la fin de leur préparation."
         ],
         "de": [
           "Bei App-Updates und Offline-Downloads werden vorübergehend fehlgeschlagene Downloads jetzt automatisch wiederholt.",
-          "Automatische Updates bleiben nach der Wiederherstellung eines fehlgeschlagenen Downloads nicht mehr blockiert.",
+          "Ein Fehler wurde behoben, bei dem der Hinweis auf ein manuelles Update auch nach erfolgreichem Herunterladen des Updates angezeigt blieb.",
           "Ein Problem wurde behoben, bei dem Updates nach abgeschlossener Vorbereitung weiter warteten."
         ],
         "pt": [
-          "As atualizações da aplicação e as transferências para utilização offline voltam agora a tentar após falhas temporárias de transferência.",
-          "Corrigimos o bloqueio das atualizações automáticas após a recuperação de uma transferência que tinha falhado.",
+          "Quando ocorre uma falha temporária no download durante uma atualização do aplicativo ou uma transferência para uso offline, agora é feita uma nova tentativa automaticamente.",
+          "Foi corrigido um problema que mantinha o aviso de atualização manual mesmo depois de baixar a atualização com sucesso.",
           "Corrigimos um problema que podia deixar as atualizações em espera após a conclusão da preparação."
         ]
       }
@@ -65,7 +65,7 @@
         "Improved performance during map transitions and other effects.",
         "Reduced memory use when loading large ROMs and improved cleanup after exit.",
         "Improved recovery when audio is unavailable at game startup.",
-        "Improved recovery from core loading failures and identification of backup errors.",
+        "Made it easier to recover from core loading failures and identify which game caused a backup error.",
         "Reduced unnecessary processing during gamepad use."
       ],
       "translations": {
@@ -92,14 +92,14 @@
         ],
         "es": [
           "Se mejoró el rendimiento durante las transiciones de mapa y otros efectos.",
-          "Se redujo el uso de memoria al cargar ROM grandes y se mejoró la limpieza al salir.",
+          "Se redujo el uso de memoria al iniciar ROM grandes y se mejoró la liberación de memoria al salir.",
           "Se mejoró la recuperación cuando no hay sonido al iniciar un juego.",
           "Se mejoró la recuperación tras fallos al cargar el núcleo y la identificación de errores en las copias de seguridad.",
           "Se redujo el procesamiento innecesario al usar un mando."
         ],
         "fr": [
           "Amélioration des performances lors des transitions de carte et des autres effets.",
-          "Réduction de la mémoire utilisée pour charger les grandes ROM et amélioration du nettoyage à la fermeture.",
+          "Réduction de la mémoire utilisée au lancement des grandes ROM et amélioration de sa libération à la fermeture.",
           "Amélioration de la récupération lorsque le son est indisponible au démarrage du jeu.",
           "Amélioration de la récupération après un échec de chargement du cœur et de l’identification des erreurs de sauvegarde.",
           "Réduction des traitements inutiles lors de l’utilisation d’une manette."
@@ -112,11 +112,11 @@
           "Unnötige Verarbeitung bei der Verwendung eines Gamepads wurde reduziert."
         ],
         "pt": [
-          "Melhorámos o desempenho durante transições de mapa e outros efeitos.",
-          "Reduzimos a utilização de memória ao carregar ROMs grandes e melhorámos a limpeza ao sair.",
-          "Melhorámos a recuperação quando não há som ao iniciar um jogo.",
-          "Melhorámos a recuperação após falhas ao carregar o núcleo e a identificação de erros nas cópias de segurança.",
-          "Reduzimos o processamento desnecessário ao utilizar um comando."
+          "Melhoramos o desempenho durante transições de mapa e outros efeitos.",
+          "Reduzimos o uso de memória ao iniciar ROMs grandes e melhoramos a liberação de memória ao sair.",
+          "Melhoramos a recuperação quando não há som ao iniciar um jogo.",
+          "Melhoramos a recuperação após falhas ao carregar o núcleo e facilitamos a identificação dos itens com erro nos backups.",
+          "Reduzimos o processamento desnecessário ao usar um controle."
         ]
       }
     },
@@ -167,9 +167,9 @@
         "es": [
           "Ahora puedes elegir qué juegos y datos incluir en la copia de seguridad. Las copias grandes se pueden dividir en archivos y también permiten transferir la tarjeta de entrenador y el tiempo de juego.",
           "mGBA ahora guarda antes en el dispositivo las partidas guardadas dentro del juego, una vez estabilizada la escritura.",
-          "Se añadió una opción para mantener la pantalla encendida al jugar y medir el rendimiento del renderizado, el audio y el guardado.",
+          "Se añadieron una opción para mantener la pantalla encendida al jugar y mediciones del rendimiento del renderizado, el audio y el guardado.",
           "Se corrigió un problema que impedía registrar la ubicación de algunos errores en los informes de diagnóstico.",
-          "Ahora puedes elegir el servidor de retransmisión Celio en la pantalla de comunicación.",
+          "Ahora puedes elegir el servidor de retransmisión Celio en la pantalla de conexión.",
           "Se mejoró el guardado al cerrar la aplicación con el menú del juego abierto y los reintentos si falla la salida del juego.",
           "Si una partida dañada impide iniciar el juego, ahora se puede restaurar una partida intacta del historial o exportar los datos originales desde los detalles del juego.",
           "Se mejoraron los reintentos tras fallos de actualización y la verificación de archivos durante las actualizaciones."
@@ -179,7 +179,7 @@
           "mGBA enregistre désormais plus rapidement sur l’appareil les sauvegardes effectuées dans le jeu, une fois les écritures stabilisées.",
           "Ajout d’une option pour garder l’écran allumé pendant le jeu et mesurer les performances du rendu, de l’audio et de l’enregistrement.",
           "Correction des emplacements manquants pour certaines erreurs dans les rapports de diagnostic.",
-          "Vous pouvez désormais choisir le serveur relais Celio sur l’écran de communication.",
+          "Vous pouvez désormais choisir le serveur relais Celio sur l’écran de connexion.",
           "Amélioration de l’enregistrement à la fermeture de l’application avec le menu du jeu ouvert, et des nouvelles tentatives si la fermeture du jeu échoue.",
           "Si une sauvegarde corrompue empêche le jeu de démarrer, vous pouvez désormais restaurer une sauvegarde intacte de l’historique ou exporter les données originales depuis les détails du jeu.",
           "Amélioration des nouvelles tentatives après un échec de mise à jour et de la vérification des fichiers pendant les mises à jour."
@@ -199,7 +199,7 @@
           "O mGBA agora grava os saves feitos dentro do jogo no dispositivo mais cedo, assim que as gravações se estabilizam.",
           "Foram adicionadas uma opção para manter a tela ligada durante o jogo e medições de desempenho de renderização, áudio e salvamento.",
           "Foi corrigida a ausência da localização de alguns erros nos relatórios de diagnóstico.",
-          "Agora é possível escolher o servidor de retransmissão Celio na tela de comunicação.",
+          "Agora é possível escolher o servidor de retransmissão Celio na tela de conexão.",
           "Foram melhorados o salvamento ao fechar o aplicativo com o menu do jogo aberto e as novas tentativas quando não é possível sair do jogo.",
           "Se um save corrompido impedir o início do jogo, agora é possível restaurar um save íntegro do histórico ou exportar os dados originais pelos detalhes do jogo.",
           "Foram melhoradas as novas tentativas após falhas de atualização e a verificação dos arquivos durante as atualizações."
@@ -274,7 +274,7 @@
           "Al volver de una pantalla de guardado, la aplicación ya no se recarga mientras haya un juego, una grabación o una operación de guardado pendientes."
         ],
         "fr": [
-          "Sur iPhone et iPad, les vidéos sont enregistrées via la feuille système d’enregistrement et de partage, sans quitter la page du jeu.",
+          "Sur iPhone et iPad, les vidéos utilisent désormais le menu système d’enregistrement et de partage, ce qui permet de choisir leur destination sans quitter l’écran de jeu.",
           "Au retour d’un écran d’enregistrement, l’application ne se recharge plus tant qu’un jeu, une vidéo enregistrée ou une opération d’enregistrement restent en cours ou en mémoire."
         ],
         "de": [
@@ -282,7 +282,7 @@
           "Bei der Rückkehr aus einem Speicherdialog wird die App nicht mehr neu geladen, solange ein Spiel, eine Aufnahme oder ein Speichervorgang noch aktiv oder im Speicher ist."
         ],
         "pt": [
-          "No iPhone e no iPad, os vídeos agora são salvos pela folha de salvamento e compartilhamento do sistema, sem sair da página do jogo.",
+          "No iPhone e no iPad, os vídeos agora são salvos pelo painel de salvamento e compartilhamento do sistema, permitindo escolher o destino sem sair da tela do jogo.",
           "Ao voltar de uma tela de salvamento, o aplicativo não recarrega enquanto houver um jogo, uma gravação ou uma operação de salvamento em andamento ou mantidos na memória."
         ]
       },
@@ -327,13 +327,13 @@
         ],
         "ko": [
           "카메라 버튼으로 게임 소리가 포함된 동영상을 녹화할 수 있습니다. 스크린샷도 미리 본 후 저장하거나 공유할 수 있습니다.",
-          "PokemonStart의 이전 세이브 변환과 이전을 앱 안에서 진행할 수 있습니다. 변환 대상은 0.42.3 형식이며, 기존 버전과 세이브 내용을 확인해 변환 필요 여부를 안내합니다.",
-          "게임 세이브와 자동 상태 저장 간격을 약 2분으로 조정하고, 중복 저장과 실패 후 연속 재시도를 줄였습니다. 저장 공간이 부족하면 게임 세이브 저장을 우선합니다.",
+          "앱 안에서 PokemonStart 구버전 세이브를 변환하고 새 버전으로 옮길 수 있습니다. 변환 대상은 0.42.3 형식이며, 원래 버전과 세이브 내용을 바탕으로 변환 필요 여부를 안내합니다.",
+          "게임 내 세이브와 자동 세이브 스테이트의 저장 간격을 약 2분으로 조정하고, 저장 중 중복 처리와 실패 후 연속 재시도를 줄였습니다. 저장 공간이 부족하면 게임 내 세이브 저장을 우선합니다.",
           "기기의 이미지로 트레이너 카드 아이콘을 바꿀 수 있습니다. iPhone 키보드 뒤에 닉네임 입력란이 가려지는 문제를 수정했습니다.",
           "ROM 업데이트 시 설정한 커버 이미지를 새 버전에도 유지합니다.",
           "PokemonStart의 모험의 서 2 판정 오류 보정은 더 이상 특정 버전으로 제한되지 않습니다. 세이브 변환과는 별개로 해당 코드 구조와 코어 기능을 확인합니다.",
-          "복구 화면 하단에 일반 시작 버튼이 항상 표시됩니다. ROM을 다시 열 때 이전 일시 정지 화면이 잠깐 보이던 문제를 수정했습니다.",
-          "앱 업데이트가 오래 걸리거나 실패할 때의 안내를 개선했습니다. 새 버전 플레이 등의 실행 요청은 업데이트 후에도 이어지며, 지금은 계속을 선택해도 해당 게임이 시작됩니다."
+          "복구 화면의 「정상 시작」 버튼을 하단에 항상 표시하도록 하고, ROM을 다시 열 때 이전 일시 정지 표시가 잠깐 남는 문제를 수정했습니다.",
+          "앱 업데이트가 오래 걸리거나 실패할 때의 안내를 개선했습니다. 「새 버전 플레이」 등의 실행 요청은 업데이트 후에도 이어지며, 「지금은 계속하기」를 선택해도 해당 게임으로 이동합니다."
         ],
         "es": [
           "El botón de cámara permite grabar vídeo con el audio del juego. Las capturas también se pueden previsualizar, guardar y compartir.",
@@ -343,14 +343,14 @@
           "Al actualizar una ROM, la portada configurada se conserva en la nueva versión.",
           "La corrección de la detección errónea del Libro de aventuras 2 de PokemonStart ya no se limita a versiones concretas. Es independiente de la conversión de partidas y comprueba la estructura del código y las capacidades del núcleo.",
           "Iniciar normalmente permanece visible al pie de la pantalla de recuperación. Se corrigió la aparición momentánea de la pausa anterior al volver a abrir una ROM.",
-          "Se mejoraron los avisos de esperas largas y fallos de actualización. Las solicitudes de jugar, incluida Jugar a la nueva versión, continúan tras actualizar; Continuar por ahora también inicia el juego elegido."
+          "Se mejoraron los avisos de esperas largas y fallos de actualización. Las solicitudes de iniciar un juego, incluida «Jugar con la nueva versión», se mantienen después de actualizar; «Continuar por ahora» también abre el juego elegido."
         ],
         "fr": [
           "Le bouton appareil photo permet désormais de filmer avec le son du jeu. Les captures peuvent aussi être prévisualisées, enregistrées et partagées.",
           "Les anciennes sauvegardes de PokemonStart peuvent être converties et transférées dans l’application. La conversion prend en charge le format cible 0.42.3 et vérifie la version d’origine et le contenu de la sauvegarde pour déterminer si elle est nécessaire.",
-          "Les sauvegardes de partie et d’état automatiques sont espacées d’environ deux minutes. Les opérations en double et les tentatives répétées après échec sont limitées. En cas de manque d’espace, la sauvegarde de partie est prioritaire.",
+          "L’intervalle de sauvegarde des données de jeu et des états automatiques a été ajusté à environ deux minutes. Les opérations simultanées en double et les tentatives répétées après un échec ont été limitées. En cas de manque d’espace, la sauvegarde des données de jeu est prioritaire.",
           "Une image locale peut maintenant servir d’icône de Carte de Dresseur. Le champ du pseudonyme ne se cache plus derrière le clavier de l’iPhone.",
-          "La mise à jour d’une ROM conserve désormais la couverture choisie dans la nouvelle version.",
+          "Lors de la mise à jour d’une ROM, la jaquette choisie est désormais transférée à la nouvelle version.",
           "La correction de la détection erronée du Livre d’aventure 2 de PokemonStart n’est plus limitée à des versions précises. Elle est indépendante de la conversion des sauvegardes et vérifie la structure du code et les capacités du cœur.",
           "Démarrer normalement reste visible en bas de l’écran de récupération. L’ancien écran de pause n’apparaît plus brièvement à la réouverture d’une ROM.",
           "Les indications lors des attentes prolongées ou des échecs de mise à jour ont été améliorées. Les demandes de lancement reprennent après la mise à jour ; Continuer pour le moment lance aussi le jeu choisi."
@@ -358,7 +358,7 @@
         "de": [
           "Über die Kamerataste lassen sich jetzt Videos mit Spielton aufnehmen. Screenshots können in der Vorschau angesehen, gespeichert und geteilt werden.",
           "Alte PokemonStart-Spielstände lassen sich direkt in der App konvertieren und übertragen. Die Konvertierung unterstützt das Zielformat 0.42.3 und prüft anhand der Ausgangsversion und des Spielstandinhalts, ob sie nötig ist.",
-          "Spielstände und automatische Speicherzustände werden etwa alle zwei Minuten gespeichert. Doppelte Vorgänge und ständige Wiederholungen nach Fehlern werden vermieden. Bei Platzmangel hat der Spielstand Vorrang.",
+          "Das Speicherintervall für Spielstände und automatische Savestates wurde auf etwa zwei Minuten angepasst. Doppelte Speichervorgänge und wiederholte Versuche nach Fehlern wurden begrenzt. Bei Platzmangel hat das Speichern des spielinternen Spielstands Vorrang.",
           "Ein lokales Bild kann jetzt als Symbol der Trainerkarte verwendet werden. Das Spitznamenfeld wird nicht mehr von der iPhone-Tastatur verdeckt.",
           "Beim ROM-Update wird das eingestellte Cover in die neue Version übernommen.",
           "Die Korrektur der fehlerhaften Erkennung für Abenteuerbuch 2 in PokemonStart ist nicht mehr auf bestimmte Versionen beschränkt. Sie ist von der Spielstandkonvertierung unabhängig und prüft Codestruktur und Core-Fähigkeiten.",
@@ -379,7 +379,7 @@
       "changesEn": [
         "The camera button now records video with game audio. Screenshots can also be previewed, saved and shared.",
         "Older PokemonStart saves can be converted and transferred within the app. Conversion supports the 0.42.3 target format and checks the source version and save contents to determine whether it is needed.",
-        "Adjusted battery-save and automatic-state intervals to about two minutes, avoiding duplicate saves and repeated retries after failures. Battery saves take priority when storage is full.",
+        "Adjusted in-game save and automatic save-state intervals to about two minutes, avoiding duplicate saves and repeated retries after failures. In-game saves take priority when storage is full.",
         "You can now use a local image as your Trainer Card icon. Fixed nickname fields being hidden behind the iPhone keyboard.",
         "ROM updates now carry the configured cover image over to the new version.",
         "The workaround for PokemonStart incorrectly detecting Adventure Book 2 support is no longer restricted to specific versions. It is separate from save conversion and checks the relevant code structure and core capabilities.",
@@ -435,7 +435,7 @@
       "changesEn": [
         "Added Update ROM to Import. Select a game to copy its in-game save to a new ROM version. The old ROM and save are kept.",
         "Added a Trainer Card in Settings with an editable nickname, combined playtime across ROM updates and your most played games.",
-        "Added Quick Start. Enable it to start playing when you tap a game. It is off by default."
+        "Added Quick start. Enable it to start playing when you tap a game. It is off by default."
       ]
     },
     {
@@ -471,33 +471,33 @@
           "現在可以調整十字鍵的反應和觸控範圍，並在不載入ROM的情況下測試按鈕。",
           "新增GB/GBC在同一裝置內的連線功能，以及DS闔蓋和開蓋操作。",
           "現在可以選擇要從備份還原的遊戲，並比較備份與目前資料的儲存時間。",
-          "現在可以逐一匯出和匯入即時存檔。只有相同ROM和相容核心的即時存檔才能新增至新欄位。",
+          "現在可以逐一匯出和匯入即時存檔。只有相同 ROM 且核心相容的即時存檔才能新增至新的存檔位置。",
           "現在可以保留遊戲存檔、即時存檔和設定，只移除 ROM。新增相同的 ROM 即可繼續遊戲。",
-          "匯入畫面的順序已改為：存檔資料、外觀、ROM修補程式。",
+          "匯入畫面的順序已改為：存檔資料、外觀、ROM 補丁。",
           "新增僅擷取遊戲畫面的截圖按鈕。長按拖曳即可調整位置，也可在設定中隱藏。",
           "修正自動即時存檔過大導致儲存停止的問題，並限制存檔歷史記錄的總大小。",
           "改善大型遊戲存檔和自動即時存檔的處理，減少儲存時的畫面和操作卡頓。"
         ],
         "ko": [
-          "기존 ROM과 세이브를 유지한 채 신규 버전 ROM으로 게임 내 세이브를 이월할 수 있게 되었습니다.",
+          "기존 ROM과 세이브를 유지한 채 새 버전 ROM으로 게임 내 세이브를 이전할 수 있게 되었습니다.",
           "십자키의 반응과 터치 범위를 조정하고, ROM 없이 버튼 조작을 테스트할 수 있습니다.",
           "같은 기기 안에서 GB/GBC 두 대를 연결하는 기능과 DS 덮개 열기/닫기 조작을 추가했습니다.",
           "백업에서 복원할 게임을 선택하고 현재 저장 시간과 비교할 수 있게 되었습니다.",
-          "상태 저장을 하나씩 내보내고 가져올 수 있습니다. 같은 ROM과 호환 코어의 상태 저장만 새 슬롯에 추가합니다.",
-          "세이브・상태 저장・설정을 남기고 ROM만 분리할 수 있게 되었습니다. 동일한 ROM을 추가하면 재개할 수 있습니다.",
-          "임포트 화면 순서를 세이브 데이터・스킨・ROM 패치로 변경했습니다.",
+          "세이브 스테이트를 하나씩 내보내고 가져올 수 있습니다. 같은 ROM과 호환 코어의 세이브 스테이트만 새 슬롯에 추가합니다.",
+          "세이브·세이브 스테이트·설정을 남기고 ROM만 제거할 수 있습니다. 동일한 ROM을 추가하면 이어서 플레이할 수 있습니다.",
+          "가져오기 화면의 순서를 세이브 데이터·스킨·ROM 패치로 변경했습니다.",
           "게임 화면만 캡처하는 스크린샷 버튼을 추가했습니다. 길게 눌러 드래그하면 이동할 수 있고, 설정에서 숨길 수도 있습니다.",
-          "자동 저장 상태가 커서 저장이 중단되는 문제를 수정하고 저장 이력의 용량을 제한했습니다.",
-          "대용량 세이브 및 자동 상태 저장 처리 방식을 개선하여, 저장 중 화면 끊김이나 조작 불편함을 줄였습니다."
+          "자동 세이브 스테이트가 커서 저장이 중단되는 문제를 수정하고 저장 기록의 용량을 제한했습니다.",
+          "대용량 세이브와 자동 세이브 스테이트의 저장 처리를 개선하여 저장 중 화면과 조작이 끊기는 현상을 줄였습니다."
         ],
         "es": [
           "Ahora puedes copiar la partida guardada a una nueva versión de la ROM y conservar la ROM anterior y sus partidas.",
           "Puedes ajustar la sensibilidad de la cruceta y las áreas táctiles, y probar los controles sin una ROM.",
           "Se han añadido la conexión GB/GBC en un mismo dispositivo y los controles de la tapa de DS.",
           "Puedes elegir qué juegos restaurar de una copia de seguridad y comparar las fechas con tus datos actuales.",
-          "Puedes exportar e importar estados de guardado individuales. Solo se añaden a nuevas ranuras los de la misma ROM y un núcleo compatible.",
-          "Quita solo la ROM y conserva las partidas, los estados de guardado y los ajustes. Añade la misma ROM para continuar.",
-          "La pantalla de importación ahora muestra: Datos guardados, Skins y Parches de ROM.",
+          "Ahora puedes exportar e importar estados guardados individuales. Solo se añaden como nuevos estados los que corresponden a la misma ROM y a un núcleo compatible.",
+          "Ahora puedes retirar solo la ROM y conservar las partidas, los estados guardados y los ajustes. Añade la misma ROM para continuar.",
+          "La pantalla de importación ahora sigue este orden: Datos guardados, Diseños y Parche ROM.",
           "Añadimos un botón para capturar solo la imagen del juego. Mantén pulsado y arrastra para moverlo, o escóndelo en los ajustes.",
           "Se corrigió el fallo que detenía el guardado al crear estados automáticos grandes y se limitó el tamaño del historial de guardado.",
           "Se ha mejorado el procesamiento de partidas guardadas grandes y estados automáticos para reducir las pausas en la imagen y los controles al guardar."
@@ -518,13 +518,13 @@
           "Spielstände lassen sich in eine neue ROM-Version kopieren. Die alte ROM und ihre Spielstände bleiben erhalten.",
           "Empfindlichkeit des Steuerkreuzes und Touchbereiche lassen sich anpassen. Die Steuerung kann ohne ROM getestet werden.",
           "Link-Verbindungen für GB/GBC auf demselben Gerät und das Öffnen und Schließen des DS-Deckels wurden hinzugefügt.",
-          "Wähle die Spiele aus, die du aus einem Backup wiederherstellen möchtest, und vergleiche die Speicherzeitpunkte mit deinen aktuellen Daten.",
-          "Speicherzustände lassen sich einzeln exportieren und importieren. Nur Zustände derselben ROM und eines kompatiblen Kerns werden in neue Speicherplätze aufgenommen.",
-          "Entferne nur die ROM und behalte Spielstände, Speicherzustände und Einstellungen. Füge dieselbe ROM wieder hinzu, um weiterzuspielen.",
+          "Sie können die Spiele auswählen, die aus einem Backup wiederhergestellt werden sollen, und die Speicherzeitpunkte mit denen der aktuellen Daten vergleichen.",
+          "Savestates lassen sich einzeln exportieren und importieren. Nur Savestates derselben ROM und eines kompatiblen Cores werden als neue Einträge hinzugefügt.",
+          "Sie können nur die ROM entfernen und dabei Spielstände, Savestates und Einstellungen behalten. Fügen Sie dieselbe ROM wieder hinzu, um weiterzuspielen.",
           "Die Reihenfolge im Importbildschirm wurde geändert zu: Speicherstände > Skins > ROM-Patches.",
-          "Eine Screenshot-Taste nimmt nur das Spielbild auf. Halte sie gedrückt und ziehe sie an die gewünschte Position. In den Einstellungen kannst du sie ausblenden.",
-          "Ein Fehler, der das Speichern bei großen automatischen Speicherzuständen stoppte, wurde behoben. Die Größe des Speicherverlaufs wird nun begrenzt.",
-          "Große Spielstände und automatische Speicherzustände werden effizienter verarbeitet, um Bildruckler und Eingabeverzögerungen beim Speichern zu reduzieren."
+          "Eine neue Screenshot-Taste nimmt nur das Spielbild auf. Sie kann durch langes Drücken verschoben und ein- oder ausgeblendet werden.",
+          "Ein Fehler, der das Speichern bei großen automatischen Savestates blockierte, wurde behoben. Die Größe der Speicherhistorie wurde begrenzt.",
+          "Die Verarbeitung großer Spielstände und automatischer Savestates wurde überarbeitet, um Bildruckler und Eingabeverzögerungen beim Speichern zu reduzieren."
         ],
         "pt": [
           "Copie os saves do jogo para uma nova versão da ROM, mantendo a ROM antiga e seus saves.",
@@ -533,7 +533,7 @@
           "Escolha quais jogos restaurar de um backup e compare as datas com as dos dados atuais.",
           "Exporte e importe estados salvos individuais. Somente os da mesma ROM e de um núcleo compatível são adicionados a novos espaços.",
           "Remova apenas a ROM e mantenha os saves, estados salvos e configurações. Adicione a mesma ROM para continuar.",
-          "A tela de importação agora segue esta ordem: Dados salvos, Skins e Patches de ROM.",
+          "A tela de importação agora segue esta ordem: Dados salvos, Temas e Patch ROM.",
           "Adicionamos um botão para capturar apenas a imagem do jogo. Segure e arraste para movê-lo, ou oculte-o nas configurações.",
           "Corrigimos a interrupção do salvamento ao criar estados automáticos grandes e limitamos o tamanho do histórico de salvamento.",
           "Melhoramos o processamento de saves grandes e estados automáticos para reduzir pausas na imagem e na resposta dos controles ao salvar."
@@ -546,7 +546,7 @@
         "Select games to restore from a backup and compare their save dates with your current data.",
         "Export and import individual save states. States for the same ROM and a compatible core are added to new slots.",
         "Remove a ROM while keeping its saves, save states, and settings. Add the same ROM again to resume.",
-        "Reordered the import screen: Save Data, Skins, then ROM Patches.",
+        "Reordered the import screen: Save data, Skins, then ROM patch.",
         "Added a screenshot button to capture only the game image. Hold and drag to move it, or hide it in settings.",
         "Fixed saving stopping with large automatic save states, and limited the size of save histories.",
         "Improved handling of large in-game saves and automatic save states to reduce pauses in video and controls while saving."
@@ -585,7 +585,7 @@
           "Über den Link in dieser Benachrichtigung öffnen Sie die vollständigen Änderungshinweise."
         ],
         "pt": [
-          "Adicionamos a exibição das principais alterações nesta notificação de atualização.",
+          "O aviso de atualização concluída agora mostra as principais alterações da versão.",
           "Você pode abrir as notas da versão a partir deste aviso para consultar todos os detalhes."
         ]
       },
@@ -631,12 +631,12 @@
           "mGBA가 기기에 맞는 영상 전송 방식을 자동으로 선택하도록 했습니다. LCD와 CRT 필터의 강도도 조절할 수 있습니다."
         ],
         "es": [
-          "Cuando se detecta una actualización, se muestra “Actualización de la aplicación” y la descarga y la actualización avanzan automáticamente. Si está jugando o guardando, la actualización espera a que termine.",
+          "Cuando se detecta una actualización, se muestra «Actualización de la aplicación» y se inicia la descarga y la actualización. Si estás jugando o guardando, la actualización espera a que termines.",
           "Se ha reducido el zoom accidental al tocar dos veces en las pantallas Inicio, Importar y Ajustes.",
-          "Ahora puede añadir juegos desde archivos ZIP. La aplicación los descomprime en el dispositivo sin sobrescribir los juegos ni las partidas guardadas que ya existen.",
+          "Ahora puedes añadir juegos desde archivos ZIP. La aplicación los descomprime en el dispositivo sin sobrescribir los juegos ni las partidas guardadas que ya existen.",
           "Se han añadido el control “Soplar” y los ajustes de idioma del sistema para DS. No se utiliza un micrófono real.",
           "Se han añadido controles de inclinación para GB/GBC, ajuste del reloj por juego y vibración para mandos compatibles en mGBA. La vibración está desactivada por defecto.",
-          "mGBA ahora selecciona automáticamente el método de transferencia de vídeo adecuado para el dispositivo. También puede ajustar la intensidad de los filtros LCD y CRT."
+          "mGBA ahora selecciona el método de transferencia de vídeo según el dispositivo. También puedes ajustar la intensidad de los filtros LCD y CRT."
         ],
         "fr": [
           "Lorsqu’une mise à jour est détectée, « Mise à jour de l’application » s’affiche et le téléchargement et la mise à jour se poursuivent automatiquement. Si vous jouez ou sauvegardez, la mise à jour attend la fin de ces activités.",
@@ -689,10 +689,10 @@
           "기본 스킨의 방향키를 누르기 쉽게 조정했습니다. 손가락 위치가 약간 벗어나도 상하좌우 입력을 하기 쉬워졌습니다."
         ],
         "es": [
-          "Ajustamos la cruceta del tema predeterminado para facilitar su uso. Ahora es más fácil pulsar arriba, abajo, izquierda o derecha aunque el dedo se desvíe un poco."
+          "Ajustamos la cruceta del diseño predeterminado para facilitar su uso. Ahora es más fácil pulsar arriba, abajo, izquierda o derecha aunque el dedo se desvíe un poco."
         ],
         "fr": [
-          "La croix directionnelle du skin par défaut est plus facile à utiliser. Les directions haut, bas, gauche et droite sont plus faciles à saisir, même si le doigt est légèrement décalé."
+          "La croix directionnelle de l’habillage par défaut est plus facile à utiliser. Les directions haut, bas, gauche et droite sont plus faciles à saisir, même si le doigt est légèrement décalé."
         ],
         "de": [
           "Das Steuerkreuz des Standard-Skins lässt sich leichter bedienen. Auch wenn der Finger etwas verrutscht, lassen sich die vier Hauptrichtungen leichter eingeben."
@@ -720,55 +720,55 @@
           "修复了NDS DSV存档的导入。除最近5份游戏存档外，另保留最多10份历史存档，相邻历史存档的保存时间至少相隔5分钟。",
           "支持菜单中的控制器操作，以及NES、SNES和Mega Drive的1P/2P分配。",
           "增加了LCD、CRT、xBRZ滤镜，设备内IPS、BPS、UPS补丁应用，以及GBA的倾斜、旋转和太阳传感器设置。",
-          "优化了mGBA的处理，并增加了任意CPU速度设置。默认是1倍，通信时也是1倍。",
+          "优化了 mGBA 的处理，并新增可调节 CPU 速度的选项。默认速度为 1 倍，联机时也为 1 倍。",
           "修正了SNES标准核心的初始化顺序，确保视频、音频和输入正确连接。"
         ],
         "zh-Hant": [
           "修正了NDS DSV存檔的匯入。除了最近5份遊戲存檔，另外保留最多10份歷史存檔，相鄰歷史存檔的儲存時間至少相隔5分鐘。",
           "支援選單中的控制器操作，以及 NES・SNES・Mega Drive 的 1P／2P 分配。",
-          "新增了 LCD・CRT・xBRZ 過濾器、設備內部的 IPS・BPS・UPS 補丁適用，以及 GBA 的傾斜・旋轉・太陽感應設定。",
-          "優化了 mGBA 的處理，並新增了任意 CPU 速度設定。預設為 1 倍，通訊中也為 1 倍。",
+          "新增了 LCD、CRT、xBRZ 濾鏡、在裝置內套用 IPS、BPS、UPS 補丁的功能，以及 GBA 的傾斜、旋轉和太陽感應器設定。",
+          "最佳化了 mGBA 的處理，並新增可調整 CPU 速度的選項。預設速度為 1 倍，連線遊戲時也為 1 倍。",
           "修正了 SNES 標準核心的初始化順序，確保影像、音訊和輸入能正確連接。"
         ],
         "ko": [
           "NDS DSV 세이브 불러오기를 수정했습니다. 최근 게임 내 세이브 5개와 별도로, 최소 5분 간격의 기록을 최대 10개 보관합니다.",
           "메뉴 컨트롤러 조작과 NES・SNES・메가 드라이브의 1P/2P 할당에 대응했습니다.",
           "LCD・CRT・xBRZ 필터, 기기 내 IPS・BPS・UPS 패치 적용, GBA 기울기・회전・태양 센서 설정을 추가했습니다.",
-          "mGBA 처리를 최적화하고 임의 CPU 속도 설정을 추가했습니다. 기본값은 1배이며 통신 중에도 1배입니다.",
+          "mGBA 처리를 최적화하고 CPU 속도를 직접 설정하는 기능을 추가했습니다. 기본 속도는 1배이며 통신 중에도 1배입니다.",
           "SNES 표준 코어 초기화 순서를 수정하여 영상・음성・입력이 올바르게 연결되도록 했습니다."
         ],
         "es": [
           "Se ha corregido la importación de partidas DSV de NDS. Además de las 5 versiones más recientes, el historial conserva hasta 10 versiones adicionales con al menos 5 minutos de separación.",
-          "Se ha añadido soporte para la operación del controlador en el menú y asignación de jugador 1/jugador 2 para NES, SNES y Mega Drive.",
+          "Se añadió compatibilidad con el mando para navegar por los menús y asignaciones de 1P y 2P para NES, SNES y Mega Drive.",
           "Se han añadido filtros LCD, CRT y xBRZ, aplicación de parches IPS, BPS y UPS en el dispositivo, y ajustes de inclinación, rotación y sensor solar para GBA.",
-          "Optimizado el procesamiento de mGBA y se ha añadido un ajuste de velocidad de CPU arbitrario. El predeterminado es 1x, incluso durante la comunicación.",
-          "Corregido el orden de inicialización del núcleo estándar SNES para asegurar conexiones correctas de video, audio e entrada."
+          "Se optimizó el procesamiento de mGBA y se añadió un ajuste opcional de velocidad de la CPU. La velocidad predeterminada es de 1x, y durante el juego por conexión también se usa 1x.",
+          "Se corrigió el orden de inicialización del núcleo predeterminado de SNES para conectar correctamente el vídeo, el audio y los controles."
         ],
         "fr": [
           "Correction de l’importation des sauvegardes DSV NDS. En plus des 5 versions les plus récentes, l’historique conserve jusqu’à 10 versions supplémentaires espacées d’au moins 5 minutes.",
-          "Prise en charge des commandes de manette dans le menu, ainsi que l'attribution P1/P2 pour NES, SNES et Mega Drive.",
-          "Ajout de filtres LCD・CRT・xBRZ, d'application IPS・BPS・UPS sur l'appareil, et de réglages d'inclinaison・rotation・capteur solaire pour GBA.",
-          "Optimisation du traitement mGBA et ajout de réglages de vitesse CPU arbitraires. La valeur par défaut est 1x, y reste 1x pendant la communication.",
-          "Correction de l'ordre d'initialisation du cœur SNES standard pour assurer une connexion correcte des vidéos, audio et entrées."
+          "Ajout de la navigation dans les menus à la manette et de l’affectation des joueurs 1P/2P pour NES, SNES et Mega Drive.",
+          "Ajout des filtres LCD, CRT et xBRZ, de l’application de patchs IPS, BPS et UPS sur l’appareil, ainsi que des réglages d’inclinaison, de rotation et de capteur solaire pour la GBA.",
+          "Optimisation du fonctionnement de mGBA et ajout d’un réglage de la vitesse du CPU. La vitesse par défaut est de 1× et reste à 1× pendant le jeu en connexion.",
+          "Correction de l’ordre d’initialisation du cœur SNES par défaut pour raccorder correctement la vidéo, l’audio et les commandes."
         ],
         "de": [
           "Der Import von NDS-DSV-Spielständen wurde korrigiert. Neben den 5 neuesten Versionen bleiben bis zu 10 weitere Versionen mit mindestens 5 Minuten Abstand erhalten.",
           "Unterstützung für Controller-Bedienung im Menü sowie Zuweisungen für Spieler 1/2 bei NES, SNES und Mega Drive hinzugefügt.",
-          "Hinzugefügte Filter für LCD, CRT und xBRZ, IPS-, BPS- und UPS-Patchen innerhalb des Geräts sowie Einstellungen für Neigung, Drehung und Sonnensensor für GBA.",
-          "Optimierung der mGBA-Verarbeitung und Hinzufügen einer beliebigen CPU-Geschwindigkeitseinstellung. Standard ist 1x, auch während der Kommunikation ist es 1x.",
+          "LCD-, CRT- und xBRZ-Filter, die Anwendung von IPS-, BPS- und UPS-Patches auf dem Gerät sowie Einstellungen für Neigung, Drehung und Sonnensensor auf dem GBA wurden hinzugefügt.",
+          "Die Verarbeitung in mGBA wurde optimiert und eine einstellbare CPU-Geschwindigkeit hinzugefügt. Die Standardgeschwindigkeit beträgt 1× und bleibt während des Link-Spiels bei 1×.",
           "Korrigierte Initialisierungsreihenfolge des SNES-Standardcores, um eine korrekte Verbindung von Video-, Audio- und Eingabesignalen zu gewährleisten."
         ],
         "pt": [
           "Corrigida a importação de saves DSV do NDS. Além das 5 versões mais recentes, o histórico guarda até 10 versões adicionais com pelo menos 5 minutos de intervalo.",
-          "Suporte para operação com controle no menu e atribuição de jogador 1/2 para NES, SNES e Mega Drive.",
-          "Adicionados filtros LCD・CRT・xBRZ, aplicação de patches IPS・BPS・UPS no dispositivo e configurações de inclinação・rotação・sensor solar para GBA.",
-          "Otimizado o processamento do mGBA e adicionado configuração de velocidade de CPU arbitrária. O padrão é 1x, mesmo durante a comunicação.",
+          "Foi adicionado suporte ao controle para navegar pelos menus e a mapeamentos de 1P e 2P para NES, SNES e Mega Drive.",
+          "Foram adicionados filtros LCD, CRT e xBRZ, aplicação de patches IPS, BPS e UPS no dispositivo e configurações de inclinação, rotação e sensor solar para GBA.",
+          "O processamento do mGBA foi otimizado e foi adicionada uma configuração opcional de velocidade da CPU. A velocidade padrão é de 1x, e durante o jogo por conexão também é usado 1x.",
           "Corrigida a ordem de inicialização do núcleo SNES padrão para garantir conexões corretas de vídeo, áudio e entrada."
         ]
       },
       "changesEn": [
-        "Fixed loading of NDS DSV saves. Game-save history now keeps up to 10 additional versions at least 5 minutes apart, alongside the 5 most recent versions.",
-        "Added support for controller mapping and 1P/2P assignment for NES, SNES, and Mega Drive in the menu.",
+        "Fixed loading of NDS DSV saves. In-game save history now keeps up to 10 additional versions at least 5 minutes apart, alongside the 5 most recent versions.",
+        "Added controller navigation for menus and player 1/player 2 assignments for NES, SNES and Mega Drive.",
         "Added LCD, CRT and xBRZ filters, local IPS/BPS/UPS ROM patching, and GBA tilt, rotation and sunlight settings.",
         "Optimized mGBA processing and added optional CPU speed settings. The default remains 1×; link play also uses 1×.",
         "Corrected the initialization order of the SNES core to ensure proper connection of video, audio, and input."
@@ -830,31 +830,31 @@
       "translations": {
         "zh-Hans": [
           "添加了简体和繁体中文、韩语、西班牙语、法语、德语和葡萄牙语。",
-          "应用遵循您偏好的语言，并允许您在“设置”中更改。翻译也支持离线使用。"
+          "会根据设备的语言设置自动选择，也可在设置中切换。翻译在离线时也可使用。"
         ],
         "es": [
           "Se añadieron chino simplificado y tradicional, coreano, español, francés, alemán y portugués.",
-          "La aplicación sigue su idioma preferido y le permite cambiarlo en Configuración. Las traducciones también funcionan sin conexión."
+          "El idioma se selecciona automáticamente según el dispositivo y puedes cambiarlo en Ajustes. Las traducciones también funcionan sin conexión."
         ],
         "fr": [
-          "Ajouté le chinois simplifié et traditionnel, le coréen, l'espagnol, le français, l'allemand et le portugais.",
-          "L'application suit votre langue préférée et vous permet de la changer dans les Paramètres. Les traductions fonctionnent également hors ligne."
+          "Ajout de la prise en charge du chinois simplifié et traditionnel, du coréen, de l’espagnol, du français, de l’allemand et du portugais.",
+          "La langue est choisie automatiquement selon les réglages de l’appareil et peut aussi être modifiée dans Réglages. Les traductions fonctionnent également hors ligne."
         ],
         "de": [
           "Vereinfachtes und Traditionelles Chinesisch, Koreanisch, Spanisch, Französisch, Deutsch und Portugiesisch hinzugefügt.",
           "Die App folgt Ihrer bevorzugten Sprache und ermöglicht Ihnen die Änderung in den Einstellungen. Übersetzungen funktionieren auch offline."
         ],
         "pt": [
-          "Adicionado Chinês Simplificado e Tradicional, Coreano, Espanhol, Francês, Alemão e Português.",
+          "Foi adicionado suporte a chinês simplificado e tradicional, coreano, espanhol, francês, alemão e português.",
           "O aplicativo segue o idioma preferido e permite alterá-lo em Configurações. As traduções também funcionam offline."
         ],
         "ko": [
           "간체 중국어, 번체 중국어, 한국어, 스페인어, 프랑스어, 독일어, 포르투갈어를 추가했습니다.",
-          "앱은 선호하는 언어를 따르며 설정에서 변경할 수 있습니다. 번역은 오프라인에서도 작동합니다."
+          "기기의 언어 설정에 맞춰 자동으로 선택하며 설정에서 바꿀 수도 있습니다. 번역은 오프라인에서도 사용할 수 있습니다."
         ],
         "zh-Hant": [
           "新增了簡體和繁體中文、韓語、西班牙語、法語、德語和葡萄牙語。",
-          "應用遵循您偏好的語言，並允許您在“設定”中更改。翻譯也支援離線使用。"
+          "會依裝置的語言設定自動選擇，也可在設定中切換。翻譯在離線時也可使用。"
         ]
       }
     },
@@ -875,24 +875,24 @@
           "整理了本地化和 UI 组件，并添加了双语发布说明。"
         ],
         "es": [
-          "Se añadieron japonés e inglés. El predeterminado sigue el idioma de su navegador; puede cambiarlo en Configuración.",
-          "Componentes de localización e interfaz de usuario organizados, y se añadieron notas de lanzamiento bilingües."
+          "Se añadió la opción de cambiar entre japonés e inglés. El idioma inicial se elige según el navegador y puedes cambiarlo en Ajustes.",
+          "Se reorganizaron el sistema de traducción y los componentes de la interfaz, y las notas de cambios pasaron a mostrarse en japonés e inglés."
         ],
         "fr": [
-          "Ajouté le japonais et l'anglais. Le défaut suit la langue de votre navigateur ; vous pouvez le changer dans les Paramètres.",
-          "Organisé les composants de localisation et d'interface utilisateur, et ajouté des notes de version bilingues."
+          "Ajout du choix entre le japonais et l’anglais. Par défaut, la langue du navigateur est utilisée ; vous pouvez la modifier dans Réglages.",
+          "Réorganisation du traitement des traductions et des composants de l’interface. Les notes de version sont désormais affichées en japonais et en anglais."
         ],
         "de": [
           "Japanisch und Englisch hinzugefügt. Standardmäßig wird die Sprache Ihres Browsers verwendet; Sie können sie in den Einstellungen ändern.",
           "Lokalisierungs- und UI-Komponenten organisiert und zweisprachige Release Notes hinzugefügt."
         ],
         "pt": [
-          "Adicionado Japonês e Inglês. O padrão segue o idioma do seu navegador; você pode alterar em Configurações.",
-          "Organizado componentes de localização e UI, e adicionados notas de lançamento bilíngues."
+          "Foi adicionada a opção de alternar entre japonês e inglês. O idioma inicial segue o navegador e pode ser alterado em Configurações.",
+          "O sistema de tradução e os componentes da interface foram reorganizados, e as notas de alterações passaram a ser exibidas em japonês e inglês."
         ],
         "ko": [
           "일본어와 영어를 추가했습니다. 기본값은 브라우저 언어를 따르며, 설정에서 변경할 수 있습니다.",
-          "현지화 및 UI 구성 요소를 정리하고 이중 언어 릴리스 노트를 추가했습니다."
+          "번역 처리와 UI 구성 요소를 정리하고 변경 기록도 일본어와 영어로 표시하도록 했습니다."
         ],
         "zh-Hant": [
           "新增了日語和英語。預設語言遵循您的瀏覽器語言；您可以在“設定”中更改。",
@@ -913,32 +913,32 @@
       ],
       "translations": {
         "zh-Hans": [
-          "添加了易读的日语发布说明和最新的鸣谢页更改。",
-          "在支持的情况下，防止游戏过程中下拉手势触发浏览器刷新。"
+          "现在可用日语阅读变更记录，并在致谢页面显示最新更新内容。",
+          "防止游戏中下拉屏幕时触发浏览器重新加载。"
         ],
         "es": [
-          "Se añadieron notas de lanzamiento japonesas legibles y los últimos cambios en la página de créditos.",
-          "Se previno que los gestos de extracción durante el juego activaran la actualización del navegador cuando está soportado."
+          "Se añadieron notas de cambios en japonés y se mostraron las últimas novedades en la página de créditos.",
+          "Se añadieron medidas para evitar que arrastrar la pantalla hacia abajo durante el juego recargue la página del navegador."
         ],
         "fr": [
-          "Ajouté des notes de version japonaises lisibles et les derniers changements sur la page des crédits.",
-          "Prévenu les gestes de tirage vers le bas pendant le jeu pour qu'ils ne déclenchent pas de rafraîchissement du navigateur lorsque cela est pris en charge."
+          "Les notes de version sont désormais disponibles en japonais, et les dernières nouveautés s’affichent sur la page des crédits.",
+          "Les gestes de glissement vers le bas susceptibles de recharger la page du navigateur sont désormais bloqués pendant le jeu."
         ],
         "de": [
-          "Lesbare japanische Release Notes und die neuesten Änderungen auf der Credits-Seite hinzugefügt.",
-          "Verhindert, dass Wischgesten während des Spielens einen Browser-Refresh auslösen, sofern unterstützt."
+          "Die Versionshinweise sind jetzt auf Japanisch verfügbar. Die neuesten Änderungen werden auf der Credits-Seite angezeigt.",
+          "Gesten zum Herunterziehen der Seite, die ein Neuladen im Browser auslösen können, werden während des Spiels unterdrückt."
         ],
         "pt": [
-          "Adicionadas notas de lançamento japonesas legíveis e as últimas alterações na página de créditos.",
-          "Impediu que gestos de puxar para baixo durante o jogo acionassem a atualização do navegador, quando suportado."
+          "Foram adicionadas notas de alterações em japonês e as novidades mais recentes foram exibidas na página de créditos.",
+          "Foram adicionadas medidas para impedir que arrastar a tela para baixo durante o jogo recarregue a página do navegador."
         ],
         "ko": [
-          "읽기 쉬운 일본어 릴리스 노트와 크레딧 페이지의 최신 변경 사항을 추가했습니다.",
-          "지원되는 경우, 게임 플레이 중 아래로 당기는 제스처가 브라우저 새로고침을 유발하는 것을 방지했습니다."
+          "변경 내용을 일본어로 읽을 수 있도록 하고 크레딧 화면에 최신 업데이트 내용을 표시했습니다.",
+          "게임 중 화면을 아래로 당길 때 브라우저 새로고침으로 이어지는 동작을 방지했습니다."
         ],
         "zh-Hant": [
-          "新增了易讀的日語釋出說明和最新的鳴謝頁更改。",
-          "在支援的情況下，防止遊戲過程中下拉手勢觸發瀏覽器重新整理。"
+          "現在可用日語閱讀變更記錄，並在致謝頁面顯示最新更新內容。",
+          "防止遊戲中下拉螢幕時觸發瀏覽器重新載入。"
         ]
       }
     },
@@ -958,8 +958,8 @@
       "translations": {
         "zh-Hans": [
           "添加了新版 Celio 通信格式、接收确认和重试机制。联机仍支持两名玩家。",
-          "修复了 FCEUmm NES 核心中影响某些游戏的内存银行切换问题。",
-          "更新了核心源代码 URL 和鸣谢链接。"
+          "修复了 FCEUmm FC 核心中影响部分游戏的内存映射切换问题。",
+          "更新了核心的获取地址和致谢链接。"
         ],
         "es": [
           "Se añadió el formato moderno de conexión Celio, con confirmaciones de recepción y reintentos. La conexión sigue admitiendo dos jugadores.",
@@ -968,13 +968,13 @@
         ],
         "fr": [
           "Ajout du format moderne de connexion Celio, des accusés de réception et des nouvelles tentatives. La connexion reste limitée à deux joueurs.",
-          "Corrigé un problème de commutation de banque mémoire dans le cœur FCEUmm NES affectant certains jeux.",
-          "Mis à jour les URL sources du cœur et les liens de crédits."
+          "Correction d’un problème de changement de banque mémoire dans le cœur FCEUmm pour NES, qui affectait certains jeux.",
+          "Mise à jour des adresses de téléchargement des cœurs et des liens de la page des crédits."
         ],
         "de": [
           "Modernes Celio-Verbindungsformat, Empfangsbestätigungen und Wiederholungsversuche hinzugefügt. Link-Spiele unterstützen weiterhin zwei Spieler.",
-          "Behob ein Problem beim Wechseln von Speicherbänken im FCEUmm NES Core, das einige Spiele betraf.",
-          "Aktualisiert die Quell-URLs der Cores und die Credit-Links."
+          "Ein Problem beim Umschalten der Speicherbänke im FCEUmm-Core für NES, das einige Spiele betraf, wurde behoben.",
+          "Die Bezugsquellen der Cores und die Links auf der Credits-Seite wurden aktualisiert."
         ],
         "pt": [
           "Adicionado o formato moderno de conexão Celio, com confirmações de recebimento e novas tentativas. A conexão continua com suporte a dois jogadores.",
@@ -984,12 +984,12 @@
         "ko": [
           "최신 Celio 통신 형식, 수신 확인 응답 및 재시도를 추가했습니다. 통신 플레이는 여전히 2인까지 지원합니다.",
           "FCEUmm NES 코어에서 일부 게임에 영향을 미치는 메모리 뱅크 전환 문제를 수정했습니다.",
-          "코어 소스 URL 및 크레딧 링크를 업데이트했습니다."
+          "코어를 받을 수 있는 위치와 크레딧 링크를 업데이트했습니다."
         ],
         "zh-Hant": [
           "新增了新版 Celio 通訊格式、接收確認和重試機制。聯機仍支援兩名玩家。",
-          "修復了 FCEUmm NES 核心中影響某些遊戲的記憶體銀行切換問題。",
-          "更新了核心原始碼 URL 和鳴謝連結。"
+          "修正了 FCEUmm FC 核心中影響部分遊戲的記憶體映射切換問題。",
+          "更新了核心的取得位址和致謝連結。"
         ]
       }
     },
@@ -1015,7 +1015,7 @@
         ],
         "fr": [
           "Ajout d'une protection contre le zoom de page causé par des taps répétés ou des gestes à deux doigts pendant le jeu.",
-          "Préservation du défilement et de la saisie de texte dans le panneau de connexion, ainsi que des taps de menu."
+          "Le défilement et la saisie de texte dans le panneau de connexion, ainsi que les pressions sur les menus, sont préservés."
         ],
         "de": [
           "Schutz vor Seiten-Zoom durch wiederholtes Tippen oder Zwei-Finger-Gesten während des Spielens hinzugefügt.",
@@ -1023,11 +1023,11 @@
         ],
         "pt": [
           "Adicionada proteção contra zoom de página causado por toques repetidos ou gestos de dois dedos durante o jogo.",
-          "Preservado rolagem e entrada de texto no painel de conexão, e toques em menus."
+          "Foram mantidos a rolagem e a entrada de texto no painel de conexão, além dos toques no menu."
         ],
         "ko": [
           "게임 플레이 중 반복적인 탭이나 두 손가락 제스처로 인한 페이지 확대 방지 기능을 추가했습니다.",
-          "링크 패널의 스크롤 및 텍스트 입력, 메뉴 탭을 유지했습니다."
+          "통신 패널의 스크롤과 텍스트 입력, 메뉴의 탭 조작은 유지했습니다."
         ],
         "zh-Hant": [
           "增加了對遊戲過程中因重複點選或雙指手勢導致的頁面縮放的保護。",
@@ -1048,32 +1048,32 @@
       ],
       "translations": {
         "zh-Hans": [
-          "增加了在错过手指抬起事件时恢复卡住按键的功能。",
-          "保留了默认、捆绑和导入皮肤上的长按和同时按下功能。"
+          "即使遗漏了手指抬起事件，也能解除按钮持续按下的状态。",
+          "保留长按和同时按键功能，并将修复应用于默认、内置和导入的皮肤。"
         ],
         "es": [
           "Se añadió recuperación de botones atascados cuando se pierde un evento de liberación de dedo.",
-          "Se preservaron las pulsaciones largas y las pulsaciones simultáneas en diseños predeterminados, empaquetados e importados."
+          "Las medidas se aplican a los diseños predeterminados, incluidos e importados, conservando las pulsaciones largas y simultáneas."
         ],
         "fr": [
           "Ajout de la récupération des boutons bloqués lorsque l'événement de relâchement d'un doigt est manqué.",
-          "Préservation des maintenances et des pressions simultanées sur les habillages par défaut, intégrés et importés."
+          "Les appuis longs et simultanés sont préservés. La correction s’applique aux habillages par défaut, fournis et importés."
         ],
         "de": [
-          "Wiederherstellung von klemmenden Tasten bei verpasstem Fingerablassereignis hinzugefügt.",
-          "Halten und gleichzeitiges Drücken über Standard-, gebündelte und importierte Skins hinweg beibehalten."
+          "Tasten, die wegen eines nicht erkannten Loslassens des Fingers gedrückt blieben, können jetzt wieder freigegeben werden.",
+          "Langes Drücken und gleichzeitige Tastendrücke bleiben erhalten. Die Korrektur gilt für Standard-Skins sowie mitgelieferte und hinzugefügte Skins."
         ],
         "pt": [
           "Adicionada recuperação de botões travados quando um evento de soltura do dedo é perdido.",
-          "Preservados os seguramentos e pressionamentos simultâneos em temas padrão, empacotados e importados."
+          "As medidas foram aplicadas aos temas padrão, incluídos e importados, mantendo os pressionamentos longos e simultâneos."
         ],
         "ko": [
-          "손가락 해제 이벤트가 누락되었을 때 걸린 버튼에서 복구하는 기능을 추가했습니다.",
-          "기본, 번들 및 가져온 모든 스킨에서 누름 유지 및 동시 입력을 유지했습니다."
+          "손가락을 뗀 이벤트를 놓쳐도 버튼이 계속 눌린 상태에서 복구할 수 있도록 했습니다.",
+          "길게 누르기와 동시 입력을 유지하면서 기본·내장·추가 스킨 모두에 수정 사항을 적용했습니다."
         ],
         "zh-Hant": [
-          "增加了在錯過手指抬起事件時恢復卡住按鍵的功能。",
-          "保留了預設、捆綁和匯入皮膚上的長按和同時按下功能。"
+          "即使遺漏了手指放開事件，也能解除按鈕持續按下的狀態。",
+          "保留長按和同時按鍵功能，並將修正套用至預設、內建和匯入的外觀。"
         ]
       }
     }

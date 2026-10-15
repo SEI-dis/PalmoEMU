@@ -854,3 +854,7 @@ code is added. The START native compatibility reader now recognizes strictly
 validated lower/upper predicate calls and preserves rejection of unknown code
 and newer-save downgrades. Disabled controls no longer imply ongoing work.
 Existing conversion engine, native cores, licenses and data formats are unchanged.
+
+### 2026-10-15 — Translation proofreading (unpublished)
+
+Reviewed the eight translated UI catalogues and release notes against the Japanese source. Corrected semantic errors and inconsistent save, save-state, restore, link-play and transparency terminology; aligned the build-time glossary. Original license texts, third-party code and attribution remain unchanged. This is model-assisted linguistic review, not human-native certification or an official translation of license terms.

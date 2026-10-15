@@ -12,12 +12,13 @@
     "pt": "Brazilian Portuguese"
   },
   "glossary": {
-    "zh-Hans": "skin=皮肤, save state=即时存档, core=核心",
-    "zh-Hant": "skin=外觀, save state=即時存檔, core=核心",
-    "ko": "skin=스킨, save state=상태 저장, core=코어",
-    "es": "skin=diseño, save state=estado guardado, core=núcleo",
-    "fr": "skin=habillage, save state=état de sauvegarde, core=cœur; Keep literal units MiB, KiB and MB exactly as written; never replace them with Mio, Kio or Mo.",
-    "de": "skin=Skin, save state=Savestate, core=Core",
-    "pt": "skin=tema, save state=estado salvo, core=núcleo"
+    "zh-Hans": "skin=皮肤, in-game save=游戏内存档, save state=即时存档, core=核心, room=房间, room number=房间号, global settings=全局设置. 游戏内存档 means an in-game save, not memory. Japanese レポート in gameplay means saving within the game. Japanese 透明度 means transparency, not opacity.",
+    "zh-Hant": "skin=外觀, in-game save=遊戲內存檔, save state=即時存檔, core=核心, room=房間, room number=房間號, global settings=全域設定. 遊戲內存檔 means an in-game save; do not convert 內存 into 記憶體 in this phrase. Japanese レポート in gameplay means saving within the game. Japanese 透明度 means transparency, not opacity.",
+    "ko": "skin=스킨, in-game save=게임 내 세이브, save state (noun)=세이브 스테이트, save state (action)=스테이트 저장, core=코어, room=방, room number=방 번호, global settings=공통 설정. Japanese レポート in gameplay means saving within the game. Do not confuse a save-state snapshot with connection status or settings state. Japanese 透明度 means transparency, not opacity.",
+    "es": "skin=diseño, in-game save=partida guardada dentro del juego, save state=estado guardado, core=núcleo, global settings=ajustes generales, room=sala. Use tú consistently for instructions. Japanese レポート in gameplay means saving within the game. Keep importing save data distinct from saving or restoring a save state. Japanese 透明度 means transparency, not opacity.",
+    "fr": "skin=habillage, in-game save=sauvegarde dans le jeu, save state=état de sauvegarde, backup=copie de sauvegarde, core=cœur, global settings=réglages généraux, link play=jeu en connexion, room=salon, cover=jaquette, rewind=retour arrière. Use vous consistently. Japanese レポート in gameplay means saving within the game. Keep literal units MiB, KiB and MB exactly as written; never replace them with Mio, Kio or Mo. Japanese 透明度 means transparency, not opacity.",
+    "de": "skin=Skin (der), in-game save=spielinterner Spielstand, save=Spielstand, save state=Savestate, backup=Sicherung, core=Core (der), global settings=globale Einstellungen, link play=Link-Spiel, room=Raum. Use Sie consistently. Japanese レポート in gameplay means saving within the game. Keep unsupported/invalid distinct from supported/valid. Japanese 透明度 means transparency, not opacity.",
+    "pt": "skin=tema, in-game save=dados salvos dentro do jogo, save state=estado salvo, core=núcleo, global settings=configurações gerais, room=sala. Use Brazilian Portuguese and você consistently. Japanese レポート in gameplay means saving within the game. Keep importing save data distinct from saving or restoring a save state. Japanese 透明度 means transparency, not opacity.",
+    "en": "Use sentence case for UI labels. Japanese ゲーム内セーブ=in-game save, セーブステート=save state, 共通設定=global settings, スキン=skin, コア=core, 通信プレイ=link play, 部屋=room. In game instructions, レポート means the game’s save command, not an error report. Use update checks for checking availability, not installing updates. Keep save, import, export, restore and delete distinct. Japanese 透明度 means transparency, not opacity."
   }
 }
