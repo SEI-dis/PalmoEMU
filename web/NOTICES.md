@@ -858,3 +858,10 @@ Existing conversion engine, native cores, licenses and data formats are unchange
 ### 2026-10-15 — Translation proofreading (unpublished)
 
 Reviewed the eight translated UI catalogues and release notes against the Japanese source. Corrected semantic errors and inconsistent save, save-state, restore, link-play and transparency terminology; aligned the build-time glossary. Original license texts, third-party code and attribution remain unchanged. This is model-assisted linguistic review, not human-native certification or an official translation of license terms.
+
+Version 0.3.32 (2026-10-16) adds original AGPL startup audio-session preservation
+and trusted-input retry while retaining normal pause and teardown behavior.
+It also publishes the preceding reviewed PokemonStart notification, save
+protection, memory diagnostics and translation changes. No additional native
+binary, third-party asset, license, storage format, dependency or endpoint is
+introduced by the audio fix. Corresponding modified source remains included.

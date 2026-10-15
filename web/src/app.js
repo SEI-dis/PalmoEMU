@@ -135,6 +135,14 @@ function updateAudioButton(){
  const target=audioTarget();$('#enable-audio').hidden=!engine||paused||launching||exiting||document.hidden||settings.muted||!settings.volume||!['pending','blocked'].includes(target?.audioState);
 }
 $('#enable-audio').onclick=()=>{const target=audioTarget();if(!paused&&!launching&&!exiting)void target?.unlockAudio({retry:true});};
+// Touch activation is available on release. A pending browser resume must not
+// swallow a later real gesture, but timers/synthetic input must not queue retries.
+function retryGameAudio(event){
+ if(!event.isTrusted||event.repeat||paused||launching||exiting||exitStage||document.hidden||settings.muted||!settings.volume||$('#sheet').open||event.target?.closest?.('#enable-audio'))return;
+ const target=audioTarget();if(['pending','blocked'].includes(target?.audioState))void target.unlockAudio({retry:true});
+}
+$('#player').addEventListener('pointerup',retryGameAudio);
+document.addEventListener('keydown',retryGameAudio);
 function syncRuntime(){
  updateAudioButton();
  const active=!!engine&&!paused&&!exiting&&!launching&&!document.hidden;
@@ -294,7 +302,10 @@ async function launch(game,{safeMode=false,skipRecovery=false}={}){
   if(previous.interrupted)diagnostics.record(null,'previous-session');
   await reloadSkins(false);$('#screen').replaceChildren();
   engine=createCore($('#screen'),game);engine.onAudioState=updateAudioButton;engine.adoptAudio?.(preparedAudio);
-  engine.onKeyboard=showCoreKeyboard;engine.onError=e=>{diagnostics.record(e,'core');setPause(true);void rewindSession.clear({halt:true});error(e);};engine.unlockAudio()?.catch?.(()=>{});engine.setCartridgeOptions?.(settings);engine.setNDSOptions?.(settings);await engine.load(bytes,game,systems[game.system]);engine.pause(true);
+  engine.onKeyboard=showCoreKeyboard;engine.onError=e=>{diagnostics.record(e,'core');setPause(true);void rewindSession.clear({halt:true});error(e);};engine.unlockAudio()?.catch?.(()=>{});engine.setCartridgeOptions?.(settings);engine.setNDSOptions?.(settings);await engine.load(bytes,game,systems[game.system]);
+  // Hold emulation while restoring saves without stopping the audio session
+  // acquired by Play. Restarting it after these awaits may need another tap.
+  engine.pause(true,{preserveAudio:!paused&&!document.hidden});
   if(previous.save?.bytes)await engine.restore(await protection.verify(previous.save));
   engine.pause(false);
   engine.setCheats?.(safeMode||!coreFor(game).cheats?[]:cheatsFor(game));game.lastPlayed=Date.now();await db.setGameDetails(game.id,{lastPlayed:game.lastPlayed});paused=false;playRunAt=Date.now();$('#resume-game').hidden=true;rewindSession.attach(engine,{...game,coreKey:coreFor(game).key});applySettings();layoutSkin();$('#loading').hidden=true;$('#save-status').hidden=false;engine.unlockAudio()?.catch?.(()=>{});startPadPoll();

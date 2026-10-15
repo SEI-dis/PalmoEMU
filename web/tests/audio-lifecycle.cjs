@@ -18,6 +18,9 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
     const flush=async()=>{while(tasks.length){tasks.shift()();await Promise.resolve();}await Promise.resolve();};
     return {core,ac,calls,flush};
    };
+   const initial=make();initial.core.pause(true,{preserveAudio:true});
+   check(initial.core.paused&&initial.ac.state==='running'&&!initial.calls.length,'Startup restore stops emulation without suspending prepared audio');
+   initial.core.pause(true);await initial.flush();check(initial.ac.state==='suspended','Normal pause still suspends audio after startup hold');initial.core.close();
    const f=make();f.core.pause(true);check(f.calls.at(-1)==='suspend','Pause requests AudioContext suspension');
    const opening=f.core.unlockAudio();check(f.calls.at(-1)==='resume','Fast resume queues resume before suspend state notification');await f.flush();await opening;check(f.ac.state==='running','Fast resume ultimately runs audio');
    f.ac.state='suspended';const late=f.core.unlockAudio();f.core.pause(true);await f.flush();await late;await f.flush();check(f.ac.state==='suspended','Late unlock cannot leave audio running after pause');
@@ -26,7 +29,12 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
    check(p.core.paused&&p.ac.state==='running'&&q.ac.state==='suspended','Selected local-link audio runs while child CPU is externally driven');
    pair.select(1);await p.flush();await q.flush();check(p.ac.state==='suspended'&&q.ac.state==='running','Player selection suspends old audio and starts selected audio');
    pair.pause(true);await p.flush();await q.flush();check(p.ac.state==='suspended'&&q.ac.state==='suspended','Pausing local link suspends both outputs');pair.dispose();p.core.close();
-   const d=new ThreeDSCore(document.createElement('div')),s=make();d.ac=s.ac;d.send=()=>{};d.releaseTouch=()=>{};d.pause(true);await s.flush();check(s.ac.state==='suspended','Worker core uses shared suspension');
+   const d=new ThreeDSCore(document.createElement('div')),s=make();d.ac=s.ac;d.send=()=>{};d.releaseTouch=()=>{};
+   d.pause(true,{preserveAudio:true});check(d.paused&&s.ac.state==='running'&&!s.calls.length,'Worker restore hold preserves prepared audio');
+   d.pause(true);await s.flush();check(s.ac.state==='suspended','Worker core uses shared suspension');
+   const {NDSCore}=await import('./src/core/nds.js'),n=new NDSCore(document.createElement('div')),a=make();n.ac=a.ac;
+   n.pause(true,{preserveAudio:true});check(n.paused&&a.ac.state==='running'&&!a.calls.length,'NDS forwards startup audio preservation');
+   n.pause(true);await a.flush();check(a.ac.state==='suspended','NDS normal pause suspends audio');n.close();
    return true;
   });assert.equal(result,true);
   console.log('PASS '+kind+': AudioContext pause/resume ordering, late unlock, refusal, local-link selected output and 3DS suspension. Physical iOS audio-session behavior untested.');

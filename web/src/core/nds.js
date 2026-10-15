@@ -82,7 +82,7 @@ export class NDSCore extends MGBACore {
  }
  touchAt(x,y){if(this.paused||x<0||y<0||x>=1||y>=1){this.releaseTouch();return;}this.m?._web_touch(Math.min(32767,Math.round(x*65535-32768)),Math.min(32767,Math.round(y*32768)),1);}
  releaseTouch(){this.m?._web_touch(0,0,0);}
- pause(value){super.pause(value);if(value){this.stopBlowing();this.pointer=null;this.releaseTouch();}}
+ pause(value,options){super.pause(value,options);if(value){this.stopBlowing();this.pointer=null;this.releaseTouch();}}
  draw(){
   const serial=this.m._web_frame_serial();if(serial===this.lastSerial)return;this.lastSerial=serial;
   const ptr=this.m._web_pixels(),bytes=256*192*4;

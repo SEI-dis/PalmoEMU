@@ -188,7 +188,7 @@ export class MGBACore {
     const sources=[...this.sources];this.sources.clear();this.nextAudio=0;
     cleanupCoreResources([...sources.map(source=>()=>{source.onended=null;try{source.stop();}catch{}source.disconnect();}),()=>this.stretch?.reset()]);
   }
-  pause(value){this.paused=value;this.sensors?.pause(value);this.rumble?.pause(value);this.keys=0;this.clock=null;if(value){cancelAnimationFrame(this.raf);this.raf=null;this.suspendAudio();}else this.scheduleFrame();}
+  pause(value,{preserveAudio=false}={}){this.paused=value;this.sensors?.pause(value);this.rumble?.pause(value);this.keys=0;this.clock=null;if(value){cancelAnimationFrame(this.raf);this.raf=null;if(preserveAudio)this.stopAudio();else this.suspendAudio();}else this.scheduleFrame();}
   setVolume(v){if(!v&&this.volume)this.stopAudio();this.volume=v;if(this.gain)this.gain.gain.value=v;}
   setPreservePitch(value){value=!!value;if(this.preservePitch===value)return;this.preservePitch=value;this.stopAudio();this.stretch=null;}
   setSpeed(v){v=Math.max(1,Math.min(5,Number(v)||1));if(this.speed===v)return;this.speed=v;this.stopAudio();this.clock=null;}
