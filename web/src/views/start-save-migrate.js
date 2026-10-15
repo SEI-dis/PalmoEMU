@@ -29,14 +29,14 @@ export function createStartSaveDialog(api){
   if(inspected.version&&!START_SOURCE_VERSIONS.some(entry=>entry.version===inspected.version))$('#start-save-version').add(new Option(inspected.version,inspected.version));
   $('#start-save-version').value=inspected.version||'';
   const update=()=>{
-   const from=$('#start-save-version').value,compatible=compatibility.status==='compatible',unknown=compatibility.status==='unknown',valid=!!from&&!validationError;
+   const from=$('#start-save-version').value,compatible=compatibility.status==='compatible',unknown=compatibility.status==='unknown',downgrade=compatibility.status==='downgrade',valid=!!from&&!validationError;
    if(!from||unknown||validationError)$('#start-version-required').append($('#start-version-field'));
-   const allowed=valid&&!blockedTarget&&START_SOURCE_VERSIONS.some(entry=>entry.version===from)&&(!unknown||$('#start-save-unverified').checked);
+   const allowed=valid&&!blockedTarget&&!downgrade&&START_SOURCE_VERSIONS.some(entry=>entry.version===from)&&(!unknown||$('#start-save-unverified').checked);
    $('#start-save-apply').disabled=compatible?(!onCopy||!valid):!allowed;$('#start-save-export').disabled=compatible||!allowed;
    $('#start-save-apply').textContent=compatible?tr('変換せずに引き継ぐ'):canApply?tr('セーブデータを変換して更新'):tr('変換セーブを書き出す');
    $('#start-save-unverified-row').hidden=!unknown||!valid;
    $('#start-save-copy').hidden=!onCopy||!unknown||!valid||blockedTarget;
-   $('#start-save-note').textContent=compatible?tr('このセーブは変換せずに引き継げます。'):unknown?tr('この組み合わせで変換が必要かは未確認です。元のバージョンと作者の案内を確認してください。'):tr('この旧版のセーブは、そのままでは新版で続きから遊べないため、変換して更新します。');
+   $('#start-save-note').textContent=downgrade?tr('このセーブは更新先ROMより新しいため、引き継げません。元のデータは変更していません。'):compatible?tr('このセーブは変換せずに引き継げます。'):unknown?tr('この組み合わせで変換が必要かは未確認です。元のバージョンと作者の案内を確認してください。'):tr('この旧版のセーブは、そのままでは新版で続きから遊べないため、変換して更新します。');
    $('#start-save-status').textContent=validationError||(blockedTarget?tr('このROMへのセーブ変換には未対応です。元のデータは変更していません。'):from?`${from} → ${targetVersion}`:tr('移行元のバージョンを選択してください。'));
   };
   update();$('#start-save-unverified').onchange=update;

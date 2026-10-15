@@ -1435,5 +1435,6 @@ export default {
  "ゲーム ⟪0⟫": "Spiel ⟪0⟫",
  "通信状態を確認して、もう一度お試しください。改善しない場合はアプリを更新してください。": "Überprüfen Sie Ihren Verbindungsstatus und versuchen Sie es erneut. Wenn sich das Problem nicht behebt, aktualisieren Sie die App.",
  "セーブデータは変更していません。": "Der Spielstand wurde nicht geändert.",
- "再読み込み": "Neu laden"
+ "再読み込み": "Neu laden",
+ "このセーブは更新先ROMより新しいため、引き継げません。元のデータは変更していません。": "Dieser Spielstand stammt aus einer neueren Version als das Ziel-ROM und kann nicht übernommen werden. Die ursprünglichen Daten wurden nicht geändert."
 };

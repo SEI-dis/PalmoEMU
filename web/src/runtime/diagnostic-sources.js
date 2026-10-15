@@ -83,6 +83,7 @@ export const diagnosticSources = [
  "src/rendering/time-stretch.js",
  "src/rendering/video.js",
  "src/runtime/diagnostic-sources.js",
+ "src/runtime/memory-diagnostics.js",
  "src/runtime/performance.js",
  "src/runtime/screen-awake.js",
  "src/shared.js",

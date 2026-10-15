@@ -36,6 +36,7 @@ self.onmessage=async({data})=>{
   if(data.hash!==digest||data.at!==save.at)throw Error(tr('元のセーブが変わりました。内容を確認してやり直してください。'));
   const compatibility=inspectStartUpdate(save.bytes,data.from,targetProfile).compatibility;
   if(data.action==='classify'){self.postMessage({type:'done',compatibility});return;}
+  if(compatibility.status==='downgrade')throw Error(tr('このセーブは更新先ROMより新しいため、引き継げません。元のデータは変更していません。'));
   if(!canApplyStartMigration(targetProfile))throw Error(tr('このROMへのセーブ変換には未対応です。元のデータは変更していません。'));
   if(compatibility.status==='compatible')throw Error(tr('このセーブは変換せずに引き継げます。'));
   if(compatibility.status==='unknown'&&data.allowUnverified!==true)throw Error(tr('変換の必要性が未確認です。内容を確認してください。'));

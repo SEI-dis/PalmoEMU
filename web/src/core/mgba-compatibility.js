@@ -3,12 +3,12 @@
 // No ROM, save, or game source is distributed. See the compatibility section in README.md.
 import {tr} from '../i18n/index.js';
 import {findExtendedSaveProbe} from './mgba-save-probe.js';
+import {allocateCoreMemory,romSizeClass,wasmMemoryBytes,withAllocation} from '../runtime/memory-diagnostics.js';
 
 export async function loadCompatibleMGBA(m,bytes){
   // Work on the core's temporary copy, not the caller's bytes or IndexedDB.
   // Checking and loading this same copy also avoids trusting a stale library ID.
-  const p=m._malloc(bytes.length);
-  if(!p)throw new Error(tr('メモリを確保できませんでした。'));
+  const romClass=romSizeClass(bytes.length),p=allocateCoreMemory(m,bytes.length,'rom-load',romClass);
   let transferred=false;
   try{
     m.HEAPU8.set(bytes,p);
@@ -20,8 +20,9 @@ export async function loadCompatibleMGBA(m,bytes){
       const apply=!!correction&&Number.isFinite(limit)&&limit>=correction.requiredSaveBytes;
       if(apply)m.HEAPU8[p+correction.offset]=1;
       transferred=true;
+      const memoryBytesBefore=wasmMemoryBytes(m);
       const result=m._web_load_owned(p,bytes.length);
-      if(result===-1)throw new Error(tr('メモリを確保できませんでした。'));
+      if(result===-1)throw withAllocation(new Error(tr('メモリを確保できませんでした。')),{operation:'rom-load',reason:'native-init',memoryBytesBefore,romSizeClass:romClass});
       if(result!==1)throw new Error(tr('このROMを読み込めませんでした。形式を確認してください。'));
       return apply?'expanded-save-detection':null;
     }

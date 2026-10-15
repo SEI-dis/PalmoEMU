@@ -7,6 +7,7 @@ import {loadCoreResource} from './load-resource.js';
 import {VideoOutput} from '../rendering/video.js';
 import {screenBounds} from '../skins/control-layout.js';
 import {coreFor} from './core-registry.js';
+import {romSizeClass} from '../runtime/memory-diagnostics.js';
 const factories=new Map();
 export const ndsLanguages=['default','ja','en','fr','de','it','es'];
 function loadFactory(directory){
@@ -38,13 +39,14 @@ export class NDSCore extends MGBACore {
  }
  async load(bytes,game={system:'nds'}){
   if(bytes instanceof Blob)bytes=new Uint8Array(await bytes.arrayBuffer());
+  this.romSizeClass=romSizeClass(bytes.length);
   this.core=coreFor(game);const module=await loadCoreResource(async()=>{const create=await loadFactory(this.core.directory);return create({locateFile:()=>new URL(`../../cores/${this.core.directory}/core.wasm`,import.meta.url).href});});
   if(this.closed)throw new DOMException('Core closed during loading','AbortError');
   this.m=module;
   // Firmware is created during core initialization. Live settings are retained
   // for the next launch, never applied by resetting the current game.
   this.m._web_set_language?.(ndsLanguages.indexOf(this.ndsLanguage||'default')-1);
-  this.copyIn(bytes,(p,n)=>{if(!this.m._web_load(p,n))throw Error(tr('このNDS ROMを読み込めませんでした。'));});
+  this.copyIn(bytes,(p,n)=>{if(!this.m._web_load(p,n))throw Error(tr('このNDS ROMを読み込めませんでした。'));},'rom-load');
   this.width=256;this.height=384;this.fps=this.m._web_fps();this.startLoop();
  }
  setNDSOptions({ndsLanguage='default'}={}){this.ndsLanguage=ndsLanguages.includes(ndsLanguage)?ndsLanguage:'default';}
@@ -100,7 +102,7 @@ export class NDSCore extends MGBACore {
  }
  setCheats(list){
   const enabled=list.filter(c=>c.enabled);if(enabled.some(c=>c.code.length>=1024||!/^[\da-fA-F\s+]+$/.test(c.code)))throw Error(tr('NDSはAction Replay形式（16進数、1023文字以内）で入力してください。'));
-  this.m._web_cheat_reset();const enc=new TextEncoder();enabled.forEach((c,i)=>this.copyIn(enc.encode(c.code.replace(/\n/g,'+')+'\0'),p=>this.m._web_cheat_set(i,1,p)));
+  this.m._web_cheat_reset();const enc=new TextEncoder();enabled.forEach((c,i)=>this.copyIn(enc.encode(c.code.replace(/\n/g,'+')+'\0'),p=>this.m._web_cheat_set(i,1,p),'cheat-code'));
  }
  close(){
   if(this.closed)return;

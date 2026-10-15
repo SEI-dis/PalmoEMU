@@ -33,6 +33,81 @@ function privateFree(value){
   await page.locator('[data-tab=settings]').click();await page.locator('[data-action=diagnostics]').click();
   assert.equal(await page.locator('#diagnostics-enabled').isChecked(),true);assert.deepEqual((await exportReport()).reports,[]);await page.locator('#close-sheet').click();
 
+  const allocationChecks=await page.evaluate(async marker=>{
+   const {MGBACore}=await import('./src/core/mgba.js'),{loadCompatibleMGBA}=await import('./src/core/mgba-compatibility.js');
+   const {allocateCoreMemory,romSizeClass,wasmMemoryBytes,withAllocation,safeAllocation}=await import('./src/runtime/memory-diagnostics.js');
+   const {importROM}=await import('./src/library/rom-import.js');
+   const input=new Uint8Array([7,9,13]),reports=[],caught=[];
+   async function record(action,source='startup'){
+    try{await action();throw Error('Expected injected failure');}catch(error){
+     if(error.message==='Expected injected failure')throw error;
+     caught.push(error);diagnostics.record(error,source);const report=diagnostics.list().at(-1);reports.push(report);return report;
+    }
+   }
+   const nullModule={HEAPU8:new Uint8Array(128),_malloc(){this.HEAPU8=new Uint8Array(256);return 0;}};
+   await record(()=>loadCompatibleMGBA(nullModule,input));
+   let frees=0,nativeCalls=0;
+   const core=new MGBACore({});core.romSizeClass='up-to-64MiB';core.m={HEAPU8:new Uint8Array(128),_malloc:()=>0,_free:()=>frees++,_web_close(){},_web_save_import:()=>nativeCalls++,_web_state_import:()=>nativeCalls++};
+   await record(()=>core.restore(input));await record(()=>core.loadState(input));
+   await record(()=>core.setCheats([{name:marker,code:marker,type:0,enabled:true}]));
+   let allocations=0;core.m._malloc=()=>++allocations===1?8:0;
+   await record(()=>core.setCheats([{name:marker,code:marker,type:0,enabled:true}]));
+   const denied=new RangeError(marker),throwModule={HEAPU8:new Uint8Array(128),_malloc(){throw denied;}};
+   await record(()=>allocateCoreMemory(throwModule,12,'save-import','up-to-64MiB'));
+   const sameException=caught.at(-1)===denied;
+   const callbackError=new Error(marker);core.m._malloc=()=>8;
+   let callbackIdentity=false;
+   try{core.copyIn(input,()=>{throw callbackError;},'save-import');}catch(error){callbackIdentity=error===callbackError&&!error.allocation;}
+   const afterCopy=[...core.m.HEAPU8.slice(8,11)];
+   const native={HEAPU8:new Uint8Array(128),_malloc:()=>8,_free:()=>frees++,_web_gba_save_capacity:()=>6291456,_web_load_owned(){this.HEAPU8=new Uint8Array(256);return -1;}};
+   await record(()=>loadCompatibleMGBA(native,input));
+   const legacy={HEAPU8:new Uint8Array(128),_malloc:()=>8,_free:()=>frees++,_web_load:()=>0};
+   let legacyAllocation;try{await loadCompatibleMGBA(legacy,input);}catch(error){legacyAllocation=error.allocation||null;}
+   // The failed call's captured capacity survives later core teardown.
+   core.close();const afterClose=caught[1].allocation;
+   const frozen=Object.freeze(new Error(marker));
+   const frozenIdentity=withAllocation(frozen,{operation:'save-import',reason:'malloc-null',requestedBytes:3,memoryBytesBefore:128})===frozen;
+   const originalWorker=window.Worker;
+   try{
+    let active;
+    window.Worker=class{constructor(){active=this;}postMessage(){}terminate(){this.stopped=true;}};
+    for(const archive of [false,true]){
+     const task=importROM({name:marker+(archive?'.zip':'.gba'),size:64*1048576},'gba');
+     active.onmessage({data:{type:'progress',phase:'reading',name:marker,total:64*1048576}});
+     active.onmessage({data:{type:'error',name:'NotReadableError',message:marker,addedCount:0}});
+     await record(()=>task,'import');if(!active.stopped)throw Error('Worker was not terminated');
+    }
+   }finally{window.Worker=originalWorker;}
+   const malformed=safeAllocation({operation:'rom-load',reason:'native-init',requestedBytes:64*1048576,memoryBytesBefore:Infinity,romSizeClass:marker,secret:marker});
+   const invalid=safeAllocation({get operation(){throw Error(marker);}})||null;
+   const unavailable=wasmMemoryBytes({get HEAPU8(){throw Error(marker);}});
+   return {reports,afterClose,sameException,callbackIdentity,afterCopy,input:[...input],nativeCalls,frees,legacyAllocation,frozenIdentity,malformed,invalid,unavailable,
+    sizes:[0,1,4*1048576,4*1048576+1,16*1048576+1,32*1048576+1,64*1048576+1,128*1048576+1,512*1048576+1,NaN].map(romSizeClass)};
+  },marker);
+  const details=allocationChecks.reports.map(report=>report.error.allocation);
+  assert.deepEqual(details.slice(0,7).map(d=>[d.operation,d.reason,d.requestedBytes,d.memoryBytesBefore,d.romSizeClass]),[
+   ['rom-load','malloc-null',3,128,'up-to-4MiB'],['save-import','malloc-null',3,128,'up-to-64MiB'],['state-import','malloc-null',3,128,'up-to-64MiB'],
+   ['cheat-name','malloc-null',marker.length+1,128,'up-to-64MiB'],['cheat-code','malloc-null',marker.length+1,128,'up-to-64MiB'],
+   ['save-import','malloc-exception',12,128,'up-to-64MiB'],['rom-load','native-init',null,128,'up-to-4MiB']
+  ]);
+  assert.deepEqual(allocationChecks.reports.slice(-2).map(r=>({source:r.source,error:r.error})),[
+   {source:'import',error:{name:'NotReadableError',category:'file-read',importContext:{stage:'reading',romSizeClass:'up-to-64MiB'}}},
+   {source:'import',error:{name:'NotReadableError',category:'file-read',importContext:{stage:'reading',romSizeClass:'unknown'}}}
+  ]);
+  assert.deepEqual(allocationChecks.afterClose,details[1]);assert.ok(allocationChecks.sameException&&allocationChecks.callbackIdentity&&allocationChecks.frozenIdentity);
+  assert.equal(allocationChecks.nativeCalls,0);assert.equal(allocationChecks.frees,3,'Outer cheat copy, callback failure and legacy load free once; native-owned failure is not freed twice');
+  assert.deepEqual(allocationChecks.input,[7,9,13]);assert.deepEqual(allocationChecks.afterCopy,[7,9,13]);assert.equal(allocationChecks.legacyAllocation,null);
+  assert.deepEqual(allocationChecks.malformed,{operation:'rom-load',reason:'native-init',requestedBytes:null,memoryBytesBefore:null,romSizeClass:'unknown'});
+  assert.equal(allocationChecks.invalid,null);assert.equal(allocationChecks.unavailable,null);
+  assert.deepEqual(allocationChecks.sizes,['unknown','up-to-4MiB','up-to-4MiB','up-to-16MiB','up-to-32MiB','up-to-64MiB','up-to-128MiB','up-to-512MiB','over-512MiB','unknown']);
+  privateFree(allocationChecks);
+  await page.reload();await page.evaluate(async()=>{window.diagnostics=(await import('./src/diagnostics.js')).diagnostics;});
+  const retained=await page.evaluate(()=>diagnostics.list());privateFree(retained);assert.ok(retained.some(r=>r.error.allocation?.reason==='native-init'),'Allocation metadata survives serialization and reload');
+  assert.ok(retained.some(r=>r.error.importContext?.romSizeClass==='up-to-64MiB'));
+  await page.locator('[data-tab=settings]').click();await page.locator('[data-action=diagnostics]').click();
+  assert.ok((await exportReport()).reports.some(r=>r.error.allocation?.requestedBytes===null));await page.locator('#close-sheet').click();
+  await page.evaluate(()=>diagnostics.clear());
+
   const canaries=await page.evaluate(async marker=>{
    const db=await import('./src/storage/storage.js'),id='diagnostic-data-canary';
    await db.addGame({id,name:marker,filename:marker+'.nds',system:'nds',size:4},new Uint8Array([41,42,43,44]));
@@ -79,6 +154,8 @@ function privateFree(value){
    report.message=marker;report.stack='https://private.invalid/'+marker;report.userAgent='Mozilla/'+marker;
    report.context={...report.context,filename:marker+'.nds',hash:marker,bytes:'secret-save-bytes',url:'https://private.invalid/'+marker};
    report.environment={...report.environment,userAgent:'Mozilla/'+marker};report.app={...report.app,custom:marker};
+   report.error.allocation={operation:marker,reason:'malloc-null',requestedBytes:marker,memoryBytesBefore:marker,romSizeClass:marker,bytes:'secret-save-bytes'};
+   report.error.importContext={stage:marker,romSizeClass:marker};
    report.frames.push({file:'../../private-user-name/'+marker,line:3,column:4,url:'https://private.invalid/'+marker});
    saved.private=marker;saved.reports.push({message:marker,stack:marker});localStorage.setItem(key,JSON.stringify(saved));
   },{key,marker});
@@ -90,7 +167,7 @@ function privateFree(value){
   const exported=await exportReport();assert.ok(exported.reports.length>0);
   await page.locator('#diagnostics-enabled').uncheck();assert.equal(await page.evaluate(()=>diagnostics.isEnabled()),false);
   const disabledCount=await page.evaluate(()=>diagnostics.list().length);
-  await page.evaluate(marker=>diagnostics.record(new Error(marker),'handled'),marker);
+  await page.evaluate(async marker=>{const {withAllocation}=await import('./src/runtime/memory-diagnostics.js');diagnostics.record(withAllocation(new Error(marker),{operation:'save-import',reason:'malloc-null',requestedBytes:3,memoryBytesBefore:128}),'handled');},marker);
   assert.equal(await page.evaluate(()=>diagnostics.list().length),disabledCount,'Opt-out suppresses additional records');
   const disabledExport=await exportReport();assert.equal(disabledExport.reports.length,disabledCount,'Opt-out leaves existing records exportable');
   await page.reload();await page.evaluate(async()=>{window.diagnostics=(await import('./src/diagnostics.js')).diagnostics;});assert.equal(await page.evaluate(()=>diagnostics.isEnabled()),false,'Opt-out survives reload');

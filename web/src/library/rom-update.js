@@ -43,6 +43,7 @@ export async function finishROMUpdate(plan,game,rom,onProgress){
     if(!target||!operation||!!plan.startCopy===!!plan.startMigration)throw Error(tr('セーブの互換性を確認できませんでした。内容を確認してやり直してください。'));
     const compatibility=inspectStartUpdate(save.bytes,operation.from,target);
     const status=compatibility.compatibility.status;
+    if(status==='downgrade')throw Error(tr('このセーブは更新先ROMより新しいため、引き継げません。元のデータは変更していません。'));
     if(plan.startCopy){
      if(status!=='compatible'&&!(status==='unknown'&&operation.allowUnverified===true&&canApplyStartMigration(target)))throw Error(tr('セーブの互換性を確認できませんでした。内容を確認してやり直してください。'));
     }else{

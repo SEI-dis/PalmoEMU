@@ -8,8 +8,14 @@ const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixture
  for(const from of ['0.1','0.22','0.35.0','0.35.4','0.36.0','0.36.1'])assert.deepEqual(policy(from),{status:'convert',from,to:'0.42.3'});
  for(const from of ['0.36.2','0.37.0'])assert.deepEqual(policy(from),{status:'unknown',from,to:'0.42.3'});
  for(const from of ['0.38.0','0.38.1','0.39.0','0.40.0','0.41.1','0.42.0','0.42.2','0.42.3'])assert.deepEqual(policy(from),{status:'compatible',from,to:'0.42.3'});
- for(const from of [null,undefined,'','0.36.9','0.42.4','1.0.0','not-a-version'])assert.equal(policy(from).status,'unknown','Unlisted source: '+from);
- for(const to of ['0.38.0','1.0.0','unknown',null])for(const from of ['0.35.0','0.40.0'])assert.equal(policy(from,to).status,'unknown','Unverified target: '+to);
+ for(const from of [null,undefined,'','0.36.9','1.0.0','not-a-version'])assert.equal(policy(from).status,'unknown','Unlisted source: '+from);
+ for(const to of ['1.0.0','unknown',null])for(const from of ['0.35.0','0.40.0'])assert.equal(policy(from,to).status,'unknown','Unverified target: '+to);
+ assert.equal(policy('0.35.0','0.38.0').status,'unknown');
+ for(const [from,to] of [['0.42.4','0.42.3'],['0.40.0','0.38.0'],['0.46.0','0.45.1'],['0.42.3','0.40.0']]){
+  for(const target of [to,{version:to,minimumSaveVersion:'0.36.2'},{version:to,minimumSaveVersion:null}])assert.equal(policy(from,target).status,'downgrade');
+  assert.equal(policy(from,{version:to,unverified:true}).status,'unknown','Unverified identity cannot establish a downgrade');
+ }
+ for(const to of ['0.46.0','0.47.0'])assert.equal(policy('0.46.0',{version:to,minimumSaveVersion:'0.36.2'}).status,'compatible');
  for(const to of ['0.40.0','0.42.2','0.42.4','0.42.5']){assert.equal(policy('0.35.0',to).status,'convert');assert.equal(policy('0.38.0',to).status,'compatible');}
  for(const version of ['0.42.5','0.43.0','0.99.1']){
   const target={version,minimumSaveVersion:'0.36.2'};
@@ -24,6 +30,10 @@ const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixture
  assert.equal(canApply({version:'0.42.5',unverified:true}),false);
  const {detectStartSaveVersion:detect}=await import('../src/start-save/migration.js');
  const newSave=fixture35({stamp:0x2a05,second:true});assert.equal(detect(newSave),'0.42.5');
+ const recent=fixture35({stamp:0x2e00,second:true}),recentHash=hash(recent);
+ assert.equal(inspect(recent,'0.46.0',{version:'0.45.1',minimumSaveVersion:'0.36.2'}).compatibility.status,'downgrade');
+ assert.throws(()=>inspect(recent,'0.40.0',{version:'0.45.1',minimumSaveVersion:'0.36.2'}),{code:'START_MISMATCH'},'A false older source version cannot bypass downgrade refusal');
+ assert.equal(hash(recent),recentHash,'Downgrade inspection preserves both save slots');
  assert.equal(inspect(newSave,'0.42.5',{version:'0.43.0',minimumSaveVersion:'0.36.2'}).compatibility.status,'compatible');
  assert.throws(()=>inspect(newSave,'0.35.0'),{code:'START_MISMATCH'});
  assert.equal(detect(fixture35({stamp:0x2a03,second:true})),'0.42.3');

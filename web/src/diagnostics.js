@@ -5,6 +5,7 @@ import {coreRegistry} from './core/core-registry.js';
 import {videoFilters} from './rendering/video.js';
 import {diagnosticSources} from './runtime/diagnostic-sources.js';
 import {performanceDiagnostics} from './runtime/performance.js';
+import {safeAllocation,safeImportContext} from './runtime/memory-diagnostics.js';
 
 const key='palmo-diagnostics-v1',limit=5,frameLimit=8;
 const sources=new Set(['handled','global-error','unhandled-rejection','core','startup','import','save','previous-session','update']);
@@ -75,7 +76,8 @@ function safeError(value,source){
  const name=member(field(value,'name'),errorNames,'Error');
  if(source==='update')return {name,category:'update',reason:member(field(value,'reason'),updateReasons,'unknown'),phase:member(field(value,'phase'),updatePhases,'unknown'),worker:member(field(value,'worker'),workerStates,'unknown'),online:typeof field(value,'online')==='boolean'?field(value,'online'):null};
  const category=({QuotaExceededError:'storage-quota',DataCloneError:'storage-clone',NotReadableError:'file-read',AbortError:'aborted',SecurityError:'permission',NotAllowedError:'permission',NetworkError:'network',RuntimeError:'wasm',CompileError:'wasm',LinkError:'wasm',RangeError:'range',TypeError:'type'})[name]||'runtime';
- return {name,category};
+ const allocation=safeAllocation(field(value,'allocation')),importContext=safeImportContext(field(value,'importContext'));
+ return {name,category,...(allocation?{allocation}:{}),...(importContext?{importContext}:{})};
 }
 function safeReport(value){
  const time=field(value,'time');if(typeof time!=='string'||!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(time)||!Number.isFinite(Date.parse(time)))return;

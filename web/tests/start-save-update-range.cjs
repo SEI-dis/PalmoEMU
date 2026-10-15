@@ -128,13 +128,64 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   },{source:sources.old,target:incompatible.id,name:path.basename(targetFile)});
   assert.deepEqual(denied,{rejected:true,library:false,save:false,backup:false,source:hash(original)});
   assert.deepEqual(await committed(sources.old,future.id,'0.42.3'),convertedFuture,'Refused update preserves the successful backup and target too');
+
+  // A newer save must never be an opt-in unknown copy into an older ROM.
+  // Use a misleading older cartridge/name: the save's own stamp wins.
+  const recentSave=fixture35({stamp:0x2e00,second:true});
+  await context.route('**/__range-save-recent',route=>route.fulfill({body:Buffer.from(recentSave),contentType:'application/octet-stream'}));
+  await page.evaluate(async id=>{
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js');
+   const bytes=new Uint8Array(await(await fetch('./__range-save-recent')).arrayBuffer());
+   await db.put('saves',id,{bytes,hash:await hash(bytes),at:200});
+  },future.id);
+  for(const version of ['0.42.5','0.45.1']){
+   const older=await selectProfile(version,'0.36.2');
+   await openUpdate(future.id);await page.locator('#start-save-apply').waitFor();
+   await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled);
+   assert.equal(await page.locator('#start-save-version').inputValue(),'0.46.0');
+   const refusal='このセーブは更新先ROMより新しいため、引き継げません。元のデータは変更していません。';
+   assert.equal(await page.locator('#start-save-note').textContent(),refusal);
+   assert.equal(await page.locator('#start-save-apply').isDisabled(),true);
+   assert.equal(await page.locator('#start-save-export').isDisabled(),true);
+   assert.equal(await page.locator('#start-save-copy').isVisible(),false);
+   assert.equal(await page.locator('#start-save-unverified-row').isVisible(),false);
+   assert.equal(await page.locator('#rom-update-confirm').count(),0);
+   const guarded=await page.evaluate(async({source,name,expected})=>{
+    const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/library/rom-import.js');
+    const {prepareROMUpdate,finishROMUpdate,readROMUpdateBackup}=await import('./src/library/rom-update.js'),{startSaveTask}=await import('./src/start-save/client.js');
+    const rom=new Uint8Array(await(await fetch('./__range-target')).arrayBuffer()),file=new File([rom],name),inspected=await importROM(file,'gba',null,{inspectOnly:true});
+    const plan=await prepareROMUpdate(source,inspected.game);
+    const snapshot=async id=>{
+     const game=await db.get('library',id),saved=await db.get('saves',id),storedROM=await db.get('roms',id),backup=await db.get('coverCatalogs',db.romUpdateMetadataPrefix+id);
+     return {game:JSON.stringify(game??null),save:saved?{hash:await hash(saved.bytes),at:saved.at}:null,rom:storedROM?await hash(storedROM instanceof Blob?await storedROM.arrayBuffer():storedROM):null,backup:backup?{hash:await hash(backup.save.bytes),at:backup.save.at}:null};
+    };
+    const before=await Promise.all([snapshot(source),snapshot(inspected.game.id)]),messages=[];
+    for(const key of ['startCopy','startMigration']){
+     for(const from of ['0.46.0','0.35.0']){
+      try{await finishROMUpdate({...plan,[key]:{from,allowUnverified:true}},inspected.game,rom);messages.push(null);}
+      catch(error){messages.push(error.message);}
+     }
+    }
+    const target=await db.has('library',inspected.game.id)?{targetId:inspected.game.id}:{targetProfile:inspected.startROM};
+    const info=await startSaveTask({action:'inspect',id:source,...target});
+    let workerError=null;
+    try{await startSaveTask({action:'convert',id:source,...target,from:'0.46.0',hash:info.hash,at:info.at,allowUnverified:true});}
+    catch(error){workerError=error.message;}
+    const oldBackup=await readROMUpdateBackup(await db.get('library',source));
+    return {allRejected:messages.every(Boolean),explicit:messages[0]===expected&&messages[2]===expected,workerError,classification:info.compatibility.status,before,after:await Promise.all([snapshot(source),snapshot(inspected.game.id)]),oldBackup:await hash(oldBackup.save.bytes)};
+   },{source:future.id,name:path.basename(targetFile),expected:refusal});
+   assert.equal(guarded.allRejected,true);assert.equal(guarded.explicit,true);assert.equal(guarded.workerError,refusal);assert.equal(guarded.classification,'downgrade');
+   assert.deepEqual(guarded.after,guarded.before,'Refusal must preserve both library entries, original ROMs, saves and existing update backups');
+   assert.equal(guarded.oldBackup,hash(original),'The update-before backup remains available independently of the rejected new save');
+  }
   assert.equal(await page.evaluate(()=>coreAttempts),0);assert.deepEqual(errors,[]);
   assert(requests.filter(request=>/^https?:/.test(request.url())).every(request=>new URL(request.url()).origin===new URL(base).origin&&['GET','HEAD'].includes(request.method())&&!request.postData()));
   await context.close();
-  console.log('PASS: real ROM-update UI handles 0.35.0→0.42.5 and future native save boundaries, compatible byte-identical copy, incompatible future refusal, immutable originals/backups and no synthetic core execution. '+kind);
+  console.log('PASS: ROM-update UI, forward conversion/copy, newer-save downgrade refusal in UI/commit/Worker, forged source versions, existing/absent targets, immutable originals/backups and no synthetic core execution. '+kind);
  }finally{
   if(browser)await browser.close();
   for(const file of files)if(fs.existsSync(file))fs.unlinkSync(file);
   fs.rmdirSync(directory);
  }
-})().catch(error=>{console.error(error);process.exitCode=1;});
+// Assertions, owned-browser cleanup and temporary-file cleanup finish first.
+})().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

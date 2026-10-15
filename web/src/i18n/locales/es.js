@@ -1435,5 +1435,6 @@ export default {
  "ゲーム ⟪0⟫": "Juego ⟪0⟫",
  "通信状態を確認して、もう一度お試しください。改善しない場合はアプリを更新してください。": "Verifique el estado de la conexión y vuelva a intentarlo. Si no mejora, actualice la aplicación.",
  "セーブデータは変更していません。": "Los datos guardados no han cambiado.",
- "再読み込み": "Recargar"
+ "再読み込み": "Recargar",
+ "このセーブは更新先ROMより新しいため、引き継げません。元のデータは変更していません。": "Este guardado es más reciente que el ROM de destino, por lo que no se puede transferir. Los datos originales no han sido modificados."
 };
