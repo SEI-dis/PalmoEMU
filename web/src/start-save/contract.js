@@ -14,6 +14,8 @@ export function defineStartComponent(manifest){
   const number=startVersionNumber(entry?.version);
   if(number===null||number<=previous||![20,23].includes(entry.family)||!Number.isInteger(entry.boxes)||entry.boxes<1||entry.boxes>50||typeof entry.encrypted!=='boolean')fail('version order or layout at '+entry?.version);
   if(entry.saveVersionStamp!==undefined&&entry.saveVersionStamp!==number)fail('save stamp at '+entry.version);
+  if(![['species',65536],['moves',1024],['items',1024]].every(([key,max])=>Number.isInteger(entry[key])&&entry[key]>0&&entry[key]<=max))fail('record bounds at '+entry.version);
+  if(entry.resumeMaxSourceStamp!==undefined&&(!Number.isInteger(entry.resumeMaxSourceStamp)||entry.resumeMaxSourceStamp<1||entry.resumeMaxSourceStamp>=entry.saveVersionStamp))fail('resume update boundary at '+entry.version);
   if(entry.crc32!==null&&entry.crc32!==undefined&&(!Number.isInteger(entry.crc32)||entry.crc32<0||entry.crc32>0xffffffff))fail('CRC32 at '+entry.version);
   previous=number;return Object.freeze({...entry});
  });

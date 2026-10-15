@@ -2,7 +2,7 @@
 import {startVersionNumber} from './version.js';
 
 // The converter's output version is a bridge, not an exact destination-ROM gate.
-import {START_MIGRATION_VERSION} from './definition.js';
+import {START_COMPONENT,START_MIGRATION_VERSION} from './definition.js';
 export {START_MIGRATION_VERSION};
 // Changelog evidence for known ROMs; newer ROMs supply their own validated
 // native minimum-save-version gate. Never infer that gate from a filename.
@@ -24,6 +24,21 @@ export function startSaveCompatibility(from,target=START_MIGRATION_VERSION){
  }
  return {status,from:from||null,to};
 }
-export function canApplyStartMigration(target){
- return startSaveCompatibility(START_MIGRATION_VERSION,target).status==='compatible';
+export function selectStartMigrationVersion(target,from){
+ const source=from===undefined?null:startVersionNumber(from);
+ if(from!==undefined&&source===null)return null;
+ const latest=startVersionNumber(START_MIGRATION_VERSION);
+ // Later upstream entries only change the stamp. Keep the last reviewed
+ // native migration so the destination game still performs its own updates.
+ // A save already written by a newer supported game may be kept unchanged.
+ const candidates=START_COMPONENT.versions.filter(entry=>{
+  const stamp=entry.saveVersionStamp;
+  if(entry.family!==START_COMPONENT.output.family||entry.boxes!==START_COMPONENT.output.boxes||!entry.encrypted||!Number.isInteger(stamp)||stamp>latest||source!==null&&stamp<source)return false;
+  if(entry.resumeMaxSourceStamp===undefined&&stamp!==source)return false;
+  return target===undefined||startSaveCompatibility(entry.version,target).status==='compatible';
+ });
+ return candidates.at(-1)?.version||null;
+}
+export function canApplyStartMigration(target,from){
+ return selectStartMigrationVersion(target,from)!==null;
 }

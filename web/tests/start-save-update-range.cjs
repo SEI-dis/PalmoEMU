@@ -64,9 +64,9 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    assert.equal(await page.locator('#rom-update-compatible').count(),0);
    assert.ok((await page.locator('#sheet-body').textContent()).includes(version),'Show the selected destination game version');
    await page.locator('#start-save-apply').click();await page.locator('#rom-update-play').waitFor();
-   const result=await committed(sources.old,target,'0.42.3');
+   const result=await committed(sources.old,target,'0.42.5');
    assert.equal(result.source,hash(original));assert.equal(result.backup,hash(original));assert.notEqual(result.target,hash(original));assert.equal(result.validSlots,2);
-   assert.equal(result.migration.kind,'start');assert.equal(result.migration.from,'0.35.0');assert.equal(result.migration.to,version);assert.equal(result.migration.via,'0.42.3','Conversion records the supported intermediate format separately from the game destination');
+   assert.equal(result.migration.kind,'start');assert.equal(result.migration.from,'0.35.0');assert.equal(result.migration.to,version);assert.equal(result.migration.via,version==='0.42.5'?undefined:'0.42.5','Conversion records the reviewed intermediate format separately from the game destination');
    assert.equal(await page.evaluate(()=>coreAttempts),0);return result;
   };
 
@@ -90,9 +90,9 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    const {startSaveTask}=await import('./src/start-save/client.js');
    return startSaveTask({action:'inspect',id,targetProfile:{version:'0.43.0',minimumSaveVersion:'0.36.2'}});
   },target425.id);
-  assert.equal(nextUpdate.identity.version,'0.42.5');assert.equal(nextUpdate.version,'0.42.3','Use the actual converted save stamp instead of the newer ROM revision');
+  assert.equal(nextUpdate.identity.version,'0.42.5');assert.equal(nextUpdate.version,'0.42.5','Read the actual converted save stamp');
   assert.equal(nextUpdate.validationError,null);assert.equal(nextUpdate.compatibility.status,'compatible');
-  assert.deepEqual(await committed(sources.old,target425.id,'0.42.3'),converted425,'Inspecting the next update never changes the intermediate save or its backup');
+  assert.deepEqual(await committed(sources.old,target425.id,'0.42.5'),converted425,'Inspecting the next update never changes the intermediate save or its backup');
 
   // A compatible source must retain every byte, including both slots and RTC.
   await page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},target425.id);
@@ -112,6 +112,17 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   assert.deepEqual(await committed(sources.compatible,range.id,'0.40.0'),{target:hash(compatible),source:hash(compatible),backup:hash(compatible),migration:null,validSlots:2});
   await page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},range.id);
   await convert(range.id,'0.47.1');
+  const intermediate=await page.evaluate(async id=>{const {startSaveTask}=await import('./src/start-save/client.js');return startSaveTask({action:'inspect',id,targetProfile:{version:'0.48.0',minimumSaveVersion:'0.36.2'}});},range.id);
+  assert.equal(intermediate.identity.version,'0.47.1');assert.equal(intermediate.version,'0.42.5');assert.equal(intermediate.compatibility.status,'compatible');
+
+  // Updating to 0.48 must not stamp 0.48 into an old save before the game has
+  // performed its native corrections. Both slots retain the reviewed bridge.
+  const latest=await selectProfile('0.48.0','0.36.2',true);
+  const convertedLatest=await convert(latest.id,'0.48.0');assert.equal(convertedLatest.migration.via,'0.42.5');
+  await page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},latest.id);
+  await openUpdate(sources.compatible);await page.locator('#rom-update-confirm').waitFor();
+  assert.equal(await page.locator('#start-save-apply').count(),0);await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
+  assert.deepEqual(await committed(sources.compatible,latest.id,'0.40.0'),{target:hash(compatible),source:hash(compatible),backup:hash(compatible),migration:null,validSlots:2});
 
   // Neither the destination version nor its minimum accepted save version is
   // hardcoded: a future release with the same native boundary works as well.
@@ -122,7 +133,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
 
   // A future incompatible format cannot receive the old converter output,
   // either through the UI or through a forged conversion plan.
-  const incompatible=await selectProfile('0.43.0','0.43.0');
+  const incompatible=await selectProfile('0.48.0','0.43.0',true);
   assert.equal(incompatible.profile.minimumSaveVersion,'0.43.0');
   await openUpdate(sources.old);await page.locator('#start-save-apply').waitFor();
   await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled);
@@ -139,7 +150,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    return {rejected,library:await db.has('library',target),save:await db.has('saves',target),backup:await db.has('coverCatalogs',db.romUpdateMetadataPrefix+target),source:await hash((await db.get('saves',source)).bytes)};
   },{source:sources.old,target:incompatible.id,name:path.basename(targetFile)});
   assert.deepEqual(denied,{rejected:true,library:false,save:false,backup:false,source:hash(original)});
-  assert.deepEqual(await committed(sources.old,future.id,'0.42.3'),convertedFuture,'Refused update preserves the successful backup and target too');
+  assert.deepEqual(await committed(sources.old,future.id,'0.42.5'),convertedFuture,'Refused update preserves the successful backup and target too');
 
   // A newer save must never be an opt-in unknown copy into an older ROM.
   // Use a misleading older cartridge/name: the save's own stamp wins.

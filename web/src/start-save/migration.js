@@ -4,7 +4,7 @@
 import {inspectInput,migrateSave,normalizeVersion,readSave,getVariable} from './provider.js';
 import {START_COMPONENT,START_SOURCE_VERSIONS} from './definition.js';
 import {tr} from '../i18n/index.js';
-import {startSaveCompatibility,START_MIGRATION_VERSION} from './compatibility.js';
+import {startSaveCompatibility,selectStartMigrationVersion,START_MIGRATION_VERSION} from './compatibility.js';
 import {startVersionNumber,startVersionFromStamp} from './version.js';
 import {readStartROMProfile,isStartROMFamily} from './rom-profile.js';
 
@@ -45,7 +45,7 @@ function inspect(bytes,source){
   if(source.saveVersionStamp!==undefined&&stamp!==source.saveVersionStamp)fail('mismatch');
   return {...slot,versionStamp:stamp,detectedVersion,encrypted:state.encrypted};
  });
- return {sourceVersion:source.version,targetVersion:START_MIGRATION_VERSION,sampleTested:source.saveSampleTested===true,slots};
+ return {sourceVersion:source.version,targetVersion:selectStartMigrationVersion(undefined,source.version),sampleTested:source.saveSampleTested===true,slots};
 }
 export function inspectStartSave(value,from){return inspect(copySave(value),sourceVersion(from));}
 export function detectStartSaveVersion(value){
@@ -66,23 +66,25 @@ export function inspectStartUpdate(value,from,target=START_MIGRATION_VERSION){
  const info=inspect(copySave(value),source);
  // A filename or ROM revision alone cannot establish the actual save format.
  if(info.slots.some(slot=>slot.valid&&(slot.boxes!==source.boxes||slot.encrypted!==source.encrypted)))fail('mismatch');
- return {...info,compatibility:startSaveCompatibility(source.version,target)};
+ return {...info,targetVersion:selectStartMigrationVersion(target,source.version),compatibility:startSaveCompatibility(source.version,target)};
 }
 
-export async function migrateStartSave(value,{from,onProgress,signal,selection='all'}={}){
+export async function migrateStartSave(value,{from,target,onProgress,signal,selection='all'}={}){
  cancelled(signal);
  const bytes=copySave(value),source=sourceVersion(from),info=inspect(bytes,source);
+ const destination=sources.get(selectStartMigrationVersion(target,source.version));
+ if(!destination){const error=new Error(tr('このROMへのセーブ変換には未対応です。元のデータは変更していません。'));error.code='START_TARGET';throw error;}
  if(selection!=='all'&&(!Number.isInteger(selection)||!info.slots.find(slot=>slot.slot===selection&&slot.valid)))fail('slot');
  const chosen=info.slots.filter(slot=>slot.valid&&(selection==='all'||slot.slot===selection));
  const result=await migrateSave(bytes,source.version,selection,progress=>{
   cancelled(signal);onProgress?.(progress);cancelled(signal);
- });
+ },destination.version);
  cancelled(signal);
- if(!(result.data instanceof Uint8Array)||!sizes.has(result.data.length)||result.report.to!==START_MIGRATION_VERSION)fail('output');
+ if(!(result.data instanceof Uint8Array)||!sizes.has(result.data.length)||result.report.to!==destination.version)fail('output');
  for(const slot of chosen){
   const after=readSave(result.data,slot.slot);
   // Unselected slots may intentionally retain an older format/stamp.
-  if(after.version!==output.family||after.boxCount!==output.boxes||after.encrypted!==output.encrypted||getVariable(after,versionVariable)!==output.saveVersionStamp)fail('output');
+  if(after.version!==destination.family||after.boxCount!==destination.boxes||after.encrypted!==destination.encrypted||getVariable(after,versionVariable)!==destination.saveVersionStamp)fail('output');
  }
  // The vendor verifies all existing records, untouched slots and the RTC tail.
  // Output ownership is independent from the caller and from worker input buffers.

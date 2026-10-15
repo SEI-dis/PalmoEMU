@@ -21,14 +21,16 @@ export function createStartSaveDialog(api){
   try{inspected=await work(()=>task({action:'inspect'}));}
   catch(error){$('#start-save-status').textContent=error.message;return;}
   if(inspected.compatibility.status==='compatible'&&!inspected.validationError&&onCopy){await onCopy(inspected,true);return;}
-  const direct=!!(target&&inspected.targetReady&&api.applySave),canApply=direct||!!apply;
-  const targetVersion=inspected.compatibility.to,blockedTarget=!!(target||targetProfile)&&!inspected.targetReady;
+  let targetReady=inspected.targetReady,direct=!!(target&&targetReady&&api.applySave),canApply=direct||!!apply;
+  const targetVersion=inspected.compatibility.to;
   let compatibility=inspected.compatibility,validationError=inspected.validationError;
   const options=$('#start-save-options');options.hidden=false;
   options.innerHTML=tr`<p class="sheet-note">${esc(inspected.name)} → PokemonStart ${esc(targetVersion||'?')}</p><p id="start-save-note" class="sheet-note"></p><p class="sheet-note">旧版は残します。適用前のセーブはバックアップに残ります。</p><div id="start-version-required"></div><label id="start-save-unverified-row" class="row" hidden><input id="start-save-unverified" type="checkbox"><span>変換の必要性が未確認であることを理解して変換する</span></label><button id="start-save-apply" class="primary wide-button">${canApply?tr('セーブデータを変換して更新'):tr('変換セーブを書き出す')}</button><button id="start-save-copy" class="secondary wide-button" hidden>変換せずに引き継ぐ</button><details id="start-save-details" class="sheet-note"><summary>詳細</summary>${game.romUpdate&&!apply?tr`<label class="row"><span>使用するセーブ</span><select id="start-save-source"><option value="current">現在のセーブ</option><option value="previous">更新前のバックアップ</option></select></label>`:''}<label id="start-version-field" class="row"><span>元のゲームのバージョン</span><select id="start-save-version"><option value="">選択してください</option>${START_SOURCE_VERSIONS.map(({version})=>`<option value="${esc(version)}">${esc(version)}</option>`).join('')}</select></label><p class="sheet-note">${previous?tr('更新前に保存したセーブを使用します。'):tr('このゲームの現在のセーブを使用します。')}</p><button id="start-save-export" class="secondary wide-button">変換セーブを書き出す</button></details>`;
   if(inspected.version&&!START_SOURCE_VERSIONS.some(entry=>entry.version===inspected.version))$('#start-save-version').add(new Option(inspected.version,inspected.version));
   $('#start-save-version').value=inspected.version||'';
   const update=()=>{
+   direct=!!(target&&targetReady&&api.applySave);canApply=direct||!!apply;
+   const blockedTarget=!!(target||targetProfile)&&!targetReady;
    const from=$('#start-save-version').value,compatible=compatibility.status==='compatible',unknown=compatibility.status==='unknown',downgrade=compatibility.status==='downgrade',valid=!!from&&!validationError;
    if(!from||unknown||validationError)$('#start-version-required').append($('#start-version-field'));
    const allowed=valid&&!blockedTarget&&!downgrade&&START_SOURCE_VERSIONS.some(entry=>entry.version===from)&&(!unknown||$('#start-save-unverified').checked);
@@ -43,7 +45,7 @@ export function createStartSaveDialog(api){
   $('#start-save-version').onchange=guardUpdateTask(async()=>{
    if(busy)return;$('#start-save-unverified').checked=false;validationError=null;compatibility={status:'unknown'};
    const from=$('#start-save-version').value;
-   if(from)try{const result=await work(()=>task({action:'classify',from,hash:inspected.hash,at:inspected.at}));compatibility=result.compatibility;}
+   if(from)try{const result=await work(()=>task({action:'classify',from,hash:inspected.hash,at:inspected.at}));compatibility=result.compatibility;targetReady=result.targetReady;}
    catch(error){validationError=error.message;}
    update();
   });

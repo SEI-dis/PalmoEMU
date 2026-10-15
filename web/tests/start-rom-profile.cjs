@@ -37,5 +37,8 @@ const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
  rejectRange('Failure and success must rejoin',b=>word(b,range.gate+82,0xe000));
  rejectRange('Lower and upper bounds conflict',b=>literal(b,range.lower+0x20,0x2f01));
  assert.equal(hash(range.bytes),rangeHash,'Range inspection is immutable');
+ const current=fixture({stamp:0x3000,minimum:0x2402,rangeGate:true,writer:0x16000,gate:0x12000,trampoline:0x20000}),currentHash=hash(current.bytes);
+ assert.deepEqual(read(current.bytes),{version:'0.48.0',minimumSaveVersion:'0.36.2'},'A newer target retains its own native bounds, independent of the converter output');
+ assert.equal(hash(current.bytes),currentHash);
  console.log('PASS: native START version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

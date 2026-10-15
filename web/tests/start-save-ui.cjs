@@ -25,7 +25,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   const result=await page.evaluate(async({source,targetGame,newROM})=>{
    const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{startSaveTask}=await import('./src/start-save/client.js'),{prepareROMUpdate,readROMUpdateBackup}=await import('./src/library/rom-update.js'),{importROM}=await import('./src/library/rom-import.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
    const original=await db.get('saves',source),inspection=await startSaveTask({action:'inspect',id:source});
-   const input={action:'convert',id:source,from:'0.35.0',hash:inspection.hash,at:inspection.at},converted=await startSaveTask(input);
+   const input={action:'convert',id:source,from:'0.35.0',targetProfile:{version:'0.42.3'},hash:inspection.hash,at:inspection.at},converted=await startSaveTask(input);
    const valid=inspectStartSave(converted.bytes,'0.42.3').slots[0].valid;
    let rejected=false;await db.put('saves',source,{...original,at:101});try{await startSaveTask(input);}catch{rejected=true;}await db.put('saves',source,original);
    const plan=await prepareROMUpdate(source,targetGame),file=new File([new Uint8Array(newROM)],'START-0.42.3.gba'),phases=[];
@@ -86,11 +86,13 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
    ['compatible',[...fakeROM(1805207701)],'START-0.40.0.gba','compatible'],
    ['unknown',[...fakeROM(3497195746)],'START-0.36.2.gba','unknown'],
    ['mismatch',[...fakeROM(0x11223344)],'PokemonStart-v0.40.0.gba','old'],
+   ['newerName',[...fakeROM(0x1234abcd)],'PokemonStart-v0.48.0.gba','old'],
    ['unnamed',[...fakeROM(0x12345678)],'Unknown.gba','old'],
    ['mixed',[...fakeROM(0x55667788)],'PokemonStart-v0.40.0.gba','mixed']
   ]);
   const workerPolicy=await page.evaluate(async sources=>{
-   const {startSaveTask:task}=await import('./src/start-save/client.js'),db=await import('./src/storage/storage.js'),out={};
+   const {startSaveTask}=await import('./src/start-save/client.js'),db=await import('./src/storage/storage.js'),out={};
+   const task=options=>startSaveTask({targetProfile:{version:'0.42.3'},...options});
    for(const key of Object.keys(sources))out[key]=await task({action:'inspect',id:sources[key]});
    for(const key of ['compatible','unknown','mismatch','mixed']){
     const info=out[key];try{await task({action:'convert',id:sources[key],from:info.version,hash:info.hash,at:info.at,allowUnverified:key==='compatible'});out[key+'Rejected']=false;}catch{out[key+'Rejected']=true;}
@@ -103,7 +105,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   assert.equal(workerPolicy.unknown.version,'0.36.2');assert.equal(workerPolicy.unknown.compatibility.status,'unknown');assert.equal(workerPolicy.unknown.validationError,null);
   assert.equal(workerPolicy.unnamed.version,null);assert.ok(workerPolicy.mismatch.validationError);assert.ok(workerPolicy.mixed.validationError);
   for(const key of ['compatibleRejected','unknownRejected','mismatchRejected','mixedRejected','staleRejected'])assert.equal(workerPolicy[key],true,key);
-  assert.equal(workerPolicy.corrected.compatibility.status,'convert');
+  assert.equal(workerPolicy.corrected.compatibility.status,'convert');assert.equal(workerPolicy.corrected.targetReady,true);
   const openUpdate=async id=>{await page.reload();await page.locator(`[data-game="${id}"]`).waitFor();if(await page.locator('#sheet.release-notice[open]').count())await page.locator('#close-sheet').click();await page.locator(`[data-game="${id}"]`).click();await page.locator('[data-action="updateROM"]').click();};
   const selectTarget=()=>page.locator('#rom-update-file').setInputFiles({name:'START-0.42.3.gba',mimeType:'application/octet-stream',buffer:Buffer.from(fakeROM(47924504))});
   const removeTarget=()=>page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},ids.target);
@@ -133,6 +135,19 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   await openUpdate(sources.unnamed);await selectTarget();await page.locator('#start-save-apply').waitFor();assert.equal(await page.locator('#start-save-version').isVisible(),true);assert.equal(await page.locator('#start-save-version').inputValue(),'');assert.equal(await page.locator('#start-save-apply').isDisabled(),true);
   await page.locator('#start-save-version').selectOption('0.35.0');await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled&&!document.querySelector('#start-save-apply').disabled);assert.equal(await page.locator('#start-save-unverified').isVisible(),false);
   assert.deepEqual(await committed(sources.unknown),migrated,'Inspection and version selection never overwrite the existing target');assert.equal(await page.evaluate(()=>coreAttempts),0);
+  // A misleading newer filename initially rules out the older destination.
+  // Correcting the unstamped save's source must refresh target readiness too,
+  // so the initial refusal does not permanently disable a safe conversion.
+  await removeTarget();await openUpdate(sources.newerName);await selectTarget();await page.locator('#start-save-apply').waitFor();
+  assert.equal(await page.locator('#start-save-version').inputValue(),'0.48.0');
+  assert.equal(await page.locator('#start-save-apply').isDisabled(),true);assert.equal(await page.locator('#start-save-export').isDisabled(),true);
+  await page.locator('#start-save-version').selectOption('0.35.0');
+  await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled&&!document.querySelector('#start-save-apply').disabled);
+  assert.equal(await page.locator('#start-save-export').isEnabled(),true,'Corrected source refreshes conversion and export readiness');
+  assert.equal(await page.locator('#start-save-unverified').isVisible(),false);
+  await page.locator('#start-save-apply').click();await page.locator('#rom-update-play').waitFor();
+  const corrected=await committed(sources.newerName);assert.equal(corrected.source,hash(fixture));assert.equal(corrected.backup,hash(fixture));assert.notEqual(corrected.target,hash(fixture));assert.equal(corrected.valid,1);
+  assert.deepEqual(corrected.migration,{kind:'start',from:'0.35.0',to:'0.42.3'});assert.equal(await page.evaluate(()=>coreAttempts),0);
   assert.deepEqual(errors,[]);assert(requests.filter(r=>/^https?:/.test(r.url())).every(r=>new URL(r.url()).origin===new URL(base).origin&&['GET','HEAD'].includes(r.method())&&!r.postData()));
   await context.close();console.log('PASS: START real worker/application UI; compatible byte-for-byte copy, explicit unknown conversion/copy gates, old conversion/exports, malformed/mismatched/mixed-slot rejection, immutable originals/snapshots, rollback/stale refusal and no synthetic core execution. '+kind);
  }finally{await browser.close();}

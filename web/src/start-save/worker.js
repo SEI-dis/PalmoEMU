@@ -20,7 +20,7 @@ self.onmessage=async({data})=>{
  try{
   await setWorkerLanguage(data.language);
   const source=await readSource(data.id,data.previous),{save,digest,sourceId,name}=source;
-  let targetProfile=data.targetProfile||START_MIGRATION_VERSION;
+  let targetProfile=data.targetProfile;
   if(data.targetId){const targetROM=await db.get('roms',data.targetId);targetProfile=(targetROM?identifyStartROM(targetROM instanceof Blob?new Uint8Array(await targetROM.arrayBuffer()):targetROM):null)||{version:null,unverified:true};}
   if(data.action==='inspect'){
    const rom=await db.get('roms',sourceId),bytes=rom instanceof Blob?new Uint8Array(await rom.arrayBuffer()):rom;
@@ -28,19 +28,19 @@ self.onmessage=async({data})=>{
    const sourceGame=await db.get('library',sourceId);
    let savedVersion=null;try{savedVersion=detectStartSaveVersion(save.bytes);}catch{}
    const version=savedVersion||identity?.version||startVersionFromName(sourceGame?.filename,name);
-   let compatibility={status:'unknown',from:version,to:typeof targetProfile==='string'?targetProfile:targetProfile.version},validationError=null;
+   let compatibility={status:'unknown',from:version,to:typeof targetProfile==='string'?targetProfile:targetProfile?.version||START_MIGRATION_VERSION},validationError=null;
    if(version)try{compatibility=inspectStartUpdate(save.bytes,version,targetProfile).compatibility;}catch(error){validationError=error.message;}
-   self.postMessage({type:'done',name,identity,version,compatibility,validationError,targetReady:canApplyStartMigration(targetProfile),hash:digest,at:save.at});return;
+   self.postMessage({type:'done',name,identity,version,compatibility,validationError,targetReady:canApplyStartMigration(targetProfile,version||undefined),hash:digest,at:save.at});return;
   }
   if(!['classify','convert'].includes(data.action))throw Error('Unknown START migration action');
   if(data.hash!==digest||data.at!==save.at)throw Error(tr('元のセーブが変わりました。内容を確認してやり直してください。'));
   const compatibility=inspectStartUpdate(save.bytes,data.from,targetProfile).compatibility;
-  if(data.action==='classify'){self.postMessage({type:'done',compatibility});return;}
+  if(data.action==='classify'){self.postMessage({type:'done',compatibility,targetReady:canApplyStartMigration(targetProfile,data.from)});return;}
   if(compatibility.status==='downgrade')throw Error(tr('このセーブは更新先ROMより新しいため、引き継げません。元のデータは変更していません。'));
-  if(!canApplyStartMigration(targetProfile))throw Error(tr('このROMへのセーブ変換には未対応です。元のデータは変更していません。'));
+  if(!canApplyStartMigration(targetProfile,data.from))throw Error(tr('このROMへのセーブ変換には未対応です。元のデータは変更していません。'));
   if(compatibility.status==='compatible')throw Error(tr('このセーブは変換せずに引き継げます。'));
   if(compatibility.status==='unknown'&&data.allowUnverified!==true)throw Error(tr('変換の必要性が未確認です。内容を確認してください。'));
-  const result=await migrateStartSave(save.bytes,{from:data.from,onProgress:({index,total})=>self.postMessage({type:'progress',index,total})});
+  const result=await migrateStartSave(save.bytes,{from:data.from,target:targetProfile,onProgress:({index,total})=>self.postMessage({type:'progress',index,total})});
   self.postMessage({type:'done',name,bytes:result.bytes,original:new Uint8Array(save.bytes),report:result.report});
  }catch(error){self.postMessage({type:'error',message:error.message||tr('セーブを変換できませんでした。元のデータは残っています。')});}
 };

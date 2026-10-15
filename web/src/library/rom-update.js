@@ -34,7 +34,7 @@ export async function finishROMUpdate(plan,game,rom,onProgress){
   if(source.id===game.id||source.system!==game.system||!supportsGame(coreFor(source),game))throw Error(tr('更新するROMを確認してください。'));
   let targetSave=save,migration;
   if(source.system==='gba'&&coreFor(source).key==='mgba'){
-   const {identifyStartROM,migrateStartSave,inspectStartUpdate,START_MIGRATION_VERSION}=await import('../start-save/migration.js');
+   const {identifyStartROM,migrateStartSave,inspectStartUpdate}=await import('../start-save/migration.js');
    const {canApplyStartMigration}=await import('../start-save/compatibility.js'),target=identifyStartROM(rom);
    const operation=plan.startCopy||plan.startMigration;
    // Recheck the actual selected bytes at commit time. A stale/generic UI must
@@ -45,14 +45,14 @@ export async function finishROMUpdate(plan,game,rom,onProgress){
     const status=compatibility.compatibility.status;
     if(status==='downgrade')throw Error(tr('このセーブは更新先ROMより新しいため、引き継げません。元のデータは変更していません。'));
     if(plan.startCopy){
-     if(status!=='compatible'&&!(status==='unknown'&&operation.allowUnverified===true&&canApplyStartMigration(target)))throw Error(tr('セーブの互換性を確認できませんでした。内容を確認してやり直してください。'));
+     if(status!=='compatible'&&!(status==='unknown'&&operation.allowUnverified===true&&canApplyStartMigration(target,operation.from)))throw Error(tr('セーブの互換性を確認できませんでした。内容を確認してやり直してください。'));
     }else{
-     if(!canApplyStartMigration(target))throw Error(tr('このROMへのセーブ変換には未対応です。元のデータは変更していません。'));
+     if(!canApplyStartMigration(target,operation.from))throw Error(tr('このROMへのセーブ変換には未対応です。元のデータは変更していません。'));
      if(status==='compatible')throw Error(tr('このセーブは変換せずに引き継げます。'));
      if(status==='unknown'&&operation.allowUnverified!==true)throw Error(tr('変換の必要性が未確認です。内容を確認してください。'));
-     const converted=await migrateStartSave(save.bytes,{from:operation.from,onProgress});
+     const converted=await migrateStartSave(save.bytes,{from:operation.from,target,onProgress});
      targetSave={bytes:converted.bytes,hash:await hash(converted.bytes),at:Date.now()};
-     migration={kind:'start',from:operation.from,to:target.version,...(target.version!==START_MIGRATION_VERSION?{via:START_MIGRATION_VERSION}:{})};
+     migration={kind:'start',from:operation.from,to:target.version,...(target.version!==converted.report.to?{via:converted.report.to}:{})};
     }
    }
   }else if(plan.startCopy||plan.startMigration){

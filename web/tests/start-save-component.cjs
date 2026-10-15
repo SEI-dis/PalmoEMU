@@ -17,13 +17,13 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
   assert(Object.isFrozen(current.definition)&&Object.isFrozen(current.definition.versions)&&Object.isFrozen(current.definition.output));
   // Simulate an updated definition retaining the known layout; this is not
   // a claim of support for a real unreleased converter/game.
-  const next=structuredClone(manifest);next.toolVersion='fixture-next';next.latest='0.43.0';
-  next.versions.push({...next.versions.at(-1),version:next.latest,saveVersionStamp:startVersionNumber(next.latest),crc32:null,saveSampleTested:false});
+  const next=structuredClone(manifest);next.toolVersion='fixture-next';next.latest='0.49.0';
+  next.versions.push({...next.versions.at(-1),version:next.latest,saveVersionStamp:startVersionNumber(next.latest),resumeMaxSourceStamp:startVersionNumber(next.latest)-1,crc32:null,saveSampleTested:false});
   fs.writeFileSync(path.join(candidate,'manifest.js'),'export const MANIFEST='+JSON.stringify(next)+';');
   record.toolVersion=next.toolVersion;record.outputVersion=next.latest;record.sources=[{name:'synthetic-fixture',sha256:'1'.repeat(64)}];pin();
   const checked=checkComponent(candidate),diff=compareComponents(current,checked);
-  assert.equal(checked.definition.output.version,'0.43.0');assert.deepEqual(diff.addedVersions,['0.43.0']);
-  assert.deepEqual(diff.outputVersion,[manifest.latest,'0.43.0']);assert.deepEqual(diff.removedVersions,[]);assert.equal(diff.provenanceChanged,true);
+  assert.equal(checked.definition.output.version,'0.49.0');assert.deepEqual(diff.addedVersions,['0.49.0']);
+  assert.deepEqual(diff.outputVersion,[manifest.latest,'0.49.0']);assert.deepEqual(diff.removedVersions,[]);assert.equal(diff.provenanceChanged,true);
   assert.deepEqual(diff.changedFiles,['manifest.js']);
   // Load only the host definition with a synthetic manifest; the real engine
   // is not executed. All consumers get the updated version from one source.
@@ -32,12 +32,15 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
   for(const name of ['contract.js','definition.js','compatibility.js','version.js'])fs.copyFileSync(path.join(__dirname,'../src/start-save',name),path.join(feature,name));
   fs.copyFileSync(path.join(candidate,'manifest.js'),path.join(vendor,'manifest.js'));
   const definition=await import(pathToFileURL(path.join(feature,'definition.js'))),compatibility=await import(pathToFileURL(path.join(feature,'compatibility.js')));
-  assert.equal(definition.START_MIGRATION_VERSION,'0.43.0');assert.equal(compatibility.START_MIGRATION_VERSION,'0.43.0');
-  assert.equal(definition.START_SOURCE_VERSIONS.at(-1).version,'0.43.0');
-  assert.equal(compatibility.canApplyStartMigration({version:'0.43.1',minimumSaveVersion:'0.43.0'}),true);
-  assert.equal(compatibility.canApplyStartMigration({version:'0.44.0',minimumSaveVersion:'0.43.1'}),false);
-  assert.equal(compatibility.canApplyStartMigration('0.43.1'),false,'Do not broaden legacy ROM evidence automatically');
-  for(const modify of [m=>m.latest='0.42.2',m=>m.versions.reverse(),m=>m.versions.push({...m.versions.at(-1)}),m=>m.versions.at(-1).boxes=60,m=>m.versions.at(-1).encrypted=false,m=>delete m.versions.at(-1).saveVersionStamp,m=>m.nativeCompatibility.versionVariable=0x50ee]){
+  assert.equal(definition.START_MIGRATION_VERSION,'0.49.0');assert.equal(compatibility.START_MIGRATION_VERSION,'0.49.0');
+  assert.equal(definition.START_SOURCE_VERSIONS.at(-1).version,'0.49.0');
+  assert.equal(compatibility.canApplyStartMigration({version:'0.49.1',minimumSaveVersion:'0.49.0'},'0.35.0'),true);
+  assert.equal(compatibility.canApplyStartMigration({version:'0.50.0',minimumSaveVersion:'0.49.1'},'0.35.0'),false);
+  assert.equal(compatibility.canApplyStartMigration('0.49.1','0.35.0'),false,'Do not broaden legacy ROM evidence automatically');
+  assert.equal(compatibility.selectStartMigrationVersion({version:'0.48.0',minimumSaveVersion:'0.43.0'},'0.35.0'),null,'A manifest stamp alone is not a reviewed bridge');
+  for(const modify of [m=>m.latest='0.42.2',m=>m.versions.reverse(),m=>m.versions.push({...m.versions.at(-1)}),m=>m.versions.at(-1).boxes=60,m=>m.versions.at(-1).encrypted=false,m=>delete m.versions.at(-1).saveVersionStamp,m=>m.nativeCompatibility.versionVariable=0x50ee,
+   m=>m.versions.at(-1).species=0,m=>m.versions.at(-1).moves=1006.5,m=>m.versions.at(-1).items=65537,
+   m=>m.versions.at(-1).resumeMaxSourceStamp=0,m=>m.versions.at(-1).resumeMaxSourceStamp=m.versions.at(-1).saveVersionStamp]){
    const invalid=structuredClone(manifest);modify(invalid);assert.throws(()=>defineStartComponent(invalid),/Unsupported/);
   }
   fs.appendFileSync(path.join(candidate,'engine.js'),'\n// tampered');assert.throws(()=>checkComponent(candidate),/Changed component file/);pin();

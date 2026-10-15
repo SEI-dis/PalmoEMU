@@ -865,3 +865,18 @@ It also publishes the preceding reviewed PokemonStart notification, save
 protection, memory diagnostics and translation changes. No additional native
 binary, third-party asset, license, storage format, dependency or endpoint is
 introduced by the audio fix. Corresponding modified source remains included.
+
+Updated 2026-10-16: incorporated the migration definitions from START Save
+Migrate 1.0.8 (START-Save-Migrate-0.48.0.html, SHA-256
+c75944e71e02566671ef5b04e19144e0733a32c526448558d48a7fa4b87e5cf2).
+Credits remain くりーぱー (ajillo0112), with PokemonStart developer
+onikoro334274-cell separately credited. The previously recorded project-specific
+permission and attribution condition remain; no general upstream license is
+asserted. The supplied HTML, editor, names, graphics, ROMs and saves are not
+bundled. Only migration code and numeric definitions are incorporated.
+Local corrections validate IDs against source-version bounds, normalize version
+aliases and add a bounded destination parameter. Host conversion selects a
+reviewed intermediate stamp accepted by the actual ROM and leaves later native
+updates to the game; compatible newer saves stay unchanged. This supersedes the
+historical 1.0.5 / 0.42.3 output descriptions above. Full gameplay and iPhone
+hardware verification remain outside the synthetic test coverage.

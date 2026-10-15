@@ -3,8 +3,18 @@
 const assert=require('node:assert/strict');
 const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixtures.cjs');
 (async()=>{
- const {startSaveCompatibility:policy}=await import('../src/start-save/compatibility.js');
- const {inspectStartUpdate:inspect,START_SOURCE_VERSIONS}=await import('../src/start-save/migration.js');
+ const {startSaveCompatibility:classify,selectStartMigrationVersion:select}=await import('../src/start-save/compatibility.js');
+ const {inspectStartUpdate:inspectUpdate,START_SOURCE_VERSIONS}=await import('../src/start-save/migration.js');
+ // Preserve the historical policy cases explicitly. Latest metadata alone
+ // does not establish a new ROM's native minimum-save boundary.
+ const policy=(from,target='0.42.3')=>classify(from,target),inspect=(bytes,from,target='0.42.3')=>inspectUpdate(bytes,from,target);
+ assert.deepEqual(classify('0.35.0'),{status:'unknown',from:'0.35.0',to:'0.48.0'});
+ assert.equal(select(undefined,'0.35.0'),'0.42.5');
+ assert.equal(select('0.42.3','0.35.0'),'0.42.3');
+ assert.equal(select({version:'0.48.0',minimumSaveVersion:'0.36.2'},'0.35.0'),'0.42.5');
+ assert.equal(select({version:'0.48.0',minimumSaveVersion:'0.43.0'},'0.35.0'),null,'Stamps after the reviewed bridge cannot invent native corrections');
+ assert.equal(select({version:'0.48.0',minimumSaveVersion:'0.36.2'},'0.48.0'),'0.48.0','Already-current data may remain unchanged');
+ assert.equal(select({version:'0.47.1',minimumSaveVersion:'0.36.2'},'0.48.0'),null);
  for(const from of ['0.1','0.22','0.35.0','0.35.4','0.36.0','0.36.1'])assert.deepEqual(policy(from),{status:'convert',from,to:'0.42.3'});
  for(const from of ['0.36.2','0.37.0'])assert.deepEqual(policy(from),{status:'unknown',from,to:'0.42.3'});
  for(const from of ['0.38.0','0.38.1','0.39.0','0.40.0','0.41.1','0.42.0','0.42.2','0.42.3'])assert.deepEqual(policy(from),{status:'compatible',from,to:'0.42.3'});
@@ -34,6 +44,10 @@ const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixture
  assert.equal(inspect(recent,'0.46.0',{version:'0.45.1',minimumSaveVersion:'0.36.2'}).compatibility.status,'downgrade');
  assert.throws(()=>inspect(recent,'0.40.0',{version:'0.45.1',minimumSaveVersion:'0.36.2'}),{code:'START_MISMATCH'},'A false older source version cannot bypass downgrade refusal');
  assert.equal(hash(recent),recentHash,'Downgrade inspection preserves both save slots');
+ const latest=fixture35({stamp:0x3000,second:true}),latestHash=hash(latest);
+ assert.equal(inspect(latest,'0.48.0',{version:'0.48.0',minimumSaveVersion:'0.36.2'}).compatibility.status,'compatible');
+ assert.equal(inspect(latest,'0.48.0',{version:'0.47.1',minimumSaveVersion:'0.36.2'}).compatibility.status,'downgrade');
+ assert.equal(detect(latest),'0.48.0');assert.equal(hash(latest),latestHash);
  assert.equal(inspect(newSave,'0.42.5',{version:'0.43.0',minimumSaveVersion:'0.36.2'}).compatibility.status,'compatible');
  assert.throws(()=>inspect(newSave,'0.35.0'),{code:'START_MISMATCH'});
  assert.equal(detect(fixture35({stamp:0x2a03,second:true})),'0.42.3');
