@@ -27,5 +27,15 @@ const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
  negative('Gate jump paths disagree',bytes=>word(bytes,baseline.gate+24,0xe000),unclassified);
  for(const value of [null,new ArrayBuffer(32),new Uint8Array(100),new Uint8Array(64*1048576+1)]){assert.equal(read(value),null);assert.equal(isFamily(value),false);}
  assert.equal(hash(baseline.bytes),before,'ROM inspection is immutable');
+ const range=fixture({stamp:0x2f01,rangeGate:true}),rangeHash=hash(range.bytes);
+ assert.deepEqual(read(range.bytes),{version:'0.47.1',minimumSaveVersion:'0.36.2'});
+ const unknownRange={version:'0.47.1',minimumSaveVersion:null};
+ const rejectRange=(label,mutate)=>{const b=range.bytes.slice();mutate(b);assert.deepEqual(read(b),unknownRange,label);};
+ for(const at of [range.lower+4,range.lower+6,range.upper+2,range.upper+4,range.upper+6,range.gate+26,range.gate+48,range.gate+80])rejectRange('Changed range semantics '+at,b=>word(b,at,0x46c0));
+ rejectRange('Upper bound must match ROM writer',b=>literal(b,range.upper+0x20,0x2f00));
+ rejectRange('Unknown getter register',b=>word(b,range.trampoline+2,0x4718));
+ rejectRange('Failure and success must rejoin',b=>word(b,range.gate+82,0xe000));
+ rejectRange('Lower and upper bounds conflict',b=>literal(b,range.lower+0x20,0x2f01));
+ assert.equal(hash(range.bytes),rangeHash,'Range inspection is immutable');
  console.log('PASS: native START version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

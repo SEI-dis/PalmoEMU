@@ -64,6 +64,7 @@ import {createStateDialogs} from './views/states.js';
 import {groupedOptions,gameShortcuts,stateDate,nativeAction,nativeSelect,nativeToggle} from './components/manic-ui.js';
 import {createGameInfo} from './views/game-info.js';
 import {createLibraryView} from './views/library.js';
+import {createStartUpdatesView} from './views/start-updates.js';
 import {floatingPanel} from './components/floating-panel.js';
 import {row,action} from './components/rows.js';
 import {filterStrengthControl} from './components/filter-strength.js';
@@ -184,8 +185,9 @@ function setTab(id){
 }
 for(const [id,ic,label] of [['games','game',tr('ゲーム')],['imports','import',tr('インポート')],['settings','settings',tr('設定')]]){const b=$(`[data-tab="${id}"]`);b.innerHTML=icon(ic)+`<span>${label}</span>`;b.onclick=()=>{libraryView.leave();setTab(id);render();};}
 async function refresh(){const data=await db.trainerCard();library=data.games;trainer={profile:data.profile,...trainerStats(data.records,library)};render();}
-function render(){if(engine)return;settingsGame=gameMenuReturn?.game||null;$$('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false');});if(tab==='games')renderGames();else if(tab==='imports')renderImports();else renderSettings();}
+function render(){if(engine)return;settingsGame=gameMenuReturn?.game||null;$$('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false');});if(tab==='games')renderGames();else if(tab==='imports')renderImports();else renderSettings();startUpdates.renderNotice(tab==='settings'?null:$('#content'));startUpdates.refresh();}
 const libraryView=createLibraryView({games:()=>library,showGame:showDetails,quickStart:()=>settings.quickStart===true,startGame:game=>guardUpdateTask(()=>launch(game).catch(error))(),add:()=>$('#rom-input').click(),sheet,closeSheet,refresh,toast,error});
+const startUpdates=createStartUpdatesView({games:()=>library,active:()=>appReady&&!engine&&!launching&&!importing&&!exiting&&!document.hidden,sheet,closeSheet,updateROM:(game,options)=>gameInfo.updateROM(game,options)});
 function renderGames(){libraryView.render();}
 // ManicEMU ImportServiceListView and its motto, file, service and footer cells.
 // Copyright © 2025–2026 Manic EMU. Daiuno / Max. Ported 2026-10-09.
@@ -254,6 +256,7 @@ function menuControlCells(game=current){return {
  screenScaling:nativeSelect(tr('画面スケーリング'),'screenScaling','expand',[['fit',tr('アスペクト比を維持')],['stretch',tr('引き伸ばし')],['fill',tr('画面を埋める')]],settings.screenScaling||'fit')
 };}
 const gameInfo=createGameInfo({sheet,closeSheet,launch,refresh,error,toast,download,showSkins,showControllers,showCheats,showCategory:game=>libraryView.showCategory(game),
+ showStartUpdates:(game,options)=>startUpdates.open(game,options),
  showStates:game=>showStates(null,false,{game}),importSave:game=>chooseSaveImport(game),applySave:applyGameSave,
  onClose:cleanup=>{sheetCleanup=cleanup;},beginGame:game=>{settingsGame=game;if(gameMenuReturn?.game.id!==game.id)gameMenuReturn={game,scrollTop:0};else gameMenuReturn.game=game;return gameMenuReturn.scrollTop;},preferenceSummary:gamePreferenceSummary,resetPreferences:game=>resetGamePreferences(game,()=>gameInfo.show(game)),settings:()=>settings,saveSettings:applySettings,controlCells:menuControlCells,bindSettings});
 // ManicEMU Game.handleTapAction's normal selection route. Core startup belongs
@@ -589,5 +592,5 @@ const resumeRequestedLaunch=guardUpdateTask(async()=>{
 function openGameLink(){if(engine||!location.hash.startsWith('#game='))return;const game=library.find(g=>g.id===location.hash.slice(6));if(game)showDetails(game);else toast(tr('このブラウザにゲームがありません。先にROMを追加してください。'));}
 window.addEventListener('hashchange',()=>{if(engine||!appReady)return;tab=tabFromHash();render();openGameLink();});
 if((autoUpdates=await startAutoUpdates(()=>appReady&&!captureControls.pending&&!libraryView.selecting&&!engine&&!launching&&!importing&&!exiting&&!link&&!linkStarting&&!saveLock&&(tab!=='imports'||launchContinuation.pending),()=>{updateCompleted=true;},detail=>diagnostics.record(detail,'update'),{beforeReload:()=>launchContinuation.preserve(),onContinue:resumeRequestedLaunch}))!==false){
- applySettings();refresh().then(async()=>{dragDepth=0;document.body.classList.remove('drop-active');await preferences.flush();launchContinuation.restore();await releaseNotice.start({updated:updateCompleted,existing:library.length>0});await finishStartupInputs({onTab:id=>{launchContinuation.clear();setTab(id);render();},onFiles:guardUpdateTask(files=>{launchContinuation.clear();return importFiles(files);})});appReady=true;if(!await resumeRequestedLaunch())openGameLink();autoUpdates?.refresh();}).catch(e=>{error(e);$('#content').innerHTML=tr('<div class="empty-library"><h2>保存データを開けませんでした</h2><p>プライベートブラウズを終了するか、ブラウザの保存設定を確認してください。</p></div>');});
+ applySettings();refresh().then(async()=>{dragDepth=0;document.body.classList.remove('drop-active');await preferences.flush();launchContinuation.restore();await releaseNotice.start({updated:updateCompleted,existing:library.length>0});await finishStartupInputs({onTab:id=>{launchContinuation.clear();setTab(id);render();},onFiles:guardUpdateTask(files=>{launchContinuation.clear();return importFiles(files);})});appReady=true;if(!await resumeRequestedLaunch())openGameLink();autoUpdates?.refresh();startUpdates.listen();}).catch(e=>{error(e);$('#content').innerHTML=tr('<div class="empty-library"><h2>保存データを開けませんでした</h2><p>プライベートブラウズを終了するか、ブラウザの保存設定を確認してください。</p></div>');});
 }

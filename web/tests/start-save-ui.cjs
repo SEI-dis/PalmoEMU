@@ -9,7 +9,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
  try{
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',error=>errors.push(error.message));context.on('request',request=>requests.push(request));
-  await context.addInitScript(()=>{window.coreAttempts=0;});
+  await context.addInitScript(()=>{window.coreAttempts=0;localStorage.setItem('palmo-start-updates-v1',JSON.stringify({enabled:false}));});
   await context.route('**/src/core/core-factory.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createCore(){globalThis.coreAttempts++;throw Error("Synthetic CRC fixtures must never execute");}'}));
   const fixture=fixture35(),compatibleFixture=fixture35({stamp:0x2800,second:true}),unknownFixture=fixture35({stamp:0x2402,second:true}),mixedFixture=fixture35({stamp:0x2800,second:true,secondStamp:0});
   for(const [name,bytes]of Object.entries({old:fixture,compatible:compatibleFixture,unknown:unknownFixture,mixed:mixedFixture}))await context.route('**/__start-fixture-'+name,route=>route.fulfill({body:Buffer.from(bytes),contentType:'application/octet-stream'}));

@@ -48,6 +48,10 @@
 
 提供コードは `vendor/start-save-migrate/`、アプリ側の保護処理は `src/start-save/` に分離しています。対応版と変換先は提供された `manifest.js` から取得し、APIの接続は `provider.js`、扱える保存形式の条件は `contract.js` に集約します。未知の保存形式は自動承認しません。[更新手順](scripts/start-save-migrate/README.md)に従って候補と出典を確認し、原本・両スロット・RTC・ロールバックの回帰検査後に差し替えてください。
 
+## PokemonStartの配布情報
+
+`library/start-updates.js`は固定GitHub APIからのメタデータ取得・検査・キャッシュだけを担当し、`views/start-updates.js`が通知・設定と既存のROM更新画面への導線を提供します。ローカル名は通知の比較にだけ使い、ネット要求に混ぜません。配布情報はセーブ互換性の根拠にせず、引き継ぎ時は`start-save/rom-profile.js`と保存検査を必ず通します。PKS処理・提供HTMLのコードは組み込みません。
+
 ## 表示言語
 
 「設定 → 言語」は初期値が「自動」です。対応言語は`languages.js`にまとめ、ブラウザの優先リストで最初に対応する言語を選びます。該当なしなら英語です。中国語はHans/Hant指定を地域より優先し、TW/HK/MOは繁体字、それ以外は簡体字にします。OSの設定を直接読むのではなく、ブラウザに公開された言語を使います。手動の選択は`palmo-language`に保存し、ゲーム別設定やバックアップの対象にはしません。

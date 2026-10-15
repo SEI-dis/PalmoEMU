@@ -13,7 +13,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',error=>errors.push(error.message));context.on('request',request=>requests.push(request));
-  await context.addInitScript(()=>{window.coreAttempts=0;});
+  await context.addInitScript(()=>{window.coreAttempts=0;localStorage.setItem('palmo-start-updates-v1',JSON.stringify({enabled:false}));});
   await context.route('**/src/core/core-factory.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createCore(){globalThis.coreAttempts++;throw Error("Synthetic ROM profiles must never execute");}'}));
   const original=fixture35({second:true}),compatible=fixture35({stamp:0x2800,second:true});
   await context.route('**/__range-save-old',route=>route.fulfill({body:Buffer.from(original),contentType:'application/octet-stream'}));
@@ -36,10 +36,10 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    await page.locator(`[data-game="${source}"]`).click();await page.locator('[data-action="updateROM"]').click();
    await page.locator('#rom-update-file').setInputFiles(targetFile);
   };
-  const selectProfile=async(version,minimum)=>{
+  const selectProfile=async(version,minimum,rangeGate=false)=>{
    const stamp=value=>{const [,minor,patch]=value.split('.').map(Number);return minor*256+patch;};
    targetFile=path.join(directory,`PokemonStart_v${version}-min${minimum}.gba`);files.push(targetFile);
-   fs.writeFileSync(targetFile,profileROM({stamp:stamp(version),minimum:stamp(minimum)}).bytes);
+   fs.writeFileSync(targetFile,profileROM({stamp:stamp(version),minimum:stamp(minimum),rangeGate}).bytes);
    return page.evaluate(async name=>{
     const {importROM}=await import('./src/library/rom-import.js');
     const file=new File([await(await fetch('./__range-target')).arrayBuffer()],name);
@@ -103,6 +103,16 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
   assert.deepEqual(await committed(sources.compatible,target425.id,'0.40.0'),{target:hash(compatible),source:hash(compatible),backup:hash(compatible),migration:null,validSlots:2});
 
+  // The reported 0.40.0 -> 0.47.1 path uses native lower/upper predicates.
+  const range=await selectProfile('0.47.1','0.36.2',true);
+  assert.deepEqual({version:range.profile.version,minimum:range.profile.minimumSaveVersion},{version:'0.47.1',minimum:'0.36.2'});
+  await openUpdate(sources.compatible);await page.locator('#rom-update-confirm').waitFor();
+  assert.equal(await page.locator('#start-save-apply').count(),0,'Compatible save goes directly to copy, not conversion');
+  await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
+  assert.deepEqual(await committed(sources.compatible,range.id,'0.40.0'),{target:hash(compatible),source:hash(compatible),backup:hash(compatible),migration:null,validSlots:2});
+  await page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},range.id);
+  await convert(range.id,'0.47.1');
+
   // Neither the destination version nor its minimum accepted save version is
   // hardcoded: a future release with the same native boundary works as well.
   const future=await selectProfile('0.43.0','0.36.2');
@@ -117,6 +127,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   await openUpdate(sources.old);await page.locator('#start-save-apply').waitFor();
   await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled);
   assert.equal(await page.locator('#start-save-apply').isDisabled(),true);
+  assert.equal(await page.locator('#start-save-apply').evaluate(el=>getComputedStyle(el).cursor),'default','Unavailable does not imply ongoing work');
+  assert.equal(await page.locator('#start-save-unverified-row').isVisible(),false,'Acknowledgement cannot unblock an unsupported target');
   assert.equal(await page.locator('#start-save-copy').isVisible(),false);
   assert.equal(await page.locator('#rom-update-confirm').count(),0);
   const denied=await page.evaluate(async({source,target,name})=>{

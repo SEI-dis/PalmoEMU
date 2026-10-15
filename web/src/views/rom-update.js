@@ -22,6 +22,10 @@ export function createROMUpdateDialog(api){
  function open(game,{reattach=false,onBack=()=>api.showGame(game)}={}){
   const title=reattach?tr('ROMを追加'):tr('ROMを更新');
   api.sheet(title,tr`<p class="sheet-note">${reattach?tr('取り外したものと同じROMを選ぶと、残してあるセーブから遊べます。'):tr('新版のROMへゲーム内セーブをコピーします。旧ROM・旧セーブ・ステートは残ります。')}</p><button id="rom-update-choose" class="primary wide-button">ファイルを選択</button><input id="rom-update-file" type="file" hidden><p id="rom-update-status" class="sheet-note" role="status"></p><button id="rom-update-back" class="secondary wide-button">戻る</button>`);
+  if(!reattach&&game.system==='gba'&&isStartName(game.filename,game.name)&&api.showStartUpdates){
+   const button=document.createElement('button');button.id='rom-update-news';button.className='secondary wide-button';button.textContent=tr('PokemonStartの更新を確認');
+   $('#rom-update-choose').before(button);button.onclick=()=>api.showStartUpdates(game,{onBack:()=>open(game,{onBack})});
+  }
   if(!reattach&&game.system==='gba'&&coreFor(game).key==='mgba'){
    const button=document.createElement('button');button.id='rom-update-start';button.className='secondary wide-button';button.textContent=tr('PokemonStartのセーブを変換');
    const details=document.createElement('details'),summary=document.createElement('summary');details.className='sheet-note';summary.textContent=tr('詳細');details.append(summary,button);$('#rom-update-back').before(details);

@@ -67,6 +67,7 @@ export const diagnosticSources = [
  "src/library/rom-update-artwork.js",
  "src/library/rom-update.js",
  "src/library/rom-zip.js",
+ "src/library/start-updates.js",
  "src/library/trainer-profile.js",
  "src/link/celio-device.js",
  "src/link/celio-serial.js",
@@ -147,6 +148,7 @@ export const diagnosticSources = [
  "src/views/settings.js",
  "src/views/skins.js",
  "src/views/start-save-migrate.js",
+ "src/views/start-updates.js",
  "src/views/states.js",
  "src/views/touch-options.js",
  "src/workers/task.js"

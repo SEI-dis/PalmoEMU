@@ -119,6 +119,8 @@
     "test:start-save-component": "node tests/start-save-component.cjs",
     "check:start-save-component": "node scripts/start-save-migrate/check.mjs",
     "test:start-save-update-range": "node tests/start-save-update-range.cjs",
+    "test:start-updates": "node tests/start-updates.cjs",
+    "test:start-updates-browser": "node tests/start-updates-browser.cjs",
     "test:runtime-tools": "node tests/runtime-tools.cjs",
     "test:runtime-tools-browser": "node tests/runtime-tools-browser.cjs",
     "test:backup-enhancements": "node tests/backup-enhancements.cjs",

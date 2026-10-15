@@ -9,6 +9,7 @@
 | セーブ・失敗時の保護 | `save-safety.cjs`、`save-worker.cjs`、`save-worker-fence.cjs`、`storage-protection.cjs` |
 | セーブ変換の更新 | `start-save-component.cjs`、`start-save-migration.cjs`、`start-save-compatibility.cjs`、`start-rom-profile.cjs`、`start-save-ui.cjs` |
 | ROM追加・更新・退避 | `rom-import.cjs`、`rom-zip.cjs`、`rom-update.cjs`、`backup.cjs`、`state-transfer.cjs` |
+| PokemonStart更新通知・ROM互換性 | `start-updates.cjs`、`start-updates-browser.cjs`、`start-save-update-range.cjs`。固定メタデータだけを用い、ネット上のROM・PKSを取得しない |
 | スキン・画面・入力 | `skin-compatibility.cjs`、`responsive-skins.cjs`、`input-controls.cjs`、`touch-recovery.cjs` |
 | 撮影・描画・音声 | `camera.cjs`、`recording-ui.cjs`、`runtime-performance.cjs`、`time-stretch.cjs` |
 | 通信 | `room-link.cjs`、`direct-link.cjs`、`gb-local-link.cjs` |

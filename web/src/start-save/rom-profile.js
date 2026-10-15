@@ -25,7 +25,7 @@ export function readStartROMProfile(bytes){
  const tail=p=>{const op=u16(p);if((op&0xf800)!==0xe000)return -1;let distance=(op&0x7ff)<<1;if(distance&0x800)distance-=0x1000;const target=p+4+distance;return target>=0xc0&&target<bytes.length?target:-1;};
  const registerCall=p=>{const target=bl(p);return target>=0&&u16(target)===0x4718;}; // bx r3
  const validStamp=value=>Number.isInteger(value)&&value>=0x2300&&value<=0xffff;
- let stamp=null,writerCount=0,minimum=null,gateCount=0;
+ let stamp=null,writerCount=0,minimum=null,gateCount=0,maximumAccepted=null;
  for(let p=0xc0;p+26<=bytes.length;p+=2){
   let candidate=-1;
   // Patch releases load the complete stamp from a literal pool.
@@ -41,8 +41,24 @@ export function readStartROMProfile(bytes){
    words(p+10,[0x4298,0xd900,null,0x2301,0x4699,0x2300,0x4698])&&tail(p+14)>=0&&tail(p+14)===tail(p+24)){
    const maximum=literal(p+8,3);if(validStamp(maximum)&&maximum<0xffff){minimum=maximum+1;gateCount++;}
   }
+  // Newer menus delegate both bounds to small predicates. Validate the calls,
+  // unsigned comparisons, disabled-Continue branches and common return path;
+  // accepting a version number alone would miss a changed compatibility rule.
+  if(bytes[p+1]===0x48&&literal(p,0)===versionVariable&&literal(p+2,7)===varGet&&u16(bl(p+4))===0x4738&&
+   words(p+12,[0x4682,0x2800,0xd005,0x2300,0x9305,0x3301,0x469a,0x2500])&&
+   literal(p+30,0)===versionVariable&&bl(p+32)===bl(p+4)&&
+   words(p+40,[0x9005,0x2800,0xd010,0x2301,0x2500,0x9305])&&u16(p+80)===0x4682&&
+   tail(p+28)>=0&&tail(p+28)===tail(p+52)&&tail(p+28)===tail(p+82)){
+   const lower=bl(p+8),upper=bl(p+36);
+   // lower: maxOld >= saved; upper: saved > current (unsigned Thumb).
+   if(words(lower,[0x2300,null,0x4282,0x415b,0x0018,0x4770])&&
+    words(upper,[null,0x4283,0x4180,0x4240,0x4770])){
+    const maximum=literal(lower+2,2),current=literal(upper,3);
+    if(validStamp(maximum)&&validStamp(current)&&maximum<current){minimum=maximum+1;maximumAccepted=current;gateCount++;}
+   }
+  }
  }
  if(writerCount!==1)return null;
  // A changed or ambiguous gate must not silently grant compatibility.
- return {version:stampVersion(stamp),minimumSaveVersion:gateCount===1&&minimum<=stamp?stampVersion(minimum):null};
+ return {version:stampVersion(stamp),minimumSaveVersion:gateCount===1&&minimum<=stamp&&(maximumAccepted===null||maximumAccepted===stamp)?stampVersion(minimum):null};
 }

@@ -846,3 +846,11 @@ update/offline downloads and restores automatic update handling after a failed
 attempt recovers. Integrity verification, explicit user deferral and existing
 game/data locks remain in place. No new dependency, core binary, third-party
 asset, license, stored-data format, permission or network endpoint is added.
+
+Unpublished changes (2026-10-15): original AGPL PokemonStart release-metadata
+notifications and existing ROM-update navigation, with a fixed public GitHub
+metadata GET and local cache/preferences. No ROM, save, PKS download or patcher
+code is added. The START native compatibility reader now recognizes strictly
+validated lower/upper predicate calls and preserves rejection of unknown code
+and newer-save downgrades. Disabled controls no longer imply ongoing work.
+Existing conversion engine, native cores, licenses and data formats are unchanged.
