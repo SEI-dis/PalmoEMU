@@ -15,7 +15,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   const saved=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),[game]=await db.all('library'),[entry]=await db.stateEntries(game.id);const s=entry.value;return {id:game.id,stateBytes:s.bytes.length,saveBytes:s.save.length,first:s.save[0],lastBank:s.save[95*65536],core:s.coreId};});
   assert.ok(saved.stateBytes>22*1048576);assert.equal(saved.saveBytes,6*1048576);assert.equal(saved.first,0x5a);assert.equal(saved.lastBank,0x3c);assert.equal(saved.core,'mgba-rom64-save6-v2');
   await page.locator('[data-slot-load]').first().click();await page.locator('#sheet').waitFor({state:'hidden'});
-  await page.locator('#player-menu').click();await page.locator('[data-action=saveData]').click();await page.locator('[data-action=restore]').click();
+  await page.locator('#player-menu').click();await page.locator('[data-action=saveData]').click();await page.locator('#save-rescue-import').click();
   const bytes=Buffer.alloc(6*1048576,0xff);bytes[0]=0x41;bytes[bytes.length-1]=0x27;
   await page.locator('#save-input').setInputFiles({name:'Authored-flash.sav',mimeType:'application/octet-stream',buffer:bytes});
   await page.getByText('セーブを読み込みました。ゲームを再起動します。',{exact:true}).waitFor();

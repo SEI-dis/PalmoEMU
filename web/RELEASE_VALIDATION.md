@@ -1309,3 +1309,5 @@ package/変更通知を0.3.35へ更新。0.50.1変換、選択オフライン保
 隔離Chromium（Edge）/PC WebKitでnative-menu、game-navigation、library、state-ui、save-rescue、save-apply、ux-review、input-dialog、ui-navigation、game-preferences、save-import-recovery、rom-update、start-save-format-browser、ux-layoutが成功。確認取り消し、破損/変化した履歴の拒否、書き出しバッファの独立性、遅延した履歴画面のキャンセル、復元の一度だけの確定、元セーブ/別ゲーム保持、容量不足/ロック/書き込み失敗、終了と再開を確認。初回library/表示テストの古い×操作期待をキャンセル/Escapeへ修正した。Chromiumのgame-preferences初回はローカルのブラウザ指定不足で未実行だったため、Edgeを明示して成功。途中停止したWebKit native-menuは全体を再実行して成功した。
 
 0.50.1変換は前節の独立合成10例・実ROM読み取り検証を維持。Nodeのformat/component/host/compatibility/component検査と、両ブラウザの変換画面→Worker→原子的保存を再検査した。生成物/モジュール/翻訳/配布内容/対応ソースの検査は、同じ候補から生成して照合する。実iPhone、実ゲームの長時間継続、一般のROM互換性はこの検査の対象外。公開はこの候補コミットのCI全件成功後に行う。
+
+同じ共通画面を使うextended-save/privacy検査に残った旧ボタン指定2箇所も更新し、Chromium/PC WebKitで全検査に成功。6MiBセーブの読み込み・バックアップ・手動ステート保持、64MiB合成ROMによる5分相当の保存容量制限、外部送信なしの比較は削除・緩和していない。本体・訳文の追加変更はない。
