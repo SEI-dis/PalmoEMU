@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
+import {watchDownloadProgress,downloadProgressLabel,updateDownloadState} from './download-progress.js';
 import {setupOffline} from './offline.js';
 import {updateTasksPending} from './update-activity.js';
 import {afterControllerActivation} from './controller-activation.js';
@@ -10,7 +11,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
  if(!navigator.serviceWorker||!navigator.locks||!isSecureContext)return;
  const name='local-play-version:'+new URL('../../',import.meta.url).pathname;
  let releaseLease,lease,registration,prepared=null,lastInput=Date.now(),checking=false,lastCheck=0,indicatorTimer,reloading=false;
- let staging=null,deferred=false,stageTimer,updateCheck=null,launchCheck=false,failed=false,missingCandidateAt=null,restorePending=false;
+ let staging=null,deferred=false,stageTimer,updateCheck=null,launchCheck=false,failed=false,missingCandidateAt=null,restorePending=false,stopProgress;
  const noticeKey='local-play-updated:'+new URL('../../',import.meta.url).pathname;
  const pickers=new Set();
  const indicator=document.createElement('dialog');indicator.className='update-progress';
@@ -40,16 +41,19 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
   if(prepared)return;
   // Respect Continue for this visit, including a replacement worker whose
   // registration attributes have not reached this page yet. Reload retries.
-  if(defer)deferred=true;staging=null;failed=false;missingCandidateAt=null;clearTimeout(stageTimer);unfreeze();lastInput=Date.now();
+  if(defer)deferred=true;stopProgress?.();staging=null;failed=false;missingCandidateAt=null;clearTimeout(stageTimer);unfreeze();lastInput=Date.now();
   if(defer)setTimeout(onContinue,0);
  }
  function showFailure(reason){
   const detail={name:reason==='offline'?'NetworkError':'Error',reason,phase:indicator.dataset.phase,worker:staging?.state,online:navigator.onLine};
   closeStage();failed=true;freeze(tr('更新できませんでした。'),0,{update:true,canContinue:true,phase:'failed'});onDeferred(detail);
+  void updateDownloadState(registration?.active).then(result=>{if(failed&&indicator.dataset.phase==='failed'&&result?.reason==='quota')status.textContent=tr('容量が不足しているため保存できません。');});
  }
  function stageLabel(){return registration?.waiting===staging?tr('準備中…'):tr('ダウンロード中…');}
  function showStage(){
+  stopProgress?.();const worker=staging;
   freeze(stageLabel(),0,{update:true,phase:registration?.waiting===staging?'ready':'downloading'});
+  if(worker?.state==='installing')stopProgress=watchDownloadProgress(worker,percent=>{if(staging===worker&&!prepared&&indicator.dataset.phase==='downloading')status.textContent=downloadProgressLabel(tr('ダウンロード中…'),percent);});
   // A slow download or another busy tab is not an installation failure.
   // Let the user leave a long wait, but keep applying automatically if they stay.
   clearTimeout(stageTimer);stageTimer=setTimeout(()=>{if(staging&&!prepared)continueButton.hidden=false;},60000);
@@ -177,7 +181,7 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
   if(updateCheck)return updateCheck;
   if(document.hidden||!navigator.onLine||(!force&&Date.now()-lastCheck<60000))return Promise.resolve();
   lastCheck=Date.now();
-  updateCheck=Promise.resolve().then(()=>registration.update()).catch(()=>{}).finally(()=>{updateCheck=null;refresh();});
+  updateCheck=Promise.resolve().then(async()=>{const failure=await updateDownloadState(registration.active);if(failure?.reason==='quota'&&failure.retryAfter>Date.now())return;await registration.update();}).catch(()=>{}).finally(()=>{updateCheck=null;refresh();});
   return updateCheck;
  }
  function watch(){registration.installing?.addEventListener('statechange',refresh);refresh();}

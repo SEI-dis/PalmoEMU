@@ -29,7 +29,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await page.locator('#system-filter').selectOption('all');await page.locator('#search').fill('');
  // Ordinary selection opens the owning ROM menu. Single-category changes and
  // X/cancel return to that menu, without starting a core or closing to library.
- await page.locator('[data-game=a]').click();await page.locator('#sheet.game-info').waitFor();await page.locator('[data-action=category]').click();await page.locator('#close-sheet').click();await page.locator('#sheet.game-info').waitFor();
+ await page.locator('[data-game=a]').click();await page.locator('#sheet.game-info').waitFor();await page.locator('[data-action=category]').click();assert.equal(await page.locator('#library-cancel').count(),0);await page.locator('#close-sheet').click();await page.locator('#sheet.game-info').waitFor();
  await page.locator('[data-action=category]').click();await page.locator('[data-library-category=playing]').click();await page.locator('#sheet.game-info').waitFor();assert.match(await page.locator('[data-action=category]').textContent(),/プレイ中/);assert.equal(await page.locator('#player').isVisible(),false);
  // A stale, already-open menu must not revive a category removed elsewhere.
  await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');await db.setGamesLibraryMetadata(['a'],{category:''});});
@@ -57,7 +57,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  }
  await page.setViewportSize({width:390,height:844});require('node:fs').mkdirSync(path.join(__dirname,'../test-results'),{recursive:true});await page.screenshot({path:path.join(__dirname,'../test-results/library-'+kind+'.png')});
  // Cancel is inert; successful deletion removes only the selected records.
- await page.locator('#library-delete').click();await page.locator('#library-cancel').click();assert.equal((await ids()).length,4);
+ await page.locator('#library-delete').click();assert.equal(await page.locator('#close-sheet').getAttribute('aria-label'),'閉じる');await page.locator('#close-sheet').click();assert.equal((await ids()).length,4);
  await page.locator('#search').fill('alpha');await page.locator('#library-select-all').click();await page.locator('#library-delete').click();assert.equal(await page.locator('#library-delete-confirm').textContent(),'2件を削除');await page.locator('#library-delete-confirm').click();await page.locator('#sheet').waitFor({state:'hidden'});
  assert.equal((await ids()).length,0);await page.locator('#search').fill('');assert.deepEqual(await ids(),['c','d']);
  await page.keyboard.press('Escape');assert.equal(await page.locator('#library-select').textContent(),'選択');await page.locator('[data-game=c]').click();await page.locator('#sheet.game-info').waitFor();await close();

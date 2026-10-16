@@ -125,9 +125,9 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   // Real view: selection only previews, confirmation is a separate user action.
   await page.evaluate(async()=>{
    window.downloads=[];const {createBackupView}=await import('./src/views/backup.js');
-   const show=createBackupView({settings,sheet(title,body){document.querySelector('#sheet-title').textContent=title;document.querySelector('#sheet-body').innerHTML=body;document.querySelector('#sheet').showModal();},download(bytes,name){downloads.push({text:new TextDecoder().decode(bytes),name});},toast(){},onRestored(){window.restoredUI=true;}});show();
+   const show=createBackupView({settings,sheet(title,body){document.querySelector('#sheet-title').textContent=title;document.querySelector('#sheet-body').innerHTML=body;document.querySelector('#sheet').showModal();},download(bytes,name){downloads.push({text:new TextDecoder().decode(bytes),name});return 'download';},onRestored(){window.restoredUI=true;}});show();
   });
-  await page.locator('#backup-import').setInputFiles({name:'test-backup.json',mimeType:'application/json',buffer:Buffer.from(fixture.text)});await page.locator('#backup-confirm').waitFor();assert.equal(await page.evaluate(()=>!!window.restoredUI),false);await page.locator('#backup-confirm').click();await page.waitForFunction(()=>window.restoredUI===true);
+  await page.locator('#backup-mode-restore').click();await page.locator('#backup-import').setInputFiles({name:'test-backup.json',mimeType:'application/json',buffer:Buffer.from(fixture.text)});await page.locator('#backup-confirm').waitFor();assert.equal(await page.evaluate(()=>!!window.restoredUI),false);await page.locator('#backup-confirm').click();await page.locator('#backup-reload').waitFor();assert.equal(await page.evaluate(()=>!!window.restoredUI),false);await page.locator('#backup-reload').click();await page.waitForFunction(()=>window.restoredUI===true);
   await page.locator('#backup-previous').click();await page.waitForFunction(()=>downloads.length===1);assert.match(await page.evaluate(()=>downloads[0].name),/^PalmoEMU-before-restore-/);
   await page.screenshot({path:`web/test-results/backup-${engine}-390.png`});
   assert.ok(requests.filter(url=>/^https?:/.test(url)).every(url=>new URL(url).origin===new URL(base).origin),'Backup never uploads to remote services');

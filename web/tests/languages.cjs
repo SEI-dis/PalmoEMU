@@ -65,6 +65,38 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   await fallbackPage.goto(base+'index.html#settings');await fallbackPage.locator('#app-language').waitFor();
   assert.equal(await fallbackPage.locator('html').getAttribute('lang'),'en');assert.equal(await fallbackPage.locator('#app-language').inputValue(),'fr');
   await fallbackPage.unroute('**/locales/fr.js');await fallbackPage.reload();await fallbackPage.locator('#app-language').waitFor();assert.equal(await fallbackPage.locator('html').getAttribute('lang'),'fr','Retry selected language on next load');await fallback.close();
-  console.log(`PASS: ${tested.length} additional languages, regional defaults, manual persistence, page/dialog layout, worker override, interpolation, selected-catalogue-only loading and recoverable missing catalogue.`);
+  // A partial selected catalogue keeps English fallbacks, including after a
+  // worker switches languages and revisits its cached plain/tagged messages.
+  const partial=await browser.newContext({locale:'ja-JP',serviceWorkers:'block'}),partialPage=await partial.newPage();
+  await partial.addInitScript(()=>localStorage.setItem('palmo-language','fr'));
+  await partial.route('**/locales/fr.js',route=>route.fulfill({contentType:'text/javascript',body:'export default {"設定":"TEST_FR_SETTINGS"};'}));
+  await partialPage.goto(base+'index.html#settings');await partialPage.locator('#app-language').waitFor();
+  assert.equal(await partialPage.locator('h1').textContent(),'TEST_FR_SETTINGS');
+  assert.equal(await partialPage.evaluate(async()=>{const {tr}=await import('./src/i18n/index.js');return tr('保存');}),'Save','Missing selected entries fall back to English');
+  const workerPath='src/i18n/language-test-worker.js';
+  await partial.route('**/'+workerPath,route=>route.fulfill({contentType:'text/javascript',body:`import {language,tr,setWorkerLanguage} from './index.js';
+   const render=()=>({language,plain:tr('保存'),settings:tr('設定'),tag:tr\`「\${'保存 <b>name</b>⟪0⟫'}」の\${2}行目を読み込めません。\`});
+   self.onmessage=async()=>{const states=[];for(const code of ['ja','en','fr','ja','fr']){await setWorkerLanguage(code);states.push(render());}self.postMessage(states);};`}));
+  const states=await partialPage.evaluate(workerPath=>new Promise((resolve,reject)=>{const worker=new Worker(new URL(workerPath,location.href),{type:'module'}),timer=setTimeout(()=>{worker.terminate();reject(Error('Language worker timed out'));},10000);worker.onmessage=event=>{clearTimeout(timer);worker.terminate();resolve(event.data);};worker.onerror=event=>{clearTimeout(timer);worker.terminate();reject(Error(event.message));};worker.postMessage({});}),workerPath);
+  assert.deepEqual(states.map(state=>[state.language,state.plain,state.settings]),[['ja','保存','設定'],['en','Save','Settings'],['fr','Save','TEST_FR_SETTINGS'],['ja','保存','設定'],['fr','Save','TEST_FR_SETTINGS']]);
+  assert.equal(states[0].tag,'「保存 <b>name</b>⟪0⟫」の2行目を読み込めません。');assert.equal(states[1].tag,'Could not read line 2 of “保存 <b>name</b>⟪0⟫”.');assert.equal(states[2].tag,states[1].tag);assert.deepEqual(states[4],states[2]);await partial.close();
+  // Even the English fallback can be unavailable during an interrupted
+  // offline download. Source text must still leave game/export access usable.
+  const unavailable=await browser.newContext({locale:'fr-FR',serviceWorkers:'block'}),unavailablePage=await unavailable.newPage(),unavailableErrors=[];
+  unavailablePage.on('pageerror',error=>unavailableErrors.push(error.message));await unavailable.addInitScript(()=>{
+   localStorage.setItem('palmo-language','fr');globalThis.fixtureExports=[];
+   globalThis.showSaveFilePicker=async()=>({createWritable:async()=>({write:async file=>fixtureExports.push([...new Uint8Array(await file.arrayBuffer())]),close:async()=>{}})});
+  });
+  await unavailable.route('**/locales/*.js',route=>route.fulfill({status:503,body:'Unavailable'}));
+  await unavailablePage.goto(base+'index.html#settings');await unavailablePage.locator('#app-language').waitFor();
+  assert.equal(await unavailablePage.locator('html').getAttribute('lang'),'ja');assert.equal(await unavailablePage.locator('#app-language').inputValue(),'fr','Keep the selected preference for a later retry');
+  await unavailablePage.evaluate(async()=>{const db=await import('./src/storage/storage.js');await db.addGame({id:'missing-catalogue',name:'Dictionary fixture',system:'gba',size:4,added:1},new Uint8Array([1,2,3,4]));await db.put('saves','missing-catalogue',{bytes:new Uint8Array([5,6])});});
+  await unavailablePage.reload();await unavailablePage.locator('#app-language').waitFor();await unavailablePage.locator('[data-tab=games]').click();await unavailablePage.locator('[data-game=missing-catalogue]').click();
+  assert.equal(await unavailablePage.locator('.game-info-play').isEnabled(),true,'Game launch remains accessible without catalogues');
+  await unavailablePage.locator('[data-action=saveData]').click();await unavailablePage.locator('#save-rescue-export').click();await unavailablePage.locator('[data-export-save]').click();
+  await unavailablePage.waitForFunction(()=>fixtureExports.length===1);assert.deepEqual(await unavailablePage.evaluate(()=>fixtureExports[0]),[5,6],'Save export remains usable without catalogues');
+  await unavailablePage.locator('[data-export-close]').click();await unavailablePage.locator('#save-rescue-export').waitFor();await unavailablePage.locator('#close-sheet').click();assert.equal(await unavailablePage.locator('.game-info-play').isVisible(),true,'Closing save management returns to the game menu');
+  assert.deepEqual(unavailableErrors,[]);await unavailable.close();
+  console.log(`PASS: ${tested.length} additional languages, regional defaults, manual persistence, page/dialog layout, worker override/cache, interpolation, selected-catalogue-only loading, English/source fallbacks and accessible save export without catalogues.`);
  }finally{await browser.close();}
 })().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

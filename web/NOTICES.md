@@ -914,3 +914,25 @@ CSP and the Service Worker allow that exact additional metadata URL only.
 Actual 0.49.0 ROM inspection and synthetic save-transfer coverage are scoped in
 scripts/start-save-migrate/ROM_REVIEW.md and RELEASE_VALIDATION.md; they are not
 full-gameplay or iPhone-hardware certification. Changes remain unpublished.
+
+
+Modified 2026-10-16 (unpublished): added the forward-only old-to-L save-layout
+portion of the HTML migration tool bundled in PokemonStart v0.50.0 by
+[pm-start/PokemonStart](https://github.com/pm-start/PokemonStart/tree/80cb08adf9fe2005f7618dbbdbffcab10b54e839).
+This is a separate component from くりーぱー's START Save Migrate. The distributor
+is identified; an individual author and a standardized upstream license are not
+established. The maintainer explicitly confirmed permission to incorporate this
+tool and publish its integration on the Web on 2026-10-16. The original rights-holder
+message was not independently inspected, and no broader downstream license is
+asserted. See [the separate provenance and adaptation record](vendor/start-save-format/README.md).
+
+The adapted module removes the standalone UI, reverse conversion and rounding,
+and adds explicit corruption refusal, counter-wrap handling, copy ownership,
+non-layout/RTC preservation and logical-output verification. Valid synthetic
+0.49 inputs match the supplied forward converter byte for byte. Earlier saves
+use the existing reviewed historical corrections before the layout conversion;
+0x31ff remains the official conversion guard so subsequent game updates can run.
+Original host integration and tests are AGPL-3.0-or-later; that does not relicense
+the supplied component. ROMs, PKS packages, original HTML, patches, artwork and
+user saves are not included. The offline/source inventory identifies this
+component separately and pins its engine, provenance and permission record.

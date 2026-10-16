@@ -42,7 +42,7 @@ dialog.native-menu[open]{display:flex;flex-direction:column}
 .game-info-subtitle svg{width:16px;height:16px;flex:none}.game-info-subtitle span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .game-info-play{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--menu-red);color:white;border-radius:30px;width:168px;max-width:90%;height:44px;margin:22px auto 0;font-size:16px;font-weight:600}
 .game-info-play svg{width:19px;height:19px;fill:currentColor;stroke:none}
-.game-info-safe{display:flex;align-items:center;justify-content:center;gap:5px;color:var(--menu-red);margin:8px auto 0;min-height:24px;padding:0 8px;font-size:13px;font-weight:600}
+.game-info-safe{display:flex;align-items:center;justify-content:center;gap:5px;color:var(--secondary);margin:8px auto 0;min-height:44px;padding:0 12px;font-size:13px;font-weight:400}
 .game-info-safe svg{width:17px;height:17px}
 .native-menu .native-options{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:0 16px max(30px,env(safe-area-inset-bottom));scrollbar-width:thin}
 .native-menu .option-reorder{display:flex;align-items:center;gap:8px;padding:12px 16px;min-height:56px}.option-reorder>span{flex:1}.option-reorder button{padding:8px;color:var(--menu-muted)}
@@ -54,3 +54,16 @@ html[data-theme=light] .native-menu .sheet-tools,html[data-theme=light] .native-
 @media(min-width:700px){dialog.native-menu{inset:0;margin:auto;border-radius:24px;height:min(900px,92dvh)}}
 @media(max-height:540px){dialog.native-menu{height:98dvh;max-height:98dvh}.native-menu.game-info #sheet-body{display:grid;grid-template-columns:minmax(180px,.85fr) minmax(260px,1.4fr)}.game-info-hero{padding-top:12px}.native-menu .native-options{height:100%;padding-left:0}.game-info-title h2{font-size:16px}.game-info-subtitle{font-size:11px}.game-info-play{margin-top:14px}}
 @media(max-width:320px){.native-menu .sheet-head{padding:0 12px;gap:4px}.native-menu #sheet-body,.native-menu .native-options{padding-left:10px;padding-right:10px}.native-menu.game-info #sheet-body{padding:0}.native-menu .native-row{padding:15px 12px;gap:9px;font-size:14px}.native-menu .native-value{font-size:11px;max-width:35%}.native-menu .native-row input[type=checkbox]{width:50px;flex-basis:50px}.native-menu .native-row input[type=checkbox]:checked:after{left:24px}.game-info-title h2{font-size:16px}.game-info-subtitle{font-size:11px}.native-menu .sheet-tool{width:27px}.native-menu .sheet-tool svg{width:18px}}
+
+/* Child sheets keep navigation distinct from actions. Confirmations retain their pair of buttons. */
+#sheet .sheet-head:has(.sheet-back){grid-template-columns:auto minmax(0,1fr) auto}
+#sheet .sheet-head:has(.sheet-back) h2{grid-column:2;grid-row:1;white-space:normal;line-height:1.4}
+#sheet .sheet-head:has(.sheet-back) #sheet-tools{grid-column:3;grid-row:1}
+#sheet #close-sheet.sheet-back{grid-column:1;grid-row:1;display:inline-flex;align-items:center;gap:2px;width:auto;height:auto;min-height:44px;padding:4px 4px 4px 0;background:none;border:0;box-shadow:none;color:var(--text);font-size:13px;font-weight:500;white-space:nowrap}
+#sheet #close-sheet.sheet-back svg{width:18px;height:18px}
+
+/* Give localized menu titles their own row when shortcuts are present. */
+.port-menu .sheet-head{grid-template-columns:minmax(0,1fr) auto}
+.port-menu .sheet-head h2{grid-column:1;grid-row:1;white-space:normal;line-height:1.4}
+.port-menu .sheet-head #sheet-tools{grid-column:1/-1;grid-row:2;justify-self:end}
+.port-menu .sheet-head #close-sheet{grid-column:2;grid-row:1}

@@ -2,6 +2,7 @@
 // Local PNG preview/export. Capturing never uploads pixels or pauses the core.
 import {tr} from '../i18n/index.js';
 import {icon} from '../shared.js';
+import {recordingName as captureName} from './recording-file.js';
 
 export function createScreenshotPreview({host,onInteract=()=>{},toast=()=>{},error=()=>{}}){
  const panel=document.createElement('section');panel.id='screenshot-preview';panel.className='screenshot-preview';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','false');panel.setAttribute('aria-label',tr('スクリーンショット'));
@@ -27,7 +28,7 @@ export function createScreenshotPreview({host,onInteract=()=>{},toast=()=>{},err
    // Use bytes and an explicit MIME type instead of navigating to a data URL.
    const prefix='data:image/png;base64,';if(typeof data!=='string'||!data.startsWith(prefix))throw new TypeError('Invalid screenshot PNG');
    const bytes=Uint8Array.from(atob(data.slice(prefix.length)),value=>value.charCodeAt(0));
-   file=new File([bytes],String(name).replace(/[\\/\u0000-\u001f]/g,'_')+'.png',{type:'image/png'});image.src=data;status.textContent=tr('画像を確認して、保存または共有できます。');
+   file=new File([bytes],captureName(name)+'.png',{type:'image/png'});image.src=data;status.textContent=tr('画像を確認して、保存または共有できます。');
    let supported=false;try{supported=typeof navigator.share==='function'&&navigator.canShare?.({files:[file]})===true;}catch{}
    share.hidden=!supported;panel.hidden=false;
   },

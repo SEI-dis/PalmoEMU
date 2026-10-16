@@ -36,7 +36,7 @@ const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixture
  }
  for(const to of ['0.46.0','0.47.0'])assert.equal(policy('0.46.0',{version:to,minimumSaveVersion:'0.36.2'}).status,'compatible');
  for(const to of ['0.40.0','0.42.2','0.42.4','0.42.5']){assert.equal(policy('0.35.0',to).status,'convert');assert.equal(policy('0.38.0',to).status,'compatible');}
- for(const version of ['0.42.5','0.43.0','0.99.1']){
+ for(const version of ['0.42.5','0.43.0','0.49.1']){
   const target={version,minimumSaveVersion:'0.36.2'};
   for(const from of ['0.1','0.35.0','0.36.1'])assert.equal(policy(from,target).status,'convert');
   for(const from of ['0.36.2','0.37.0','0.38.0','0.42.3'])assert.equal(policy(from,target).status,'compatible');

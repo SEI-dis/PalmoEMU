@@ -43,8 +43,28 @@ const japanese=/[ぁ-んァ-ヶ一-龯]/;
   assert.deepEqual(saved,{name:'保存',rom:[1,2,3,4],save:[8,9]},'Language changes preserve user data');
   await page.locator('[data-tab=games]').click();await page.locator('[data-game=language-canary]').click();await clean('game menu');await page.locator('#close-sheet').click();
   await page.locator('#rom-input').setInputFiles({name:'English-test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});
+  await page.waitForFunction(()=>[...document.querySelectorAll('#content .game-launch')].some(el=>el.textContent.includes('English-test'))||document.querySelector('#import-results-close'));assert.equal(await page.locator('#import-results-close').count(),0,'Import failed: '+await page.locator('#sheet-body').textContent());
+  // English browser startup must receive the first message before requesting
+  // its dictionary. Exercise every affected worker, not just ROM import.
+  const workerLanguage=await page.evaluate(async()=>{
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js');
+   const id='i18n-save-worker',sessionId='i18n-owner',bytes=new Uint8Array([11,17]);await db.put('sessions',id,{id:sessionId});
+   const entry={id,sessionId,save:{bytes,hash:await hash(bytes),at:1000,coreId:'mgba-rom64-save6-v2'},clean:true};
+   const save=await new Promise((resolve,reject)=>{
+    const worker=new Worker(new URL('./src/storage/save-worker.js',location.href),{type:'module'}),timer=setTimeout(()=>finish(null,Error('Save worker lost its initial message')),5000);
+    function finish(result,error){clearTimeout(timer);worker.terminate();if(error)reject(error);else resolve(result);}
+    worker.onerror=event=>finish(null,Error(event.message));worker.onmessage=({data})=>{if(data.type==='ready')worker.postMessage({version:1,type:'commit',id:1,entry,language:'en'});else finish(data);};worker.postMessage({version:1,type:'init',id:0,language:'en'});
+   });
+   const start=await new Promise((resolve,reject)=>{
+    const worker=new Worker(new URL('./src/start-save/worker.js',location.href),{type:'module'}),timer=setTimeout(()=>finish(null,Error('Migration worker lost its initial message')),5000);
+    function finish(result,error){clearTimeout(timer);worker.terminate();if(error)reject(error);else resolve(result);}
+    worker.onerror=event=>finish(null,Error(event.message));worker.onmessage=({data})=>finish(data);worker.postMessage({action:'inspect',id:'missing-i18n-fixture',language:'en'});
+   });
+   const stored=await db.get('saves',id);return {save,start,bytes:[...stored.bytes],clean:(await db.get('sessions',id)).dirty===false};
+  });
+  assert.equal(workerLanguage.save.type,'done');assert.deepEqual(workerLanguage.bytes,[11,17]);assert.equal(workerLanguage.clean,true);assert.equal(workerLanguage.start.type,'error');assert.ok(workerLanguage.start.message.includes('PokemonStart'));assert.ok(!japanese.test(workerLanguage.start.message),'Migration worker follows English override');
   await page.getByRole('button',{name:'English-test: open settings',exact:true}).click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});
-  await page.locator('#player-menu').click();await page.locator('[data-action=newState]').click();assert.equal(await page.locator('#sheet-title').textContent(),'Save state');await page.locator('#confirm-state-save').click();await page.locator('[data-slot-load]').waitFor();
+  await page.locator('#player-menu').click();await page.locator('[data-action=newState]').click();await page.locator('[data-slot-load]').waitFor();assert.equal(await page.locator('#sheet-title').textContent(),'Save states');
   assert.equal(await page.locator('[data-state-mode=auto]').textContent(),'Auto');assert.equal(await page.locator('[data-state-mode=manual]').textContent(),'Manual');
   await page.screenshot({path:path.join(pictures,'states.png')});
   for(const [width,height]of [[320,568],[844,390],[1024,768]]){
@@ -66,8 +86,10 @@ const japanese=/[ぁ-んァ-ヶ一-龯]/;
   // WebKit also reports in-memory Blob reads used for local state thumbnails.
   assert.deepEqual(errors,[]);assert.deepEqual(requests.filter(([method,url])=>method!=='GET'||(!url.startsWith(base)&&!url.startsWith('blob:'+base))),[],'Only local static or in-memory resources read');await context.close();
   for(const locale of ['ja-JP','ru-RU']){
-   const c=await browser.newContext({locale,serviceWorkers:'block'}),p=await c.newPage();await p.goto(base+'index.html#settings');await p.locator('#app-language').waitFor();assert.equal(await p.locator('html').getAttribute('lang'),locale==='ja-JP'?'ja':'en');
+   const c=await browser.newContext({locale,serviceWorkers:'block'}),p=await c.newPage(),startupRequests=[];p.on('request',request=>startupRequests.push(request.url()));await p.goto(base+'index.html#settings');await p.locator('#app-language').waitFor();assert.equal(await p.locator('html').getAttribute('lang'),locale==='ja-JP'?'ja':'en');
    if(locale==='ja-JP'){
+    assert.deepEqual(startupRequests.filter(url=>/\/locales\//.test(url)),[],'Japanese startup does not load translation catalogues');
+    assert.ok(!startupRequests.some(url=>url.endsWith('/vendor/start-save-migrate/engine.js')),'Startup loads save metadata without the conversion engine');
     await p.locator('#app-language').selectOption('en');await p.waitForFunction(()=>document.documentElement.lang==='en');await p.locator('#app-language').waitFor();
     // Force a local file read abort inside an isolated worker, exercising the
     // explicit override when the browser's own language is still Japanese.

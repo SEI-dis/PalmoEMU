@@ -163,7 +163,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await update.evaluate(async()=>{const {guardUpdateTask}=await import('./src/updates/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishOpenOfflineDialog=resolve;}))();});
   await update.locator('#close-sheet').click();
   await update.evaluate(()=>{const send=ServiceWorker.prototype.postMessage;ServiceWorker.prototype.postMessage=function(message,...rest){if(message?.type==='download'){window.finishOfflineDownload=()=>{ServiceWorker.prototype.postMessage=send;send.call(this,message,...rest);};return;}return send.call(this,message,...rest);};});
-  await update.locator('[data-action=offline]').click();await update.locator('#offline-download').click();
+  await update.locator('[data-action=offline]').click();await update.locator('#sheet-body details > summary').click();await update.locator('#offline-all').click();
   await update.waitForFunction(()=>typeof window.finishOfflineDownload==='function');await update.evaluate(()=>finishOpenOfflineDialog());await update.locator('#close-sheet').click();
   await stays(2);
   await update.evaluate(async()=>{const {guardUpdateTask}=await import('./src/updates/update-activity.js');guardUpdateTask(()=>new Promise(resolve=>{window.finishUpdateTestTask=resolve;}))();});
@@ -273,7 +273,8 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.equal(await second.getByRole('dialog',{name:'アプリの更新',exact:true}).isVisible(),false,'An open game/settings sheet is not interrupted');
   await second.locator('#rom-update-play').click();await second.locator('.update-progress[data-phase=downloading]').waitFor();
   assert.equal(await second.locator('#player').isVisible(),false);assert.equal(await second.evaluate(()=>updateGateLoads),0,'A known installing candidate wins the launch race');
-  assert.equal(await second.locator('.update-progress strong').textContent(),'アプリの更新');assert.equal(await second.locator('.update-progress [role=status]').textContent(),'ダウンロード中…');
+  assert.equal(await second.locator('.update-progress strong').textContent(),'アプリの更新');assert.match(await second.locator('.update-progress [role=status]').textContent(),/^ダウンロード中…(?: \d+%)?$/);
+  await second.waitForFunction(()=>/^ダウンロード中… \d+%$/.test(document.querySelector('.update-progress [role=status]')?.textContent||''));
   assert.equal(await second.locator('.update-progress button').isVisible(),false,'Normal downloads do not offer an old-version choice');await second.keyboard.press('Escape');assert.equal(await second.locator('.update-progress').isVisible(),true);
   async function screenshot(name,width,height){
    await second.setViewportSize({width,height});const modal=second.locator('.update-progress'),box=await modal.boundingBox();
@@ -285,7 +286,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   // Keep the actual asset response pending beyond the shortened help deadline.
   await second.waitForTimeout(Math.max(2000,stageDeadline+500));
   assert.equal(await second.locator('.update-progress[data-phase=downloading]').isVisible(),true,'A held download remains active after the staging deadline');
-  assert.equal(await second.locator('.update-progress [role=status]').textContent(),'ダウンロード中…');
+  assert.match(await second.locator('.update-progress [role=status]').textContent(),/^ダウンロード中…(?: \d+%)?$/);
   assert.equal(await second.getByRole('button',{name:'今は続ける',exact:true}).isVisible(),true,'A long download offers a way to continue');
   assert.equal(await second.locator('.update-progress[data-phase=failed]').count(),0,'Elapsed time is not a download failure');
   assert.equal(await second.evaluate(()=>updateGateLoads),0,'A long download does not start a core');

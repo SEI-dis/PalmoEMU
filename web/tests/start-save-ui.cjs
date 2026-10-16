@@ -9,7 +9,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
  try{
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',error=>errors.push(error.message));context.on('request',request=>requests.push(request));
-  await context.addInitScript(()=>{window.coreAttempts=0;localStorage.setItem('palmo-start-updates-v1',JSON.stringify({enabled:false}));});
+  await context.addInitScript(()=>{window.showSaveFilePicker=undefined;window.coreAttempts=0;localStorage.setItem('palmo-start-updates-v1',JSON.stringify({enabled:false}));});
   const updateSource=fs.readFileSync(path.join(__dirname,'../src/views/rom-update.js'),'utf8');
   await context.route('**/src/views/rom-update.js',route=>route.fulfill({contentType:'text/javascript',body:updateSource.replace('export function createROMUpdateDialog(api){','export function createROMUpdateDialog(api){globalThis.startROMUpdateAPI=api;')}));
   await context.route('**/src/core/core-factory.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createCore(){globalThis.coreAttempts++;throw Error("Synthetic CRC fixtures must never execute");}'}));
@@ -63,10 +63,12 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   await page.setViewportSize({width:390,height:844});
   if(process.env.SCREENSHOT_DIR){fs.mkdirSync(process.env.SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,kind+'-start-conversion.png')});}
   await page.locator('#start-save-details > summary').click();await page.locator('#start-save-export').click();await page.locator('#start-save-download').waitFor();
-  const convertedDownload=page.waitForEvent('download');await page.locator('#start-save-download').click();const converted=await convertedDownload;
+  const convertedDownload=page.waitForEvent('download');await page.locator('#start-save-download').click();await page.locator('[data-export-save]').click();const converted=await convertedDownload;
   assert.equal(hash(await downloadedBytes(converted)),result.hashes.converted);
-  const originalDownload=page.waitForEvent('download');await page.locator('#start-save-original').click();const original=await originalDownload;
+  await page.locator('[data-export-close]').click();
+  const originalDownload=page.waitForEvent('download');await page.locator('#start-save-original').click();await page.locator('[data-export-save]').click();const original=await originalDownload;
   assert.equal(hash(await downloadedBytes(original)),hash(fixture));
+  await page.locator('[data-export-close]').click();
   await page.locator('#start-save-target').click();assert.equal(await page.locator('#sheet').evaluate(x=>x.classList.contains('game-info')),true);
   // The current target is deliberately invalid; selecting it never writes or loses the backup route.
   await openStart();await page.locator('#start-save-details > summary').click();await page.locator('#start-save-source').selectOption('current');await page.waitForFunction(()=>document.querySelector('#start-save-source')?.value==='current');

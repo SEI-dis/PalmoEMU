@@ -17,7 +17,7 @@ const cartridges=require('./cartridges.cjs');
  await p.locator('[data-tab=imports]').click();
  const chooser=p.waitForEvent('filechooser');await p.locator('#choose-rom').click();
  await (await chooser).setFiles({name:'unsupported.txt',mimeType:'text/plain',buffer:Buffer.from('original fixture')});
- await p.getByRole('status').filter({hasText:'未対応の形式です。'}).waitFor();
+ await p.locator('#import-results-close').waitFor();assert.match(await p.locator('.import-results').textContent(),/未対応の形式です。/);await p.locator('#import-results-close').click();
  assert.equal(await p.locator('.game-launch').count(),0,'Picker accepts files; app rejects unsupported formats locally');
  for(const [system,generate] of Object.entries(cartridges)){
   const file=path.join(os.tmpdir(),'manic-web-test-'+process.pid+'-'+system+'.'+(system==='snes'?'sfc':system));fs.writeFileSync(file,generate());
@@ -31,7 +31,7 @@ const cartridges=require('./cartridges.cjs');
    const a=p.locator('.skin-button[aria-label=A]');const pos=await a.boundingBox();await p.mouse.move(pos.x+pos.width/2,pos.y+pos.height/2);await p.mouse.down();await p.waitForTimeout(100);await p.mouse.up();
    const input=await p.evaluate(()=>inputLog);assert.ok(input.includes(1<<(system==='md'?1:8)),system+' A mapping');assert.ok(input.includes(0),system+' A release');
   }
-  await p.locator('#player-menu').click();await p.locator('[data-action=newState]').click();await p.locator('#confirm-state-save').click();await p.locator('[data-slot-load="0"]:enabled').waitFor();await p.locator('[data-slot-load="0"]').click();await p.locator('#sheet').waitFor({state:'hidden'});
+  await p.locator('#player-menu').click();await p.locator('[data-action=newState]').click();await p.locator('[data-slot-load="0"]:enabled').waitFor();await p.locator('[data-slot-load="0"]').click();await p.locator('#sheet').waitFor({state:'hidden'});
   await p.setViewportSize({width:844,height:390});await p.waitForTimeout(200);assert.ok(await p.locator('.skin-button[aria-label=A]').isVisible());
   await p.locator('#player-menu').click();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});await p.setViewportSize({width:390,height:844});
   console.log('PASS:',system,'launch / input / state / rotation / exit');

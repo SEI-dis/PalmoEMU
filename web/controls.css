@@ -7,15 +7,23 @@
  --tab-gradient:linear-gradient(110deg,#e8203c,#e88a58 33%,#6d77e5 68%,#2e98e5);
 }
 html[data-theme=light]{--button-secondary:#e5e5ea}
-.primary,.secondary{
+.primary,.secondary,.destructive{
  display:inline-flex;align-items:center;justify-content:center;gap:10px;
  min-height:44px;padding:13px 20px;border-radius:999px;
  font-weight:600;line-height:1.4;text-decoration:none;text-align:center;
 }
 .primary,.state-continue,.boost.fast,.resume-game strong{background:var(--accent);color:#fff}
-.danger,.slot button,.state-edit-tools button{color:var(--accent)}
+.danger,.slot button{color:var(--accent)}
+.state-edit-tools button:not(.danger){color:var(--text)}
 .secondary{background:var(--button-secondary);color:var(--text)}
 .secondary.danger{color:var(--accent)}
+.text-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:10px 14px;color:var(--secondary);text-align:center;line-height:1.4;background:transparent;border-radius:12px}
+.destructive{background:transparent;color:var(--accent);border:1px solid currentColor;border-radius:12px}
+.destructive-group{margin-top:24px!important;border:1px solid color-mix(in srgb,var(--accent) 25%,transparent)}
+.update-check-options{margin-top:20px;padding:12px 0;color:var(--secondary);font-size:13px}
+.update-check-options summary{cursor:pointer;min-height:36px}
+.import-results{padding-left:22px;font-size:13px;line-height:1.7;overflow-wrap:anywhere}.import-results li+li{margin-top:12px}
+@media(hover:none) and (pointer:coarse){.import-drop{display:none}}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
  outline:2px solid var(--accent);outline-offset:4px;
 }
@@ -31,3 +39,7 @@ input[type=checkbox],input[type=radio],input[type=range]{accent-color:var(--acce
 .row input[type=checkbox]:checked{background:var(--accent)}
 .row input[type=checkbox]:checked:after{left:20px}
 .text-input{width:100%;background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:14px;color:var(--text)}
+
+.text-button.text-action{color:var(--text)}
+.text-action svg{flex:none;width:18px;height:18px}
+.text-action span{min-width:0;text-align:start}

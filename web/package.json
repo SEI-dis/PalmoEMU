@@ -141,7 +141,19 @@
     "test:audio-startup": "node tests/audio-startup.cjs",
     "test:ui-navigation": "node tests/ui-navigation.cjs",
     "test:update-download": "node tests/update-download.cjs",
-    "test:update-recovery": "node tests/update-recovery.cjs"
+    "test:update-recovery": "node tests/update-recovery.cjs",
+    "test:update-delta": "node tests/update-delta.cjs",
+    "test:launch-controls": "node tests/launch-controls.cjs",
+    "test:storage-catalog": "node tests/storage-catalog.cjs",
+    "test:file-export": "node tests/file-export.cjs",
+    "test:backup-lifecycle": "node tests/backup-lifecycle.cjs",
+    "test:ux-review": "node tests/ux-review.cjs",
+    "test:offline-selection": "node tests/offline-selection.cjs",
+    "test:ux-layout": "node tests/ux-layout.cjs",
+    "test:start-save-format": "node tests/start-save-format.cjs",
+    "test:start-save-format-component": "node tests/start-save-format-component.cjs",
+    "test:start-save-format-host": "node tests/start-save-format-host.cjs",
+    "test:start-save-format-browser": "node tests/start-save-format-browser.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

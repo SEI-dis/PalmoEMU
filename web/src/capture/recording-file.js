@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// A separate local file for each recording; no remote storage or telemetry.
+// Shared timestamped names for photos/recordings; recording save stays local.
 let lastStamp='',sequence=0;
 export function recordingName(name,date=new Date()){
  const pad=value=>String(value).padStart(2,'0');

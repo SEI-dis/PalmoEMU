@@ -276,7 +276,7 @@
     "sources/manicemu-ui/ImportMottoCollectionViewCell.swift": "39813a3f4a68f19adcc2372d6f5f756ff5308fdab6909a1c04300dab32de9472",
     "sources/manicemu-ui/ImportServiceListCollectionViewCell.swift": "2f89cd4ea298870fcd15ced37392d87880193a066cd0a18f5401aa2ef701c680",
     "sources/manicemu-ui/ImportServiceListView.swift": "bb41fa0242aee3bdfcdb53fdabba8d21aa8402bae5c44e4db8c9d3308d5012a9",
-    "sources/manicemu-ui/README.md": "bb183a5bcf50b9049dcc3a3911a967bbf3839de2411be6af820650aa3ef2845f",
+    "sources/manicemu-ui/README.md": "98fd92ccbb0510a9eef77dd6988b54d2017bfb473c734a0978978523e311d4d2",
     "sources/manicemu-ui/SaveStateListView.swift": "9748278a90767e5950be547b51fac9ed33a958d048ba9453e5e219a7a6ca3f7f",
     "sources/manicemu-ui/SettingItem.swift": "261e78b05f7cb93ba1fecc8f911b518b9686eacd8bfd86ccd2a0f12374af52ac",
     "sources/manicemu-ui/SettingsListView.swift": "f066b02851a495021c23adfb297145b2c2932f54e06829c4068ef5308c99d3f9",
@@ -334,7 +334,10 @@
     "vendor/start-save-migrate/manifest.js": "f3052744667067733a3537ce90361fe16ef65c4eb7072f27f2f13ff629bd13b8",
     "sources/mgba-web-port/logging.h": "c6e0252250b07ae5f898e8921dfd2b142f53dcc67f652b930868282d8ee88da3",
     "scripts/start-save-migrate/base/engine.template.txt": "e4342bda9be3f0f885550f6f6d11efae47642590e94c82fa384fc09966390d66",
-    "scripts/start-save-migrate/patches.json": "4d094e131f2db9c0fce7ae438ec95b4410dca8500630986fc206044887b08b76"
+    "scripts/start-save-migrate/patches.json": "4d094e131f2db9c0fce7ae438ec95b4410dca8500630986fc206044887b08b76",
+    "vendor/start-save-format/engine.js": "3acd5ecc1a294c9d89e5fb47ad441ca26244e2a24ebcb80f8cac4398939d8b6f",
+    "vendor/start-save-format/README.md": "7af73831c5f0cb0d3750129c79db715bcf4042fe9a30301fb604a50ccf88c788",
+    "vendor/start-save-format/component.json": "2485dab677bd91a91f2800218113302223578a8a27037dafc9f29383c0cf2c8a"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",
@@ -746,5 +749,16 @@
     "toolVersion": "1.0.9",
     "engineChanged": true,
     "changes": "Source-version numeric ID bounds, manifest-based version aliases and explicit reviewed output endpoint; existing bank validation and preservation safeguards retained. Host keeps later native game updates by selecting an accepted bridge instead of assigning an unreviewed newest stamp. Resume-map validity checks the full bank/map pair, matching the read-only native evidence."
+  },
+  "startSaveFormatL": {
+    "sourceDistributor": "pm-start/PokemonStart",
+    "sourceCommit": "80cb08adf9fe2005f7618dbbdbffcab10b54e839",
+    "distribution": "PokemonStart_v0.50.0.pks",
+    "distributionSha256": "3d260579ea1ddfea63ea85be562afd3553fa3843658abf9b2819f1b0399ef088",
+    "component": "vendor/start-save-format/component.json",
+    "provenance": "vendor/start-save-format/README.md",
+    "permissionBasis": "The project maintainer explicitly confirmed permission to incorporate the officially bundled HTML migration tool and publish its integration on the Web on 2026-10-16. No standardized upstream license was supplied. This records the maintainer confirmation, not an independently inspected rights-holder message. Retain README.md provenance and permission scope; do not assert a general third-party license or attribute this tool to the separate START Save Migrate author.",
+    "integration": "Separate adapted forward-only module under vendor/start-save-format; host facade in src/start-save/format-l.js. Loaded with the migration task, cached initially for offline ROM updates. Worker use does not establish legal separation.",
+    "changes": "Official old-to-L SaveCrypt/LFormat rules, with strict structural validation, wrap-aware counters, owned-copy/raw-region preservation and output verification. No reverse conversion or rounding. Host applies existing reviewed pre-0.38.1 corrections before the format step, normalizes a 1MiB container, preserves 0x31ff for first-load game updates, and rejects mixed old/L or newer saves. No ROM, save, PKS, original HTML, patch or artwork is distributed."
   }
 }

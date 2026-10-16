@@ -74,11 +74,15 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
    window.info=createGameInfo(api);info.show(game);
   });
   await page.locator('[data-action="saveData"]').click();await page.locator('#save-rescue-export').waitFor();assert.equal(await page.locator('[data-rescue-restore]:disabled').count(),3);
-  await page.locator('#save-rescue-export').click();await page.waitForFunction(()=>downloads.length===1);assert.deepEqual(await page.evaluate(()=>downloads[0].bytes),[65,66,67]);
+  await page.locator('#save-rescue-export').click();await page.waitForFunction(()=>downloads.length===1);assert.deepEqual(await page.evaluate(()=>downloads[0]),{name:'Rescue fixture.sav',bytes:[65,66,67]});
   await page.locator('[data-rescue-restore="1"]').click();await page.locator('#save-rescue-confirm').click();await page.locator('#save-rescue-export').waitFor();assert.equal(await page.evaluate(()=>launches),0);assert.deepEqual(await page.evaluate(async()=>[...(await db.get('saves',game.id)).bytes]),[30,31,32]);
   await page.screenshot({path:`web/test-results/save-rescue-${engine}-390.png`});
   // A known damaged save must not be silently exported under the normal name.
-  await page.evaluate(async()=>{await db.put('saves',game.id,original);info.show(game);});await page.locator('[data-action="exportSaved"]').click();await page.locator('#save-rescue-export').waitFor();assert.equal(await page.evaluate(()=>downloads.length),1);assert.match(await page.locator('#sheet-body').innerText(),/破損が見つかりました/);
+  await page.evaluate(async()=>{await db.put('saves',game.id,original);info.show(game);});await page.locator('[data-action="saveData"]').click();await page.locator('#save-rescue-export').waitFor();assert.equal(await page.evaluate(()=>downloads.length),1);assert.match(await page.locator('#sheet-body').innerText(),/破損が見つかりました/);await page.locator('#save-rescue-export').click();await page.waitForFunction(()=>downloads.length===2);assert.deepEqual(await page.evaluate(()=>downloads[1]),{name:'Rescue fixture-original-100.sav',bytes:[10,11,12]},'Damaged originals remain exportable under a distinct name');
+  // An incompatible core record can also carry a bad hash. The status is
+  // unsupported, but its original bytes must still be exportable for rescue.
+  assert.equal(await page.evaluate(async()=>{await db.put('saves',game.id,{...original,coreId:'fceumm-web-v1'});info.show(game);return (await rescue.inspectSaveRescue(game)).current.status;}),'unsupported');await page.locator('[data-action=saveData]').click();await page.locator('#save-rescue-export').waitFor();assert.match(await page.locator('#sheet-body').innerText(),/このコアでは復元できません/);
+  await page.locator('#save-rescue-export').click();await page.waitForFunction(()=>downloads.length===3);assert.deepEqual(await page.evaluate(()=>downloads[2]),{name:'Rescue fixture-original-100.sav',bytes:[10,11,12]},'Unsupported records with invalid hashes keep their original filename and bytes');
   assert.equal(await page.evaluate(async()=>{await db.removeGame(game.id);return (await db.saveRescueOriginals(game.id,'mgba')).length===0&&await db.has('saves',healthy.id);}),true,'Explicit game deletion removes its quarantined originals only');
   await context.close();
   // Exercise the actual app launch/catch/cleanup path with an authored ROM.
@@ -98,9 +102,12 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   assert.equal(await live.locator('#player').isVisible(),false);assert.equal(await live.evaluate(()=>rescueCore.closed),true);
   assert.equal(await live.evaluate(async()=>navigator.locks.request('local-game:'+game.id,{ifAvailable:true},lock=>!!lock)),true,'Startup failure releases the game lock before showing rescue');
   assert.match(await live.locator('#sheet-body').innerText(),/起動を中止/);
-  await live.locator('#save-rescue-back').click();await live.locator('[data-action="states"]').click();await live.locator('[data-slot-load]').first().click();await live.locator('#save-rescue-export').waitFor();
+  await live.locator('#close-sheet.sheet-back').click();await live.locator('[data-action="states"]').click();await live.locator('[data-slot-load]').first().click();await live.locator('#save-rescue-export').waitFor();
   assert.equal(await live.locator('#sheet').isVisible(),true,'Failed state bootstrap retains the newly opened rescue view');
-  await live.locator('[data-rescue-restore="0"]').click();await live.locator('#save-rescue-confirm').click();await live.locator('#save-rescue-back').waitFor();await live.locator('#save-rescue-back').click();await live.locator('.game-info-play').click();await live.locator('#loading').waitFor({state:'hidden'});
+  await live.locator('[data-rescue-restore="0"]').click();await live.keyboard.press('Escape');await live.locator('#save-rescue-export').waitFor();
+  assert.equal(await live.locator('#sheet-title').textContent(),'ゲーム内セーブ・保存履歴','Back from confirmation returns to the history, not the game details');
+  assert.equal(await live.evaluate(async()=>(await db.get('saves',game.id)).hash), '0'.repeat(64),'Back never applies the selected restoration');
+  await live.locator('[data-rescue-restore="0"]').click();await live.locator('#save-rescue-confirm').click();await live.locator('#close-sheet.sheet-back').waitFor();await live.locator('#close-sheet.sheet-back').click();await live.locator('.game-info-play').click();await live.locator('#loading').waitFor({state:'hidden'});
   assert.equal(await live.evaluate(()=>rescueCore.save()[0]),0x71,'Verified history boots successfully after rescue');
   await live.locator('#player-menu').click();await live.locator('[data-action="exit"]').first().click();await live.locator('#player').waitFor({state:'hidden'});assert.deepEqual(errors,[]);await native.close();
   console.log(`PASS ${engine}: pre-launch save recovery, verified histories, unchanged corrupt-original export/quarantine, selected healthy backup, locks, stale previews, writer fencing, atomic rollback, mobile UI and actual failed-launch/state bootstrap recovery`);

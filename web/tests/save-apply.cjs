@@ -45,7 +45,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  console.log('PASS '+kind+': direct apply uses real core, retains backup/manual state, clears obsolete recovery and releases lock');
  // Extension validation remains at the file boundary, and content validation
  // also rejects a jgenesis envelope renamed to .sav.
- const choose=async(name,buffer)=>{const chosen=page.waitForEvent('filechooser');await page.locator('[data-action=importSave]').click();await(await chosen).setFiles({name,mimeType:'application/octet-stream',buffer});};
+ const choose=async(name,buffer)=>{if(await page.locator('[data-action=saveData]').count())await page.locator('[data-action=saveData]').click();const chosen=page.waitForEvent('filechooser');await page.locator('#save-rescue-import').click();await(await chosen).setFiles({name,mimeType:'application/octet-stream',buffer});};
  for(const [name,bytes,pattern]of [['wrong.txt',Buffer.alloc(8192),/対応するセーブ/],['wrong.jgsav',Buffer.alloc(8192),/jgenesis/],['renamed.sav',Buffer.from('LPJGSV01payload'),/jgenesis/],['empty.sav',Buffer.alloc(0),/サイズ/]]){
   await choose(name,bytes);await page.waitForFunction(()=>document.querySelector('#save-input').value==='');assert.match(await page.locator('#toast').textContent(),pattern);
  }

@@ -14,6 +14,7 @@ function privateFree(value){
   const context=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),page=await context.newPage(),requests=[],errors=[];
   context.on('request',r=>requests.push({url:r.url(),method:r.method(),body:r.postDataBuffer()?.length||0}));
   await context.addInitScript(()=>{
+   window.showSaveFilePicker=undefined;
    window.diagnosticConnections=0;
    for(const name of ['WebSocket','RTCPeerConnection'])if(window[name])window[name]=new Proxy(window[name],{construct(target,args){diagnosticConnections++;return Reflect.construct(target,args);}});
   });
@@ -23,11 +24,11 @@ function privateFree(value){
   assert.equal(await page.evaluate(k=>localStorage.getItem(k),key),null,'Loading the app must not create diagnostic records');
   assert.deepEqual(await page.evaluate(()=>diagnostics.list()),[]);
   const exportReport=async()=>{
-   const waiting=page.waitForEvent('download');await page.locator('#diagnostics-export').click();const download=await waiting,chunks=[];
+   await page.locator('#diagnostics-export').click();const waiting=page.waitForEvent('download');await page.locator('[data-export-save]').click();const download=await waiting,chunks=[];
    assert.match(download.suggestedFilename(),/^PalmoEMU-diagnostics-.*\.json$/);
    for await(const chunk of await download.createReadStream())chunks.push(chunk);
    const bytes=Buffer.concat(chunks);assert.ok(bytes.length>0,'Diagnostic file is not empty');const report=JSON.parse(bytes.toString('utf8'));
-   privateFree(report);assert.equal(report.schemaVersion,1);assert.equal(await page.locator('#toast').textContent(),'ダウンロードを開始しました。');return report;
+   privateFree(report);assert.equal(report.schemaVersion,1);assert.equal(await page.locator('[data-export-status]').textContent(),'ダウンロードを開始しました。');await page.locator('[data-export-close]').click();return report;
   };
   // Empty diagnostics are still exportable; opting in is not a prerequisite.
   await page.locator('[data-tab=settings]').click();await page.locator('[data-action=diagnostics]').click();

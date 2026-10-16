@@ -56,7 +56,7 @@ export function createLibraryView(api){
  }
  function renderListing(){
   const games=shown();selectionSummary(games);
-  if(!games.length){const exists=api.games().length>0;$('#library').innerHTML=tr`<div class="empty-library"><img src="assets/${exists?'empty':'icon'}.svg" class="${exists?'':'app-icon'}" alt=""><h2>${exists?tr('ゲームが見つかりません'):tr('ゲームを追加しましょう')}</h2><p>${exists?tr('検索や絞り込み条件を変更してください。'):tr('お気に入りのゲームを、いつでもここから。<br>端末内のROMを選んでライブラリに追加できます。')}</p><button class="primary" id="add-first">${icon('plus')}ゲームを追加</button></div>`;$('#add-first').onclick=api.add;return;}
+  if(!games.length){const exists=api.games().length>0;$('#library').innerHTML=tr`<div class="empty-library"><img src="assets/${exists?'empty':'icon'}.svg" class="${exists?'':'app-icon'}" alt=""><h2>${exists?tr('ゲームが見つかりません'):tr('ゲームを追加しましょう')}</h2><p>${exists?tr('検索や絞り込み条件を変更してください。'):tr('端末内のROMを選んで追加できます。')}</p><button class="primary" id="add-first">${icon('plus')}ゲームを追加</button></div>`;$('#add-first').onclick=api.add;return;}
   $('#library').innerHTML=groupGames(games,state.group,systems).map(([label,items])=>`<section class="system-section"><h2 class="section-title"><span>${esc(label)}</span><span class="count">${items.length}</span>${icon('chevron')}</h2><div class="game-grid">${items.map(card).join('')}</div></section>`).join('');
   $('#library').querySelectorAll('[data-game],[data-details]').forEach(button=>button.onclick=()=>{
    const id=button.dataset.game||button.dataset.details;
@@ -70,7 +70,6 @@ export function createLibraryView(api){
   $('#library-sort-choice').onchange=apply;$('#library-group-choice').onchange=apply;
   $('#library-display-done').onclick=()=>api.closeSheet();
  }
- function cancelButton(){return tr('<button class="secondary wide-button" id="library-cancel">キャンセル</button>');}
  function bindCancel(){$('#library-cancel').onclick=()=>api.closeSheet();}
  // Keep the modal and its close button in place during a write; failed batch
  // writes keep the selection so the user can retry without selecting again.
@@ -83,19 +82,19 @@ export function createLibraryView(api){
  async function finish(message){clearSelection();await api.refresh();api.closeSheet();api.toast(message);}
  function showCategory(ids,game){
   const games=api.games().filter(item=>ids.includes(item.id)),same=games.length&&games.every(item=>categoryOf(item)===categoryOf(games[0])),current=same?categoryOf(games[0]):null;
-  api.sheet(game?tr('分類を変更'):tr`${ids.length}件の分類を変更`,`<div class="settings-group library-category-choices">${libraryCategories.map(([id,label])=>`<button class="row" data-library-category="${id}" aria-pressed="${current===id}">${icon('folder')}<span>${label}</span>${current===id?icon('check'):''}</button>`).join('')}</div>${cancelButton()}`);bindCancel();
+  api.sheet(game?tr('分類を変更'):tr`${ids.length}件の分類を変更`,`<div class="settings-group library-category-choices">${libraryCategories.map(([id,label])=>`<button class="row" data-library-category="${id}" aria-pressed="${current===id}">${icon('folder')}<span>${label}</span>${current===id?icon('check'):''}</button>`).join('')}</div>`);
   $('#sheet-body').querySelectorAll('[data-library-category]').forEach(button=>button.onclick=perform(async()=>{
    const updated=await db.setGamesLibraryMetadata(ids,{category:button.dataset.libraryCategory});
    if(game){delete game.category;Object.assign(game,updated[0]);}
   },()=>finish(tr('分類を変更しました。'))));
  }
  function showFavorites(){
-  const ids=[...selected];api.sheet(tr`${ids.length}件のお気に入り`,tr`<div class="settings-group"><button class="row" id="library-favorite-add">${icon('heart')}<span>お気に入りに追加</span></button><button class="row" id="library-favorite-remove">${icon('heart')}<span>お気に入りから外す</span></button></div>${cancelButton()}`);bindCancel();
+  const ids=[...selected];api.sheet(tr`${ids.length}件のお気に入り`,tr`<div class="settings-group"><button class="row" id="library-favorite-add">${icon('heart')}<span>お気に入りに追加</span></button><button class="row" id="library-favorite-remove">${icon('heart')}<span>お気に入りから外す</span></button></div>`);
   for(const [id,favorite] of [['add',true],['remove',false]])$('#library-favorite-'+id).onclick=perform(()=>db.setGamesLibraryMetadata(ids,{favorite}),()=>finish(tr('お気に入りを変更しました。')));
  }
  function showDelete(){
   const ids=[...selected],games=api.games().filter(game=>selected.has(game.id));
-  api.sheet(tr`${ids.length}件のゲームを削除`,tr`<p class="sheet-note">選択したゲームと、このブラウザ内のセーブ・ステートを削除します。この操作は取り消せません。端末の元ファイルは残ります。</p><ul class="library-delete-list">${games.map(game=>`<li>${esc(game.name)}</li>`).join('')}</ul><div class="sheet-actions"><button class="secondary" id="library-cancel">キャンセル</button><button class="primary" id="library-delete-confirm">${ids.length}件を削除</button></div>`);bindCancel();
+  api.sheet(tr`${ids.length}件のゲームを削除`,tr`<p class="sheet-note">選択したゲームと、このブラウザ内のセーブ・ステートを削除します。この操作は取り消せません。端末の元ファイルは残ります。</p><ul class="library-delete-list">${games.map(game=>`<li>${esc(game.name)}</li>`).join('')}</ul><div class="sheet-actions"><button class="secondary" id="library-cancel">キャンセル</button><button class="destructive" id="library-delete-confirm">${ids.length}件を削除</button></div>`,false,{confirmation:true});bindCancel();
   $('#library-delete-confirm').onclick=perform(()=>db.removeGames(ids),()=>finish(tr`${ids.length}件のゲームを削除しました。`));
  }
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&selecting&&!$('#sheet').open){leave();render();$('#library-select')?.focus();}});

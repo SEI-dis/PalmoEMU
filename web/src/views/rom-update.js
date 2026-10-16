@@ -21,17 +21,17 @@ export function createROMUpdateDialog(api){
  }
  function open(game,{reattach=false,onBack=()=>api.showGame(game)}={}){
   const title=reattach?tr('ROMを追加'):tr('ROMを更新');
-  api.sheet(title,tr`<p class="sheet-note">${reattach?tr('取り外したものと同じROMを選ぶと、残してあるセーブから遊べます。'):tr('新版のROMへゲーム内セーブをコピーします。旧ROM・旧セーブ・ステートは残ります。')}</p><button id="rom-update-choose" class="primary wide-button">ファイルを選択</button><input id="rom-update-file" type="file" hidden><p id="rom-update-status" class="sheet-note" role="status"></p><button id="rom-update-back" class="secondary wide-button">戻る</button>`);
+  api.sheet(title,tr`<p class="sheet-note">${reattach?tr('取り外したものと同じROMを選ぶと、残してあるセーブから遊べます。'):tr('新版のROMへゲーム内セーブをコピーします。旧版のデータは残ります。')}</p><button id="rom-update-choose" class="primary wide-button">${reattach?tr('ROMを選ぶ'):tr('新しいROMを選ぶ')}</button><input id="rom-update-file" type="file" hidden><p id="rom-update-status" class="sheet-note" role="status"></p>`,false,{onBack});
   if(!reattach&&game.system==='gba'&&isStartName(game.filename,game.name)&&api.showStartUpdates){
-   const button=document.createElement('button');button.id='rom-update-news';button.className='secondary wide-button';button.textContent=tr('PokemonStartの更新を確認');
-   $('#rom-update-choose').before(button);button.onclick=()=>api.showStartUpdates(game,{onBack:()=>open(game,{onBack})});
+   const button=document.createElement('button');button.id='rom-update-news';button.className='text-button wide-button';button.textContent=tr('PokemonStartの更新を確認');
+   $('#sheet-body').append(button);button.onclick=()=>api.showStartUpdates(game,{onBack:()=>open(game,{onBack})});
   }
   if(!reattach&&game.system==='gba'&&coreFor(game).key==='mgba'){
    const button=document.createElement('button');button.id='rom-update-start';button.className='secondary wide-button';button.textContent=tr('PokemonStartのセーブを変換');
-   const details=document.createElement('details'),summary=document.createElement('summary');details.className='sheet-note';summary.textContent=tr('詳細');details.append(summary,button);$('#rom-update-back').before(details);
+   const details=document.createElement('details'),summary=document.createElement('summary');details.className='sheet-note';summary.textContent=tr('詳細');details.append(summary,button);$('#sheet-body').append(details);
    button.onclick=guardUpdateTask(()=>startDialog.open(game,{onBack:()=>open(game,{onBack}),target:game.romUpdate?game:undefined}));
   }
-  bind('#rom-update-back',onBack);bind('#rom-update-choose',()=>$('#rom-update-file').click());
+  bind('#rom-update-choose',()=>$('#rom-update-file').click());
   $('#rom-update-file').onchange=guardUpdateTask(async event=>{
    const input=event.currentTarget,file=input.files?.[0];input.value='';if(!file||busy)return;
    try{
@@ -68,7 +68,7 @@ export function createROMUpdateDialog(api){
   });
  }
  function confirm(game,file,target,plan,onBack,compatible=false){
-  api.sheet(tr('セーブを引き継ぐ'),tr`<div class="settings-group"><p class="sheet-note">${esc(game.name)} → ${esc(target.name)}<br>${bytesLabel(target.size)}</p></div><p class="sheet-note">ゲーム内セーブとカバー画像を引き継ぎます。ステートは新版に使いません。</p><label class="row"><input type="checkbox" id="rom-update-compatible"><span>ゲーム作者の案内でセーブの互換性を確認しました</span></label><p class="sheet-note">旧版は削除しません。新版で保存した内容は旧版へ戻せません。</p><p class="sheet-note" id="rom-update-status" role="status"></p><div class="sheet-actions"><button id="rom-update-back" class="secondary">戻る</button><button id="rom-update-confirm" class="primary" disabled>引き継ぐ</button></div>`);
+  api.sheet(tr('セーブを引き継ぐ'),tr`<div class="settings-group"><p class="sheet-note">${esc(game.name)} → ${esc(target.name)}<br>${bytesLabel(target.size)}</p></div><p class="sheet-note">ゲーム内セーブとカバー画像を引き継ぎます。ステートは新版に使いません。</p><label class="row"><input type="checkbox" id="rom-update-compatible"><span>ゲーム作者の案内でセーブの互換性を確認しました</span></label><p class="sheet-note">旧版は削除しません。新版で保存した内容は旧版へ戻せません。</p><p class="sheet-note" id="rom-update-status" role="status"></p><div class="sheet-actions"><button id="rom-update-back" class="secondary">戻る</button><button id="rom-update-confirm" class="primary" disabled>引き継ぐ</button></div>`,false,{onBack:()=>open(game,{onBack}),confirmation:true});
   if(compatible){$('#rom-update-compatible').checked=true;$('#rom-update-compatible').closest('label').hidden=true;$('#rom-update-status').textContent=tr('このセーブは変換せずに引き継げます。');$('#rom-update-confirm').disabled=false;}
   $('#rom-update-compatible').onchange=()=>$('#rom-update-confirm').disabled=!$('#rom-update-compatible').checked;
   bind('#rom-update-back',()=>open(game,{onBack}));
@@ -80,11 +80,11 @@ export function createROMUpdateDialog(api){
   });
  }
  function complete(game){
-  api.sheet(tr('引き継ぎが完了しました'),tr`<p class="sheet-note">新版を起動し、ゲーム内の「つづきから」で確認してください。旧版はライブラリに残っています。</p><button id="rom-update-play" class="primary wide-button">新版をプレイ</button><button id="rom-update-back" class="secondary wide-button">ゲーム詳細へ</button>`);
+  api.sheet(tr('引き継ぎが完了しました'),tr`<p class="sheet-note">新版を起動し、ゲーム内の「つづきから」で確認してください。旧版はライブラリに残っています。</p><button id="rom-update-play" class="primary wide-button">新版をプレイ</button><button id="rom-update-back" class="text-button wide-button">ゲーム詳細へ</button>`);
   bind('#rom-update-play',()=>{api.closeSheet({dismiss:true});return api.launch(game,{skipRecovery:true});});bind('#rom-update-back',()=>api.showGame(game));
  }
  function detach(game){
-  api.sheet(tr('ROMだけ取り外す'),tr`<p class="sheet-note">「${esc(game.name)}」のROMだけを取り外します。セーブ・ステート・設定は残ります。同じROMを追加し直すと再開できます。</p><div class="sheet-actions"><button id="rom-update-back" class="secondary">キャンセル</button><button id="rom-detach-confirm" class="secondary danger">取り外す</button></div>`);
+  api.sheet(tr('ROMだけ取り外す'),tr`<p class="sheet-note">「${esc(game.name)}」のROMだけを取り外します。セーブ・ステート・設定は残ります。同じROMを追加し直すと再開できます。</p><div class="sheet-actions"><button id="rom-update-back" class="secondary">キャンセル</button><button id="rom-detach-confirm" class="destructive">取り外す</button></div>`,false,{onBack:()=>api.showGame(game),confirmation:true});
   bind('#rom-update-back',()=>api.showGame(game));bind('#rom-detach-confirm',()=>work(async()=>{const fresh=await db.detachROM(game.id);await api.refresh();api.showGame(fresh);}));
  }
  async function previous(game){

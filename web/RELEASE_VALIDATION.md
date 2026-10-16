@@ -1136,3 +1136,122 @@ UI原文・翻訳辞書・変更通知・版番号、既存の保存形式・DB�
 The full CI run for d7e6f680a1d472e558af719684add456927ed86f exposed a missing prerequisite in localization-pipeline: its disposable development application copied build-offline.cjs but omitted the newly required scripts/start-save-migrate/build.mjs and its pinned source/definitions. This failed before translation started (MODULE_NOT_FOUND), rather than identifying a save/runtime or translation-content defect. The fixture now copies the real migration source/check and distributed component directories, preserving the production validation instead of stubbing or bypassing it.
 
 The corrected localization-pipeline passes locally, including actual development startup, unchanged translations, all eight language outputs after authored UI/release-note edits, local-only model routing, malformed provider responses and atomic failures. Only the test fixture and its distribution/source review records change; no UI wording, locale catalogue, runtime behavior, save data, native core, endpoint or license change is introduced. Publication remains held; this follow-up is for commit/push and CI verification.
+
+## 2026-10-16 update asset reuse (local, unpublished)
+
+Baseline is 7596bf18d90938ac665ffebe7b2e6e9f31fb2cb4 (0.3.34). Independently checked the supplied design review against the worker, coordinator and manifest generator. Version-isolated caches, fetch SRI and existing page/version leases remain. No game database, save format, core binary, third-party asset, permission or network endpoint changes are introduced.
+
+- Reuse rehashes actual decoded response bodies against the new manifest; metadata alone never authorizes executable bytes. New per-cache metadata records the manifest, active/full state and predecessors. Legacy migration conservatively covers the full set, but copies verified matches without network retrieval. Fully offline installations stay complete. Other updates cover shell, previously cached assets and changed/new optional assets, preserving unchanged unused assets as on-demand. The additional changed-asset set closes the install-snapshot race for offline availability after activation; it does not make changed server files usable by an old worker.
+- Natural activation and coordinator-driven activation share network-free late-asset reconciliation, claim and predecessor-only retirement. Quota during carry-over keeps verified fallback caches, with idempotent retirement on a subsequent app-version handshake. A newer candidate and unrelated caches are not deleted. A failed install leaves the old active version and synthetic save bytes intact.
+- Actual install QuotaExceededError is recorded separately from download failure, with a bounded 30-minute retry delay and an explicit manual retry. A later network failure clears the prior quota explanation. Storage estimates are optional diagnostic metadata, not proof that a safe deletion or reservation is possible. If metadata itself cannot be persisted, backoff cannot be guaranteed. Old and new app resources can temporarily occupy storage together; user ROMs/saves are never evicted by this logic.
+- Reproduced failed-install retry loss in desktop WebKit when copied entries were only matched/re-put. Recommitting the verified independent body with delete/put fixes the regression; only candidate entries are replaced, not the active cache. This observation does not establish the internal WebKit cause. Gzip-encoded cached assets also survive copying with correct decoded bytes and transport headers removed.
+
+Validation completed on isolated Chromium (Edge) and desktop WebKit: update-delta, update-safety, update-recovery and the full update suite. Cases cover corruption, transient failure/retry, held transfers with numeric progress, legacy migration, fully offline preservation, late old-cache additions, natural offline activation, quota fallback/cleanup, explicit retry, subsequent network failure, newer-candidate preservation and unchanged IndexedDB sentinel save bytes. Existing update tests additionally cover playing/paused/other tabs, settings and file-pickers, async operations, stale HTML, superseded candidates, delayed activation, deferred updates, queued preferences and release-change notices. The update-delta suite is registered in the normal Chromium and WebKit CI selections. Node update-download, module-links, check-modules and check-i18n pass. No user's browser profile, ROM or save was used.
+
+An isolated loopback HTTP measurement used the actual baseline distribution fully cached and the working implementation at build 27508f24dafea085. The complete app-file set was 62,433,431 bytes (59.5 MiB). The worker reused 359 of 367 planned assets and downloaded eight. Counted HTTP response bodies, including worker/manifest checking, were 248,277 bytes (about 0.24 MiB); the app-asset subset was 169,909 bytes. The baseline manifest build was 179a6bdec25b40f7. Both browser engines produced these byte counts. This is not a measurement of production compressed traffic, HTTP headers, partial user caches or iPhone hardware, and it does not promise a particular update duration. Later documentation/inventory edits change the build and a small number of text bytes. Screenshots and measurement fixtures stay in ignored work output, not the distribution.
+
+The real locale catalogues, progress formatter and stylesheet were checked in all nine languages at 320×568 and 844×390 for progress and storage-failure/manual-update/later states, with screenshot inspection. Actual automatic/manual flows also passed the update suites. Existing translations were proofread for this context; no new UI/release-note text was generated. See LOCALIZATION_REVIEW.md.
+
+Physical iPhone hashing latency, memory pressure and actual network savings remain unmeasured. An old worker requesting a changed, never-cached core after deployment still rejects new bytes with SRI/503 and requires an app update. No immutable old binaries or additional corresponding-source releases are added. The first migration cannot determine the old cache's completeness and uses the conservative full target; an installation made full by migration continues to preserve full offline coverage. Old-page progress support is likewise not retroactive. Version remains 0.3.34 for this uncommitted local work; commit, push and publication are not performed in this optimization task.
+
+
+## 2026-10-16 保存画面・読み込み量・UIの統合見直し（未公開）
+
+基準は7596bf1（0.3.34）。Claudeの公開版調査とローカル調査を実コードで照合し、再現した問題と操作上の重複をまとめて修正した。iPhoneのメモリ不足原因を特定・解消したという判定ではない。利用者のROM・セーブ・ブラウザープロファイルは変更せず、隔離したテスト用DBと合成データを使った。
+
+- ステート一覧は本体を全件保持せず、画像・日時・容量等の索引だけを読む。既存coverCatalogsの予約領域へ派生情報を置き、セーブ本体と同じトランザクションで更新する。DB版、保存キー、バイナリ形式は変えない。旧データはキーだけを照合し、不足した索引だけ初回に補う。読み込み・書き出しの直前に選んだ本体の世代とハッシュを再検査する。旧タブの同じキーへの上書きは一覧に即時反映されない場合があるが、古い選択を無検査で適用しない。
+- 画面終了時にDOM、イベント、選択とバックアップ検査プランを解放する。バックアップのゲーム選択にはセーブ本体を読まず、操作対象が決まってから読み込む。TrainerCardは変化した記録だけを書き戻す。終了時のカバーは最大辺320pxへ縮小し、PNG/WebPの小さい方を選ぶ。スクリーンショットやステート画像の原画像は縮小しない。
+- 複数ROMの追加はファイル単位で失敗を扱い、他の正常ファイルを継続する。結果には失敗したファイルと未試行数を残す。保存容量等の共通エラーでは無理に続けない。キャンセルや失敗で既存のセーブを削除しない。
+- メニューのステート保存、ゲーム内セーブ、保存履歴の名前を区別した。メニュー経由の新規ステート作成は直接実行し、誤操作しやすいスキンの保存には確認を残す。ROM更新と取り外しをゲーム詳細の前方へ移し、削除を別の控えめな区分へ分離した。セーフモードは常時利用可能なまま表示の強さを抑えた。ROM更新から新ROM選択へ直接進み、更新確認の補助操作は折りたたむ。
+- バックアップ画面を保存/復元に分け、任意設定を折りたたみ、各段階の主操作を絞った。復元前の退避ファイルは存在するときだけ表示する。復元完了を再読み込み前に表示し、分割ファイルの続行も維持する。書き出しは準備後の明示的な保存/共有ボタンからOSへ渡す。OSでの保存完了、共有、通常ダウンロード開始、キャンセルを区別し、完了を確認できないブラウザー経路で保存済みと断定しない。
+- オフライン準備は登録ゲームの選択コアと、実際のスキン表現選択器・画面比率・縦横/全画面/余白候補で必要になる同梱画像を優先する。端末名によるiPad画像除外はしない。全機種を保存する入口と既存の保存済み資産は維持する。著作権表示/ライセンス原文は先行保存から外さず、開発文書3点だけを先行対象から外す（配布物と全量保存には残す）。クレジットから辿るREADMEは初期保存にも残す。
+- 日本語起動時の英語辞書、変換画面を開くまでの変換エンジン実行読み込みを遅延させた。変換定義のmanifestと翻訳欠落時の英語代替は維持する。実検証で英語WebKitのROM追加が辞書読み込み中のWorker初回要求を失う問題を再現したため、ページだけが初期辞書を待ち、Workerは受信処理を先に登録して各要求内で言語を準備する方式へ修正した。
+
+Chromium（Edge）とPC WebKitの双方で、storage-catalog、state-ui、state-transfer、backup、backup-selection、backup-errors、backup-enhancements、backup-lifecycle、file-export、rom-import、rom-update、rom-update-artwork、trainer-card、native-menu、privacy、ux-review、offline-selectionが成功した。索引の旧データ補完・範囲限定・原子的書き込み/復元/削除・選択した世代とハッシュの再検査、画面終了後の処理無効化、親プランを保持した書き出し、復元完了の明示、途中失敗後のROM取り込み継続、不要なコア/画像の未取得と選択コアの実オフライン取得を確認した。OSの保存/共有APIは合成応答による境界検査を含み、実iPhoneの保存先選択を操作したものではない。
+
+保存と操作の回帰は両ブラウザでsave-safety、save-apply、save-history-limits、save-import-recovery、save-completion、save-rescue、input-dialog、input-controls、ui-navigation、touch-recovery、player-gestures、browser、extended-save、multicore、nds-browser、start-save-ui、start-updates-browser、upstream-features、diagnosticsが成功した。合成の通常セーブ・拡張セーブ・複数コア・変換/無変換コピー・旧版原本/履歴保護を検査し、ユーザーの実セーブは検証対象にしていない。
+
+新規51文言を全8翻訳言語で文脈校正し、1511項目/言語の変数と用語を検証した。i18n、languages、languages-offlineが両ブラウザで成功。i18nでは英語ROM取込・save-workerの初回初期化と実保存・変換Workerの英語応答を確認した。選択言語取得失敗時の英語代替、両辞書取得失敗時の日本語退避、設定と既存データの保持も検査した。ux-layoutは9言語を含む18条件、各9画面の162表示/エンジンを検査し、代表画像を目視した。320px、390px縦、844px横、768pxライト表示を含む。ヘッダ上端の本文透過とタブ切替時のスクロール残留を修正後、両ブラウザの代表4条件を再確認した。人間の母語話者による校正・実iPhone/iPad/Androidの表示確認ではない。
+
+更新の再利用処理と選択オフライン保存は同じマニフェスト/SRIを使い、update-delta、update-safety、update-recovery、update-downloadが両ブラウザで成功した。キャッシュ不整合、通信失敗、容量不足、遅延取得、旧版の完全保存、起動中/別タブのデータ保護を維持する。新規6テスト（storage-catalog、file-export、backup-lifecycle、ux-review、offline-selection、ux-layout）を通常のChromium/WebKit選択へ登録した。
+
+ネイティブコア、第三者素材、許諾条件、通信先は追加・変更していない。原著作権・ライセンス・対応ソースの導線を保持する。版番号と変更通知は公開をまとめるため現状の0.3.34のままとし、今回の作業ではコミット・push・Pages公開を行わない。公開前には予定版への版上げ/変更通知と、その最終コミットでのCIが別途必要。実機のメモリ不足、ハッシュ所要時間、更新所要時間を今回のPCテストだけで解消・改善保証したとは扱わない。
+
+
+最終の全体updateテストはChromium/PC WebKitで成功した。Chromiumの初回はrevision13の故意503後の失敗ダイアログ待ちだけタイムアウトしたが、同一fixtureでの全体再実行は125.4秒で成功、WebKitは142.9秒で成功。独立した初期版→更新版503の観測5回も成功し、各回は初回を含む3取得、installing→redundant、hold解除から約5.4秒で失敗表示を確認した。最初の全体経路固有の原因は確定せず、製品不具合を修正したとも、原因が解消済みとも断定しない。タイムアウトやアサーションを緩和していない。
+
+
+## 2026-10-16 スクリーンショットの撮影日時（未公開）
+
+写真がゲーム名だけのPNG名になることを確認し、録画の既存ファイル名生成を共有した。撮影時の端末日時（秒まで）と同秒の連番を付け、保存/共有の再試行では同じ名前を使う。画像本文、解像度、フィルター、PNGエンコード、セーブ/DB/録画処理は変更していない。通常GBAの240×160と補正後キャンバスのPNG保存をコードで確認し、動画の整数倍拡大/非可逆圧縮設定と区別した。新規UI文言・翻訳キーはなく、既存の保存/共有表示の意味も変わらない。
+
+cameraとrecordingはChromium（Edge）/PC WebKitの双方で成功。GBA/DSのPNG寸法と画素、日時名、別撮影の名前、失敗後の同名再試行、共有、撮影中の入力/フレーム進行、録画名の秒/連番を検査した。PC WebKitの実録画APIが無い範囲は既存の非対応/模擬API検査であり、実iPhoneの保存・録画確認ではない。公開・コミット・pushは保留したまま。
+
+
+## 2026-10-16 未公開変更全体の独立再レビュー
+
+写真の命名だけでなく、更新キャッシュ・保存索引・バックアップ・取り込み・起動と操作・翻訳・画面寿命を再確認した。外部レビューの指摘は修正の根拠として鵜呑みにせず、コードと隔離ブラウザで照合した。
+
+- 旧タブが同じキーを索引更新なしで上書きすると、分割書き出しが異なる履歴を選び、分割復元が直前の新しいセーブを退避しない場合を再現した。バックアップの計画・世代確認・継続判定だけはreadonlyで原本から概要を再作成する。一覧の軽量索引と同一トランザクションの現行書き込みは維持する。storage-catalogの旧writer回帰は修正前失敗、修正後はChromium/PC WebKit成功。backup-enhancementsも両方成功。
+- activate時に容量不足でactiveメタデータの保存まで失敗すると、以降の旧キャッシュ回収が止まる場合を再現した。app-versionから実際にactiveなworkerの版を照合してメタデータを修復し、検証付きの回収を再試行する。旧worker・waiting worker・新しいcandidateの境界をupdate-deltaで検査し両ブラウザ成功。
+- 変換エンジンとREADMEを初期shell保存へ戻した。遅延実行とオフライン取得は別に扱う。offline-selectionは初回shell保存だけでサーバーを停止し、初めてのGBA追加、元ROM bytes、engine import、READMEのService Worker応答まで両ブラウザ成功。旧形式から全体保存へ移行した端末は次回以降もその範囲を保持する。未使用ファイルの自動削除・縮小は行わず、通信削減とディスク/再ハッシュ削減を同一視しない。
+- コアや保存データの読み込み途中にMENU/終了を操作でき、未完成コアへの保存や、背後のゲーム再開になる経路を再現した。読み込み表示以外のplayer操作をinertにし、メニュー/終了/ショートカット/定期保存も起動中を除外する。launch-controlsは実ロード/保存検証の保留、古い終了ハンドラ、二つの定期保存、失敗後の操作回復を確認し両ブラウザ成功。保存bytes・履歴は不変。通常の起動後は抑止を解除する。
+- ステート削除待ちに閉じると完了後に画面が再び開く問題を、既存transferで処理中の閉じる/キャンセル/Escapeを抑止して修正した。また、catalog読込待ち→MENU→ゲーム終了→完了の経路で、画面DOMがnullへ戻ると古いクイック読込/一覧が開く問題を再現し、要求元ゲームとコアの所有者確認を追加した。state-uiの実IDB待機と実アプリ終了回帰を含め、両ブラウザ成功。別画面へ移っただけの一時停止は再開操作を残し、勝手な自動再開は加えない。
+- 戻る/閉じるだけの全幅灰色ボタンを文字ボタンに揃え、救出の復元と原本書き出しを区別し、ステート編集の全選択・書き出しから危険操作の赤色を外した。二択確認のキャンセルと実行は維持した。操作入口や保存形式を削除していない。
+
+ux-layoutを救出・カバー・ゲーム情報にも拡張し、9言語を含む18条件・各12画面の216表示/エンジンで成功。代表画像を目視確認した。native-menu、save-rescue、file-export、start-save-ui、rom-updateも両ブラウザ成功。追加の表示整理に新規文言はなく、既存8言語を文脈校正してスペイン語の戻るラベル1件を自然な表現へ修正した。全体の既存1511項目/言語の検査を維持する。これは人間の母語話者や実iPhoneの確認ではない。
+
+旧記録の索引初回補完の実機負荷、実iPhoneの容量・描画・更新所要時間は未測定。OSへの書き出しは準備後の明示的な保存/共有を維持する。復元の完了表示は明示的な再読み込み前に出す。既存操作の互換性を優先し、報告の任意提案を一律には採用していない。コピーされたリポジトリ直下の外部報告書4点は未追跡のまま保全し、アプリ配布や対応ソースZIPに加えていない。コミット・push・公開は実施していない。
+
+## 2026-10-16 カバーの表示範囲調整（未公開）
+
+ManicEMUの同一固定版のGameCoverModifyView / ImageFetcherで画像選択後に編集画面を開く動作を確認した。Web側は独自Canvas実装で、正方形の表示範囲をドラッグ・ピンチ・拡大スライダー・矢印キーで調整し、明示的な保存でのみカバーを更新する。既存画像の再調整にも対応する。出力は最大512px・元の切り出し寸法を超えない正方形WebP。元画像の二重保存や通信、DB形式変更、第三者画像・新たな編集ライブラリの追加はない。
+
+coversはChromium（Edge）/PC WebKitで成功。合成色帯画像の実ファイル選択→移動/拡大→保存画像の寸法・画素を確認し、ROM・ゲーム内セーブ・履歴・ステートが不変であることを検査した。取消、容量例外注入、遅延デコード中の閉鎖、壊れた画像、再読み込み後の保持、外部通信なしも確認した。二指・pointercancel・リサイズ・disabled・disposeは合成PointerEventと実描画で検査した。これは実iPhoneのピンチ試験ではない。
+
+独立レビューで、矢印キーがメニューのナビゲーションへ伝播して画像からフォーカスが外れる問題を再現し、処理した矢印だけstopPropagationして修正した。両エンジンで実キー操作のフォーカス保持を確認。独立した実DB書き込み保留でもClose/Cancel/Escapeの抑止と完了後の解除、取消時のcanvas縮小、更新ガード解除、遅延bitmap破棄を確認した。小画像・再調整では元の解像度に限界があり、保存前の元画像は保持しない。
+
+全体再レビューの追加確認として、quick-start、audio-startup、6コアbrowser、update-safety、update-recoveryもChromium/PC WebKitで成功。Chromiumのbrowserは一度GBC追加待ちでタイムアウトし、同じテストの再実行は成功した。原因は未確定で、テスト条件は緩和していない。実iPhone、既存利用者データ、公開環境には操作していない。
+
+カバー調整を加えたux-layoutは9言語・18条件・各13画面、234表示/エンジンでChromium/PC WebKitとも成功した。320px・390px縦、844px横、768pxライト表示を含む。日本語・ドイツ語のカバー調整と横画面を目視し、横画面は画像と保存操作を同時に見られる2列配置へ改善した。
+
+最終の横画面CSS変更後、日本語・フランス語・ドイツ語の844×390を両エンジンで再検査し、各39画面で成功した。横画面でもカバー全体・倍率・保存/キャンセルの同時表示を確認した。
+
+## 2026-10-16 保存履歴とヘッダーナビゲーションの整理（未公開）
+
+保存履歴の画面名を入口と同じ「ゲーム内セーブ・保存履歴」に統一した。原本書き出しには既存の書き出しアイコンと通常の文字色を使い、移動だけの操作と区別する。ゲーム詳細の子画面ではヘッダーを「‹ 戻る」にし、救出・カバー・ゲーム情報/その他/コア変更の末尾の重複する戻るを省いた。トップのゲーム詳細や本当に閉じる画面は×、二択確認のキャンセル/実行は維持する。直接インポート/エクスポートの既存入口は保持した。
+
+sheetの戻り先は画面交換と閉鎖で更新/解放し、ゲームを起動した時点でも破棄する。最初の回帰検査で見つけた「プレイ前のステート一覧から起動すると古い戻り先が残る」経路を修正した。保存中の閉じる禁止、Escape、ゲームパッドの戻るも同じcloseSheetの保護を通る。保存形式・保存処理・ROM/core/通信先は変更していない。
+
+リポジトリ直下の外部レビュー4件は `work/external-reviews/2026-10-16/` へ移した。移動先がこのリポジトリのwork配下であること、元が未追跡で移動先に既存ファイルがないこと、移動前後のSHA-256一致、Gitのignoreを確認した。内容は保全し、配布物と対応ソースZIPには含めない。
+
+Chromium（Edge）/PC WebKitでnative-menu、save-rescue、covers、rom-updateが成功した。実ステートからの再開でシートが閉じること、復元確認のEscapeが履歴へ戻りセーブを変更しないこと、起動時の破損救出から正常起動までを確認。ux-layoutは9言語・18条件・234表示/エンジンで成功し、日本語390pxとドイツ語320pxの書き出しアイコン・ヘッダー・折り返しを目視した。実iPhoneは未確認。版番号/変更通知は0.3.34のまま、コミット・push・公開は行っていない。
+
+## 2026-10-16 メニューの重複整理とROM選択（未公開）
+
+外部レビューを現在のローカルコードと照合した。ゲームメニューのショートカットと同じ操作は一覧から省き、非表示のショートカットは一覧に残す。保存入口は「ゲーム内セーブ・保存履歴」へ集約し、ゲーム詳細の同画面には不足していた読み込みを追加した。正常な書き出しは既存の鮮度・ハッシュ検査と通常ファイル名を維持し、破損/非対応記録は元bytesをoriginal名で救出できる。独立レビューで見つけた非対応coreId＋不正hashの再表示ループを修正し、専用回帰を追加した。
+
+ROM更新・分類・お気に入りの重複するフッターを省き、確認画面は×とキャンセル/実行の組にした。ROM更新の戻り先はゲーム詳細・インポート・更新通知の実際の入口を保持する。単体削除、取り外し、診断消去、ステート削除の確定ボタンを既存の枠線表示へ統一。設定の重複注記を削除し、保存ヘルプは3項目と短い復旧注意、診断の詳細は折りたたみに移した。ステート取込は小型のアイコン付き操作とし、処理・無効条件は維持。ゲームメニューを翻訳対応し、未プレイ/空一覧を簡潔にした。既定ニックネームは維持する。
+
+追加のユーザー報告に対応し、ROM更新を開くだけでOSファイル選択が始まるchooseNowを廃止した。「新しいROMを選ぶ」だけがpickerを開き、先に更新確認/戻るを操作できる。ファイルinputのcancelがdialogへバブルし画面を閉じる問題は、dialog自身が発生元の場合だけ閉じることで修正。旧listenerを隔離ページへ差し戻した再現では、空選択＋bubbling cancelでシートが閉じ入力DOMも消えた。修正後は同じシート/入力DOMと全保存記録を保持し、再選択・引き継ぎ・戻るが成功する。これはDOMイベントによる再現で、OSのネイティブ選択画面や実iPhoneの試験ではない。4173の実レスポンスでも自動picker除去とcancel guardを確認した。
+
+Chromium（Edge）/PC WebKitでnative-menu、library、rom-update、save-rescue、save-apply、nds-browser、multicore、extended-save、languages、start-updates-browser、ux-review、diagnostics、state-ui、state-transfer、ui-navigationが成功した。default/部分/全非表示の操作入口、実セーブ/ステートの保存・取込・再開、旧saveの退避、容量エラー時の不変、6MiBセーブ/64MiB合成ROM、正常/破損/非対応原本書き出しを含む。旧MENUタイトル期待を更新し、更新通知検査のoffline待ちはcheckingと区別して文面到達も待つよう修正した。
+
+9言語のux-layoutは18条件・360表示/エンジンで成功。最終ヘルプ見出しも9言語で再確認した。13新規文言の8翻訳言語を校正し、既存保存・戻るの文脈も確認した。保存形式、コア、vendor、ライセンス、通信先、DBスキーマは変更していない。版番号/変更通知は0.3.34のまま。コミット・push・公開は行っていない。
+
+
+## 2026-10-16 PokemonStart 0.50.0形式変換（未公開）
+
+公式PKSに同梱された「セーブデータ移行ツール.html」を静的に取り出し、旧→L形式の処理を別vendorへ組み込んだ。管理者から今回の組み込み・Web公開の許可確認を受け、従来くりーぱー版と出典を混同せず記録した。逆変換と値の丸めは組み込んでいない。公式処理に対して原本コピー・破損拒否・カウンター周回・非配置領域保持・再検証を加え、差分をREADMEへ明記した。正常な合成0.49両スロットは原HTMLのforward出力とバイト単位で一致した。元HTML/PKS/ROMを配布物には含めない。
+
+提供された0.50.0 ROMのSHA-256は確認前後で不変。実ROMの版/最低版と新形式必須ゲートを読み取り、version 0.50.0 / minimumSaveVersion 0.36.2 / saveFormat Lを確認した。原ROMの実行、実セーブでのゲーム継続、iPhone実機の操作は検証していない。検証用ROMはすべて独自合成で、ブラウザ検査はcore実行を拒否する。
+
+独立レビューで旧/L混在が旧形式側の検査から漏れる経路を再現して拒否を追加した。0.38.1未満で0x31ffの更新ガードが既存7変数の初期化を飛ばすことも確認し、従来の検証済み補正を先に適用する。版番号/ID上限の推測追加はない。0.49→0.50の公式変換はそのまま使い、既存Lはバイト同一、古いROMへの引き継ぎは拒否する。
+
+Node検査: start-save-format（独立した3000枠・全ボックス/ページ境界・高レベル・空枠・非ボックス領域・両スロット/RTC・128KiB拡張・カウンター整合/周回・overflow・破損/取消）、start-save-format-host（0.22/0.35/0.36.2/0.38.0/0.40/0.49連結・1MiB+RTC・進捗・混在/将来stamp/逆戻り拒否）、start-save-format-component、start-rom-profile（新しい形式ゲートの20負例を含む）、既存start-save-migration / start-save-compatibility / start-save-componentが成功した。check-modules / module-links / check-i18nも成功。
+
+隔離Chromium（Edge）/PC WebKitでstart-save-format-browser / start-save-ui / start-save-update-range / offline-selectionが成功した。画面→Worker→ROM更新の原子的保存、旧セーブとバックアップの不変、両スロット0x31ff、変換済みセーブの再検査、無変換コピーの偽装拒否を確認。初回shell保存だけで配信元を停止した状態でも、新しい形式変換器を含む依存モジュールが利用できた。Chromiumの新規テスト初回は全アサーション成功後の終了待ちがタイムアウトした。所有ブラウザ/一時ファイルの後始末後に終了する既存テストと同じ終了処理へ揃え、両エンジンで再実行し成功した。アプリの変換失敗とは区別する。
+
+版番号と変更通知は公開待ちの0.3.34から変更していない。コミット・push・公開は行っていない。
+
+新規クレジットを実licenses.htmlでChromium（Edge）/PC WebKit・9言語・320px、計18条件で確認した。見出し/リンクの翻訳一致・折り返し・横はみ出しなしを確認し、両ブラウザの日本語/ドイツ語4枚を目視した。サイズエラーは同18条件でfacadeの返値が翻訳と一致した（実トーストの表示検証ではない）。隔離コンテキストと専用サーバーを使用し、利用者の保存領域は操作していない。

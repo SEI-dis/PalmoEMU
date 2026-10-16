@@ -7,6 +7,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
  try{
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),page=await context.newPage(),requests=[],errors=[];
   context.on('request',r=>requests.push(r));page.on('pageerror',e=>errors.push(e.message));
+  let fileChoices=0;page.on('filechooser',()=>{fileChoices++;});
+  const chooseROM=async(name,buffer)=>{const before=fileChoices,chosen=page.waitForEvent('filechooser');await page.locator('#rom-update-choose').click();const chooser=await chosen;assert.equal(fileChoices,before+1,'Only the explicit chooser button opens file selection');await chooser.setFiles(name?{name,mimeType:'application/octet-stream',buffer}:[]);};
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';await page.goto(base);
   // Static tab buttons exist before the async application startup binds them.
   await page.locator('#add-first').waitFor();
@@ -63,8 +65,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
   await page.locator(`[data-game="${result.sourceId}"]`).click();
   assert.equal(await page.locator('[data-action="restoreROM"]').count(),1);assert.equal(await page.locator('[data-action="play"]').count(),0);
   await page.locator('[data-action="restoreROM"]').click();assert.equal(await page.locator('#sheet-title').textContent(),'ROMを追加');
-  await page.locator('#rom-update-back').click();await page.locator('[data-action="updateROM"]').click();
-  await page.locator('#rom-update-file').setInputFiles({name:'Next.gba',mimeType:'application/octet-stream',buffer:Buffer.from([3,2,3,4])});
+  assert.equal(await page.locator('#rom-update-back').count(),0);await page.locator('#close-sheet').click();await page.locator('[data-action="updateROM"]').click();
+  assert.equal(fileChoices,0,'Game-detail update and reattach entries only open their panels');await chooseROM('Next.gba',Buffer.from([3,2,3,4]));
   await page.locator('#rom-update-confirm').waitFor();assert.equal(await page.locator('#rom-update-confirm').isDisabled(),true);
   await page.locator('#rom-update-compatible').check();assert.equal(await page.locator('#rom-update-confirm').isEnabled(),true);
   await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
@@ -82,13 +84,17 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
    if(process.env.SCREENSHOT_DIR)await page.screenshot({path:require('node:path').join(process.env.SCREENSHOT_DIR,`rom-update-imports-${width}.png`),fullPage:true});
   }
   await page.setViewportSize({width:390,height:844});await page.locator('#import-update-rom').click();
-  await page.locator(`[data-update-rom="${result.sourceId}"]`).click();
-  await page.locator('#rom-update-file').setInputFiles({name:'Cancel.gba',mimeType:'application/octet-stream',buffer:Buffer.from([4,2,3,4])});
-  await page.locator('#rom-update-confirm').waitFor();await page.locator('#rom-update-back').click();await page.locator('#rom-update-back').click();
-  await page.locator(`[data-update-rom="${result.targetId}"]`).waitFor();assert.equal(await snapshot(),beforePicking);
+  await page.locator(`[data-update-rom="${result.sourceId}"]`).click();await page.locator('#rom-update-choose').waitFor();assert.equal(fileChoices,1,'Selecting a game from imports does not open a file picker');
+  // FileChooser.setFiles([]) and a bubbling input cancel exercise the browser
+  // DOM contract; this is not an interaction with a real OS picker window.
+  await page.locator('#rom-update-file').evaluate(input=>{window.cancelledROMInput=input;window.cancelledROMDialog=input.closest('dialog');});await chooseROM();await page.locator('#rom-update-file').dispatchEvent('cancel',{bubbles:true});
+  assert.equal(await page.evaluate(()=>document.querySelector('#rom-update-file')===cancelledROMInput&&document.querySelector('#sheet')===cancelledROMDialog&&cancelledROMDialog.open),true,'Cancelling file selection preserves the same update sheet and input');assert.equal(await snapshot(),beforePicking,'Picker cancellation leaves every stored record unchanged');
+  await chooseROM('Cancel.gba',Buffer.from([4,2,3,4]));
+  await page.locator('#rom-update-confirm').waitFor();assert.equal(await page.locator('#close-sheet').getAttribute('aria-label'),'閉じる');await page.locator('#close-sheet').click();await page.locator('#rom-update-file').waitFor({state:'attached'});assert.equal(await page.locator('#rom-update-back').count(),0);await page.locator('#close-sheet').click();
+  await page.locator(`[data-update-rom="${result.targetId}"]`).waitFor();assert.equal(fileChoices,3,'Returning from confirmation and update panels does not reopen file selection');assert.equal(await snapshot(),beforePicking);
   await page.locator('#close-sheet').click();assert.equal(await page.locator('#sheet').isVisible(),false);
-  await page.locator('#import-update-rom').click();await page.locator(`[data-update-rom="${result.targetId}"]`).click();
-  await page.locator('#rom-update-file').setInputFiles({name:'From Imports.gba',mimeType:'application/octet-stream',buffer:Buffer.from([5,2,3,4])});
+  await page.locator('#import-update-rom').click();await page.locator(`[data-update-rom="${result.targetId}"]`).click();await page.locator('#rom-update-choose').waitFor();assert.equal(fileChoices,3);
+  await chooseROM('From Imports.gba',Buffer.from([5,2,3,4]));
   await page.locator('#rom-update-confirm').waitFor();assert.equal(await page.locator('#rom-update-confirm').isDisabled(),true);
   await page.locator('#rom-update-compatible').check();await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
   const imported=await page.evaluate(async({sourceId,targetId})=>{const db=await import('./src/storage/storage.js'),games=await db.all('library'),game=games.find(g=>g.name==='From Imports');return {previous:game.romUpdate.previousId,copied:[...(await db.get('saves',game.id)).bytes],selected:[...(await db.get('saves',targetId)).bytes],other:[...(await db.get('saves',sourceId)).bytes],states:(await db.stateEntries(game.id)).length};},result);

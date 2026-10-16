@@ -42,13 +42,13 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   // Real UI uses textContent; names that look like markup remain plain text.
   await page.evaluate(async()=>{
    await db.put('saves',a,{...await good(1),hash:'0'.repeat(64)});window.downloads=[];window.uiBefore=await snapshot();const {createBackupView}=await import('./src/views/backup.js');
-   createBackupView({settings:{},sheet(title,body){document.querySelector('#sheet-title').textContent=title;document.querySelector('#sheet-body').innerHTML=body;document.querySelector('#sheet').showModal();},download(bytes,name){downloads.push(name);},toast(){}})();
+   createBackupView({settings:{},sheet(title,body){document.querySelector('#sheet-title').textContent=title;document.querySelector('#sheet-body').innerHTML=body;document.querySelector('#sheet').showModal();},download(bytes,name){downloads.push(name);return 'download';}})();
   });
   await page.locator('#backup-export').click();await page.waitForFunction(()=>document.querySelector('#backup-status').textContent.includes('検証に失敗'));
   assert.ok((await page.locator('#backup-status').textContent()).includes(data.privateName));assert.equal(await page.locator('#backup-status img').count(),0);assert.equal(await page.evaluate(()=>!!window.backupInjected),false);assert.equal(await page.evaluate(()=>downloads.length),0);assert.equal(await page.evaluate(async()=>uiBefore===await snapshot()),true);
   await page.locator('#backup-export-options summary').click();await page.locator('[data-backup-export-game="'+data.a+'"]').uncheck();await page.locator('[data-backup-export-game="'+data.b+'"]').uncheck();await page.locator('#backup-export').click();await page.waitForFunction(()=>downloads.length===1);assert.equal(await page.evaluate(async()=>uiBefore===await snapshot()),true);
   const invalid=structuredClone(await page.evaluate(()=>original.archive));invalid.records.find(row=>row.key===data.b).value.hash='0'.repeat(64);
-  await page.locator('#backup-import').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(invalid))});await page.waitForFunction(()=>document.querySelector('#backup-status').textContent.includes('ハッシュが一致'));
+  await page.locator('#backup-mode-restore').click();await page.locator('#backup-import').setInputFiles({name:'invalid.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(invalid))});await page.waitForFunction(()=>document.querySelector('#backup-status').textContent.includes('ハッシュが一致'));
   assert.ok((await page.locator('#backup-status').textContent()).includes(data.privateName));assert.ok((await page.locator('#backup-status').textContent()).includes(data.b));assert.equal(await page.locator('#backup-status img').count(),0);assert.equal(await page.evaluate(async()=>uiBefore===await snapshot()),true);
   console.log(`PASS ${engine}: named export/prepare/part/import failures, strict hash/core rejection, same-title/full-ID disambiguation, safe text UI, diagnostic redaction, selected healthy export and unchanged originals`);await context.close();
  }finally{await browser.close();}

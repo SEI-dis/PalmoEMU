@@ -7,6 +7,8 @@ import {tr} from '../i18n/index.js';
 import {startSaveCompatibility,selectStartMigrationVersion,START_MIGRATION_VERSION} from './compatibility.js';
 import {startVersionNumber,startVersionFromStamp} from './version.js';
 import {readStartROMProfile,isStartROMFamily} from './rom-profile.js';
+import {inspectFormatSave,convertFormatSave,containsFormatL} from './format-l.js';
+import {START_FORMAT_VERSION,START_FORMAT_STAMP,isStartFormatTarget,formatSourceVersion} from './format-version.js';
 
 export {START_MIGRATION_VERSION,START_SOURCE_VERSIONS};
 const sizes=new Set(START_COMPONENT.saveSizes),maxSaveBytes=START_COMPONENT.maxSaveBytes;
@@ -36,6 +38,9 @@ export function identifyStartROM(value){
 }
 
 function inspect(bytes,source){
+ // The legacy reader reports L slots as invalid. Never let that hide an
+ // existing/newer adventure when classifying or copying the entire save.
+ if(containsFormatL(bytes))fail('mismatch');
  const slots=inspectInput(bytes,source.inspectionVersion||source.version).map(slot=>{
   if(!slot.valid)return {slot:slot.slot,valid:false};
   const state=readSave(bytes,slot.slot),stamp=getVariable(state,versionVariable),detectedVersion=stamps.get(stamp)||(state.version===output.family&&state.encrypted===output.encrypted&&state.boxCount===output.boxes?startVersionFromStamp(stamp):null);
@@ -47,9 +52,26 @@ function inspect(bytes,source){
  });
  return {sourceVersion:source.version,targetVersion:selectStartMigrationVersion(undefined,source.version),sampleTested:source.saveSampleTested===true,slots};
 }
-export function inspectStartSave(value,from){return inspect(copySave(value),sourceVersion(from));}
+function inspectL(bytes,from){
+ const info=inspectFormatSave(bytes),slots=info.slots.filter(slot=>!slot.unused);
+ if(!slots.length||slots.some(slot=>!slot.valid||slot.format!=='L'))fail('slot');
+ if(slots.some(slot=>formatSourceVersion(slot.versionStamp)!==from))fail('mismatch');
+ return {sourceVersion:from,targetVersion:from,sampleTested:false,slots:info.slots.map(slot=>({...slot,boxes:50,encrypted:true,detectedVersion:slot.valid?from:null}))};
+}
+export function inspectStartSave(value,from){const bytes=copySave(value);return startVersionNumber(from)>=START_FORMAT_STAMP?inspectL(bytes,from):inspect(bytes,sourceVersion(from));}
 export function detectStartSaveVersion(value){
  const bytes=copySave(value),versions=[];
+ // The official converter writes 0x31ff to leave the game's first-load update
+ // pending. Identify that marker as 0.50 only when SHL2 storage is validated.
+ if(containsFormatL(bytes)){
+  try{const used=inspectFormatSave(bytes).slots.filter(slot=>!slot.unused);
+   if(used.length&&used.every(slot=>slot.valid&&slot.format==='L')){
+    const found=used.map(slot=>formatSourceVersion(slot.versionStamp));
+    return found[0]&&found.every(version=>version===found[0])?found[0]:null;
+   }
+  }catch{}
+  return null;
+ }
  for(let slot=0;slot<(bytes.length>=START_COMPONENT.flashBytes?2:1);slot++){
   let state;try{state=readSave(bytes,slot);}catch{continue;}
   versions.push(state.version===output.family&&state.encrypted===output.encrypted&&state.boxCount===output.boxes?startVersionFromStamp(getVariable(state,versionVariable)):null);
@@ -60,6 +82,7 @@ export function detectStartSaveVersion(value){
 }
 export function inspectStartUpdate(value,from,target=START_MIGRATION_VERSION){
  const number=startVersionNumber(from);
+ if(number>=START_FORMAT_STAMP){const info=inspectL(copySave(value),from);return {...info,targetVersion:selectStartMigrationVersion(target,from),compatibility:startSaveCompatibility(from,target)};}
  // New releases can retain the existing serialized layout. Only inspect them;
  // the old converter must never rewrite a source it does not understand.
  const source=sources.get(normalizeVersion(from))||(number>startVersionNumber(START_MIGRATION_VERSION)?{...sources.get(START_MIGRATION_VERSION),version:from,inspectionVersion:START_MIGRATION_VERSION,saveVersionStamp:number,saveSampleTested:false}:sourceVersion(from));
@@ -71,6 +94,7 @@ export function inspectStartUpdate(value,from,target=START_MIGRATION_VERSION){
 
 export async function migrateStartSave(value,{from,target,onProgress,signal,selection='all'}={}){
  cancelled(signal);
+ if(isStartFormatTarget(target))return migrateL(value,{from,target,onProgress,signal,selection});
  const bytes=copySave(value),source=sourceVersion(from),info=inspect(bytes,source);
  const destination=sources.get(selectStartMigrationVersion(target,source.version));
  if(!destination){const error=new Error(tr('このROMへのセーブ変換には未対応です。元のデータは変更していません。'));error.code='START_TARGET';throw error;}
@@ -90,3 +114,32 @@ export async function migrateStartSave(value,{from,target,onProgress,signal,sele
  // Output ownership is independent from the caller and from worker input buffers.
  return {bytes:result.data,report:{...result.report,sourceSampleTested:source.saveSampleTested===true,fullGameplayTest:false}};
 }
+
+async function migrateL(value,{from,target,onProgress,signal,selection}){
+ const original=copySave(value),number=startVersionNumber(from);
+ if(!canMigrateL(from,target))fail('version');
+ let bytes=original,legacyReport=null;
+ const info=inspectStartSave(bytes,from);
+ if(selection!=='all'&&(!Number.isInteger(selection)||!info.slots.find(slot=>slot.slot===selection&&slot.valid)))fail('slot');
+ if(number<START_FORMAT_STAMP){
+  // Apply the existing reviewed old-game corrections before changing the
+  // serialization. Do not advance through stamp-only recent definitions.
+  const source=sourceVersion(from);
+  // Raising the stamp to 0x31ff would skip the native 0.38.1 variable table.
+  // Use the existing reviewed bridge to apply those seven initializations.
+  if(number<0x2601||source.family!==23||info.slots.some(slot=>slot.valid&&(slot.boxes!==50||!slot.encrypted))){
+   const bridge=await migrateStartSave(bytes,{from,target:{version:'0.49.0',minimumSaveVersion:'0.36.2'},onProgress,signal,selection});
+   bytes=bridge.bytes;legacyReport=bridge.report;
+  }
+ }
+ cancelled(signal);
+ // 1 MiB mGBA containers use the same offsets; pad the unused flash and
+ // relocate only the RTC trailer, before handing it to the official format.
+ if(bytes.length-bytes.length%4096===1048576){const rtc=bytes.slice(1048576),expanded=new Uint8Array(6291456+rtc.length).fill(255);expanded.set(bytes.subarray(0,1048576));expanded.set(rtc,6291456);bytes=expanded;}
+ const converted=await convertFormatSave(bytes,{selection,onProgress:progress=>{cancelled(signal);if(progress.total>0)onProgress?.({...progress,index:progress.done});cancelled(signal);},signal});
+ cancelled(signal);
+ const checked=inspectFormatSave(converted.bytes),chosen=info.slots.filter(slot=>slot.valid&&(selection==='all'||slot.slot===selection));
+ if(chosen.some(slot=>!checked.slots[slot.slot]?.valid||checked.slots[slot.slot].format!=='L'||formatSourceVersion(checked.slots[slot.slot].versionStamp)!==(number<START_FORMAT_STAMP?START_FORMAT_VERSION:from)))fail('output');
+ return {bytes:converted.bytes,report:{...converted.report,from,to:number<START_FORMAT_STAMP?START_FORMAT_VERSION:from,legacy:legacyReport,sourceSampleTested:false,fullGameplayTest:false}};
+}
+function canMigrateL(from,target){return selectStartMigrationVersion(target,from)!==null;}

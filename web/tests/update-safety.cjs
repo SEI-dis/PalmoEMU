@@ -17,8 +17,8 @@ const engine=process.env.BROWSER_ENGINE||'chromium',browserType=require('./brows
  replacement.state='activated';replacement.send('statechange');replacement.send('statechange');stop();assert.equal(callbacks,2);assert.equal(container.count()+replacement.count(),0,'Activation calls once and removes all listeners');
  container.controller=null;const cancel=activationContext.watchActivation(()=>callbacks++,container);cancel();container.controller=early;container.send('controllerchange');assert.equal(callbacks,2);assert.equal(container.count(),0,'Cancelling a no-controller wait removes its listener');
  let revision=1,failedAsset=null;const requests=new Map(),trace=[],started=Date.now();
- const names=['index.html','update.html','src/updates/update.js','src/updates/controller-activation.js','src/i18n/page.js','src/i18n/index.js','src/updates/auto-update-worker.js','assets/retry.js','cores/test/core.js','vendor/test.js'];
- const sourceFiles=new Map(['sw.js','src/updates/update.js','src/updates/controller-activation.js','src/updates/auto-update-worker.js'].map(name=>[name,fs.readFileSync(path.join(root,name),'utf8')]));
+ const names=['index.html','update.html','src/updates/update.js','src/updates/controller-activation.js','src/updates/download-progress.js','src/i18n/page.js','src/i18n/index.js','src/updates/auto-update-worker.js','assets/retry.js','cores/test/core.js','vendor/test.js'];
+ const sourceFiles=new Map(['sw.js','src/updates/update.js','src/updates/controller-activation.js','src/updates/download-progress.js','src/updates/auto-update-worker.js'].map(name=>[name,fs.readFileSync(path.join(root,name),'utf8')]));
  const shell=names.filter(name=>!name.startsWith('cores/')&&!name.startsWith('vendor/'));
  function bytes(name){
   if(name==='index.html')return Buffer.from('<!doctype html><title>Update safety fixture</title><p>Release '+revision+'</p>');
@@ -30,7 +30,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',browserType=require('./brows
   if(name==='sw.js'){
    text="const testTrace=point=>void fetch(new URL('test-trace?revision="+revision+"&point='+encodeURIComponent(point),self.location.href)).catch(()=>{});\n"+text;
    text=text.replace("self.addEventListener('activate',e=>e.waitUntil((async()=>{", "self.addEventListener('activate',e=>e.waitUntil((async()=>{testTrace('activate:start');");
-   text=text.replace('await self.clients.claim();autoUpdate.activated();',"testTrace('claim:start');await self.clients.claim();testTrace('claim:done');autoUpdate.activated();testTrace('activate:done');");
+   text=text.replace('await self.clients.claim();',"testTrace('claim:start');await self.clients.claim();testTrace('claim:done');").replace('autoUpdate.activated();',"autoUpdate.activated();testTrace('activate:done');");
    text=text.replace('port.postMessage({ok:true});await self.skipWaiting();',"testTrace('manual:skip-waiting');port.postMessage({ok:true});await self.skipWaiting();testTrace('manual:skipped');");
    if(revision===2)text=text.replace("testTrace('claim:start');", "testTrace('claim:held');await new Promise(resolve=>{self.finishTestActivation=resolve;});testTrace('claim:start');");
    text=text.replace('if(failure)throw failure;',"if(failure){for(const client of await self.clients.matchAll({includeUncontrolled:true}))client.postMessage({testFailure:failure.message,keys:(await cache.keys()).map(r=>r.url),cacheName});throw failure;}");

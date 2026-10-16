@@ -4,7 +4,7 @@
 // one real >60-second wait with UPDATE_RECOVERY_LONG=1 (Chromium only).
 const assert=require('node:assert/strict'),http=require('node:http'),fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const engine=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-runtime.cjs'),root=path.resolve(__dirname,'..');
-const modules=['src/updates/auto-update.js','src/updates/offline.js','src/updates/update-activity.js','src/updates/controller-activation.js','src/updates/auto-update-worker.js','src/core/development.js','src/i18n/index.js','src/i18n/format.js','src/i18n/languages.js','src/i18n/locales/en.js'];
+const modules=['src/updates/auto-update.js','src/updates/offline.js','src/updates/update-activity.js','src/updates/controller-activation.js','src/updates/download-progress.js','src/updates/auto-update-worker.js','src/core/development.js','src/i18n/index.js','src/i18n/format.js','src/i18n/languages.js','src/i18n/locales/en.js'];
 // Reading an earlier complete source revision permits a red/green check without
 // changing the worktree or substituting the behavior being tested.
 const baseline=process.env.UPDATE_RECOVERY_BASELINE;

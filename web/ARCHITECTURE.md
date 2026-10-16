@@ -62,7 +62,21 @@
 
 翻訳キーの `⟪0⟫` などは値の差し込み位置です。各言語の語順に合わせて並べ替えられますが、個数は変えないでください。ライセンス原文・著作権者名・コア由来の生の診断文は機械的に翻訳しません。静的ページは起動時の一度だけ翻訳し、利用者データが表示された後のDOMを書き換える監視処理は使いません。
 
-ワーカーへは解決済みの `language` を渡し、`await setWorkerLanguage(...)`で辞書の読み込みを待ちます。英語はフォールバックとして同梱し、追加の辞書は選択中の1言語だけを動的に読み込みます。全辞書をService Workerの初期キャッシュに含めるため、初回準備後はオフラインでも言語を切り替えられます。翻訳ファイルはアプリのオフライン対象に含まれ、外部の翻訳サービスへ接続しません。
+ワーカーへは解決済みの `language` を渡し、`await setWorkerLanguage(...)`で辞書の読み込みを待ちます。日本語では辞書を読み込まず、他の言語では選択中の辞書と英語の代替辞書を並行して動的に読み込みます。両方の取得に失敗した場合は日本語原文で操作でき、保存済みの言語設定は次回の再試行用に保持します。全辞書をService Workerの初期キャッシュに含めるため、初回準備後はオフラインでも言語を切り替えられます。翻訳ファイルはアプリのオフライン対象に含まれ、外部の翻訳サービスへ接続しません。
+
+## 更新資産の再利用
+
+`sw.js` は版別のCache StorageとSRIを維持する。更新対象は「新版shell ∪ 保存済みの資産 ∪ 旧版とハッシュが異なる資産」。旧版のマニフェスト・完全保存の記録がない初回移行、または旧版を全体保存済みの場合は全体を対象にする。新規インストールはshellのみ。未使用で変更もないコア等は使用時に取得する。初回移行で全体保存になった利用者も、以降その範囲を維持する。
+
+版キャッシュの `.offline-release.json` に版・ファイル一覧・integrity・active・全体保存の指定・移行元キャッシュ名を記録する。再利用前に本文をSHA-256で検証し、新版と一致したバイトだけを独立したResponseとして保存する。失敗したインストールからの再利用も検証・delete/putで再確定する。PC版WebKitで、失敗後の再試行時に単なるmatch/putでは永続ストアに残らないケースを回帰テストで確認した。削除するのは更新候補の当該エントリだけで、稼働中の旧版には触れない。
+
+変更済み資産を未使用でも先に準備するのは、install開始後に旧ページがその機種を使う競合のため。activateではネットワークを使わず、旧キャッシュに後から増えた一致資産を複製し、claim後に記録済みの移行元だけを削除する。新しい候補のキャッシュや別アプリには触れない。容量不足などで引き継げないキャッシュは残し、読み込み時に再検証して利用する。次の起動時にも記録された移行元だけを片付ける冪等処理を行う。自然なactivationも同じ経路を通る。
+
+`.offline-failure.json` は版・失敗種別・再試行期限・取得できた場合の保存容量推定値だけを旧キャッシュへ記録する。実際のQuotaExceededErrorでは同じ版の自動再試行を30分抑え、手動更新で解除できる。容量推定は診断情報であり、正確な予約容量や安全な削除可否の根拠にはしない。更新中は旧版と新版を一時的に二重保持する。ROM・セーブを消して空きを作る処理はない。
+
+`download-progress.js` はinstalling workerから準備済み容量を取得し、各言語のパーセント形式で表示する。100%は対象資産の準備完了で、適用完了は従来のactivationで判断する。旧版UIにはこの表示処理がないため、最初の移行中から進捗率が表示される保証はない。
+
+公開後、旧タブが未取得の変更済みコアを初めて要求すると、従来どおり旧SRIが新版のバイトを拒否する。これを解消したという主張はしない。保証するのは更新時の版混在防止と、検証して保存済みのオフライン資産の引き継ぎ。実iPhoneの速度・再ハッシュ時間は別途測定が必要。
 
 ## 更新完了の案内（0.3.23）
 
@@ -122,3 +136,51 @@ DSの蓋は各ブリッジの`web_set_lid`／`web_get_lid`と既存コアの状�
 `src/storage/save-trigger.js`はmGBAの保存領域の更新カウンターと安定状態だけを読み、毎フレームのセーブ全体コピーを避けます。ゲーム内セーブの早期保存と重い復旧ステートの周期を分離します。コア変更・読み込み・巻き戻し等の世代変更後に、古い通知で保存しません。
 
 Google Drive連携は未実装です。追加する場合もローカル用フルバックアップをそのまま送る設計にはせず、通常セーブ・選択した設定・プロフィールを明示的に抽出します。ROM・BIOS・ステート（実行メモリーを含む）・画像・スキン・認証トークンは対象外にします。認証・保存先・上書き競合・世代保持・復元前の退避を別の境界で扱います。
+
+
+## 公開前の保存画面・読込整理（2026-10-16）
+
+`save-catalog.js` は既存の `coverCatalogs` 内の専用キーに、保存本体を含まない索引を持つ。DBバージョンや既存セーブ形式は変えない。保存・復元・削除と索引を同一トランザクションで更新し、古い記録は初回に補完する。キーだけの照合で旧タブが追加した記録を検出し、読み込み・書き出し時には原本を再取得して日時・ハッシュ・コアを検証する。旧タブの同じキーへの上書きは一覧に即時反映されない場合があるが、そのまま古い選択を適用しない。バックアップの分割計画・書き出し世代確認・分割復元の継続判定には索引を使わず、readonlyトランザクションで原本から概要を作り直す。これにより旧タブが索引を更新しなくても、最新のセーブを退避対象から落とさない。
+
+一覧は画像・日時などだけを保持する。画面の終了でDOM、イベント、選択、バックアップ検証プランを解放する。バックアップのゲーム選択一覧はlibraryだけを読み、保存内容は対象と操作が決まってから取得する。TrainerCardは変更がある記録だけを書き戻す。終了時のカバーは最大辺320pxの縮小画像で、PNG/WebPの小さい方を選ぶ。ステートとスクリーンショットの原画像は縮小しない。
+
+`file-export.js` は独立したダイアログに準備済みファイルを保持し、保存/共有ボタンの新しいユーザー操作でOSのAPIを呼ぶ。親の復元プランを破棄せず、書き出し終了・キャンセルで参照とObject URLを解放する。ファイル選択・書き出し中は更新バリアを保持する。通常ダウンロードの完了はブラウザから保証されないため開始だけを表示する。
+
+`offline-plan.js` は実際のスキン表現選択器と、現在の画面・回転・全画面・余白候補から必要な同梱画像を求める。選択保存は共通playback資産と選択コア/画像の和集合。全量保存と既存キャッシュの継承は残す。著作権・ライセンス原文はplaybackに保持し、開発手順3文書（ARCHITECTURE/LOCALIZATION_REVIEW/RELEASE_VALIDATION）は起動・選択保存の先行取得から除くが、配布と全量保存には残す。クレジットから辿るREADMEと初回GBA取り込みに必要な変換エンジンは初期保存に含む。英語辞書と変換エンジンの起動時実行読み込みは遅延させるが、オフライン準備とは切り分ける。
+
+ページは表示前に選択言語を準備する。Workerは辞書の通信を待たず受信処理を先に登録し、各要求に含まれる言語を処理内で待つ。これによりWebKitで初回要求が辞書の読み込み中に失われることを防ぐ。選択言語の取得失敗時は英語、英語も取得できなければ日本語へ退避し、利用者の言語設定は次回の再試行用に保持する。
+
+### Local cover editing
+
+`views/cover.js` owns a draft image and the update-activity guard while its sheet is
+open. `components/cover-crop-math.js` clamps an aspect-preserving square to the
+source image; `cover-crop.js` renders that draft and owns pointer, keyboard, resize
+and animation listeners. Only explicit Save commits a maximum-512px WebP cover
+through the existing atomic `setGameCover` transaction. Save/history/state/ROM
+records and the schema are unchanged. Cancel/close releases decoded pixels and
+late decoding results. Current covers can be readjusted from their stored pixels;
+the full original image and crop history are not stored. Saving locks sheet-close
+until the transaction completes; failure keeps the draft available to retry.
+
+### Sheet navigation
+
+The main sheet accepts an optional root marker or explicit back action. Game-detail
+child sheets use a back label matching their existing return route; root and
+standalone dialogs retain Close. All close/back triggers use the same busy guard.
+Navigation callbacks are replaced with the sheet and cleared on dismissal or game
+startup so a pre-launch state view cannot route back after starting emulation.
+
+Confirmation sheets keep their cancel/confirm pair and can use `confirmation:true`
+to display Close while retaining the same guarded cancellation callback. ROM
+selection passes its actual origin as `onBack`, including the import picker and
+PokemonStart update notice. In-game shortcut visibility and matching list rows
+share one selected set: enabled shortcuts appear once in the header; disabled
+shortcuts remain in the list. Battery save import/export use the existing handlers
+inside the unified save/history view; healthy export still validates the freshly
+read save, and damaged-original export remains explicit. No save format changes.
+
+File pickers are opened only by their explicit selection control, never by entering
+the ROM-update view. Input-originated bubbling `cancel` events do not dismiss the
+main dialog; dialog-originated Escape/cancel still uses the guarded close route.
+The update coordinator continues receiving file-input cancellation to release its
+picker activity guard.

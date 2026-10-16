@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-import english from './locales/en.js';
 import {translateSource,interpolate} from './format.js';
 import {languages,supportsLanguage,resolveLanguage} from './languages.js';
 export {languages,resolveLanguage};
 
 const key='palmo-language';
 const loaders={
+ en:()=>import('./locales/en.js'),
  'zh-Hans':()=>import('./locales/zh-Hans.js'),
  'zh-Hant':()=>import('./locales/zh-Hant.js'),
  ko:()=>import('./locales/ko.js'),
@@ -14,13 +14,20 @@ const loaders={
  de:()=>import('./locales/de.js'),
  pt:()=>import('./locales/pt.js')
 };
-const catalogues={en:english},pending=new Map();
+const catalogues={},pending=new Map();
+function loadCatalogue(code) {
+ if(!pending.has(code))pending.set(code,loaders[code]().then(module=>module.default).catch(error=>{pending.delete(code);throw error;}));
+ return pending.get(code);
+}
 async function loadLanguage(code) {
- if(!loaders[code]||catalogues[code])return;
- if(!pending.has(code))pending.set(code,loaders[code]().then(module=>{
-  catalogues[code]={...english,...module.default};
- }));
- await pending.get(code);
+ if(code==='ja'||catalogues[code])return code;
+ const english=loadCatalogue('en').then(catalogue=>catalogues.en=catalogue);
+ try {
+  const [fallback,selected]=await Promise.all([english,loadCatalogue(code)]);
+  catalogues[code]=code==='en'?selected:{...fallback,...selected};return code;
+ }catch{
+  try{await english;return 'en';}catch{return 'ja';}
+ }
 }
 export function languagePreference() {
  try {
@@ -28,10 +35,13 @@ export function languagePreference() {
   return supportsLanguage(value)?value:'auto';
  }catch{return 'auto';}
 }
-export let language=resolveLanguage(languagePreference());
+// Install worker message handlers before fetching a dictionary. WebKit can
+// dispatch the first queued message while a module's top-level await is still
+// fetching; each handler already awaits setWorkerLanguage(message.language).
+export let language=typeof document==='undefined'?'ja':resolveLanguage(languagePreference());
 // A missing catalogue must not prevent access to local games or save exports.
 // Keep the preference so the next page load can retry its selected language.
-try{await loadLanguage(language);}catch{language='en';}
+if(typeof document!=='undefined')language=await loadLanguage(language);
 export const locale=()=>languages.find(item=>item.code===language).locale;
 export function saveLanguage(value) {
  if(value!=='auto'&&!supportsLanguage(value))throw TypeError('Unsupported language');
@@ -40,8 +50,7 @@ export function saveLanguage(value) {
 // Workers have no localStorage. Await the page's language before doing the job.
 export async function setWorkerLanguage(value) {
  if(typeof document!=='undefined'||!supportsLanguage(value))return;
- await loadLanguage(value);
- language=value;
+ language=await loadLanguage(value);
 }
 
 const templates=new WeakMap(),strings=new Map();
@@ -52,7 +61,7 @@ export function tr(source,...values) {
   cache.set(source,{original,localized:new Map([['ja',original]])});
  }
  const entry=cache.get(source);
- if(!entry.localized.has(language))entry.localized.set(language,translateSource(entry.original,catalogues[language]||english));
+ if(!entry.localized.has(language))entry.localized.set(language,translateSource(entry.original,catalogues[language]||catalogues.en||{}));
  const text=entry.localized.get(language);
  return values.length?interpolate(text,values):text;
 }

@@ -49,9 +49,9 @@ const kind=process.env.BROWSER_ENGINE||'chromium',runtime=require('./browser-run
   assert.deepEqual(await page.evaluate(async id=>[...await(await import('./src/storage/storage.js')).get('roms',id)],identity),[...source]);
   const other=Buffer.from(source);other[other.length-1]^=1;
   await input.setInputFiles([file('Batch one.gb',Buffer.from(require('./cartridges.cjs').gb())),file('Batch two.gba',other)]);await idle();assert.equal((await records()).length,3,'Batch commits each distinct file');
-  // A failed read must remove the modal, release the update guard and allow retry.
+  // A failed read must finish progress, report the result, release the update guard and allow retry.
   const retry=Buffer.from(source);retry[retry.length-1]^=2;nextMode='error';
-  await input.setInputFiles(file('Retry.gba',retry));await idle();assert.match(await page.locator('#toast').textContent(),/Synthetic read failure/);assert.equal((await records()).length,3);
+  await input.setInputFiles(file('Retry.gba',retry));await idle();await page.locator('#import-results-close').waitFor();assert.match(await page.locator('.import-results').textContent(),/Synthetic read failure/);assert.equal((await records()).length,3);await page.locator('#import-results-close').click();
   await input.setInputFiles(file('Retry.gba',retry));await idle();assert.equal((await records()).length,4);
   // A serialization failure must not leave metadata without its ROM record.
   const rollback=await page.evaluate(async()=>{

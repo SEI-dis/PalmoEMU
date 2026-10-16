@@ -9,7 +9,7 @@ import hashlib, io, json, re, sys, tarfile, zipfile
 ROOT = Path(__file__).resolve().parent.parent
 PIN = 'RELEASE_CONTENT.json'
 GENERATED = {PIN, 'offline-manifest.js', 'sources/web-ui-source.zip', 'RELEASE_REVIEW.json'}
-FORBIDDEN = {'.gba', '.gb', '.gbc', '.nes', '.sfc', '.smc', '.smd', '.gen', '.bin', '.sav', '.srm', '.jgsav', '.state', '.ss0', '.ss1', '.ss2', '.ss3', '.dsv', '.nds', '.cia', '.ipa', '.bios', '.3ds', '.3dsx', '.cci', '.cxi', '.lp3sav', '.iso', '.chd', '.z64', '.v64', '.n64', '.deltaskin', '.manicskin'}
+FORBIDDEN = {'.pks', '.gba', '.gb', '.gbc', '.nes', '.sfc', '.smc', '.smd', '.gen', '.bin', '.sav', '.srm', '.jgsav', '.state', '.ss0', '.ss1', '.ss2', '.ss3', '.dsv', '.nds', '.cia', '.ipa', '.bios', '.3ds', '.3dsx', '.cci', '.cxi', '.lp3sav', '.iso', '.chd', '.z64', '.v64', '.n64', '.deltaskin', '.manicskin'}
 SECRET = re.compile(rb'gh[pousr]_[A-Za-z0-9]{36,}|github_pat_[A-Za-z0-9_]{30,}|AKIA[0-9A-Z]{16}|-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----')
 MAX_FILE = 100 * 1024 * 1024
 MAX_TOTAL = 1024 * 1024 * 1024
@@ -22,6 +22,7 @@ def check_name(name):
         raise ValueError('Unsafe archive path: ' + name)
 
 def component(path):
+    if path.startswith('vendor/start-save-format/'): return 'pokemonstart-bundled-format-tool-permission-recorded-license-unspecified'
     if path.startswith('vendor/start-save-migrate/') or path.startswith('scripts/start-save-migrate/base/') or path == 'scripts/start-save-migrate/patches.json': return 'start-save-migrate-user-supplied-license-unspecified'
     if path.startswith('vendor/rom-patcher/'): return 'rompatcher-mit'
     if path.startswith('shaders/'): return 'xbrz-gpl-3.0-with-permissive-notices'

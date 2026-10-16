@@ -65,5 +65,27 @@ const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
  ])rejectLower(label,offset,op);
  const highMinimum=fixture({stamp:0x3000,minimum:0x2b00,rangeGate:true,upperImmediate:true});
  assert.deepEqual(read(highMinimum.bytes),{version:'0.48.0',minimumSaveVersion:'0.43.0'},'Immediate upper constants never relax a raised minimum');
+ // A new native layout gate must be identified separately from the version
+ // lower bound. The migration guard stamp 0x31ff is not that lower bound.
+ const l=fixture({stamp:0x3200,rangeGate:true,upperImmediate:true,lFormat:true}),lHash=hash(l.bytes),lExpected={version:'0.50.0',minimumSaveVersion:'0.36.2',saveFormat:'L'};
+ assert.deepEqual(read(l.bytes),lExpected);
+ const relocatedL=fixture({stamp:0x3201,minimum:0x2600,rangeGate:true,lFormat:true,writer:0x16000,gate:0x12000,trampoline:0x20000});
+ assert.deepEqual(read(relocatedL.bytes),{version:'0.50.1',minimumSaveVersion:'0.38.0',saveFormat:'L'},'The layout evidence and actual bounds may relocate');
+ const unknownL={version:'0.50.0',minimumSaveVersion:null};
+ const rejectL=(label,mutate)=>{const bytes=l.bytes.slice();mutate(bytes);assert.deepEqual(read(bytes),unknownL,label);};
+ for(const at of [l.gate-20,l.gate-16,l.gate-8,l.gate+20,l.gate+48,l.gate+54,l.gate+84,l.lowerBody,l.upperBody,
+  l.formatGuard+8,l.formatGuard+12,l.formatGuard+16,l.formatGuard+18,l.formatLoader+0x18,l.formatLoader+0x22,l.formatLoader+0xa4,l.formatLoader+0xaa,l.formatInit+6,l.formatInit+12])rejectL('Changed L guard semantics '+at,b=>word(b,at,0x46c0));
+ rejectL('The format failure must return to the same menu',b=>word(b,l.gate-2,0xe000));
+ rejectL('Version upper and writer must agree',b=>word(b,l.upper,0x23c4));
+ rejectL('Format cache identity must match',b=>literal(b,l.formatGuard+0x84,0x45484354));
+ rejectL('Format cache must reside in RAM',b=>literal(b,l.formatGuard+0x80,0x080310e0));
+ rejectL('Old-format loader must inspect the old magic',b=>literal(b,l.formatLoader+0x104,0x4c454854));
+ rejectL('New-format loader must inspect SHL2',b=>literal(b,l.formatLoader+0x108,0x324c4854));
+ rejectL('Loader must read a RAM save pointer',b=>literal(b,l.formatLoader+0x100,0x09005048));
+ rejectL('Old-format flag and menu cache must agree',b=>literal(b,l.formatLoader+0xe0,0x020310e4));
+ rejectL('Initialization must clear the old-format flag',b=>literal(b,l.formatInit+0x84,0x02031187));
+ rejectL('New-format loading must use the same initializer',b=>branchLink(b,l.formatLoader+0xb0,l.formatInit+2));
+ rejectL('Old-format rejection must return without clearing its flag',b=>word(b,l.formatLoader+0xac,0xe000));
+ assert.equal(hash(l.bytes),lHash,'L format inspection is immutable');
  console.log('PASS: native START version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

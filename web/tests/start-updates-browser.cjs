@@ -11,7 +11,7 @@ const announcementURL='https://raw.githubusercontent.com/pm-start/PokemonStart/m
   page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push(r));page.setDefaultTimeout(30000);
   await context.route(endpoint,route=>{count++;return route.fulfill({status,contentType:'application/json',headers:{'Access-Control-Allow-Origin':'*'},body:JSON.stringify({sha:'a'.repeat(40),truncated:false,tree:[{path:`PokemonStart_v${version}.pks`,sha:'b'.repeat(40),mode:'100644',type:'blob',size:21701997}]})});});
   await context.route(announcementURL,route=>{announcementCount++;return route.fulfill({contentType:'text/plain',headers:{'Access-Control-Allow-Origin':'*'},body:'# PokemonStart v0.49.0\n\n配布ファイルは PokemonStart_v0.49.0.pks です。'});});
-  await page.goto(base);await page.locator('[data-tab=imports]').waitFor();assert.equal(count,0,'No PokemonStart means no external request');
+  let fileChoices=0;page.on('filechooser',()=>{fileChoices++;});await page.goto(base);await page.locator('[data-tab=imports]').waitFor();assert.equal(count,0,'No PokemonStart means no external request');
   const rom=Buffer.from(require('./link.cjs').cartridge(31,992));
   await page.locator('#rom-input').setInputFiles({name:'PokemonStart_v0.46.0.gba',mimeType:'application/octet-stream',buffer:rom});
   await page.locator('#start-update-notice').waitFor();assert.equal(count,1);assert.match(await page.locator('#start-update-notice').textContent(),/0\.47\.1/);
@@ -29,20 +29,21 @@ const announcementURL='https://raw.githubusercontent.com/pm-start/PokemonStart/m
   assert.match(await page.locator('[data-start-summary] p').textContent(),/v0\.46\.0 → v0\.47\.1/);
   assert.equal(await page.locator('[data-start-version]').isVisible(),false,'No duplicated version-only notice');
   if(process.env.SCREENSHOT_DIR)await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,`start-update-${kind}.png`)});
-  await page.locator('#start-update-rom').click();await page.locator('#rom-update-file').waitFor({state:'attached'});assert.equal(await page.locator('#rom-update-file').getAttribute('accept'),null);
-  await page.locator('#rom-update-news').click();await page.locator('#start-update-dialog').waitFor();await page.locator('#start-update-back').click();await page.locator('#rom-update-file').waitFor({state:'attached'});
-  await page.locator('#rom-update-back').click();await page.locator('#start-update-dialog').waitFor();await page.locator('#start-update-back').click();
-  await page.locator('[data-tab=imports]').click();await page.locator('#start-update-notice').waitFor();await page.locator('#import-update-rom').click();await page.locator(`[data-update-rom="${id}"]`).click();await page.locator('#rom-update-news').click();
-  await page.locator('[data-start-auto]').uncheck();await page.locator('#close-sheet').click();assert.equal(await page.locator('#start-update-notice').count(),0);
+  await page.locator('#start-update-rom').click();await page.locator('#rom-update-file').waitFor({state:'attached'});assert.equal(await page.locator('#rom-update-file').getAttribute('accept'),null);assert.equal(fileChoices,0,'The update-notice entry opens the ROM panel without opening a file picker');
+  const chosen=page.waitForEvent('filechooser');await page.locator('#rom-update-choose').click();const chooser=await chosen;assert.equal(fileChoices,1);await chooser.setFiles([]);
+  await page.locator('#rom-update-news').click();await page.locator('#start-update-dialog').waitFor();await page.locator('#start-update-back').click();await page.locator('#rom-update-file').waitFor({state:'attached'});assert.equal(fileChoices,1,'Checking updates and returning does not reopen file selection');
+  assert.equal(await page.locator('#rom-update-back').count(),0);await page.locator('#close-sheet').click();await page.locator('#start-update-dialog').waitFor();await page.locator('#start-update-back').click();
+  await page.locator('[data-tab=imports]').click();await page.locator('#start-update-notice').waitFor();await page.locator('#import-update-rom').click();await page.locator('#rom-update-choose').waitFor();assert.equal(fileChoices,1,'The single-game import entry also waits for explicit selection');await page.locator('#rom-update-news').click();
+  await page.locator('#start-update-dialog .update-check-options > summary').click();await page.locator('[data-start-auto]').uncheck();await page.locator('#close-sheet').click();assert.equal(await page.locator('#start-update-notice').count(),0);
   await page.reload();await page.locator('#import-update-rom').waitFor();assert.equal(count,1);assert.equal(await page.locator('#start-update-notice').count(),0);
-  await page.locator('#import-update-rom').click();await page.locator(`[data-update-rom="${id}"]`).click();await page.locator('#rom-update-news').click();await page.locator('[data-start-auto]').check();await page.locator('#close-sheet').click();
+  await page.locator('#import-update-rom').click();await page.locator('#rom-update-news').click();await page.locator('#start-update-dialog .update-check-options > summary').click();await page.locator('[data-start-auto]').check();await page.locator('#close-sheet').click();
   await page.locator('.start-update-dismiss').click();await page.reload();await page.locator('#import-update-rom').waitFor();assert.equal(await page.locator('#start-update-notice').count(),0,'Dismissal persists for this distribution');
   const expire=()=>page.evaluate(key=>{const state=JSON.parse(localStorage.getItem(key));state.checkedAt=Date.now()-3600001;state.retryAt=0;localStorage.setItem(key,JSON.stringify(state));},key);
   version='0.48.0';await expire();await page.reload();await page.locator('#start-update-notice').waitFor();assert.equal(count,2);assert.match(await page.locator('#start-update-notice').textContent(),/0\.48\.0/);
   status=503;await expire();await page.reload();await page.locator('#import-update-rom').waitFor();await page.waitForFunction(key=>JSON.parse(localStorage.getItem(key)).failed,key);
   assert.equal(await page.locator('[data-start-summary]:visible').count(),0,'Failed checks never claim a current update result');
-  assert.equal(await page.locator('#start-update-notice').count(),0);await page.locator('#import-update-rom').click();await page.locator(`[data-update-rom="${id}"]`).click();await page.locator('#rom-update-news').click();assert.match(await page.locator('[data-start-status]').textContent(),/確認できません/);assert.match(await page.locator('[data-start-version]').textContent(),/前回確認/);assert.equal(await snapshot(),before,'Checking/notifying/navigating never changes ROMs, saves, states or library records');
-  await context.setOffline(true);await page.locator('#close-sheet').click();await page.locator('#import-update-rom').click();await page.locator(`[data-update-rom="${id}"]`).click();await page.locator('#rom-update-news').click();assert.match(await page.locator('[data-start-status]').textContent(),/オフライン/);assert.equal(await page.locator('[data-start-check]').isDisabled(),true);
+  assert.equal(await page.locator('#start-update-notice').count(),0);await page.locator('#import-update-rom').click();await page.locator('#rom-update-news').click();assert.match(await page.locator('[data-start-status]').textContent(),/確認できません/);assert.match(await page.locator('[data-start-version]').textContent(),/前回確認/);assert.equal(await snapshot(),before,'Checking/notifying/navigating never changes ROMs, saves, states or library records');
+  await context.setOffline(true);await page.locator('#close-sheet').click();await page.locator('#import-update-rom').click();await page.locator('#rom-update-news').click();assert.match(await page.locator('[data-start-status]').textContent(),/オフライン/);assert.equal(await page.locator('[data-start-check]').isDisabled(),true);
   const beforeReconnect=count;
   await context.setOffline(false);
   await page.waitForFunction(()=>!document.querySelector('[data-start-check]').disabled,{},{timeout:3000});
@@ -51,7 +52,7 @@ const announcementURL='https://raw.githubusercontent.com/pm-start/PokemonStart/m
   // Once the retry delay has elapsed, reconnecting with this dialog still open
   // checks normally and updates its result without requiring a close/reopen.
   status=200;await expire();await context.setOffline(true);
-  await page.waitForFunction(()=>document.querySelector('[data-start-check]').disabled,{},{timeout:3000});
+  await page.waitForFunction(()=>document.querySelector('[data-start-check]').disabled&&document.querySelector('[data-start-status]').textContent.includes('オフライン'),{},{timeout:3000});
   assert.match(await page.locator('[data-start-status]').textContent(),/オフライン/);
   await context.setOffline(false);
   await page.waitForFunction(key=>JSON.parse(localStorage.getItem(key)).failed===false,key,{timeout:3000});

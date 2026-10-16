@@ -41,12 +41,12 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
   // is not executed. All consumers get the updated version from one source.
   const feature=path.join(root,'src','start-save'),vendor=path.join(root,'vendor','start-save-migrate');
   fs.mkdirSync(feature,{recursive:true});fs.mkdirSync(vendor,{recursive:true});fs.writeFileSync(path.join(root,'package.json'),'{"type":"module"}');
-  for(const name of ['contract.js','definition.js','compatibility.js','version.js'])fs.copyFileSync(path.join(__dirname,'../src/start-save',name),path.join(feature,name));
+  for(const name of ['contract.js','definition.js','compatibility.js','version.js','format-version.js'])fs.copyFileSync(path.join(__dirname,'../src/start-save',name),path.join(feature,name));
   fs.copyFileSync(path.join(candidate,'manifest.js'),path.join(vendor,'manifest.js'));
   const definition=await import(pathToFileURL(path.join(feature,'definition.js'))),compatibility=await import(pathToFileURL(path.join(feature,'compatibility.js')));
   assert.equal(definition.START_MIGRATION_VERSION,nextVersion);assert.equal(compatibility.START_MIGRATION_VERSION,nextVersion);
   assert.equal(definition.START_SOURCE_VERSIONS.at(-1).version,nextVersion);
-  assert.equal(compatibility.canApplyStartMigration({version:nextPatch,minimumSaveVersion:nextVersion},'0.35.0'),true);
+  assert.equal(compatibility.canApplyStartMigration({version:nextPatch,minimumSaveVersion:nextVersion},'0.35.0'),false,'The 0.50 serialized format needs independent evidence, not another legacy metadata stamp');
   assert.equal(compatibility.canApplyStartMigration({version:followingVersion,minimumSaveVersion:nextPatch},'0.35.0'),false);
   assert.equal(compatibility.canApplyStartMigration(nextPatch,'0.35.0'),false,'Do not broaden legacy ROM evidence automatically');
   assert.equal(compatibility.selectStartMigrationVersion({version:'0.48.0',minimumSaveVersion:'0.43.0'},'0.35.0'),null,'A manifest stamp alone is not a reviewed bridge');

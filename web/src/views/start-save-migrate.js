@@ -2,7 +2,7 @@
 import {tr} from '../i18n/index.js';
 import {escapeHTML as esc} from '../shared.js';
 import {guardUpdateTask} from '../updates/update-activity.js';
-import {START_SOURCE_VERSIONS} from '../start-save/migration.js';
+import {START_SOURCE_VERSIONS} from '../start-save/definition.js';
 import {startSaveTask} from '../start-save/client.js';
 
 export function createStartSaveDialog(api){
@@ -15,7 +15,7 @@ export function createStartSaveDialog(api){
  }
  async function open(game,{previous=!!game.romUpdate,onBack=()=>api.showGame(game),apply,target,targetProfile,prepareTarget,onCopy}={}){
   const task=options=>startSaveTask({id:game.id,previous,targetId:target?.id,targetProfile,...options});
-  api.sheet(tr('セーブデータを変換'),tr`<p class="sheet-note" id="start-save-status" role="status">セーブを確認中…</p><div id="start-save-options" hidden></div><button id="start-save-back" class="secondary wide-button">戻る</button>`);
+  api.sheet(tr('セーブデータを変換'),tr`<p class="sheet-note" id="start-save-status" role="status">セーブを確認中…</p><div id="start-save-options" hidden></div><button id="start-save-back" class="text-button wide-button">戻る</button>`);
   bind('#start-save-back',onBack);
   let inspected;
   try{inspected=await work(()=>task({action:'inspect'}));}
@@ -73,7 +73,7 @@ export function createStartSaveDialog(api){
   });
  }
  function showResult(result,onBack,target){
-  api.sheet(tr('セーブの変換が完了しました'),tr`<button id="start-save-download" class="primary wide-button">変換セーブを保存</button><button id="start-save-original" class="secondary wide-button">元セーブを書き出す</button>${target?tr`<button id="start-save-target" class="secondary wide-button">新版のゲーム詳細へ</button>`:''}<button id="start-save-back" class="secondary wide-button">戻る</button>`);
+  api.sheet(tr('セーブの変換が完了しました'),tr`<button id="start-save-download" class="primary wide-button">変換セーブを保存</button><button id="start-save-original" class="secondary wide-button">元セーブを書き出す</button>${target?tr`<button id="start-save-target" class="text-button wide-button">新版のゲーム詳細へ</button>`:''}<button id="start-save-back" class="text-button wide-button">戻る</button>`);
   bind('#start-save-download',()=>api.download(result.bytes,result.name+'-'+result.report.to+'.sav'));
   bind('#start-save-original',()=>api.download(result.original,result.name+'-original.sav'));
   if(target)bind('#start-save-target',()=>api.showGame(target));bind('#start-save-back',onBack);

@@ -205,3 +205,15 @@ FocusSystem and FocusKeyObserver guide idle/paused UI input routing in src/ui-na
 ControllersSettingView guides separate player assignments. RomPatcherView guides the
 local import service; native WebView/server code is replaced by a bounded Web Worker.
 The Web implementation preserves text editing and uses browser permission prompts for sensors.
+
+## Local cover crop (modified 2026-10-16)
+
+The same pinned ManicEMU revision opens an image editor from
+[GameCoverModifyView.swift](https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Business/GameInfo/VIews/GameCoverModifyView.swift)
+through [ImageFetcher.swift](https://github.com/Manic-EMU/ManicEMU/blob/fbaeab79c214d5920bb51afa6f2d786fb2b12a58/ManicEmu/ManicEmu/Sources/Tools/Others/ImageFetcher.swift).
+PalmoEMU follows this selection/edit/save flow with original AGPL Canvas code in
+`src/views/cover.js` and `src/components/cover-crop*.js`. HXPhotoPicker and other
+native editor code or artwork are not copied or bundled. The square crop matches
+the Web library's existing square covers, rather than asserting that ManicEMU
+requires a square crop. The editor supports drag, pinch, a zoom slider and keyboard
+positioning, with explicit save/cancel and local-only image processing.

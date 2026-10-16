@@ -5,7 +5,15 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
 (async()=>{
  const b=await browserType.launch({headless:true,...(browserName==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
  try{
-  const c=await b.newContext({viewport:{width:390,height:844}}),base=process.env.TEST_URL||'http://127.0.0.1:4173/';let p=await c.newPage();
+  const c=await b.newContext({viewport:{width:390,height:844},serviceWorkers:'block'}),base=process.env.TEST_URL||'http://127.0.0.1:4173/';let p=await c.newPage();
+  await c.route('**/src/storage/storage.js',async route=>{
+   const response=await route.fetch(),source=await response.text(),needle='stateCatalog=guardUpdateTask(readStateCatalog)';assert.ok(source.includes(needle));
+   await route.fulfill({response,body:source.replace(needle,'stateCatalog=guardUpdateTask(async(...args)=>{if(globalThis.stateUiCatalogGate){stateUiCatalogWaiting=true;await stateUiCatalogGate;}try{return await readStateCatalog(...args);}finally{globalThis.stateUiCatalogDone=true;}})')});
+  });
+  await c.route('**/src/views/states.js',async route=>{
+   const response=await route.fetch(),source=await response.text(),factory='export function createStateDialogs(api){',result='return {showStates,confirmStateSave,showQuickLoad};';assert.ok(source.includes(factory)&&source.includes(result));
+   await route.fulfill({response,body:source.replace(factory,factory+'globalThis.stateUiAPI=api;').replace(result,'return globalThis.stateUiDialogs={showStates,confirmStateSave,showQuickLoad};')});
+  });
   const errors=[];p.on('pageerror',e=>errors.push(e.message));p.setDefaultTimeout(15000);
   const screenshot=async name=>{await p.locator('#toast.show').waitFor({state:'hidden'});await p.waitForTimeout(250);await p.screenshot({path:path.join(process.env.SCREENSHOT_DIR||os.tmpdir(),name+'.png')});};
   const count=()=>p.evaluate(async()=>{const db=await import('./src/storage/storage.js');return(await db.all('states')).length;});
@@ -36,7 +44,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   };
   await p.goto(base);await p.locator('#rom-input').setInputFiles({name:'Original-test.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});
   await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
-  for(let i=0;i<2;i++){await menu();await p.locator('[data-action=newState]').click();await p.locator('#confirm-state-save').click();await p.locator('[data-slot-load]').first().waitFor();}
+  for(let i=0;i<2;i++){await menu();await p.locator('[data-action=newState]').click();await p.locator('[data-slot-load]').first().waitFor();}
   assert.equal(await p.locator('[data-slot-load]').count(),2,'Append without replacing');assert.equal(await p.locator('[data-state-delete],[data-action=newState],#confirm-state-save').count(),0,'Read view has no adjacent save/delete action');assert.equal(await count(),2);
   const stateBounds=async()=>{
    await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
@@ -54,13 +62,13 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   }
   for(const width of [240,280,320,390,768]){await p.setViewportSize({width,height:844});await fits();if(width===280)await screenshot('state-list-narrow');}
   await p.setViewportSize({width:390,height:844});await screenshot('state-list');
-  await menu();assert.equal(await p.locator('#sheet-title').textContent(),'MENU');assert.equal(await p.locator('.action-tile,.menu-resume').count(),0);assert.equal(await p.locator('[data-shortcut]').count(),4);
+  await menu();assert.equal(await p.locator('#sheet-title').textContent(),'ゲームメニュー');assert.equal(await p.locator('.action-tile,.menu-resume').count(),0);assert.equal(await p.locator('[data-shortcut]').count(),4);
   for(const [width,height] of [[240,844],[280,844],[320,844],[390,844],[844,390],[1024,768]]){await p.setViewportSize({width,height});await fits();if(width===280)await screenshot('game-menu-narrow');if(width===844)await screenshot('game-menu-landscape');}
   await p.locator('[data-setting=filter]').selectOption('lcd');assert.equal(await p.locator('[data-setting=filterStrength]').isVisible(),true);
   for(const [width,height]of [[240,844],[844,390]]){await p.setViewportSize({width,height});await fits();}
   await p.locator('[data-setting=filter]').selectOption('pixel');
   await p.setViewportSize({width:390,height:844});await screenshot('game-menu');
-  await p.locator('[data-action=newState]').click();await p.locator('#cancel-state-save').click();assert.equal(await count(),2);await p.locator('[data-action=states]').click();
+  await p.locator('#close-sheet').click();await p.locator('#quick-save').click();await p.locator('#cancel-state-save').click();assert.equal(await count(),2);await menu();await p.locator('[data-action=states]').click();
   await p.locator('#edit-states').click();await p.locator('[data-state-select]').first().check();await p.locator('#delete-selected-states').click();assert.equal(await count(),2);
   await p.setViewportSize({width:240,height:844});await fits();await p.locator('#cancel-state-delete').click();assert.equal(await count(),2);await p.setViewportSize({width:390,height:844});
   await p.locator('#edit-states').click();await p.locator('[data-slot-load]').first().click();await p.locator('#sheet').waitFor({state:'hidden'});assert.equal(await count(),2,'Loading cannot overwrite manual states');
@@ -71,7 +79,22 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await menu();
   const before=await p.evaluate(async()=>{const db=await import('./src/storage/storage.js');const [g]=await db.all('library'),states=await db.stateEntries(g.id);await db.put('states','other-game:keep',states[0].value);return {id:g.id,keys:states.map(s=>s.key),save:JSON.stringify(await db.get('saves',g.id)),auto:JSON.stringify(await db.get('recoveries',g.id))};});
   assert.equal(await p.evaluate(async({id,keys})=>{const db=await import('./src/storage/storage.js');try{await db.removeStates(id,[keys[0],'other-game:keep']);return false;}catch{return(await db.stateEntries(id)).length===2&&!!await db.get('states','other-game:keep');}},before),true,'Reject cross-game removal before any deletion');
-  await p.locator('[data-action=states]').click();await p.locator('#edit-states').click();await p.locator('[data-state-select]').first().check();await p.locator('#delete-selected-states').click();await p.locator('#confirm-state-delete').click();await p.locator('[data-slot-load]').first().waitFor();
+  await p.locator('[data-action=states]').click();await p.locator('#edit-states').click();await p.locator('[data-state-select]').first().check();await p.locator('#delete-selected-states').click();
+  // Hold the real deletion behind another transaction. Closing a confirmed
+  // mutation must wait for its outcome, just like state save/load operations.
+  await p.evaluate(async()=>{
+   const request=indexedDB.open('manicemu-web',5),db=await new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});
+   const tx=db.transaction(['states','coverCatalogs'],'readwrite');let held=true;
+   window.releaseStateDelete=()=>{held=false;};window.stateDeleteBlockerDone=new Promise((resolve,reject)=>{tx.oncomplete=()=>{db.close();resolve();};tx.onabort=()=>{db.close();reject(tx.error);};});
+   const keepAlive=()=>{if(held)tx.objectStore('states').get('__state_delete_test_hold__').onsuccess=keepAlive;};keepAlive();
+  });
+  await p.locator('#confirm-state-delete').click();
+  assert.equal(await p.locator('#close-sheet').isDisabled(),true,'Confirmed deletion blocks closing until the transaction completes');
+  assert.equal(await p.locator('#cancel-state-delete').isDisabled(),true,'Confirmed deletion cannot navigate back while pending');
+  assert.equal(await p.locator('#sheet').evaluate(dialog=>{const event=new Event('cancel',{cancelable:true});dialog.dispatchEvent(event);return event.defaultPrevented;}),true,'Escape/cancel is blocked during deletion');
+  await p.locator('#close-sheet').evaluate(button=>button.click());await p.keyboard.press('Escape');assert.equal(await p.locator('#sheet').isVisible(),true);
+  await p.evaluate(async()=>{releaseStateDelete();await stateDeleteBlockerDone;});await p.locator('[data-slot-load]').first().waitFor();
+  assert.equal(await p.locator('#close-sheet').isDisabled(),false,'Completed deletion restores normal closing');
   assert.equal(await count(),2,'One manual and one other-game record remain');
   assert.deepEqual(await p.evaluate(async id=>{const db=await import('./src/storage/storage.js');return {other:!!await db.get('states','other-game:keep'),save:JSON.stringify(await db.get('saves',id)),auto:JSON.stringify(await db.get('recoveries',id))};},before.id),{other:true,save:before.save,auto:before.auto});
   // Restart cannot happen before confirmation; cancelled restart leaves autos.
@@ -124,8 +147,23 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   await p.close();p=await c.newPage();p.on('pageerror',e=>errors.push(e.message));await p.goto(base);await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.getByRole('heading',{name:'前回のプレイを復旧'}).waitFor();
   await p.locator('[data-state-mode=auto]').click();await p.locator('[data-recover]').first().click();await p.locator('#sheet').waitFor({state:'hidden'});
   await menu();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
+  // Empty sheet bodies compare equal again after menu -> exit. An async picker
+  // must also retain its game/core owner, or it can reopen an exited game.
+  for(const mode of ['quick','manual']){
+   await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
+   await p.evaluate(()=>{stateUiCatalogDone=false;stateUiCatalogWaiting=false;stateUiCatalogGate=new Promise(resolve=>globalThis.releaseStateUiCatalog=resolve);});
+   if(mode==='quick')await p.locator('#quick-load').click();
+   else await p.evaluate(()=>{stateUiAPI.setPause(true);globalThis.stateUiPending=stateUiDialogs.showStates();}); // Imported skins call the same API directly.
+   await p.waitForFunction(()=>stateUiCatalogWaiting);assert.equal(await p.locator('#sheet-body').evaluate(node=>node.firstChild===null),true);
+   await p.locator('#player-menu').click();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
+   assert.equal(await p.locator('#sheet-body').evaluate(node=>node.firstChild===null),true);
+   await p.evaluate(()=>{stateUiCatalogGate=null;releaseStateUiCatalog();});await p.waitForFunction(()=>stateUiCatalogDone);
+   await p.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   assert.equal(await p.locator('#sheet').isVisible(),false,'Delayed '+mode+' picker cannot reopen an exited game');
+   assert.equal(await p.locator('#player').isVisible(),false);assert.equal(await p.locator('#sheet-body').evaluate(node=>node.firstChild===null),true);
+  }
   await p.locator('[data-tab=settings]').click();await p.locator('[data-theme-choice=auto]').click();await screenshot('settings-menu');assert.deepEqual(errors,[]);
-  console.log('PASS: native menu groups/shortcuts, 240–1024px layouts, append-only states, save/delete/restart cancellation, selected atomic deletion, other-game and battery preservation, real close/reopen recovery.');
+  console.log('PASS: native menu groups/shortcuts, 240–1024px layouts, append-only states, save/delete/restart cancellation, selected atomic deletion, other-game and battery preservation, real close/reopen recovery, delayed picker ownership after exit.');
   await p.goto('about:blank');await c.close();
  }finally{await Promise.race([b.close(),new Promise(r=>setTimeout(r,2500))]);}
 })().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1)});

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {startVersionNumber} from './version.js';
+import {START_FORMAT_VERSION,START_FORMAT_STAMP,isStartFormatTarget} from './format-version.js';
 
 // The converter's output version is a bridge, not an exact destination-ROM gate.
 import {START_COMPONENT,START_MIGRATION_VERSION} from './definition.js';
@@ -16,6 +17,8 @@ export function startSaveCompatibility(from,target=START_MIGRATION_VERSION){
   // A save written by a newer game must not enter the unverified-copy path.
   // This is independent of whether the destination's minimum can be decoded.
   if(source>destination)status='downgrade';
+  else if(isStartFormatTarget(target))status=source<START_FORMAT_STAMP?'convert':'compatible';
+  else if(destination>=START_FORMAT_STAMP)status='unknown';
   else if(nativeMinimum!==null)status=source<nativeMinimum?'convert':'compatible';
   else if(!Object.hasOwn(target||{},'minimumSaveVersion')&&destination>=0x2701&&destination<=0x2a05){
    if(source<0x2402)status='convert';
@@ -27,6 +30,12 @@ export function startSaveCompatibility(from,target=START_MIGRATION_VERSION){
 export function selectStartMigrationVersion(target,from){
  const source=from===undefined?null:startVersionNumber(from);
  if(from!==undefined&&source===null)return null;
+ if(isStartFormatTarget(target)){
+  if(source!==null&&source>startVersionNumber(target.version))return null;
+  return source===null||source>=START_FORMAT_STAMP||START_COMPONENT.versions.some(entry=>startVersionNumber(entry.version)===source)?START_FORMAT_VERSION:null;
+ }
+ // A legacy version gate alone no longer proves the box-record layout.
+ if(startVersionNumber(typeof target==='object'?target?.version:target)>=START_FORMAT_STAMP)return null;
  const latest=startVersionNumber(START_MIGRATION_VERSION);
  // Later upstream entries only change the stamp. Keep the last reviewed
  // native migration so the destination game still performs its own updates.

@@ -18,7 +18,7 @@ export const gameOptionGroups=[
  ['copyLink'],
  ['delete']
 ];
-export const gameShortcuts=[['exit',tr('終了'),'power'],['restart',tr('再起動'),'reload'],['newState',tr('セーブ'),'save'],['quickLoad',tr('クイックロード'),'history']];
+export const gameShortcuts=[['exit',tr('終了'),'power'],['restart',tr('再起動'),'reload'],['newState',tr('ステートを保存'),'save'],['quickLoad',tr('クイックロード'),'history']];
 export function orderedOptionGroups(order=[]){
  const known=new Set(gameOptionGroups.flat()),seen=new Set(),groups=[];
  for(const group of Array.isArray(order)?order:[]){if(!Array.isArray(group))continue;const ids=group.filter(id=>known.has(id)&&!seen.has(id)&&seen.add(id));if(ids.length)groups.push(ids);}
@@ -29,7 +29,7 @@ export const groupedOptions=(cells,order)=>orderedOptionGroups(order).map(group=
 
 export {nativeAction,nativeSelect,nativeToggle} from './rows.js';
 export function gamePlaySummary(game){
- if(!game.lastPlayed)return tr('未プレイ。冒険を始めましょう');
+ if(!game.lastPlayed)return tr('まだプレイしていません');
  const elapsed=Math.max(0,Date.now()-game.lastPlayed),minutes=Math.floor((game.playDuration||0)/60000);
  const ago=elapsed<60000?tr('たった今'):elapsed<3600000?tr`${Math.floor(elapsed/60000)}分前`:elapsed<86400000?tr`${Math.floor(elapsed/3600000)}時間前`:elapsed<2592000000?tr`${Math.floor(elapsed/86400000)}日前`:tr`${Math.floor(elapsed/2592000000)}ヶ月前`;
  return tr`${ago}プレイ${game.playDuration==null?'':tr` · 合計${minutes>=60?tr`${Math.floor(minutes/60)}時間`:''}${minutes%60}分`}`;

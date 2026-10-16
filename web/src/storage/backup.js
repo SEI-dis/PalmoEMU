@@ -165,7 +165,7 @@ function changedGame(before,after){
 }
 async function prepareExport(settings,{gameIds,latestOnly=false,partBytes=64*1048576,previous=false}={}){
  if(!Number.isSafeInteger(partBytes)||partBytes<1||partBytes>backupLimits.bytes||typeof latestOnly!=='boolean'||typeof previous!=='boolean'||gameIds!==undefined&&(!Array.isArray(gameIds)||gameIds.some(id=>!validId(id))||new Set(gameIds).size!==gameIds.length))fail(tr('書き出すゲームを選び直してください。'));
- const data=previous?await db.readPreviousBackup({summary:true}):await db.readBackupData({summary:true,gameIds,latestOnly});if(!data)return null;
+ const data=previous?await db.readPreviousBackup({summary:true}):await db.readBackupData({summary:true,gameIds,latestOnly,fresh:true});if(!data)return null;
  if(gameIds?.some(id=>!data.games.some(game=>game.id===id)))fail(tr('ゲーム一覧が変わりました。やり直してください。'));
  if(data.games.length>backupLimits.games||data.records.length>backupLimits.records)fail(tr('バックアップの件数上限を超えています。'));
  const byId=new Map(data.games.map(game=>[game.id,cleanGame(game)]));
@@ -189,7 +189,7 @@ async function prepareExport(settings,{gameIds,latestOnly=false,partBytes=64*104
 async function createPart(plan,index){
  const prepared=exports.get(plan),selected=prepared?.parts[index-1];if(!selected||!Number.isInteger(index))fail(tr('書き出し内容を選び直してください。'));
  return withLocks(async()=>{
-  const {gameIds,latestOnly,previous}=prepared,current=previous?await db.readPreviousBackup({summary:true}):await db.readBackupData({summary:true,gameIds,latestOnly});
+  const {gameIds,latestOnly,previous}=prepared,current=previous?await db.readPreviousBackup({summary:true}):await db.readBackupData({summary:true,gameIds,latestOnly,fresh:true});
   if(!current||signature(current)!==prepared.fingerprint)checkGame(current?changedGame(prepared.data,current):null,()=>fail(tr('保存データが変わりました。書き出し内容を選び直してください。')));
   const data=previous?await db.readPreviousBackup({selectedRecords:selected.records}):await db.readBackupData({gameIds,latestOnly,selectedRecords:selected.records});
   data.playRecords=prepared.playRecords;
@@ -263,4 +263,8 @@ async function applyPending(){
  await db.remove('coverCatalogs',pendingKey);return true;
 }
 async function previous(){const data=await db.readPreviousBackup();return data?encodeData(data,data.settings):null;}
+// A view owns its validated/deferred plan. Closing or replacing that view must
+// explicitly drop decoded payloads, even when a caller still holds the token.
+export function releaseBackupPlan(plan){plans.delete(plan);exports.delete(plan);}
+export const hasPreviousBackup=()=>db.has('coverCatalogs',db.backupMetadataPrefix+'snapshot');
 export const createBackup=backupTask(create),inspectBackup=backupTask(inspect),restoreBackup=backupTask(restore),applyPendingBackupSettings=backupTask(applyPending),previousBackup=backupTask(previous),prepareBackupExport=backupTask(prepareExport),createBackupPart=backupTask(createPart);
