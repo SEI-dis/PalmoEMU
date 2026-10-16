@@ -95,8 +95,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 258421,
-      "sha256": "135916fa9134cb40efcd2bec09e447a3337ac550b341b7a9d5ca70f39c4cc0e8",
+      "bytes": 261594,
+      "sha256": "92a9e67de0c43a2730d4bc9f62dbecfb59fd8a20123060f4e41ed8657258004f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 9279,
-      "sha256": "9484957284d8e9248ff01c796c14ed57ad23eab3e70de3999c651d8bf19764a0",
+      "sha256": "0e7a07684c049cb3651c085fe0e80dba368cc8c493cf895c3ccbe3a0517dad63",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41598,7 +41598,7 @@
     {
       "path": "sw.js",
       "bytes": 16642,
-      "sha256": "426c5e6b03cfbb3da1effcbe7a9e6aa5cd84c55942e182ee32380ae142b29ad5",
+      "sha256": "9b231ecc5700a801a0f801e869a743acea4218e6944c5c89b45270d97e541577",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41777,8 +41777,8 @@
     },
     {
       "path": "tests/features.cjs",
-      "bytes": 5917,
-      "sha256": "9649ba816fa4020abdd4f272e27d9c49c590d46b7614ea6eebd7487d7972c37f",
+      "bytes": 5950,
+      "sha256": "25b4b81a0c21db3d5eee4a60702e3282a3939780c1e1a76768c31fe9efc6a0e1",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41915,8 +41915,8 @@
     },
     {
       "path": "tests/library-bulk.cjs",
-      "bytes": 11047,
-      "sha256": "ad4211b07a464fd20d20f4398a68111f8072127c2eda0b295545704af9745259",
+      "bytes": 12028,
+      "sha256": "b1e92ffeddf04a0330eb2cff840b8ffec58ca4347c73914ab03721f5007ead31",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41939,8 +41939,8 @@
     },
     {
       "path": "tests/localization-pipeline.cjs",
-      "bytes": 19155,
-      "sha256": "3523f99b965dbc5fe5f688acafa58c3b79a34bf52773c0c0138f47e161514dbd",
+      "bytes": 19210,
+      "sha256": "3f39ed5d377fdac524c5a20d251671d9682113f3183a302f6f384b6821ef030d",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42131,8 +42131,8 @@
     },
     {
       "path": "tests/recording.cjs",
-      "bytes": 16334,
-      "sha256": "994ded79e0143e813e53276e84ae711a457d199cd4fc0aac054a61b18c124059",
+      "bytes": 16479,
+      "sha256": "4616c21fc0c35233576ab165b5d426dd62c2f7b982aa22a23bdf885680ce83b5",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42185,8 +42185,8 @@
     },
     {
       "path": "tests/rom-zip.cjs",
-      "bytes": 9144,
-      "sha256": "79487982236972d3ed3e4adbab11f16894c36b3ccb944ed36ffb5a066526a764",
+      "bytes": 9297,
+      "sha256": "70d0b3fe5ee7528649c4663c6625f9e78436b0b4b0082bb60fa60f99a2c4aea2",
       "component": "web-port-code-and-documentation"
     },
     {

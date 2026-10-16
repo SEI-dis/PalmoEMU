@@ -28,14 +28,14 @@ jobs:
       - run: python3 -B web/scripts/prepare-release.py
       - run: node work/release/web/scripts/check-release.cjs
   validate:
-    name: ${{ matrix.engine }} (${{ matrix.shard }}/3)
+    name: ${{ matrix.engine }} (${{ matrix.shard }}/5)
     runs-on: windows-latest
     timeout-minutes: 25
     strategy:
       fail-fast: false
       matrix:
         engine: [chromium, webkit]
-        shard: [1, 2, 3]
+        shard: [1, 2, 3, 4, 5]
     env:
       BROWSER_CHANNEL: msedge
       BROWSER_ENGINE: ${{ matrix.engine }}
@@ -68,14 +68,14 @@ jobs:
             node work/test-deps/node_modules/playwright/cli.js install webkit
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
           }
-          $selection = node web/scripts/test-all.cjs --list --shard=${{ matrix.shard }}/3
+          $selection = node web/scripts/test-all.cjs --list --shard=${{ matrix.shard }}/5
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           if (($selection | ConvertFrom-Json).tests.name -contains 'test:room-link') {
             python -B -X utf8 web/scripts/prepare-link-tests.py
             if ($LASTEXITCODE) { exit $LASTEXITCODE }
           }
       - name: Run all suites assigned to this shard
-        run: node web/scripts/test-all.cjs --serve --shard=${{ matrix.shard }}/3
+        run: node web/scripts/test-all.cjs --serve --shard=${{ matrix.shard }}/5
       - name: Keep synthetic test diagnostics
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

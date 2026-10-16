@@ -23,16 +23,18 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
      return {canvas:canvas(w,h,color),ac,gain,branches,unlockAudio:()=>ac.resume(),get speakerDisconnections(){return speakerDisconnections;},async close(){osc.stop();await ac.close();}};
     };
     const decode=async(file,{sound=false,position=.3}={})=>{
-     const video=document.createElement('video'),url=URL.createObjectURL(file);video.src=url;video.playsInline=true;video.muted=!sound;document.body.append(video);
-     let ac,source,analyser,quiet;try{
+     const video=document.createElement('video'),url=URL.createObjectURL(file);video.src=url;video.playsInline=true;video.muted=true;document.body.append(video);
+     try{
       await new Promise((resolve,reject)=>{video.onloadeddata=resolve;video.onerror=()=>reject(Error('Recorded video cannot decode'));});
       check(video.videoWidth>0&&video.videoHeight>0,'Decoded video dimensions exist');
       if(Number.isFinite(video.duration)&&video.duration>position){video.currentTime=position;await new Promise(resolve=>video.onseeked=resolve);}
       const frame=canvas(video.videoWidth,video.videoHeight),ctx=frame.getContext('2d');ctx.drawImage(video,0,0);
       const pixels=[[.5,.1],[.5,.9],[.01,.9]].map(([x,y])=>[...ctx.getImageData(Math.floor(x*frame.width),Math.floor(y*frame.height),1,1).data]);
-      let amplitude=0;if(sound){ac=new AudioContext();source=ac.createMediaElementSource(video);analyser=ac.createAnalyser();quiet=ac.createGain();quiet.gain.value=0;source.connect(analyser);analyser.connect(quiet);quiet.connect(ac.destination);await ac.resume();video.currentTime=position;await video.play();const samples=new Float32Array(analyser.fftSize);for(let i=0;i<12;i++){await sleep(40);analyser.getFloatTimeDomainData(samples);amplitude=Math.max(amplitude,...samples.map(Math.abs));}}
+      // Inspect the encoded audio in the same time window without relying on a
+      // second real-time playback clock or the CI host's audio output device.
+      let amplitude=0;if(sound){const audio=await new OfflineAudioContext(1,1,48000).decodeAudioData(await file.arrayBuffer()),first=Math.floor(position*audio.sampleRate),last=Math.min(audio.length,first+Math.floor(.48*audio.sampleRate));check(audio.numberOfChannels>0&&last-first>=Math.floor(.1*audio.sampleRate),'Recorded audio contains the selected time window');for(let channel=0;channel<audio.numberOfChannels;channel++){const samples=audio.getChannelData(channel);for(let i=first;i<last;i++)amplitude=Math.max(amplitude,Math.abs(samples[i]));}}
       return {width:video.videoWidth,height:video.videoHeight,pixels,amplitude};
-     }finally{video.pause();video.removeAttribute('src');video.load();video.remove();URL.revokeObjectURL(url);source?.disconnect();await ac?.close();}
+     }finally{video.pause();video.removeAttribute('src');video.load();video.remove();URL.revokeObjectURL(url);}
     };
     const core=await makeCore(960,640),states=[],complete=[],failures=[];
     const recorder=createGameRecorder({onState:value=>states.push(value),onComplete:value=>complete.push(value),onError:value=>failures.push(value)});

@@ -127,7 +127,7 @@ async function verifyProviderAndWatcher(parent){
   for(const file of ['develop.mjs','build-offline.cjs','build-diagnostic-sources.cjs','build-release-notes.cjs','sync-i18n.mjs','serve.cjs'])fs.copyFileSync(path.join(source,'scripts',file),path.join(root,'scripts',file));
   // The real build validates the migration source before localization. Keep
   // that prerequisite intact in the disposable app rather than bypassing it.
-  for(const directory of ['scripts/start-save-migrate','vendor/start-save-migrate'])fs.cpSync(path.join(source,directory),path.join(root,directory),{recursive:true});
+  for(const directory of ['scripts/start-save-migrate','vendor/start-save-migrate','scripts/start-save-format','vendor/start-save-format'])fs.cpSync(path.join(source,directory),path.join(root,directory),{recursive:true});
   fs.cpSync(path.join(source,'scripts/i18n'),path.join(root,'scripts/i18n'),{recursive:true,filter:file=>!file.endsWith('.sync.lock')});
   for(const file of ['format.js','languages.js'])fs.copyFileSync(path.join(source,'src/i18n',file),path.join(root,'src/i18n',file));
   const put=(file,value)=>fs.writeFileSync(path.join(root,file),typeof value==='string'?value:JSON.stringify(value));

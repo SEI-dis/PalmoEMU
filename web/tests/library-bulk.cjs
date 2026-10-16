@@ -16,6 +16,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    }
   }
   await db.put('skins','skin-canary',{bytes:new Uint8Array([21]),name:'Shared skin'});await db.put('coverCatalogs','catalog-canary',{name:'Shared catalog'});
+  await db.put('coverCatalogs','a',{name:'Shared catalog matching a selected game ID'});
   localStorage.setItem('unrelated-canary','untouched');
  });
  // Two independent field patches serialize without replacing newer metadata.
@@ -76,10 +77,17 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   return {injected,rejected,released,same:before===await snapshot(),idle:!activity.updateTasksPending()};
  });assert.deepEqual(failedDelete,{injected:true,rejected:true,released:true,same:true,idle:true});
  const deleted=await page.evaluate(async()=>{
-  const before=JSON.parse(await snapshot()),count=await db.removeGames(['a','b','a']),after=JSON.parse(await snapshot());
-  const canaries=Object.fromEntries(Object.entries(before).map(([store,rows])=>[store,rows.filter(([key])=>!['a','b'].includes(String(key).split(/[@:]/,1)[0]))]));
-  return {count,after,canaries,local:localStorage.getItem('unrelated-canary'),idle:!activity.updateTasksPending()};
- });assert.equal(deleted.count,2);assert.deepEqual(deleted.after,deleted.canaries);assert.equal(deleted.local,'untouched');assert.equal(deleted.idle,true);
+  const {saveCatalogPrefix}=await import('./src/storage/save-catalog.js'),before=JSON.parse(await snapshot());
+  const selected=key=>['a','b'].includes(String(key).split(/[@:]/,1)[0]);
+  const ownedStores=new Set(['library','roms','saves','states','backups','archives','recoveries','sessions']);
+  // Each deleted save payload owns one exact catalog key. Keep all other
+  // metadata in the full snapshot comparison, including the a-canary index.
+  const catalogKeys=new Set(['saves','states','backups','archives','recoveries'].flatMap(store=>before[store].filter(([key])=>selected(key)).map(([key])=>saveCatalogPrefix+store+':'+key)));
+  const catalogBefore=before.coverCatalogs.filter(([key])=>catalogKeys.has(key)).length;
+  const canaries=Object.fromEntries(Object.entries(before).map(([store,rows])=>[store,rows.filter(([key])=>store==='coverCatalogs'?!catalogKeys.has(key):!ownedStores.has(store)||!selected(key))]));
+  const count=await db.removeGames(['a','b','a']),after=JSON.parse(await snapshot());
+  return {count,after,canaries,catalogBefore,catalogAfter:after.coverCatalogs.filter(([key])=>catalogKeys.has(key)).length,local:localStorage.getItem('unrelated-canary'),idle:!activity.updateTasksPending()};
+ });assert.equal(deleted.count,2);assert.equal(deleted.catalogBefore,40);assert.equal(deleted.catalogAfter,0);assert.deepEqual(deleted.after,deleted.canaries);assert.equal(deleted.local,'untouched');assert.equal(deleted.idle,true);
  // The single-game compatibility API uses the same protected atomic path.
  assert.equal(await page.evaluate(()=>db.removeGame('a-canary')),1);
  assert.deepEqual(errors,[]);await context.close();console.log(`PASS ${kind}: library field patches, invalid selection, concurrent metadata, transaction rollback, cross-tab locks, full core/2P deletion and shared-asset canaries`);

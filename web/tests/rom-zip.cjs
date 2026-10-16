@@ -73,8 +73,10 @@ function overlappingZip(){
   },{fixtures:Object.fromEntries(Object.entries(fixtures).map(([name,bytes])=>[name,Array.from(bytes)])),source:Array.from(source),identity});
   assert.equal(result.count,3);
   await page.goto(base);await page.locator('.game-name').filter({hasText:'My game'}).waitFor();await page.locator('#rom-input').setInputFiles({name:'Partial.zip',mimeType:'application/zip',buffer:fixtures.uiPartial});
-  await page.waitForFunction(()=>!document.querySelector('#rom-import-progress')&&document.querySelector('#toast').textContent.includes('1本のゲームを追加しました。'));
-  const message=await page.locator('#toast').textContent();assert.match(message,/ZIP/);assert.match(message,/1本のゲームを追加しました/);
+  await page.locator('#import-results-close').waitFor();
+  assert.equal(await page.locator('#rom-import-progress').count(),0,'Import progress ends before results are offered');
+  const message=await page.locator('#sheet-body').textContent();assert.match(message,/ZIP/);assert.match(message,/Partial\.zip/);assert.match(message,/1本のゲームを追加しました/);
+  await page.locator('#import-results-close').click();assert.equal(await page.locator('#sheet').isVisible(),false);
   assert.ok(await page.locator('.game-name').filter({hasText:'UI success'}).count(),'Partial success is visible in the library');
   assert.deepEqual(errors,[]);assert.ok(requests.filter(request=>/^https?:/.test(request.url())).every(request=>new URL(request.url()).origin===new URL(base).origin&&['GET','HEAD'].includes(request.method())&&!request.postData()),'No ZIP/ROM uploads');
   console.log('PASS: '+kind+' stored/deflated ZIP, CRC, overlapping ranges, expanded/stream limits, stable identities, duplicate/save preservation and partial-success UI.',result);
