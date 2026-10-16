@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "toolVersion": "1.0.8",
+  "templateSha256": "e4342bda9be3f0f885550f6f6d11efae47642590e94c82fa384fc09966390d66",
+  "manifestSha256": "55970bdcb8b51799da8736f0b6f5e9c71b1b3f19e9e1c709911aeb5f1706c167",
+  "baseline": "Reviewed migration-only extraction at 91a797c, split without changing runtime behavior. This template is not an unmodified copy of the supplied HTML.",
+  "changes": [
+    {
+      "id": "old-bank-validation",
+      "reason": "Reject duplicate sector IDs and mixed save counters in old banks.",
+      "derivedFrom": "START Save Migrate by くりーぱー; project-specific permission and attribution in vendor/start-save-migrate/README.md",
+      "code": "function saveBank(b,base){let sections=[],counter;for(let i=0;i<14;i++){let o=base+i*4096,id=u16(b,o+4084);if(id>13||sections[id]!==undefined||u32(b,o+4088)!==0x08012025||checksum(b,o,LEN[id])!==u16(b,o+4086))return null;let c=u32(b,o+4092);if(counter!==undefined&&c!==counter)return null;counter=c;sections[id]=o;}return {sections,counter,base}}"
+    },
+    {
+      "id": "version-aliases",
+      "reason": "Resolve version aliases using the supplied definitions instead of a fixed list.",
+      "derivedFrom": "START Save Migrate by くりーぱー; project-specific permission and attribution in vendor/start-save-migrate/README.md",
+      "code": "function normalizeVersion(v){\n v=String(v).trim().replace(/^v/i,'');const match=v.match(/^0\\.(\\d{1,3})(?:\\.(\\d{1,3}))?$/);if(!match)return v;\n const minor=Number(match[1]),patch=Number(match[2]||0);\n return MANIFEST.versions.find(entry=>{const parts=entry.version.split('.');return Number(parts[1])===minor&&Number(parts[2]||0)===patch})?.version||v;\n}"
+    },
+    {
+      "id": "native-resume-correction",
+      "reason": "Preserve the supplied compatibility updates and inspect both bytes of the recovery map identifier.",
+      "derivedFrom": "START Save Migrate by くりーぱー; project-specific permission and attribution in vendor/start-save-migrate/README.md",
+      "code": "function applyNativeCompatibility(data,slot,to){if(to.version!=='0.38.1'&&to.saveVersionStamp===undefined)return {data,actions:[],changed:[]};let s=readSave(data,slot),actions=[],before=snapshot(s);\n if(to.version==='0.38.1'){for(let id of MANIFEST.nativeCompatibility.newVariables.ids)setVariable(s,id,0);actions.push('ROMの更新表に従い新設変数0x5140〜0x5146を初期化')}\n if(to.resumeMaxSourceStamp!==undefined&&getVariable(s,0x50ef)>0&&getVariable(s,0x50ef)<=to.resumeMaxSourceStamp){let w=readMemory(s,SAVE1+0x1c,8);if(u16(w,0)||u16(w,4)||u16(w,6)){let target=readMemory(s,SAVE1+12,8);target[0]=w[0];target[1]=w[1];target[2]=255;target[4]=w[4];target[5]=w[4]&128?255:0;target[6]=w[6];target[7]=w[6]&128?255:0;writeMemory(s,SAVE1+12,target);writeMemory(s,SAVE2+9,new Uint8Array([readMemory(s,SAVE2+9,1)[0]|1]));actions.push('ROMの更新処理に従い再開用ワープ情報を更新')}}\n if(to.saveVersionStamp!==undefined&&getVariable(s,0x50ef)!==to.saveVersionStamp){setVariable(s,0x50ef,to.saveVersionStamp);actions.push('ROMの記録値に合わせ保存バージョンを更新（'+to.saveVersionStamp.toString(16)+'）')}\n let out=actions.length?exportSave(s):data;let after=snapshot(readSave(out,slot)),changed=[];for(let region of ['trainer','common','extra'])for(let i=0;i<before[region].length;i++)if(before[region][i]!==after[region][i])changed.push({region,offset:i,before:before[region][i],after:after[region][i]});return {data:out,actions,changed};\n}"
+    },
+    {
+      "id": "source-record-bounds",
+      "reason": "Validate numeric IDs against the selected source version, retaining strict historical limits.",
+      "derivedFrom": "START Save Migrate by くりーぱー; project-specific permission and attribution in vendor/start-save-migrate/README.md",
+      "code": "function inspectInput(raw,version){\n version=normalizeVersion(version);const source=MANIFEST.versions.find(x=>x.version===version);if(!source)throw Error('移行元のバージョンを選んでください。');\n // Numeric limits belong to the selected source. New destination definitions\n // must not silently widen the accepted IDs of old or unrecognised saves.\n if(![['species',65536],['moves',1024],['items',1024]].every(([key,max])=>Number.isInteger(source[key])&&source[key]>0&&source[key]<=max))throw Error('移行元のデータ定義を確認できませんでした。');\n let info=saveSlotInfo(raw);if(!info.some(x=>x.valid))throw Error('有効なレポートがありません。未保存・破損・ステートセーブを確認してください。');\n for(let x of info.filter(x=>x.valid)){\n  let s=readSave(raw,x.slot);if((source.family===20)!==(s.version!==23))throw Error('選択した版とセーブの保存形式が異なります。移行元の版を選び直してください。');if(partyCount(s)>6)throw Error('手持ち数が不正です。');\n  for(let i=0;i<boxSlots(s);i++){\n   let p=readRecord(s,i),sp=u16(p,28);if(sp>=source.species)throw Error('種族IDが読み取れる範囲外です（ボックス'+(1+Math.floor(i/30))+'）。');\n   if(sp){if(compressedHeldItemId(p)>=source.items)throw Error('持ち物IDが範囲外です。');if(getMoves(p).some(x=>x>=source.moves))throw Error('技IDが範囲外です。');}\n  }\n }\n return info;\n}"
+    },
+    {
+      "id": "reviewed-destination",
+      "reason": "Stop the supplied adjacent-version migration at an explicitly reviewed destination; retain slot/RTC and record checks.",
+      "derivedFrom": "START Save Migrate by くりーぱー; project-specific permission and attribution in vendor/start-save-migrate/README.md",
+      "code": "async function migrateSave(raw,from,selection='all',progress=()=>{},to=MANIFEST.latest){raw=new Uint8Array(raw);from=normalizeVersion(from);let info=inspectInput(raw,from),slots=selection==='all'?info.filter(x=>x.valid).map(x=>x.slot):[Number(selection)];for(let slot of slots)if(!info[slot]?.valid)throw Error('選択したセーブに有効なレポートがありません。');to=normalizeVersion(to);let sourceIndex=MANIFEST.versions.findIndex(x=>x.version===from),targetIndex=MANIFEST.versions.findIndex(x=>x.version===to);if(targetIndex<sourceIndex||targetIndex<0)throw Error('移行先のバージョンを確認してください。古い版には変換できません。');let steps=MANIFEST.versions.slice(sourceIndex+1,targetIndex+1),data=raw.slice(),logs=[],originalSnapshots=slots.map(slot=>snapshot(readSave(raw,slot))),originalRTC=raw.slice(raw.length-raw.length%4096),untouched=info.filter(x=>!slots.includes(x.slot)).map(x=>({slot:x.slot,bytes:raw.slice(x.slot*START_SLOT_BYTES,(x.slot+1)*START_SLOT_BYTES)}));\n // Source files from a 128KiB emulator can still contain a 39-box layout at a later release.\n // Normalize the destination format at the first real edge, keeping every adjacent edge in the log.\n if(!steps.length)steps=[MANIFEST.versions[sourceIndex]];\n let prev=from;\n for(let index=0;index<steps.length;index++){let to=steps[index],row={from:prev,to:to.version,slots:[]};for(let slot of slots){let result=stepSlot(data,slot,to);data=result.data;row.slots.push({slot,actions:result.actions,boxes:result.boxes,compatibilityChanges:result.compatibilityChanges})}logs.push(row);progress({index:index+1,total:steps.length,row});prev=to.version;await new Promise(resolve=>setTimeout(resolve,0))}\n for(let i=0;i<slots.length;i++)verifyPreserved(originalSnapshots[i],snapshot(readSave(data,slots[i])),'最終検証');for(let x of untouched)if(!equalBytes(x.bytes,data.slice(x.slot*START_SLOT_BYTES,(x.slot+1)*START_SLOT_BYTES)))throw Error('選択していないセーブが変わりました。');if(!equalBytes(originalRTC,data.slice(data.length-data.length%4096)))throw Error('時計情報が変わりました。');\n return {data,report:{toolVersion:MANIFEST.toolVersion,from,to,slots:slots.map((slot,i)=>({slot:slot+1,...originalSnapshots[i].trainerInfo,originalBoxes:originalSnapshots[i].boxes,finalBoxes:readSave(data,slot).boxCount})),steps:logs,preserved:['トレーナー','所持金','手持ち6枠','既存の全ボックス個体','ROMの更新対象以外のフラグ・変数を含む保存領域','拡張バッグを含む保存領域','時計情報','未選択セーブ'],fullGameplayTest:false,compatibilityFieldExceptions:[\"保存バージョン0x50EF\",\"新設変数0x5140〜0x5146\",\"ROM指定の再開用ワープ情報と状態\"]}};\n}"
+    }
+  ]
+}

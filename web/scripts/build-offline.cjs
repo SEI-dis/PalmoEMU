@@ -2,6 +2,9 @@
 // Only application resources are listed. ROMs, saves and source archives are excluded.
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const root=path.resolve(__dirname,'..'),files=[];
+// Provider changes must be deliberately rebuilt/reviewed before app packaging.
+const startMigration=require('node:child_process').spawnSync(process.execPath,[path.join(__dirname,'start-save-migrate/build.mjs'),'--check'],{stdio:'inherit',windowsHide:true});
+if(startMigration.status!==0)process.exit(startMigration.status||1);
 require('./build-diagnostic-sources.cjs').buildDiagnosticSources(root,{check:process.argv.includes('--check')});
 // Translation runs only while developing/building; --check never contacts a model.
 const localization=require('node:child_process').spawnSync(process.execPath,[path.join(__dirname,'sync-i18n.mjs'),...(process.argv.includes('--check')?['--check']:[])],{stdio:'inherit',windowsHide:true});

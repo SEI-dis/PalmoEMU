@@ -24,8 +24,14 @@
     }
   ],
   "files": {
-    "engine.js": "e77e431d378512f4631e50836a9f80f1cb644a47ce0bab8479c680d94fb5b350",
+    "engine.js": "117e1d365a3a6db8b05d50a998c34b4c789fa4dead069facfeb3fd1b7ec1daa7",
     "manifest.js": "55970bdcb8b51799da8736f0b6f5e9c71b1b3f19e9e1c709911aeb5f1706c167",
-    "README.md": "9776935e93ff96741b2216450cfeb1e315e090d9393f222fb4aaf1f507bb3514"
+    "README.md": "a54b509efba5b47bc3ab0dc7b0e5c034dcf0f8bf83fecc378e8317664223d25f"
+  },
+  "localChanges": {
+    "template": "scripts/start-save-migrate/base/engine.template.txt",
+    "patches": "scripts/start-save-migrate/patches.json",
+    "generator": "scripts/start-save-migrate/build.mjs",
+    "note": "Reviewed extraction with separately maintained author-derived PalmoEMU corrections; not an unmodified upstream distribution."
   }
 }

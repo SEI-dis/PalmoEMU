@@ -1082,3 +1082,35 @@ Git監査は79コミット・2,466のpath/blob組・652の作業ツリー候補�
 - 追加の隔離表示確認で、0.3.32／0.3.33の全48翻訳文が修正済みJSONと完全一致することを両ブラウザで確認した。320/390/844pxで横あふれとページエラーなし。変更通知と更新完了ダイアログのスクリーンショットも確認した。検証データ・スクリプト・画像は配布物に含めない。
 
 これはエージェントによる言語校正とPCブラウザ検査であり、人間の母語話者や実iPhoneによる確認ではない。版番号は0.3.33のまま、コミット・pushまでとし、Pages公開は保留する。
+
+
+## 2026-10-16: 0.3.33の独立再点検（未公開）
+
+基準コミットは91a797ce63563de65ee5114732bc604aec8b3218。保存・ROM更新/変換、アプリ更新・取り込み、音声・入力を独立して調査し、次の4件を再現して修正した。利用者のROM・セーブ・既存ブラウザーの保存領域は検証に使わず、隔離コンテキストと自作の合成データを使用した。
+
+- 起動時のメタデータ保存を待つ間、ミュート/低音量が未適用で既定0.7のゲインが使われる。音量をコア作成直後、音声の有効化/ROMロードより前に設定。audio-startupの自作GB音源・制御したAudioContextで修正前の非零PCM/誤ゲインを確認し、両ブラウザで全7ケース成功。実iPhoneの音声許可を証明するテストではない。
+- オフラインで開いたPokemonStart更新画面が、オンライン復帰後もオフライン表示/確認ボタン無効のままになる。接続変更で状態を描画し直し、当該ダイアログを開いた状態も通常確認の対象へ含める。プレイ中・自動確認オフ・再試行間隔の制約は維持。start-updates-browserは両ブラウザで修正前失敗・修正後成功、start-updatesも成功。
+- 取り外し済みの登録済みSTART更新先に、正しいROMを選んでも未対応判定になる。選択ファイルの検証済み情報を使用し、変換成功後の適用直前に同一ハッシュのROMだけを再追加する。選択/変換セーブの書き出し/古い検査結果の拒否では変更しない。start-save-uiは両ブラウザで全件成功。最終のセーブ書込みは既存applySaveの検査/履歴保護へ渡す。
+- プレイ中のセーブ読込みでDBへの保存が失敗すると、CPUは旧状態・RAMだけ新セーブになっていた。実IndexedDBのQuotaExceededError注入で修正前を再現。読込み前の状態を揮発メモリーへ退避し、コアのrestore/resetまたは確定した保存失敗では元へ戻す。保存結果不明、または復元自体の失敗時は再保存せず終了する。save-applyは両ブラウザで原本/履歴不変、部分復元失敗、reset失敗、保存済みだが応答喪失を模擬した結果不明、復元失敗時の終了/排他解除まで成功。multicoreも両ブラウザでjgenesis5機種・VBA-Next・melonDSのsave/reset/失敗時原本保持を確認した。
+
+周辺の再検証はChromium（Edge）・PC WebKitでrom-update、save-safety、save-import-recovery、backup-errors、save-rescue、update-safety、touch-recovery、player-gestures、save-worker-fence、save-byte-comparison、security-policy、audio-lifecycle、pause-exit、ui-navigationが成功した。Node系はmodule-links、worker-task、start-save-component、start-save-migration、start-save-compatibility、start-rom-profile、mgba-allocation、mgba-memory、update-downloadが成功。メモリ値はWASM線形メモリーの合成条件であり、端末全体の使用量や実iPhoneの問題解消を示さない。
+
+UI原文・翻訳辞書・変更通知・版番号、既存の保存形式・DBスキーマ・第三者ライセンス・通信先を変更していない。新しいapply-saveモジュールも対応ソース/オフライン配布/診断パス一覧へ含める。実iPhone/Android、長時間の実ROMプレイ、全ての商用ゲームの互換性は今回の確認範囲外。コミット・push・Pages公開は今回の点検では実施しない。
+
+
+更新回復テストの補足: update-recoveryの最初の全9ケースは全アサーション通過後に実行プロセスが残った。別実行では初期確認とテスト内の版切替が競合し、更新候補待ちで失敗した。製品コードの更新不具合と混同せず、初回update完了/pending=0/installing・waitingなしを待ってから新版を用意するfixtureへ修正し、ブラウザー/HTTPサーバー終了後に成功・失敗の終了コードを返す。修正後はChromium/PC WebKitの全9ケースが成功し、どちらも終了コード0。通常の更新・保存ロック・延期・通信失敗の回復処理は変更していない。
+
+最終のbuild-offlineは新規翻訳生成なしで366ファイル/59.5 MiBを生成。check-i18nは9言語・各1,460項目・変更通知、check-modulesは463 import/33 resource-worker link/7 asset base、module-linksは成功した。Git内容監査は84コミット・2,565 path/blob組・654作業ツリー候補をネストしたアーカイブ込みで検査し成功。配布内容・対応ソースZIPとレビュー記録を更新し、check-releaseで一致を確認した（7,814項目・26アーカイブ、対応ソース・全言語・CSP・レビュー記録）。今回の記録はコード/配布物の確認であり、追加の法的許諾を取得したことや実機検証済みであることを意味しない。
+
+
+## 2026-10-16 local START maintenance and update-check recovery (unpublished)
+
+- Independently checked the official PokemonStart repository at 2cf8e7e5dd3142834e894af0c2d76f0ba8f456d4. Its tracked files are README, changelog and the 0.49.0 PKS; no game source or numeric save-ID table is published there. No incompatibility notice was found, but absence of a notice is not compatibility proof.
+- Read-only inspection of the locally supplied 64MiB 0.49.0 ROM returned version 0.49.0 and minimumSaveVersion 0.36.2 with the unchanged native reader. Separate Thumb inspection checked the lower/upper predicates, Continue rejection branches and version writer. File hashes before/after matched. No user ROM/save entered the repo, browser tests or network requests. New-ID limits, actual save/reload and iPhone gameplay remain unverified; see scripts/start-save-migrate/ROM_REVIEW.md.
+- Separated the existing migration-only extraction template, named author-derived local modifications and original build/check tooling. The generated engine differs from the previous runtime only by a generated-file comment; supplied 1.0.8 manifest and executable behavior remain unchanged. Source/definition hash pins and required unique anchors make replacement/rebase an explicit review step.
+- start-save-component, start-save-migration, start-save-compatibility, start-rom-profile, start-updates and module-links passed. Coverage includes reproduction, changed template/definitions, malformed or missing patches, unknown compatibility rules and rejection of downgrade transfers.
+- start-save-update-range passed in isolated Chromium (Edge) and desktop WebKit. Synthetic 0.49.0 destinations exercise unchanged compatible copies, required older conversions, originals/backups, both slots and RTC. This does not use the supplied actual ROM for gameplay tests.
+- Reproduced the update failure using public metadata only: anonymous API returned 403, fixed official raw README returned 200 and identified 0.49.0. The new fallback retains API cooldown, migrates old failed-check cooldown state and validates matching title/PKS versions without fetching the PKS. Stale or ambiguous fallback metadata is rejected.
+- start-updates-browser passed in isolated Chromium and desktop WebKit: 403 fallback, old failed state recovery, notification display, unchanged synthetic library/save/state records and bounded responsive layouts. Node SW request checks reject alternate paths, query/fragment additions and writes for both allowed metadata endpoints. Both engines also passed security-policy: JavaScript string evaluation remains blocked, WebAssembly remains permitted.
+- Existing Japanese and eight translated result/error messages were reviewed against the fallback behavior; no new UI strings, translation catalogue edits or app release-note text were introduced. No native core, storage schema, user save migration, third-party license change or PKS integration was made.
+- Local working tree only. No version increment, commit, push or publication is performed for this follow-up. Physical iPhone/Android checks remain separate from desktop WebKit/Chromium tests.

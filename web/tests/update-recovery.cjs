@@ -55,7 +55,15 @@ const server=http.createServer((req,res)=>{
    revision=1;assetMode='ok';failuresLeft=0;requests=0;held=[];heldAt=0;
    const realWait=caseName==='pending'&&engine==='chromium'&&process.env.UPDATE_RECOVERY_LONG==='1';helpMs=realWait?60000:1200;
    const context=await browser.newContext({locale:'ja-JP'}),page=await context.newPage();page.setDefaultTimeout(25000);
-   await context.addInitScript(()=>localStorage.setItem('palmo-language','ja'));
+   await context.addInitScript(()=>{
+    localStorage.setItem('palmo-language','ja');
+    const update=ServiceWorkerRegistration.prototype.update,checks=globalThis.fixtureUpdateChecks={count:0,pending:0,completed:0};
+    ServiceWorkerRegistration.prototype.update=function(...args){
+     globalThis.fixtureUpdateRegistration=this;checks.count++;checks.pending++;
+     const finish=()=>{checks.pending--;checks.completed++;};
+     try{return update.apply(this,args).finally(finish);}catch(error){finish();throw error;}
+    };
+   });
    if(caseName.startsWith('lease')){
     // Keep the real shared lock held briefly after the app resolves its lease.
     // A ready reply must wait for the LockManager request itself to complete.
@@ -70,7 +78,13 @@ const server=http.createServer((req,res)=>{
     },caseName);
    }
    try{
-    await page.goto(base);await page.waitForFunction(()=>globalThis.fixtureReady&&!!navigator.serviceWorker.controller);
+     await page.goto(base);
+     // fixtureReady precedes the updater's asynchronous initial check. Finish
+     // that job before deploying revision 2, or update() may join the old job.
+     await page.waitForFunction(()=>{
+      const checks=globalThis.fixtureUpdateChecks,registration=globalThis.fixtureUpdateRegistration;
+      return globalThis.fixtureReady&&!!navigator.serviceWorker.controller&&checks?.count>0&&checks.completed>0&&checks.pending===0&&!!registration&&!registration.installing&&!registration.waiting;
+     });
     await page.evaluate(async()=>{
      sessionStorage.setItem('failures','0');sessionStorage.setItem('reloads','0');sessionStorage.setItem('lease-releases','0');
      const request=indexedDB.open('update-save-sentinel',1);request.onupgradeneeded=()=>request.result.createObjectStore('saves');
@@ -140,8 +154,8 @@ const server=http.createServer((req,res)=>{
      }
     }
    }catch(error){
-    console.error('RECOVERY FIXTURE',JSON.stringify({caseName,engine,revision,requests,assetMode,state:await page.evaluate(()=>({revision:globalThis.fixtureRevision,ready:globalThis.fixtureReady,phase:document.querySelector('.update-progress')?.dataset.phase,open:document.querySelector('.update-progress')?.open,failures:sessionStorage.getItem('failures')})).catch(()=>null)}));throw error;
+    console.error('RECOVERY FIXTURE',JSON.stringify({caseName,engine,revision,requests,assetMode,state:await page.evaluate(()=>({revision:globalThis.fixtureRevision,ready:globalThis.fixtureReady,checks:globalThis.fixtureUpdateChecks,phase:document.querySelector('.update-progress')?.dataset.phase,open:document.querySelector('.update-progress')?.open,failures:sessionStorage.getItem('failures')})).catch(()=>null)}));throw error;
    }finally{releaseAsset();await context.close();}
   }
  }finally{await browser.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
-})().catch(error=>{console.error(error);process.exitCode=1;});
+})().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

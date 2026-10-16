@@ -43,6 +43,7 @@ const launchContinuation=createLaunchContinuation();
 import {supportsHaptics,tapHaptic,stopHaptics} from './input/haptics.js';
 import {createLinkControls} from './link/link-controls.js';
 import {SaveProtection} from './storage/save-safety.js';
+import {applyPausedSave} from './storage/apply-save.js';
 import {loadSkinPair,releaseSkin} from './skins/skins.js';
 import {skinOrientation} from './skins/skin-selection.js';
 import {chooseRepresentation} from './skins/skin-format.js';
@@ -301,7 +302,7 @@ async function launch(game,{safeMode=false,skipRecovery=false}={}){
   const lockedGame=await db.get('library',game.id);if(!lockedGame)throw new Error(tr('ゲームが見つかりません。'));game.playDuration=lockedGame.playDuration||0;
   if(previous.interrupted)diagnostics.record(null,'previous-session');
   await reloadSkins(false);$('#screen').replaceChildren();
-  engine=createCore($('#screen'),game);engine.onAudioState=updateAudioButton;engine.adoptAudio?.(preparedAudio);
+  engine=createCore($('#screen'),game);engine.setVolume(settings.muted?0:settings.volume);engine.onAudioState=updateAudioButton;engine.adoptAudio?.(preparedAudio);
   engine.onKeyboard=showCoreKeyboard;engine.onError=e=>{diagnostics.record(e,'core');setPause(true);void rewindSession.clear({halt:true});error(e);};engine.unlockAudio()?.catch?.(()=>{});engine.setCartridgeOptions?.(settings);engine.setNDSOptions?.(settings);await engine.load(bytes,game,systems[game.system]);
   // Hold emulation while restoring saves without stopping the audio session
   // acquired by Play. Restarting it after these awaits may need another tap.
@@ -450,7 +451,8 @@ function applyGameSave(game,input){return guardUpdateTask(async()=>{
  let temporaryCore,temporaryProtection;applyingSave=true;controls.forEach(control=>control.disabled=true);
  try{
   if(activeCore){
-   setPause(true);await persist({reason:'before-import'});await rewindSession.clear();await activeCore.restore(bytes);await persist({reason:'import',resetRecovery:true});await rewindSession.clear();await activeCore.reset();
+   setPause(true);await persist({reason:'before-import'});await rewindSession.clear();
+   await applyPausedSave(activeCore,bytes,()=>persist({reason:'import',resetRecovery:true}));
   }else{
    temporaryProtection=new SaveProtection(()=>{},{useWorker:false});await temporaryProtection.open(game,core.id);
    const rom=await db.get('roms',game.id);if(!rom)throw Error(tr('ROMが見つかりません。'));
@@ -458,9 +460,20 @@ function applyGameSave(game,input){return guardUpdateTask(async()=>{
    await temporaryCore.load(rom,game);temporaryCore.pause(true);await temporaryCore.restore(bytes);
    await temporaryProtection.save(temporaryCore,{clean:true,reason:'import',resetRecovery:true});
   }
+ }catch(error){
+  if(activeCore&&error.saveImportUnsafe){
+   // No further capture may run against a core whose rollback failed. Use the
+   // existing teardown/retry path, retaining the previously committed save.
+   if(error.saveImportRecoveryError)diagnostics.record(error.saveImportRecoveryError,'save');
+   exitStage={core:activeCore,coreClosed:false};dialogResume=false;clearImportedSkin();
+  }
+  throw error;
  }finally{
   try{try{await temporaryCore?.close();}finally{await temporaryProtection?.close();}}
   finally{applyingSave=false;controls.forEach((control,index)=>control.disabled=disabled[index]);}
+  if(activeCore&&exitStage?.core===activeCore){
+   try{await captureControls.stop('exit');await rewindSession.dispose();await exitGame();}catch(exitError){error(exitError);showExitRetry();}
+  }
  }
  if(activeCore){closeSheet();toast(tr('セーブを読み込みました。ゲームを再起動します。'));}
  else{showDetails(game);toast(tr('セーブデータをインポートしました。'));}

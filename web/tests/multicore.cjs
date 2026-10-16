@@ -16,19 +16,26 @@ function nds(){const rom=require('./nds-cartridge.cjs')();rom.write('LPTE',12);r
     const core=createCore(container,game);try{
      await core.load(new Uint8Array(rom),game);core.pause(true);for(let i=0;i<90;i++)core.m._web_frame(0);core.draw();
      const save=core.save(),state=core.state(),pixel=[...core.canvas.getContext('2d').getImageData(0,0,1,1).data];
-     core.reset();core.loadState(state);let batteryRoundtrip=true;
-     if(save?.length){const input=save.slice();if(system==='nds'||system==='gba')input.fill(0x63);core.restore(input);core.reset();const output=core.save();batteryRoundtrip=input.length===output.length&&input.every((v,i)=>v===output[i]);}
+     core.reset();core.loadState(state);let batteryRoundtrip=true,batteryRollback=true;
+     if(save?.length){
+      const input=save.slice();if(system==='nds'||system==='gba')input.fill(0x63);
+      const {applyPausedSave}=await import('./src/storage/apply-save.js');let rejected=false;
+      try{await applyPausedSave(core,input,()=>{throw new DOMException('Synthetic failed import','QuotaExceededError');});}catch(error){rejected=error.name==='QuotaExceededError'&&!error.saveImportUnsafe;}
+      const rolledBack=core.save();batteryRollback=rejected&&save.length===rolledBack.length&&save.every((v,i)=>v===rolledBack[i]);
+      core.restore(input);core.reset();const output=core.save();batteryRoundtrip=input.length===output.length&&input.every((v,i)=>v===output[i]);
+     }
      let failed=false;try{core.loadState(new Uint8Array([1,2,3]));}catch{failed=true;}
      for(let i=0;i<5;i++)core.m._web_frame(0);core.draw();
      let ndsInput=null;if(system==='nds'){
       const color=i=>[...core.screens[i].getContext('2d').getImageData(0,0,1,1).data];
       core.setKeys(1);core.m._web_touch(0,16000,1);for(let i=0;i<5;i++)core.m._web_frame(core.keys);core.draw();ndsInput=[color(0),color(1)];core.releaseTouch();
      }
-     return {state:state.length,save:save?.length||0,pixel,failed,ndsInput,batteryRoundtrip};
+     return {state:state.length,save:save?.length||0,pixel,failed,ndsInput,batteryRoundtrip,batteryRollback};
     }finally{core.close();container.remove();}
    },{system,coreKey,rom:[...rom]});
    assert.ok(result.state>1000);assert.equal(result.failed,true,'Reject malformed states');
    assert.equal(result.batteryRoundtrip,true,'Save import/export across reset');if(system==='nds')assert.equal(result.save,8192);
+   assert.equal(result.batteryRollback,true,'Failed live import restores original battery data');
    if(system!=='nds')assert.equal(result.pixel[3],255,'Opaque visible pixels');
    if(system==='gba')assert.deepEqual(result.pixel,[255,0,0,255]);
    if(system==='nds')for(const color of result.ndsInput)assert.ok(color[1]>245&&color[0]===0&&color[2]===0,'NDS button/stylus input');

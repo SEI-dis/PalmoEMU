@@ -48,6 +48,12 @@ PalmoEMU host integration is grouped under `src/start-save/`; `provider.js` is t
 
 See the [update procedure](../../scripts/start-save-migrate/README.md) for candidate review, extraction boundaries, required regressions and release steps. Candidate checks do not execute the supplied JavaScript and do not establish behavioral compatibility or grant a license.
 
+### Separate provider extraction and PalmoEMU corrections (2026-10-16)
+
+The executable `engine.js` is now generated from `scripts/start-save-migrate/base/engine.template.txt` and the five named corrections in `scripts/start-save-migrate/patches.json`. The template is the previously reviewed migration-only extraction, with correction sites replaced by named anchors; it is **not** an unmodified original HTML/ENGINE. The patches isolate strict old-bank validation, version aliases, native resume handling, per-source numeric bounds and the explicit destination migration. They include modified author-derived code and retain the attribution and project-specific permission above; they are not reclassified as entirely original AGPL code. The original supplied manifest remains unchanged.
+
+This separation reproduced the previous executable source exactly except for a generated-file comment. The generator checks both extraction and supplied-manifest hashes and refuses missing or duplicate patch sites. Builds and component verification check regeneration. When a new author version arrives, compare each local correction with it, retire resolved patches and review retained patches before changing the pins. Never replace the runtime file directly or infer a migration rule from a newer ROM version alone. Public-ROM review evidence is maintained separately in `scripts/start-save-migrate/ROM_REVIEW.md`.
+
 ## Updated definitions and fixes (2026-10-16)
 
 The maintainer supplied `START-Save-Migrate-0.48.0.html` (tool 1.0.8) and authorized incorporation and correction of this update. Attachment SHA-256: `c75944e71e02566671ef5b04e19144e0733a32c526448558d48a7fa4b87e5cf2`. The author and project-specific permission notice above remain applicable; no new standardized license was supplied.

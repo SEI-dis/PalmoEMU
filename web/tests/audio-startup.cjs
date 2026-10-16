@@ -7,12 +7,18 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
 (async()=>{
  const browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
  try{
-  const cases=[{name:'restart-empty',mode:'restart-blocked',withSave:false},{name:'restart-save',mode:'restart-blocked',withSave:true},...['success','denied','pending'].map(mode=>({name:mode,mode,withSave:true}))];
+  const cases=[{name:'restart-empty',mode:'restart-blocked',withSave:false},{name:'restart-save',mode:'restart-blocked',withSave:true},...['success','denied','pending'].map(mode=>({name:mode,mode,withSave:true})),{name:'muted',mode:'success',withSave:true,muted:true,volume:.7,checkStartupVolume:true},{name:'quiet',mode:'success',withSave:true,muted:false,volume:.1,checkStartupVolume:true}];
   const selected=cases.filter(test=>!process.env.AUDIO_STARTUP_CASE||test.name===process.env.AUDIO_STARTUP_CASE);assert.ok(selected.length,'Unknown AUDIO_STARTUP_CASE');
-  for(const {name,mode,withSave} of selected){
+  for(const {name,mode,withSave,muted=false,volume=.7,checkStartupVolume=false} of selected){
    const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:mode==='pending',serviceWorkers:'block'}),page=await context.newPage(),errors=[];
    page.on('pageerror',error=>errors.push(error.message));page.setDefaultTimeout(20000);
-   await context.addInitScript(()=>localStorage.setItem('manic-settings',JSON.stringify({autosave:false,recovery:false,rewindEnabled:false,muted:false,volume:.7})));
+   await context.addInitScript(({muted,volume})=>localStorage.setItem('manic-settings',JSON.stringify({autosave:false,recovery:false,rewindEnabled:false,muted,volume})),{muted,volume});
+   if(checkStartupVolume)await page.route('**/src/storage/storage.js',async route=>{
+    const response=await route.fetch(),source=await response.text(),needle='async function setGameDetails(id,patch){';assert.ok(source.includes(needle));
+    // A slow lastPlayed write must not let any frame use the default volume.
+    const body=source.replace(needle,needle+'\n if(patch?.lastPlayed&&window.audioStartup?.armed){audioStartup.metadataHeld=true;await new Promise(resolve=>audioStartup.releaseMetadata=resolve);audioStartup.metadataHeld=false;}');
+    await route.fulfill({response,body});
+   });
    await page.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');await page.locator('#add-first').waitFor();
    await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy')||document.querySelector('#release-notice-done'));
    if(await page.locator('#release-notice-done').isVisible())await page.locator('#release-notice-done').click();
@@ -28,7 +34,7 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
      close(){this.closed++;this.change('closed');return Promise.resolve();}
      createGain(){return {gain:{value:0},connect(){},disconnect(){}};}
      createBuffer(channels,length,rate){const data=Array.from({length:channels},()=>new Float32Array(length));return {duration:length/rate,getChannelData:index=>data[index]};}
-     createBufferSource(){return {playbackRate:{value:1},connect(){},disconnect(){},stop(){},start(){queueMicrotask(()=>this.onended?.());}};}
+     createBufferSource(){return {playbackRate:{value:1},connect(gain){this.gain=gain;},disconnect(){},stop(){},start(){let peak=0;for(const sample of this.buffer.getChannelData(0))peak=Math.max(peak,Math.abs(sample));f.events.push({event:'audio-start',gain:this.gain.gain.value,peak,metadataHeld:!!f.metadataHeld});queueMicrotask(()=>this.onended?.());}};}
     }
     window.AudioContext=Context;window.webkitAudioContext=undefined;
     const {MGBACore}=await import('./src/core/mgba.js'),{SaveProtection}=await import('./src/storage/save-safety.js'),load=MGBACore.prototype.load,save=SaveProtection.prototype.save,get=IDBObjectStore.prototype.get;
@@ -36,7 +42,12 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
     SaveProtection.prototype.save=function(...args){f.protection=this;return save.apply(this,args);};
     IDBObjectStore.prototype.get=function(...args){if(f.armed)f.events.push({event:'idb-read',inPlay:f.inPlay});return get.apply(this,args);};
    },mode);
-   await page.locator('#rom-input').setInputFiles({name:'Audio launch.gb',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gb())});
+   const rom=require('./cartridges.cjs').gb();
+   if(checkStartupVolume){
+    // Authored GB square wave: prove non-silent PCM obeys the saved volume.
+    const program=[];for(const [reg,value]of [[0x26,0x80],[0x24,0x77],[0x25,0x11],[0x11,0x80],[0x12,0xf0],[0x13,0],[0x14,0x87]])program.push(0x3e,value,0xe0,reg);program.push(0x18,0xfe);rom.set(program,0x150);
+   }
+   await page.locator('#rom-input').setInputFiles({name:'Audio launch.gb',mimeType:'application/octet-stream',buffer:Buffer.from(rom)});
    await page.locator('.game-launch').waitFor();
     await page.evaluate(async withSave=>{
     const db=await import('./src/storage/storage.js'),{coreFor}=await import('./src/core/core-registry.js'),{hash}=await import('./src/shared.js'),[game]=await db.all('library');
@@ -49,7 +60,16 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
     const f=audioStartup,button=document.querySelector('.game-info-play'),click=button.onclick;f.armed=true;
     button.onclick=function(event){f.trusted=event.isTrusted;f.inPlay=true;try{return click.call(this,event);}finally{f.inPlay=false;}};
    });
-   await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});await page.waitForFunction(()=>audioStartup.core&&!audioStartup.core.paused);
+   await page.locator('.game-info-play').click();
+   if(checkStartupVolume){
+    await page.waitForFunction(()=>audioStartup.metadataHeld&&audioStartup.core.frames>=6);
+    const startup=await page.evaluate(()=>({volume:audioStartup.core.volume,gain:audioStartup.core.gain.gain.value,started:audioStartup.events.filter(event=>event.event==='audio-start')})),expected=muted?0:volume;
+    assert.equal(startup.volume,expected,'Saved volume applies before any startup frame: '+name);assert.equal(startup.gain,expected);
+    if(muted)assert.equal(startup.started.length,0,'Muted startup must not queue audio while metadata is pending');
+    else{assert.ok(startup.started.some(event=>event.peak>0&&event.metadataHeld),'Quiet startup exercises actual non-silent PCM during the metadata wait');assert.ok(startup.started.every(event=>event.gain===expected),'No startup audio may use the default volume');}
+    await page.evaluate(()=>audioStartup.releaseMetadata());
+   }
+   await page.locator('#loading').waitFor({state:'hidden'});await page.waitForFunction(()=>audioStartup.core&&!audioStartup.core.paused);
    const order=await page.evaluate(()=>{const f=audioStartup,create=f.events.findIndex(e=>e.event==='create'),resume=f.events.findIndex(e=>e.event==='resume'),read=f.events.findIndex(e=>e.event==='idb-read'),load=f.events.find(e=>e.event==='core-load');return {trusted:f.trusted,create,createInPlay:f.events[create].inPlay,resume,resumeInPlay:f.events[resume].inPlay,read,readInPlay:f.events[read]?.inPlay,loadInPlay:load?.inPlay,same:load?.same,contexts:f.contexts.length};});
    assert.equal(order.trusted,true);assert.equal(order.createInPlay,true,'Actual Play handler creates audio synchronously');assert.equal(order.resumeInPlay,true,'Actual Play handler resumes audio synchronously');
    assert.ok(order.create<order.resume&&order.resume<order.read,'Audio activation precedes asynchronous IndexedDB access');assert.equal(order.readInPlay,false);assert.equal(order.loadInPlay,false);assert.equal(order.same,true);assert.equal(order.contexts,1);
@@ -99,6 +119,6 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
    assert.equal(await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),save=await db.get('saves',audioStartup.id);return save.hash===audioStartup.expectedHash&&await hash(save.bytes)===audioStartup.expectedHash;}),true,'Final persistence preserves every battery byte');
     assert.deepEqual(errors,[]);await context.close();console.log('PASS '+kind+': audio startup '+name);
   }
-  console.log('PASS '+kind+': actual Play click activates audio before IndexedDB; fresh/with-save startup preserves activation; one transferred context; pending touch-release and denied enable-button retry; synthetic input refusal; normal menu pause/resume; exit cleanup; unchanged save bytes. Physical iPhone audio untested.');
+  console.log('PASS '+kind+': actual Play click activates audio before IndexedDB; fresh/with-save startup preserves activation; saved mute/volume applies before startup frames; one transferred context; pending touch-release and denied enable-button retry; synthetic input refusal; normal menu pause/resume; exit cleanup; unchanged save bytes. Physical iPhone audio untested.');
  }finally{await browser.close();}
 })().then(()=>process.exit(0),error=>{console.error(error);process.exit(1);});

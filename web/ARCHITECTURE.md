@@ -50,7 +50,7 @@
 
 ## PokemonStartの配布情報
 
-`library/start-updates.js`は固定GitHub APIからのメタデータ取得・検査・キャッシュだけを担当し、`views/start-updates.js`が通知・設定と既存のROM更新画面への導線を提供します。ローカル名は通知の比較にだけ使い、ネット要求に混ぜません。配布情報はセーブ互換性の根拠にせず、引き継ぎ時は`start-save/rom-profile.js`と保存検査を必ず通します。PKS処理・提供HTMLのコードは組み込みません。
+`library/start-updates.js`は固定GitHub APIからのメタデータ取得・検査・キャッシュと、APIが403/429の際の固定公式READMEへの切り替えを担当し、`views/start-updates.js`が通知・設定と既存のROM更新画面への導線を提供します。ローカル名は通知の比較にだけ使い、ネット要求に混ぜません。配布情報はセーブ互換性の根拠にせず、引き継ぎ時は`start-save/rom-profile.js`と保存検査を必ず通します。PKS処理・提供HTMLのコードは組み込みません。
 
 ## 表示言語
 

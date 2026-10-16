@@ -44,9 +44,9 @@ export function createStartUpdatesView(api){
   $('#start-update-rom').onclick=()=>{const chosen=api.games().find(item=>item.id===$('#start-update-game').value);if(chosen)api.updateROM(chosen,{onBack:()=>open(chosen,{onBack})});};
   if(service.snapshot().enabled)void service.check();
  }
- function refresh(){renderNotice();if(api.active()&&!$('#sheet')?.open&&startUpdateGames(api.games()).length)void service.check();}
+ function refresh(){renderNotice();renderStatus();if(api.active()&&(!$('#sheet')?.open||screen?.isConnected)&&startUpdateGames(api.games()).length)void service.check();}
  function listen(){
-  window.addEventListener('online',refresh);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+  window.addEventListener('online',refresh);window.addEventListener('offline',refresh);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
   window.addEventListener('storage',event=>{if(event.key===startUpdateStorageKey){renderNotice();renderStatus();}});
   setInterval(refresh,3600000);refresh();
  }

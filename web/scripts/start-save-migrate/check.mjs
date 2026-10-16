@@ -7,6 +7,7 @@ import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {parse} from '../i18n/vendor/acorn.mjs';
 import {defineStartComponent} from '../../src/start-save/contract.js';
+import {buildEngine} from './build.mjs';
 
 export const installedDirectory=fileURLToPath(new URL('../../vendor/start-save-migrate/',import.meta.url));
 const requiredExports=['MANIFEST','inspectInput','migrateSave','normalizeVersion','readSave','getVariable'];
@@ -33,6 +34,7 @@ export function readManifest(source){
  return literal(declaration.declarations[0].init);
 }
 export function checkComponent(directory=installedDirectory){
+ if(path.resolve(directory)===path.resolve(installedDirectory))buildEngine({check:true});
  assert(!fs.lstatSync(directory).isSymbolicLink(),'Component directory must not be a symlink');
  const read=name=>{
   const file=path.join(directory,name),stat=fs.lstatSync(file);

@@ -885,3 +885,32 @@ hardware verification remain outside the synthetic test coverage.
 ### 2026-10-16 — Translation review workflow and release-note proofreading
 
 Made translation generation a draft step followed by explicit agent proofreading and targeted validation before committing completed changes. Reviewed all eight translations of the six additions in releases 0.3.32 and 0.3.33; corrected 33 lines for clarity, terminology and faithful descriptions of audio retry, save transfer protection and diagnostics. Japanese source text, application version, runtime, stored data and third-party materials are unchanged. This is an agent language review, not human-native certification. Publication is held.
+
+
+Modified 2026-10-16 (local reliability follow-up): original AGPL Web code now
+applies the saved mute/volume before audio startup, refreshes the PokemonStart
+update dialog after connectivity changes, and reattaches an explicitly selected
+matching ROM only when applying a completed migration. Live save import captures
+a volatile rollback state before mutation; known failures restore it, while an
+uncertain save outcome or failed rollback closes the core without another save.
+No third-party code, artwork, native binary, license, storage format or network
+endpoint was added or changed. Synthetic Chromium and desktop WebKit regression
+coverage and limitations are recorded in RELEASE_VALIDATION.md.
+
+
+Modified 2026-10-16 (local START maintenance): split the existing reviewed
+migration-only extraction and named PalmoEMU modifications into reproducible
+source inputs. The extraction and modified function bodies remain derived from
+START Save Migrate and retain its recorded permission and attribution; this
+reorganization does not relabel them as original AGPL code or a pristine copy of
+the supplied HTML. Generated runtime logic and supplied 1.0.8 definitions are
+unchanged. Original AGPL build/check tooling rejects unreviewed template or
+manifest replacement and missing local changes. No original editor, ROM or save
+is distributed.
+Original AGPL update discovery now falls back from GitHub API 403/429 responses
+to one fixed official README GET. It validates matching title/distribution
+versions, preserves API cooldown and sends no local game data or credentials.
+CSP and the Service Worker allow that exact additional metadata URL only.
+Actual 0.49.0 ROM inspection and synthetic save-transfer coverage are scoped in
+scripts/start-save-migrate/ROM_REVIEW.md and RELEASE_VALIDATION.md; they are not
+full-gameplay or iPhone-hardware certification. Changes remain unpublished.

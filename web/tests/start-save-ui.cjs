@@ -10,6 +10,8 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844},acceptDownloads:true}),page=await context.newPage(),errors=[],requests=[];
   page.on('pageerror',error=>errors.push(error.message));context.on('request',request=>requests.push(request));
   await context.addInitScript(()=>{window.coreAttempts=0;localStorage.setItem('palmo-start-updates-v1',JSON.stringify({enabled:false}));});
+  const updateSource=fs.readFileSync(path.join(__dirname,'../src/views/rom-update.js'),'utf8');
+  await context.route('**/src/views/rom-update.js',route=>route.fulfill({contentType:'text/javascript',body:updateSource.replace('export function createROMUpdateDialog(api){','export function createROMUpdateDialog(api){globalThis.startROMUpdateAPI=api;')}));
   await context.route('**/src/core/core-factory.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createCore(){globalThis.coreAttempts++;throw Error("Synthetic CRC fixtures must never execute");}'}));
   const fixture=fixture35(),compatibleFixture=fixture35({stamp:0x2800,second:true}),unknownFixture=fixture35({stamp:0x2402,second:true}),mixedFixture=fixture35({stamp:0x2800,second:true,secondStamp:0});
   for(const [name,bytes]of Object.entries({old:fixture,compatible:compatibleFixture,unknown:unknownFixture,mixed:mixedFixture}))await context.route('**/__start-fixture-'+name,route=>route.fulfill({body:Buffer.from(bytes),contentType:'application/octet-stream'}));
@@ -148,6 +150,33 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   await page.locator('#start-save-apply').click();await page.locator('#rom-update-play').waitFor();
   const corrected=await committed(sources.newerName);assert.equal(corrected.source,hash(fixture));assert.equal(corrected.backup,hash(fixture));assert.notEqual(corrected.target,hash(fixture));assert.equal(corrected.valid,1);
   assert.deepEqual(corrected.migration,{kind:'start',from:'0.35.0',to:'0.42.3'});assert.equal(await page.evaluate(()=>coreAttempts),0);
+  // A selected ROM can repair a detached existing destination. Inspection,
+  // export and a failed conversion must leave its ROM/save untouched; only
+  // applying a successful conversion reattaches the exact selected file.
+  const detached=await page.evaluate(async id=>{
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js');await db.detachROM(id);
+   return {save:await hash((await db.get('saves',id)).bytes),game:await db.get('library',id)};
+  },ids.target);
+  await openUpdate(ids.source);await selectTarget();await page.locator('#start-save-apply').waitFor();
+  assert.equal(await page.locator('#start-save-apply').isEnabled(),true,'Selected file identifies a detached destination');
+  const detachedState=()=>page.evaluate(async id=>{const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js');return {rom:await db.has('roms',id),missing:(await db.get('library',id)).romMissing,save:await hash((await db.get('saves',id)).bytes)};},ids.target);
+  assert.deepEqual(await detachedState(),{rom:false,missing:true,save:detached.save});
+  await page.locator('#start-save-details > summary').click();await page.locator('#start-save-export').click();await page.locator('#start-save-download').waitFor();
+  assert.deepEqual(await detachedState(),{rom:false,missing:true,save:detached.save},'Export does not attach the selected ROM');
+  await page.locator('#start-save-back').click();await page.locator('#start-save-apply').waitFor();
+  await page.evaluate(async id=>{const db=await import('./src/storage/storage.js'),save=await db.get('saves',id);await db.put('saves',id,{...save,at:save.at+1});},ids.source);
+  await page.locator('#start-save-apply').click();await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled);
+  assert.match(await page.locator('#start-save-status').textContent(),/元のセーブが変わりました/);
+  assert.deepEqual(await detachedState(),{rom:false,missing:true,save:detached.save},'Stale conversion does not attach the selected ROM');
+  await page.locator('#start-save-back').click();await selectTarget();await page.locator('#start-save-apply').waitFor();
+  await page.evaluate(()=>{startROMUpdateAPI.applySave=async(game,bytes)=>{
+   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
+   globalThis.detachedApplication={id:game.id,missing:!!game.romMissing,rom:await hash(await db.get('roms',game.id)),slots:inspectStartSave(bytes,'0.42.3').slots.filter(slot=>slot.valid).length};
+  };});
+  await page.locator('#start-save-apply').click();await page.waitForFunction(()=>!!globalThis.detachedApplication);
+  assert.deepEqual(await page.evaluate(()=>detachedApplication),{id:ids.target,missing:false,rom:hash(fakeROM(47924504)),slots:1});
+  assert.deepEqual(await detachedState(),{rom:true,missing:undefined,save:detached.save},'Only the normal apply API may replace the save');
+  assert.equal(await page.evaluate(()=>coreAttempts),0);
   assert.deepEqual(errors,[]);assert(requests.filter(r=>/^https?:/.test(r.url())).every(r=>new URL(r.url()).origin===new URL(base).origin&&['GET','HEAD'].includes(r.method())&&!r.postData()));
   await context.close();console.log('PASS: START real worker/application UI; compatible byte-for-byte copy, explicit unknown conversion/copy gates, old conversion/exports, malformed/mismatched/mixed-slot rejection, immutable originals/snapshots, rollback/stale refusal and no synthetic core execution. '+kind);
  }finally{await browser.close();}

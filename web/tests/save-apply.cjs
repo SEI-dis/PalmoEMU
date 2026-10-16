@@ -22,7 +22,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   const db=await import('./src/storage/storage.js'),{MGBACore}=await import('./src/core/mgba.js');
   window.testGame=await db.get('library','apply-fixture');window.testCalls={load:0,close:0,restore:0};
   const load=MGBACore.prototype.load,close=MGBACore.prototype.close,restore=MGBACore.prototype.restore;
-  MGBACore.prototype.load=async function(...args){testCalls.load++;if(window.testLoadGate)await window.testLoadGate;return load.apply(this,args);};
+  MGBACore.prototype.load=async function(...args){testCalls.load++;window.testCore=this;if(window.testLoadGate)await window.testLoadGate;return load.apply(this,args);};
   MGBACore.prototype.restore=function(...args){testCalls.restore++;if(window.testRestoreFailure)throw Error('Synthetic restore failure');return restore.apply(this,args);};
   MGBACore.prototype.close=function(...args){testCalls.close++;const result=close.apply(this,args);if(window.testCloseFailure)throw Error('Synthetic close failure');return result;};
   window.testSnapshot=async()=>JSON.stringify(await Promise.all(['saves','backups','archives','recoveries','states'].map(store=>db.get(store,store==='states'?'apply-fixture:manual':'apply-fixture'))));
@@ -74,6 +74,16 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  // A running game uses its existing protection/engine. Another game cannot
  // be imported into that engine, even when a stale picker finishes late.
  await page.locator('[data-action=play]').click();await page.locator('#loading').waitFor({state:'hidden'});await page.locator('#player-menu').click();
+ // A real aborted IndexedDB import must restore the running core too, not
+ // leave imported cartridge RAM paired with the old CPU/game state.
+ const aborted=await page.evaluate(async()=>{
+  const db=await import('./src/storage/storage.js'),before=Array.from(await testCore.save()),put=IDBObjectStore.prototype.put;let failures=0,message;
+  IDBObjectStore.prototype.put=function(value,...rest){if(this.name==='saves'&&value?.reason==='import'){failures++;throw new DOMException('Synthetic failed live import','QuotaExceededError');}return put.call(this,value,...rest);};
+  try{await testSaveAPI.applySave(testGame,new Uint8Array(8192).fill(54));}catch(error){message=error.name;}finally{IDBObjectStore.prototype.put=put;}
+  return {message,failures,memoryUnchanged:JSON.stringify(before)===JSON.stringify(Array.from(await testCore.save())),stored:(await db.get('saves',testGame.id)).bytes[0],paused:testCore.paused,disabled:document.querySelector('#close-sheet').disabled};
+ });
+ assert.deepEqual(aborted,{message:'QuotaExceededError',failures:1,memoryUnchanged:true,stored:44,paused:true,disabled:false});
+ console.log('PASS '+kind+': aborted live import restores original cartridge RAM and keeps the old save');
  const live=await page.evaluate(async()=>{
   const db=await import('./src/storage/storage.js'),other=await db.get('library','other-fixture'),before=await testSnapshot(),calls={...testCalls};let message;
   try{await testSaveAPI.applySave(other,new Uint8Array(8192).fill(55));}catch(error){message=error.message;}
@@ -82,6 +92,42 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  });
  assert.deepEqual(live,{message:'プレイ中のゲームを終了してから読み込んでください。',unchanged:true,first:55,backup:44,load:0,close:0,recovery:false});
  assert.equal(await page.locator('#sheet').isVisible(),false);assert.equal(await page.locator('#player').isVisible(),true);assert.deepEqual(errors,[]);
+ await page.locator('#player-menu').click();
+ // Fail before capture, after a partial save import, and after reset. Every
+ // rejection must leave the old save usable and the current session paused.
+ const faults=await page.evaluate(async()=>{
+  const db=await import('./src/storage/storage.js'),results=[];
+  for(const method of ['state','restore','reset']){
+   const original=testCore[method];let once=true;
+   testCore[method]=async function(...args){if(once){once=false;if(method!=='state')await original.apply(this,args);throw Error('Synthetic '+method+' failure');}return original.apply(this,args);};
+   let message;try{await testSaveAPI.applySave(testGame,new Uint8Array(8192).fill(66));}catch(error){message=error.message;}finally{testCore[method]=original;}
+   results.push({message,live:(await testCore.save())[0],stored:(await db.get('saves',testGame.id)).bytes[0],paused:testCore.paused});
+  }
+  return results;
+ });
+ assert.deepEqual(faults,['state','restore','reset'].map(method=>({message:'Synthetic '+method+' failure',live:55,stored:55,paused:true})));
+ // Model a lost acknowledgment after a real successful commit. The app must
+ // not roll back to old RAM and then overwrite the committed import on exit.
+ const uncertain=await page.evaluate(async()=>{
+  const db=await import('./src/storage/storage.js'),{SaveProtection}=await import('./src/storage/save-safety.js'),save=SaveProtection.prototype.save;let unknown=false;
+  SaveProtection.prototype.save=async function(core,options){const result=await save.call(this,core,options);if(options?.reason==='import')throw Object.assign(Error('Synthetic lost acknowledgment'),{saveOutcomeUnknown:true});return result;};
+  try{await testSaveAPI.applySave(testGame,new Uint8Array(8192).fill(66));}catch(error){unknown=error.saveOutcomeUnknown;}finally{SaveProtection.prototype.save=save;}
+  return {unknown,stored:(await db.get('saves',testGame.id)).bytes[0],backup:(await db.get('backups',testGame.id))[0].bytes[0],reason:(await db.get('saves',testGame.id)).reason,closed:testCore.closed};
+ });
+ assert.deepEqual(uncertain,{unknown:true,stored:66,backup:55,reason:'import',closed:true});
+ assert.equal(await page.locator('#player').isVisible(),false);
+ await page.evaluate(()=>testSaveAPI.launch(testGame));await page.locator('#player-menu').click();
+ // If even rollback fails, discard the unsafe core without saving it again.
+ const fatal=await page.evaluate(async()=>{
+  const db=await import('./src/storage/storage.js'),put=IDBObjectStore.prototype.put,loadState=testCore.loadState;let message;
+  IDBObjectStore.prototype.put=function(value,...rest){if(this.name==='saves'&&value?.reason==='import')throw new DOMException('Synthetic failed live import','QuotaExceededError');return put.call(this,value,...rest);};
+  testCore.loadState=()=>{throw Error('Synthetic failed rollback');};
+  try{await testSaveAPI.applySave(testGame,new Uint8Array(8192).fill(77));}catch(error){message=error.name;}finally{IDBObjectStore.prototype.put=put;testCore.loadState=loadState;}
+  return {message,stored:(await db.get('saves',testGame.id)).bytes[0],closed:testCore.closed,lock:await navigator.locks.request('local-game:'+testGame.id,{ifAvailable:true},lock=>!!lock),pending:(await import('./src/updates/update-activity.js')).updateTasksPending()};
+ });
+ assert.deepEqual(fatal,{message:'QuotaExceededError',stored:66,closed:true,lock:true,pending:false});
+ assert.equal(await page.locator('#player').isVisible(),false);
+ console.log('PASS '+kind+': capture/partial-restore/reset failures roll back; failed rollback exits without overwriting saves');
  // WebKit reports the local object URLs used by skin images as requests too.
  assert.deepEqual(requests.filter(request=>!['GET','HEAD'].includes(request.method())||new URL(request.url()).origin!==new URL(base).origin).map(request=>({method:request.method(),url:request.url()})),[],'No uploads or external requests');
  console.log('PASS '+kind+': live apply reuses current core; another-game import rejects without modifying saves');

@@ -13,7 +13,7 @@ export function createStartSaveDialog(api){
   busy=true;const close=$('#close-sheet'),controls=[...$('#sheet-body').querySelectorAll('button,input,select')],disabled=controls.map(x=>x.disabled);close.disabled=true;controls.forEach(x=>x.disabled=true);
   try{return await action();}finally{busy=false;close.disabled=false;controls.forEach((x,i)=>x.disabled=disabled[i]);}
  }
- async function open(game,{previous=!!game.romUpdate,onBack=()=>api.showGame(game),apply,target,targetProfile,onCopy}={}){
+ async function open(game,{previous=!!game.romUpdate,onBack=()=>api.showGame(game),apply,target,targetProfile,prepareTarget,onCopy}={}){
   const task=options=>startSaveTask({id:game.id,previous,targetId:target?.id,targetProfile,...options});
   api.sheet(tr('セーブデータを変換'),tr`<p class="sheet-note" id="start-save-status" role="status">セーブを確認中…</p><div id="start-save-options" hidden></div><button id="start-save-back" class="secondary wide-button">戻る</button>`);
   bind('#start-save-back',onBack);
@@ -51,14 +51,14 @@ export function createStartSaveDialog(api){
   });
   if($('#start-save-source')){
    $('#start-save-source').value=previous?'previous':'current';
-   $('#start-save-source').onchange=guardUpdateTask(event=>open(game,{previous:event.target.value==='previous',onBack,apply,target,targetProfile,onCopy}));
+   $('#start-save-source').onchange=guardUpdateTask(event=>open(game,{previous:event.target.value==='previous',onBack,apply,target,targetProfile,prepareTarget,onCopy}));
   }
   const convert=()=>startSaveTask({action:'convert',id:game.id,previous,targetId:target?.id,targetProfile,from:$('#start-save-version').value,hash:inspected.hash,at:inspected.at,allowUnverified:$('#start-save-unverified').checked},progress=>{
    if(progress?.total)$('#start-save-status').textContent=tr('セーブを変換中…')+` ${progress.index} / ${progress.total}`;
   });
   const exportResult=async()=>{
    $('#start-save-status').textContent=tr('セーブを変換中…');
-   const result=await work(convert);showResult(result,()=>open(game,{previous,onBack,apply,target,targetProfile,onCopy}),direct?target:null);
+   const result=await work(convert);showResult(result,()=>open(game,{previous,onBack,apply,target,targetProfile,prepareTarget,onCopy}),direct?target:null);
   };
   bind('#start-save-export',exportResult);
   bind('#start-save-copy',()=>onCopy({...inspected,version:$('#start-save-version').value},false));
@@ -67,7 +67,7 @@ export function createStartSaveDialog(api){
    if(!canApply)return exportResult();
    const from=$('#start-save-version').value;if(!from)return;
    $('#start-save-status').textContent=tr('セーブを変換中…');
-   await work(async()=>{if(direct){const result=await convert();await api.applySave(target,result.bytes);}else await apply(from,progress=>{
+   await work(async()=>{if(direct){const result=await convert(),readyTarget=prepareTarget?await prepareTarget():target;await api.applySave(readyTarget,result.bytes);}else await apply(from,progress=>{
     if(progress.phase==='migrating'&&progress.total)$('#start-save-status').textContent=tr('セーブを変換中…')+` ${progress.loaded} / ${progress.total}`;
    },{allowUnverified:$('#start-save-unverified').checked});});
   });

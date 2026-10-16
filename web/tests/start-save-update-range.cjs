@@ -125,6 +125,15 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   assert.equal(await page.locator('#start-save-apply').count(),0);await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
   assert.deepEqual(await committed(sources.compatible,latest.id,'0.40.0'),{target:hash(compatible),source:hash(compatible),backup:hash(compatible),migration:null,validSlots:2});
 
+  // Conditional 0.49 support: the actual native gate, not a new vendor entry,
+  // must establish compatibility. No generated save is stamped ahead to 0.49.
+  const nextROM=await selectProfile('0.49.0','0.36.2',true,true);
+  const convertedNext=await convert(nextROM.id,'0.49.0');assert.equal(convertedNext.migration.via,'0.42.5');
+  await page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},nextROM.id);
+  await openUpdate(sources.compatible);await page.locator('#rom-update-confirm').waitFor();
+  assert.equal(await page.locator('#start-save-apply').count(),0);await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
+  assert.deepEqual(await committed(sources.compatible,nextROM.id,'0.40.0'),{target:hash(compatible),source:hash(compatible),backup:hash(compatible),migration:null,validSlots:2});
+
   // Neither the destination version nor its minimum accepted save version is
   // hardcoded: a future release with the same native boundary works as well.
   const future=await selectProfile('0.43.0','0.36.2');

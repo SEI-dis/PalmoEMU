@@ -114,6 +114,7 @@ export const diagnosticSources = [
  "src/start-save/rom-profile.js",
  "src/start-save/version.js",
  "src/start-save/worker.js",
+ "src/storage/apply-save.js",
  "src/storage/backup.js",
  "src/storage/save-history.js",
  "src/storage/save-rescue.js",

@@ -6,6 +6,17 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 (async()=>{
  const {checkComponent,compareComponents,readManifest,installedDirectory}=await import('../scripts/start-save-migrate/check.mjs');
  const {defineStartComponent,startVersionNumber}=await import('../src/start-save/contract.js');
+ const {assembleEngine,buildEngine}=await import('../scripts/start-save-migrate/build.mjs');
+ const sourceDirectory=path.join(__dirname,'../scripts/start-save-migrate');
+ const template=fs.readFileSync(path.join(sourceDirectory,'base/engine.template.txt'));
+ const patches=JSON.parse(fs.readFileSync(path.join(sourceDirectory,'patches.json'),'utf8'));
+ const definitions=fs.readFileSync(path.join(installedDirectory,'manifest.js'));
+ assert.equal(assembleEngine(template,patches,definitions),buildEngine({check:true}));
+ assert.throws(()=>assembleEngine(Buffer.concat([template,Buffer.from(' ')]),patches,definitions),/template changed/);
+ assert.throws(()=>assembleEngine(template,patches,Buffer.concat([definitions,Buffer.from(' ')])),/definitions changed/);
+ for(const modify of [p=>p.changes.pop(),p=>p.changes.push(p.changes[0]),p=>p.changes[0].id='missing-anchor',p=>p.changes[0].code='/* PALMO_PATCH:injected */',p=>p.changes[0].reason='']){
+  const invalid=structuredClone(patches);modify(invalid);assert.throws(()=>assembleEngine(template,invalid,definitions));
+ }
  const current=checkComponent(),original=fs.readFileSync(path.join(installedDirectory,'manifest.js'),'utf8'),manifest=readManifest(original);
  const snapshot=Object.fromEntries(fs.readdirSync(installedDirectory).map(name=>[name,hash(fs.readFileSync(path.join(installedDirectory,name)))]));
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'palmo-start-component-'));

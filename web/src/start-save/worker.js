@@ -21,7 +21,7 @@ self.onmessage=async({data})=>{
   await setWorkerLanguage(data.language);
   const source=await readSource(data.id,data.previous),{save,digest,sourceId,name}=source;
   let targetProfile=data.targetProfile;
-  if(data.targetId){const targetROM=await db.get('roms',data.targetId);targetProfile=(targetROM?identifyStartROM(targetROM instanceof Blob?new Uint8Array(await targetROM.arrayBuffer()):targetROM):null)||{version:null,unverified:true};}
+  if(data.targetId){const targetROM=await db.get('roms',data.targetId);targetProfile=targetROM?(identifyStartROM(targetROM instanceof Blob?new Uint8Array(await targetROM.arrayBuffer()):targetROM)||{version:null,unverified:true}):(targetProfile||{version:null,unverified:true});}
   if(data.action==='inspect'){
    const rom=await db.get('roms',sourceId),bytes=rom instanceof Blob?new Uint8Array(await rom.arrayBuffer()):rom;
    const identity=bytes?identifyStartROM(bytes):null;

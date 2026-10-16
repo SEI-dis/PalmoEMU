@@ -51,7 +51,11 @@ export function createROMUpdateDialog(api){
     if(startROM&&core.key==='mgba'){
      if(existing&&coreFor(existing).key!=='mgba')throw Error(tr('この変換はGBAのPokemonStart用です。mGBAコアを選択してください。'));
      const same=target.id===game.id;
-     await startDialog.open(game,{previous:same&&!!game.romUpdate,onBack:()=>open(game,{onBack}),target:existing,targetProfile:startROM,onCopy:same?undefined:async(inspected,compatible)=>{
+     await startDialog.open(game,{previous:same&&!!game.romUpdate,onBack:()=>open(game,{onBack}),target:existing,targetProfile:startROM,prepareTarget:existing?.romMissing?async()=>{
+      // Choosing or exporting must not reattach a ROM. Restore the exact file
+      // only after conversion succeeds and the user applies its result.
+      await importROM(file,system,null,{expectedId:target.id});await api.refresh();return db.get('library',target.id);
+     }:undefined,onCopy:same?undefined:async(inspected,compatible)=>{
       const copyPlan=await prepareROMUpdate(game.id,target);
       if(copyPlan.sourceHash!==inspected.hash||copyPlan.sourceAt!==inspected.at)throw Error(tr('元のセーブが変わりました。内容を確認してやり直してください。'));
       copyPlan.startCopy={from:inspected.version,allowUnverified:!compatible};

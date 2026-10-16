@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// App build: 21db61fd769ca367
+// App build: ded1ff0a8a576239
 // Message keys are localized by the requesting page.
 const tr=source=>source;
 importScripts('./offline-manifest.js');
@@ -51,10 +51,11 @@ self.addEventListener('fetch',e=>{
  // controls the page. First-load protection still depends on the app and CSP.
  if(!['GET','HEAD'].includes(e.request.method)){e.respondWith(new Response(null,{status:405,headers:{Allow:'GET, HEAD'}}));return;}
  const u=new URL(e.request.url);u.hash=''; // Tab/game fragments are local UI state, not a different app file.
- // One fixed public metadata GET. Recreate it so caller-provided credentials,
+ // Fixed public metadata GETs. Recreate them so caller-provided credentials,
  // headers, query strings and bodies cannot be forwarded. Never cache PKS/ROMs.
- if(e.request.method==='GET'&&e.request.url==='https://api.github.com/repos/pm-start/PokemonStart/git/trees/main'){
-  e.respondWith(fetch(e.request.url,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',redirect:'error',cache:'no-store',headers:{Accept:'application/json'}}).catch(()=>new Response(null,{status:503})));return;
+ const metadataAccept=e.request.url==='https://api.github.com/repos/pm-start/PokemonStart/git/trees/main'?'application/json':e.request.url==='https://raw.githubusercontent.com/pm-start/PokemonStart/main/README.md'?'text/plain':null;
+ if(e.request.method==='GET'&&metadataAccept){
+  e.respondWith(fetch(e.request.url,{method:'GET',credentials:'omit',referrerPolicy:'no-referrer',redirect:'error',cache:'no-store',headers:{Accept:metadataAccept}}).catch(()=>new Response(null,{status:503})));return;
  }
  if(e.request.mode!=='navigate'&&(u.origin!==base.origin||u.search)){e.respondWith(new Response(null,{status:403}));return;}
  if(e.request.method!=='GET'||u.origin!==base.origin||u.search)return;

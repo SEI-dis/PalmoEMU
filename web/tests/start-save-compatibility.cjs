@@ -15,6 +15,14 @@ const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixture
  assert.equal(select({version:'0.48.0',minimumSaveVersion:'0.43.0'},'0.35.0'),null,'Stamps after the reviewed bridge cannot invent native corrections');
  assert.equal(select({version:'0.48.0',minimumSaveVersion:'0.36.2'},'0.48.0'),'0.48.0','Already-current data may remain unchanged');
  assert.equal(select({version:'0.47.1',minimumSaveVersion:'0.36.2'},'0.48.0'),null);
+ // A newer destination need not appear in the supplied converter manifest.
+ // These are authored native-bound fixtures, not evidence from a real 0.49 ROM.
+ const nextROM={version:'0.49.0',minimumSaveVersion:'0.36.2'};
+ assert.equal(classify('0.48.0',nextROM).status,'compatible');
+ assert.equal(select(nextROM,'0.35.0'),'0.42.5');
+ assert.equal(classify('0.49.0',{version:'0.48.0',minimumSaveVersion:'0.36.2'}).status,'downgrade');
+ assert.equal(select({...nextROM,minimumSaveVersion:'0.43.0'},'0.35.0'),null);
+ assert.equal(classify('0.48.0',{...nextROM,minimumSaveVersion:null}).status,'unknown');
  for(const from of ['0.1','0.22','0.35.0','0.35.4','0.36.0','0.36.1'])assert.deepEqual(policy(from),{status:'convert',from,to:'0.42.3'});
  for(const from of ['0.36.2','0.37.0'])assert.deepEqual(policy(from),{status:'unknown',from,to:'0.42.3'});
  for(const from of ['0.38.0','0.38.1','0.39.0','0.40.0','0.41.1','0.42.0','0.42.2','0.42.3'])assert.deepEqual(policy(from),{status:'compatible',from,to:'0.42.3'});
