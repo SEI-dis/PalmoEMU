@@ -328,13 +328,13 @@
     "sources/manicemu-ui/SettingsAdventureCardView.swift": "6ef39d04ad4ed3f6bb4adfe29a9147452c5ddbd2706fedb2ad37d5b243190eb6",
     "sources/mgba-web-port/save-watch.h": "539244aab3e08f07accd6603288efdd7c7b2806b0704b1156c5886cdb31c144a",
     "sources/mgba-web-port/upstream.json": "db9d454c9837306956d68c2c5383832fb911bba4bbb5bee83b28a509eee1d50c",
-    "vendor/start-save-migrate/component.json": "cf172bd6b54544c2255c4bce76b44b86bbc40663c39bc56b06e41b3248577f03",
-    "vendor/start-save-migrate/README.md": "a54b509efba5b47bc3ab0dc7b0e5c034dcf0f8bf83fecc378e8317664223d25f",
+    "vendor/start-save-migrate/component.json": "a62a6869fe5097b560d4b1df106e5babe4500ab2596266ff9ed2b3f6c94de1b5",
+    "vendor/start-save-migrate/README.md": "f0d25f8845444f880b7f38ab467745af56cd94e4bf5bd65f682a652b98d50c6f",
     "vendor/start-save-migrate/engine.js": "117e1d365a3a6db8b05d50a998c34b4c789fa4dead069facfeb3fd1b7ec1daa7",
-    "vendor/start-save-migrate/manifest.js": "55970bdcb8b51799da8736f0b6f5e9c71b1b3f19e9e1c709911aeb5f1706c167",
+    "vendor/start-save-migrate/manifest.js": "f3052744667067733a3537ce90361fe16ef65c4eb7072f27f2f13ff629bd13b8",
     "sources/mgba-web-port/logging.h": "c6e0252250b07ae5f898e8921dfd2b142f53dcc67f652b930868282d8ee88da3",
     "scripts/start-save-migrate/base/engine.template.txt": "e4342bda9be3f0f885550f6f6d11efae47642590e94c82fa384fc09966390d66",
-    "scripts/start-save-migrate/patches.json": "b252f98dccb914b14b6753d9363479e78079727cf191c9724db22703bb3e66e6"
+    "scripts/start-save-migrate/patches.json": "4d094e131f2db9c0fce7ae438ec95b4410dca8500630986fc206044887b08b76"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",
@@ -743,7 +743,7 @@
     "provenance": "vendor/start-save-migrate/README.md",
     "permissionBasis": "The maintainer confirmed author permission for incorporation, Web publication, modification and modified-source redistribution on 2026-10-14, with credit attribution as the stated condition. Original author terms were not independently inspected; no standard license is assigned.",
     "integration": "Static ES module imports in src/start-save/provider.js and definition.js; Worker execution is not treated as proof of a separate work for AGPL compatibility.",
-    "toolVersion": "1.0.8",
+    "toolVersion": "1.0.9",
     "engineChanged": true,
     "changes": "Source-version numeric ID bounds, manifest-based version aliases and explicit reviewed output endpoint; existing bank validation and preservation safeguards retained. Host keeps later native game updates by selecting an accepted bridge instead of assigning an unreviewed newest stamp. Resume-map validity checks the full bank/map pair, matching the read-only native evidence."
   }

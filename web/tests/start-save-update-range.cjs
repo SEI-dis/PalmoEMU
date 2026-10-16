@@ -15,9 +15,10 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   page.on('pageerror',error=>errors.push(error.message));context.on('request',request=>requests.push(request));
   await context.addInitScript(()=>{window.coreAttempts=0;localStorage.setItem('palmo-start-updates-v1',JSON.stringify({enabled:false}));});
   await context.route('**/src/core/core-factory.js',route=>route.fulfill({contentType:'text/javascript',body:'export function createCore(){globalThis.coreAttempts++;throw Error("Synthetic ROM profiles must never execute");}'}));
-  const original=fixture35({second:true}),compatible=fixture35({stamp:0x2800,second:true});
+  const original=fixture35({second:true}),compatible=fixture35({stamp:0x2800,second:true}),compatible48=fixture35({stamp:0x3000,second:true});
   await context.route('**/__range-save-old',route=>route.fulfill({body:Buffer.from(original),contentType:'application/octet-stream'}));
   await context.route('**/__range-save-compatible',route=>route.fulfill({body:Buffer.from(compatible),contentType:'application/octet-stream'}));
+  await context.route('**/__range-save-compatible48',route=>route.fulfill({body:Buffer.from(compatible48),contentType:'application/octet-stream'}));
   let targetFile;
   await context.route('**/__range-target',route=>route.fulfill({path:targetFile,contentType:'application/octet-stream'}));
   await page.goto(base);await page.locator('#add-first').waitFor();
@@ -29,7 +30,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
     await db.put('saves',game.id,{bytes,hash:await hash(bytes),at:100});result[key]=game.id;
    }
    return result;
-  },[['old',[...fakeROM(2749620783)],'PokemonStart_v0.35.0.gba'],['compatible',[...fakeROM(1805207701)],'PokemonStart_v0.40.0.gba']]);
+  },[['old',[...fakeROM(2749620783)],'PokemonStart_v0.35.0.gba'],['compatible',[...fakeROM(1805207701)],'PokemonStart_v0.40.0.gba'],['compatible48',[...fakeROM(2280790316)],'PokemonStart_v0.48.0.gba']]);
   const openUpdate=async source=>{
    await page.reload();await page.locator(`[data-game="${source}"]`).waitFor();
    if(await page.locator('#sheet.release-notice[open]').count())await page.locator('#close-sheet').click();
@@ -127,12 +128,19 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
 
   // Conditional 0.49 support: the actual native gate, not a new vendor entry,
   // must establish compatibility. No generated save is stamped ahead to 0.49.
+  // These are authored predicates, not evidence of an actual 0.49 cartridge.
   const nextROM=await selectProfile('0.49.0','0.36.2',true,true);
   const convertedNext=await convert(nextROM.id,'0.49.0');assert.equal(convertedNext.migration.via,'0.42.5');
+  assert.equal(convertedNext.target,convertedLatest.target,'New metadata must not advance the reviewed bridge');
   await page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},nextROM.id);
   await openUpdate(sources.compatible);await page.locator('#rom-update-confirm').waitFor();
   assert.equal(await page.locator('#start-save-apply').count(),0);await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
   assert.deepEqual(await committed(sources.compatible,nextROM.id,'0.40.0'),{target:hash(compatible),source:hash(compatible),backup:hash(compatible),migration:null,validSlots:2});
+  await page.evaluate(async id=>{await(await import('./src/storage/storage.js')).removeGame(id);},nextROM.id);
+  await openUpdate(sources.compatible48);await page.locator('#rom-update-confirm').waitFor();
+  assert.equal(await page.locator('#start-save-apply').count(),0);assert.equal(await page.locator('#rom-update-compatible').isVisible(),false);
+  await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
+  assert.deepEqual(await committed(sources.compatible48,nextROM.id,'0.48.0'),{target:hash(compatible48),source:hash(compatible48),backup:hash(compatible48),migration:null,validSlots:2},'Compatible 0.48 -> 0.49 preserves both slots, RTC, original and backup byte-for-byte');
 
   // Neither the destination version nor its minimum accepted save version is
   // hardcoded: a future release with the same native boundary works as well.
@@ -164,18 +172,19 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
 
   // A newer save must never be an opt-in unknown copy into an older ROM.
   // Use a misleading older cartridge/name: the save's own stamp wins.
-  const recentSave=fixture35({stamp:0x2e00,second:true});
+  let recentSave=fixture35({stamp:0x2e00,second:true});
   await context.route('**/__range-save-recent',route=>route.fulfill({body:Buffer.from(recentSave),contentType:'application/octet-stream'}));
-  await page.evaluate(async id=>{
-   const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js');
-   const bytes=new Uint8Array(await(await fetch('./__range-save-recent')).arrayBuffer());
-   await db.put('saves',id,{bytes,hash:await hash(bytes),at:200});
-  },future.id);
-  for(const version of ['0.42.5','0.45.1']){
+  for(const [version,sourceVersion,stamp]of [['0.42.5','0.46.0',0x2e00],['0.45.1','0.46.0',0x2e00],['0.48.0','0.49.0',0x3100]]){
+   recentSave=fixture35({stamp,second:true});
+   await page.evaluate(async id=>{
+    const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js');
+    const bytes=new Uint8Array(await(await fetch('./__range-save-recent')).arrayBuffer());
+    await db.put('saves',id,{bytes,hash:await hash(bytes),at:200});
+   },future.id);
    const older=await selectProfile(version,'0.36.2');
    await openUpdate(future.id);await page.locator('#start-save-apply').waitFor();
    await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled);
-   assert.equal(await page.locator('#start-save-version').inputValue(),'0.46.0');
+   assert.equal(await page.locator('#start-save-version').inputValue(),sourceVersion);
    const refusal='このセーブは更新先ROMより新しいため、引き継げません。元のデータは変更していません。';
    assert.equal(await page.locator('#start-save-note').textContent(),refusal);
    assert.equal(await page.locator('#start-save-apply').isDisabled(),true);
@@ -183,7 +192,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    assert.equal(await page.locator('#start-save-copy').isVisible(),false);
    assert.equal(await page.locator('#start-save-unverified-row').isVisible(),false);
    assert.equal(await page.locator('#rom-update-confirm').count(),0);
-   const guarded=await page.evaluate(async({source,name,expected})=>{
+   const guarded=await page.evaluate(async({source,name,expected,sourceVersion})=>{
     const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{importROM}=await import('./src/library/rom-import.js');
     const {prepareROMUpdate,finishROMUpdate,readROMUpdateBackup}=await import('./src/library/rom-update.js'),{startSaveTask}=await import('./src/start-save/client.js');
     const rom=new Uint8Array(await(await fetch('./__range-target')).arrayBuffer()),file=new File([rom],name),inspected=await importROM(file,'gba',null,{inspectOnly:true});
@@ -194,7 +203,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
     };
     const before=await Promise.all([snapshot(source),snapshot(inspected.game.id)]),messages=[];
     for(const key of ['startCopy','startMigration']){
-     for(const from of ['0.46.0','0.35.0']){
+     for(const from of [sourceVersion,'0.35.0']){
       try{await finishROMUpdate({...plan,[key]:{from,allowUnverified:true}},inspected.game,rom);messages.push(null);}
       catch(error){messages.push(error.message);}
      }
@@ -202,11 +211,11 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
     const target=await db.has('library',inspected.game.id)?{targetId:inspected.game.id}:{targetProfile:inspected.startROM};
     const info=await startSaveTask({action:'inspect',id:source,...target});
     let workerError=null;
-    try{await startSaveTask({action:'convert',id:source,...target,from:'0.46.0',hash:info.hash,at:info.at,allowUnverified:true});}
+    try{await startSaveTask({action:'convert',id:source,...target,from:sourceVersion,hash:info.hash,at:info.at,allowUnverified:true});}
     catch(error){workerError=error.message;}
     const oldBackup=await readROMUpdateBackup(await db.get('library',source));
     return {allRejected:messages.every(Boolean),explicit:messages[0]===expected&&messages[2]===expected,workerError,classification:info.compatibility.status,before,after:await Promise.all([snapshot(source),snapshot(inspected.game.id)]),oldBackup:await hash(oldBackup.save.bytes)};
-   },{source:future.id,name:path.basename(targetFile),expected:refusal});
+   },{source:future.id,name:path.basename(targetFile),expected:refusal,sourceVersion});
    assert.equal(guarded.allRejected,true);assert.equal(guarded.explicit,true);assert.equal(guarded.workerError,refusal);assert.equal(guarded.classification,'downgrade');
    assert.deepEqual(guarded.after,guarded.before,'Refusal must preserve both library entries, original ROMs, saves and existing update backups');
    assert.equal(guarded.oldBackup,hash(original),'The update-before backup remains available independently of the rejected new save');

@@ -8,17 +8,18 @@ const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixture
  // Preserve the historical policy cases explicitly. Latest metadata alone
  // does not establish a new ROM's native minimum-save boundary.
  const policy=(from,target='0.42.3')=>classify(from,target),inspect=(bytes,from,target='0.42.3')=>inspectUpdate(bytes,from,target);
- assert.deepEqual(classify('0.35.0'),{status:'unknown',from:'0.35.0',to:'0.48.0'});
+ assert.deepEqual(classify('0.35.0'),{status:'unknown',from:'0.35.0',to:'0.49.0'});
  assert.equal(select(undefined,'0.35.0'),'0.42.5');
  assert.equal(select('0.42.3','0.35.0'),'0.42.3');
  assert.equal(select({version:'0.48.0',minimumSaveVersion:'0.36.2'},'0.35.0'),'0.42.5');
  assert.equal(select({version:'0.48.0',minimumSaveVersion:'0.43.0'},'0.35.0'),null,'Stamps after the reviewed bridge cannot invent native corrections');
  assert.equal(select({version:'0.48.0',minimumSaveVersion:'0.36.2'},'0.48.0'),'0.48.0','Already-current data may remain unchanged');
  assert.equal(select({version:'0.47.1',minimumSaveVersion:'0.36.2'},'0.48.0'),null);
- // A newer destination need not appear in the supplied converter manifest.
+ // Native bounds must establish compatibility even for a manifest version.
  // These are authored native-bound fixtures, not evidence from a real 0.49 ROM.
  const nextROM={version:'0.49.0',minimumSaveVersion:'0.36.2'};
  assert.equal(classify('0.48.0',nextROM).status,'compatible');
+ assert.equal(select(nextROM,'0.48.0'),'0.48.0');assert.equal(select(nextROM,'0.49.0'),'0.49.0');
  assert.equal(select(nextROM,'0.35.0'),'0.42.5');
  assert.equal(classify('0.49.0',{version:'0.48.0',minimumSaveVersion:'0.36.2'}).status,'downgrade');
  assert.equal(select({...nextROM,minimumSaveVersion:'0.43.0'},'0.35.0'),null);
@@ -56,6 +57,9 @@ const {fixture35,fixture22,hash,slotBytes}=require('./helpers/start-save-fixture
  assert.equal(inspect(latest,'0.48.0',{version:'0.48.0',minimumSaveVersion:'0.36.2'}).compatibility.status,'compatible');
  assert.equal(inspect(latest,'0.48.0',{version:'0.47.1',minimumSaveVersion:'0.36.2'}).compatibility.status,'downgrade');
  assert.equal(detect(latest),'0.48.0');assert.equal(hash(latest),latestHash);
+ const save49=fixture35({stamp:0x3100,second:true}),hash49=hash(save49);
+ assert.equal(detect(save49),'0.49.0');assert.equal(inspect(save49,'0.49.0',nextROM).compatibility.status,'compatible');
+ assert.equal(inspect(save49,'0.49.0',{version:'0.48.0',minimumSaveVersion:'0.36.2'}).compatibility.status,'downgrade');assert.equal(hash(save49),hash49);
  assert.equal(inspect(newSave,'0.42.5',{version:'0.43.0',minimumSaveVersion:'0.36.2'}).compatibility.status,'compatible');
  assert.throws(()=>inspect(newSave,'0.35.0'),{code:'START_MISMATCH'});
  assert.equal(detect(fixture35({stamp:0x2a03,second:true})),'0.42.3');

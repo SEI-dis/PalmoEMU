@@ -8,9 +8,10 @@ const {fixture35,fixture22,fakeROM,hash,put16,put32,seal,sector,slotBytes}=requi
  const {startVersionFromName}=await import('../src/start-save/version.js');
  for(const [name,expected] of [['PokemonStart_v0.35.0.gba','0.35.0'],['START 0.35.gba','0.35.0'],['START-v0.1.gba','0.1'],['START 0.18.0.gba','0.18'],['START 0.42.3.gba','0.42.3'],['START.gba',null],['START 0.99.0.gba','0.99.0'],['PokemonStart_v0.42.5.gba','0.42.5'],['START 1.0.35.0.gba',null],['START 0.35.0 to 0.42.3.gba',null]])assert.equal(startVersionFromName(name),expected,name);
  assert.equal(startVersionFromName('PokemonStart_v0.35.0.gba','renamed 0.42.3'),'0.35.0');assert.equal(startVersionFromName(undefined,'START 0.35.0'),'0.35.0');assert.equal(startVersionFromName('0.35.0 to 0.42.3.gba','START 0.35.0'),null);
- assert.equal(START_MIGRATION_VERSION,'0.48.0');assert.equal(START_SOURCE_VERSIONS.length,70);assert.equal(START_SOURCE_VERSIONS.find(v=>v.version==='0.17').sampleTested,false);assert(Object.isFrozen(START_SOURCE_VERSIONS[0]));
+ assert.equal(START_MIGRATION_VERSION,'0.49.0');assert.equal(START_SOURCE_VERSIONS.length,71);assert.equal(START_SOURCE_VERSIONS.find(v=>v.version==='0.17').sampleTested,false);assert(Object.isFrozen(START_SOURCE_VERSIONS[0]));
  assert.equal(identifyStartROM(new Uint8Array(192)),null);assert.equal(identifyStartROM(new Uint8Array(20)),null);
  assert.deepEqual(identifyStartROM(fakeROM(47924504)),{version:'0.42.3',crc32:47924504});
+ assert.deepEqual(identifyStartROM(fakeROM(3735236845)),{version:'0.49.0',crc32:3735236845});
  assert.deepEqual(identifyStartROM(fakeROM(1951955636)),{version:null,versions:['0.18','0.19'],crc32:1951955636});
  assert.throws(()=>inspectStartSave(new Uint8Array(6291473),'0.35'),{code:'START_SIZE'});assert.throws(()=>inspectStartSave('file.sav','0.35'),{code:'START_INPUT'});assert.throws(()=>inspectStartSave(fixture35(),'9.0'),{code:'START_VERSION'});
  const original=fixture35(),originalHash=hash(original),before=engine.snapshot(engine.readSave(original)),progress=[];
@@ -48,6 +49,11 @@ const {fixture35,fixture22,fakeROM,hash,put16,put32,seal,sector,slotBytes}=requi
  assert.equal(hash(two),twoHash);assert.deepEqual(recent.bytes.slice(-16),two.slice(-16));
  const exported=await migrateStartSave(two,{from:'0.35.0'});assert.deepEqual(exported.bytes,recent.bytes,'Standalone export uses the last reviewed bridge');
  await assert.rejects(migrateStartSave(two,{from:'0.35.0',target:{version:'0.48.0',minimumSaveVersion:'0.43.0'}}));assert.equal(hash(two),twoHash);
+ const target49={version:'0.49.0',minimumSaveVersion:'0.36.2'},converted49=await migrateStartSave(two,{from:'0.35.0',target:target49});
+ assert.equal(converted49.report.to,'0.42.5');assert.deepEqual(converted49.bytes,recent.bytes,'New manifest metadata must not advance the reviewed native-correction bridge');
+ assert.equal(hash(two),twoHash);assert.deepEqual(converted49.bytes.slice(-16),two.slice(-16));
+ for(const slot of [0,1])assert.equal(engine.getVariable(engine.readSave(converted49.bytes,slot),0x50ef),0x2a05);
+ await assert.rejects(migrateStartSave(two,{from:'0.35.0',target:{version:'0.49.0',minimumSaveVersion:'0.43.0'}}));assert.equal(hash(two),twoHash);
 
  // Re-seal authored encrypted page-zero records with boundary IDs; high held
  // item metadata bits must be preserved, not mistaken for an item number.
@@ -62,11 +68,11 @@ const {fixture35,fixture22,fakeROM,hash,put16,put32,seal,sector,slotBytes}=requi
  const bankZeroHash=hash(bankZero),bankZeroResult=await migrateStartSave(bankZero,{from:'0.35.0',target:'0.42.3'}),bankZeroState=engine.snapshot(engine.readSave(bankZeroResult.bytes));
  assert.deepEqual([...bankZeroState.common.slice(12,20)],[0,9,255,94,0,0,0,0]);assert.equal(bankZeroState.trainer[9],5);assert.equal(hash(bankZero),bankZeroHash);
  assert.deepEqual(bankZeroResult.bytes.slice(-16),bankZero.slice(-16));assert.deepEqual(bankZeroResult.bytes.slice(slotBytes),bankZero.slice(slotBytes));
- function boundarySave({stamp=0x3000,move=1005,item=868,badSlot=-1}={}){
+ function boundarySave({stamp=0x3000,species=1,move=1005,item=868,badSlot=-1}={}){
   const bytes=fixture35({stamp,second:true});
   for(const slot of [0,1]){
    const offset=slot*slotBytes+10*sector,page=bytes.slice(offset,offset+sector);for(let i=0;i<sector;i++)page[i]^=crypt[i];
-   const record=3371;put16(page,record+30,0xfc00|(badSlot<0||badSlot===slot?item:868));
+   const record=3371;put16(page,record+28,badSlot<0||badSlot===slot?species:1);put16(page,record+30,0xfc00|(badSlot<0||badSlot===slot?item:868));
    const value=badSlot<0||badSlot===slot?move:1005;let bits=BigInt(value);for(let i=0;i<5;i++)page[record+39+i]=Number((bits>>BigInt(i*8))&255n);
    seal(page,0,0x40,2,4080);for(let i=0;i<sector;i++)page[i]^=crypt[i];bytes.set(page,offset);
   }return bytes;
@@ -78,9 +84,18 @@ const {fixture35,fixture22,fakeROM,hash,put16,put32,seal,sector,slotBytes}=requi
  assert.equal(inspectStartSave(boundarySave({stamp:0x2a03,move:1003,item:857}),'0.42.3').slots.filter(s=>s.valid).length,2,'Historical maximum IDs remain valid');
  for(const change of [{move:1004,item:857},{move:1003,item:858}])assert.throws(()=>inspectStartSave(boundarySave({stamp:0x2a03,...change}),'0.42.3'),/範囲外/,'Historical source limits remain stricter than 0.48');
  await assert.rejects(migrateStartSave(latest,{from:'0.48.0',target:'0.42.3'}));assert.equal(hash(latest),latestHash);
+ const copy48to49=await migrateStartSave(latest,{from:'0.48.0',target:target49});assert.equal(copy48to49.report.to,'0.48.0');assert.deepEqual(copy48to49.bytes,latest);
+ const save49=boundarySave({stamp:0x3100,species:1505}),hash49=hash(save49);
+ assert.equal(inspectStartSave(save49,'0.49.0').slots.filter(s=>s.valid).length,2);
+ const copy49=await migrateStartSave(save49,{from:'0.49.0',target:target49});assert.equal(copy49.report.to,'0.49.0');assert.deepEqual(copy49.bytes,save49);assert.deepEqual(copy49.bytes.slice(-16),save49.slice(-16));
+ for(const slot of [0,1]){const record=engine.readRecord(engine.readSave(copy49.bytes,slot),0);assert.equal(new DataView(record.buffer,record.byteOffset,record.byteLength).getUint16(28,true),1505);}
+ for(const badSlot of [0,1])for(const change of [{species:1506},{move:1006},{item:869}]){const bytes=boundarySave({stamp:0x3100,...change,badSlot}),before=hash(bytes);assert.throws(()=>inspectStartSave(bytes,'0.49.0'),/範囲外/);assert.equal(hash(bytes),before);}
+ assert.equal(inspectStartSave(boundarySave({species:1493}),'0.48.0').slots.filter(s=>s.valid).length,2);
+ assert.throws(()=>inspectStartSave(boundarySave({species:1494}),'0.48.0'),/範囲外/,'0.49 species additions must not relax 0.48 record bounds');
+ await assert.rejects(migrateStartSave(save49,{from:'0.49.0',target:recentTarget}));assert.equal(hash(save49),hash49);assert.equal(hash(latest),latestHash);
  const abort=new AbortController();await assert.rejects(migrateStartSave(two,{from:'0.35.0',target:recentTarget,signal:abort.signal,onProgress:p=>{if(p.index===3)abort.abort();}}),{name:'AbortError'});assert.equal(hash(two),twoHash);
  const already=new AbortController();already.abort();await assert.rejects(migrateStartSave(original,{from:'0.35.0',signal:already.signal}),{name:'AbortError'});
  await assert.rejects(migrateStartSave(original,{from:'0.35.0',onProgress:()=>{throw Error('observer failed');}}),/observer failed/);assert.equal(hash(original),originalHash);
  await assert.rejects(migrateStartSave(original,{from:'0.35.0',selection:1}),{code:'START_SLOT'});
- console.log('PASS START migration: historical 0.42.3 output, reviewed 0.42.5 bridge for newer ROMs, 0.48 record bounds/no-op, both slots/RTC, corruption, cancellation and immutable input');
+ console.log('PASS START migration: historical 0.42.3 output, reviewed 0.42.5 bridge, 0.48/0.49 record bounds and byte-identical copies, downgrade rejection, both slots/RTC, corruption, cancellation and immutable input');
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1114,3 +1114,18 @@ UI原文・翻訳辞書・変更通知・版番号、既存の保存形式・DB�
 - start-updates-browser passed in isolated Chromium and desktop WebKit: 403 fallback, old failed state recovery, notification display, unchanged synthetic library/save/state records and bounded responsive layouts. Node SW request checks reject alternate paths, query/fragment additions and writes for both allowed metadata endpoints. Both engines also passed security-policy: JavaScript string evaluation remains blocked, WebAssembly remains permitted.
 - Existing Japanese and eight translated result/error messages were reviewed against the fallback behavior; no new UI strings, translation catalogue edits or app release-note text were introduced. No native core, storage schema, user save migration, third-party license change or PKS integration was made.
 - Local working tree only. No version increment, commit, push or publication is performed for this follow-up. Physical iPhone/Android checks remain separate from desktop WebKit/Chromium tests.
+
+
+## 0.3.34: 0.49.0提供定義と別PC修正の統合（2026-10-16）
+
+別PCのd7e6f68をfast-forwardで取り込み、こちらのテスト差分は退避・復元して両方の回帰を保持した。前節の音量・セーブ保護・取り外し済みROM再指定・配布情報再確認の修正も今回の変更通知に含める。元の利用者データや既存ブラウザの保存領域は変更していない。
+
+提供HTMLのSHA256はdffa63e76abf9f9bac865e24643139bd09f8ef3927a26a0dc37b5bf0be7df795。静的なJSON抽出で、1.0.8から1.0.9への変更が0.49.0定義とPROFILEデータであり、PROFILE/MANIFESTを除いた処理は同一と確認した。既存70版とnativeCompatibility、保持するcharMap/boxPointersも同一。新定義は種族1506・技1006・道具869、v23/50箱/SaveCrypt、stamp0x3100。素材や編集用データは取り込まず数値定義だけを追加した。作者・PokemonStart開発者のクレジットと既存の限定許諾記録を保持する。
+
+別PCで分離したテンプレートと5つのPalmoEMU補正を個別に確認して維持し、定義の固定ハッシュのみを更新した。生成されたengine.jsはd7e6f68からbyte不変。0.42.5までの確認済み中間変換、互換な保存の無変換コピー、未知条件と逆方向更新の拒否は変えない。README取得の固定通信先と監査文書の記載の不一致も修正した。
+
+- Nodeのstart-save-component、start-save-migration、start-save-compatibility、start-rom-profile、start-updates、check-modulesが成功。候補/改ざん/生成再現性、種族1505の受理と1506の拒否、技/道具上限、古い版の上限維持、両スロット・16byte RTC・原本保持を確認した。
+- Edge/PC WebKitのstart-save-update-rangeとstart-save-uiが成功。合成0.49 ROMへの0.35変換、0.40/0.48コピー、0.49から0.48へのUI/Worker/commit拒否、原本/更新前バックアップと両スロット/RTC保持を確認した。取り外し済みROM再追加の別PC回帰も保持して成功した。
+- 8言語の新規変更通知40項目を独立校正。build-offline/check-i18nで9言語・各1460項目と変更通知の整合を確認。release-noticeはEdge/PC WebKitで成功し、全言語、初回/更新/再表示、詳細、オフライン、隠れたタブや作業中の延期、複数タブ、既存の合成ユーザーデータ不変を検査した。生成経路はLOCALIZATION_REVIEW.mdに記録した。 実0.3.34の通知上位3件と変更履歴の全40訳が校正済みJSONに一致すること、全9言語・320/390/844pxで横あふれ・ページエラー・外部通信がないことを両ブラウザで確認し、スクリーンショットも確認した。
+
+このチェックアウトには実0.49 ROMと実セーブがないため、その実行・再保存は今回の検証に含めない。別PCの読み取り専用のROM互換範囲の記録はROM_REVIEW.mdを参照し、実プレイ検証と混同しない。iPhone/Android実機も未検証。ROM・セーブ・HTML原本・名前/画像等のPROFILE素材は配布物へ追加しない。公開はこの変更を含む同一コミットの全CI成功後に行う。

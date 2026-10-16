@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "hostContract": "start-v23-50-savecrypt",
-  "toolVersion": "1.0.8",
-  "outputVersion": "0.48.0",
+  "toolVersion": "1.0.9",
+  "outputVersion": "0.49.0",
   "author": "くりーぱー (Discord: ajillo0112)",
   "permission": "Author permission for incorporation into PalmoEMU, Web publication, modification, and redistribution of modified source was confirmed by the project maintainer on 2026-10-14. No standardized upstream license was supplied. Retain the provenance/scope in README.md; do not assert an AGPL, MIT or general third-party license. The maintainer confirmed that the author's stated condition is credit attribution.",
   "sources": [
@@ -21,12 +21,16 @@
     {
       "name": "START-Save-Migrate-0.48.0.html (reviewed 2026-10-16)",
       "sha256": "c75944e71e02566671ef5b04e19144e0733a32c526448558d48a7fa4b87e5cf2"
+    },
+    {
+      "name": "START-Save-Migrate-0.49.0.html (reviewed 2026-10-16)",
+      "sha256": "dffa63e76abf9f9bac865e24643139bd09f8ef3927a26a0dc37b5bf0be7df795"
     }
   ],
   "files": {
     "engine.js": "117e1d365a3a6db8b05d50a998c34b4c789fa4dead069facfeb3fd1b7ec1daa7",
-    "manifest.js": "55970bdcb8b51799da8736f0b6f5e9c71b1b3f19e9e1c709911aeb5f1706c167",
-    "README.md": "a54b509efba5b47bc3ab0dc7b0e5c034dcf0f8bf83fecc378e8317664223d25f"
+    "manifest.js": "f3052744667067733a3537ce90361fe16ef65c4eb7072f27f2f13ff629bd13b8",
+    "README.md": "f0d25f8845444f880b7f38ab467745af56cd94e4bf5bd65f682a652b98d50c6f"
   },
   "localChanges": {
     "template": "scripts/start-save-migrate/base/engine.template.txt",
