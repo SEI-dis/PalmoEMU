@@ -55,7 +55,10 @@ function old49({second=false,rtc=true,encrypted=true,dense=true,counter=7,record
 function changePage(bytes,slot,physical,mutate,{reseal=true}={}){const out=decode(bytes),offset=slot*slotBytes+physical*sector,page=out.slice(offset,offset+sector);mutate(page);if(reseal){const id=u16(page,4084);seal(page,0,id,u32(page,4092),id<5?mainSizes[id]:payload);}out.set(page,offset);return encode(out);}
 function newLayout(bytes,slot=0){
  const decoded=decode(bytes),start=slot*slotBytes;let bank;
- for(let candidate=0;candidate<2;candidate++)if(u32(decoded,start+candidate*5*sector+4088)===signature){bank=candidate;break;}
+ for(let candidate=0;candidate<2;candidate++)if(u32(decoded,start+candidate*5*sector+4088)===signature){
+  const count=u32(decoded,start+candidate*5*sector+4092),previous=bank===undefined?null:u32(decoded,start+bank*5*sector+4092);
+  if(previous===null||count!==previous&&((count-previous)>>>0)<0x80000000)bank=candidate;
+ }
  assert.notEqual(bank,undefined,'Converted layout has a main bank');const sections=mainSizes.map((_,i)=>decoded.slice(start+(bank*5+i)*sector,start+(bank*5+i)*sector+payload));
  const sb1=new Uint8Array(mainSizes.slice(1).reduce((a,b)=>a+b,0));let at=0;for(let i=1;i<5;i++){sb1.set(sections[i].subarray(0,mainSizes[i]),at);at+=mainSizes[i];}
  assert.equal(u32(sb1,0x1400),0x324c4853,'L shelf signature');

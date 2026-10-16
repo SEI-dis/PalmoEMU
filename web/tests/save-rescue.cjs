@@ -29,6 +29,16 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
    let fullRejected=false;try{await backup.createBackup({});}catch{fullRejected=true;}
    const result=await backup.createBackup({},{gameIds:[healthy.id]});return {fullRejected,games:result.archive.games.map(g=>g.id),expected:healthy.id};
   }),{fullRejected:true,games:[await page.evaluate(()=>healthy.id)],expected:await page.evaluate(()=>healthy.id)});
+  // Reading history returns verified owned bytes and never mutates storage.
+  assert.equal(await page.evaluate(async()=>{
+   const before=JSON.stringify(await snapshot()),file=await rescue.readSaveHistory(plan,1);
+   const valid=file.bytes[0]===30;file.bytes[0]=255;
+   let rejected=false;try{await rescue.readSaveHistory(plan,0);}catch{rejected=true;}
+   const changed=(await snapshot()).recent;changed[1]=await save(31,301);await db.put('backups',game.id,changed);
+   let stale=false;try{await rescue.readSaveHistory(plan,1);}catch{stale=true;}
+   changed[1]=good;await db.put('backups',game.id,changed);
+   return valid&&rejected&&stale&&before===JSON.stringify(await snapshot());
+  }),true,'History export rejects damaged/stale entries and preserves original bytes');
   // Active game lock refuses recovery before writing anything.
   const other=await context.newPage();await other.goto(base);await other.evaluate(id=>{window.lockTask=navigator.locks.request('local-game:'+id,async()=>{window.held=true;await new Promise(resolve=>window.release=resolve);});},fixture.id);await other.waitForFunction(()=>window.held);
   assert.equal(await page.evaluate(async()=>{const before=await snapshot();let blocked=false;try{await rescue.restoreSaveHistory(plan,1);}catch(e){blocked=/プレイ中/.test(e.message);}return blocked&&JSON.stringify(before)===JSON.stringify(await snapshot());}),true);
@@ -88,6 +98,7 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
   // Exercise the actual app launch/catch/cleanup path with an authored ROM.
   // Returning false must not let a pre-launch state dialog close the new rescue.
   const native=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),live=await native.newPage(),errors=[];live.on('pageerror',error=>errors.push(error.message));
+  await native.route('**/src/storage/save-rescue.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text()).replace('async function inspect(game){','async function inspect(game){if(globalThis.rescueGate){globalThis.rescueWaiting=true;await globalThis.rescueGate;globalThis.rescueWaitDone=true;}')});});
   await native.addInitScript(()=>localStorage.setItem('manic-settings',JSON.stringify({autosave:false,recovery:false})));
   await live.goto(base);await live.locator('#add-first').waitFor();if(await live.locator('#sheet').isVisible())await live.locator('#close-sheet').click();await live.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
   await live.evaluate(async()=>{const {MGBACore}=await import('./src/core/mgba.js'),load=MGBACore.prototype.load;MGBACore.prototype.load=async function(...args){window.rescueCore=this;return load.apply(this,args);};});
@@ -98,7 +109,14 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
    // State payload is never loaded: corruption must stop battery bootstrap first.
    const state=new Uint8Array([1]);await db.put('states',game.id+':fixture',{bytes:state,hash:await hash(state),at:12346,coreId:good.coreId,save:good.bytes,saveHash:good.hash});
   });
-  await live.locator('.game-launch').click();await live.locator('.game-info-play').click();await live.locator('#save-rescue-export').waitFor();
+  await live.locator('.game-launch').click();
+  await live.evaluate(()=>{globalThis.rescueGate=new Promise(resolve=>globalThis.releaseRescue=resolve);});
+  await live.locator('[data-action=saveData]').click();await live.waitForFunction(()=>globalThis.rescueWaiting);
+  await live.locator('#close-sheet').click();await live.locator('.game-info-play').waitFor();
+  await live.evaluate(()=>{globalThis.rescueGate=null;releaseRescue();});await live.waitForFunction(()=>globalThis.rescueWaitDone);
+  await live.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  assert.equal(await live.locator('.game-info-play').isVisible(),true,'Completed history inspection cannot reopen a cancelled child view');
+  await live.locator('.game-info-play').click();await live.locator('#save-rescue-export').waitFor();
   assert.equal(await live.locator('#player').isVisible(),false);assert.equal(await live.evaluate(()=>rescueCore.closed),true);
   assert.equal(await live.evaluate(async()=>navigator.locks.request('local-game:'+game.id,{ifAvailable:true},lock=>!!lock)),true,'Startup failure releases the game lock before showing rescue');
   assert.match(await live.locator('#sheet-body').innerText(),/起動を中止/);

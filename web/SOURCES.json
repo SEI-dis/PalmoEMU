@@ -335,9 +335,9 @@
     "sources/mgba-web-port/logging.h": "c6e0252250b07ae5f898e8921dfd2b142f53dcc67f652b930868282d8ee88da3",
     "scripts/start-save-migrate/base/engine.template.txt": "e4342bda9be3f0f885550f6f6d11efae47642590e94c82fa384fc09966390d66",
     "scripts/start-save-migrate/patches.json": "4d094e131f2db9c0fce7ae438ec95b4410dca8500630986fc206044887b08b76",
-    "vendor/start-save-format/engine.js": "3acd5ecc1a294c9d89e5fb47ad441ca26244e2a24ebcb80f8cac4398939d8b6f",
-    "vendor/start-save-format/README.md": "7af73831c5f0cb0d3750129c79db715bcf4042fe9a30301fb604a50ccf88c788",
-    "vendor/start-save-format/component.json": "2485dab677bd91a91f2800218113302223578a8a27037dafc9f29383c0cf2c8a"
+    "vendor/start-save-format/engine.js": "615c4029111b76d727260646e7bc7d48520df8d57110e6126cc5ed4680f5a7d4",
+    "vendor/start-save-format/README.md": "ba80edacf8e9a942a4dc393dedd29b00f89e248a67852723c63be4d9f537e9f1",
+    "vendor/start-save-format/component.json": "0887ee857e15240c728d430909b813cb676e87e354a72d5962b810c1394bbf8c"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",
@@ -752,13 +752,14 @@
   },
   "startSaveFormatL": {
     "sourceDistributor": "pm-start/PokemonStart",
-    "sourceCommit": "80cb08adf9fe2005f7618dbbdbffcab10b54e839",
-    "distribution": "PokemonStart_v0.50.0.pks",
-    "distributionSha256": "3d260579ea1ddfea63ea85be562afd3553fa3843658abf9b2819f1b0399ef088",
+    "sourceCommit": "62ebfdded673b10fa4450b94494166da8147d2bd",
+    "distribution": "PokemonStart_v0.50.1.pks",
+    "distributionSha256": "b810fead98ba05f13ffecd03ffe7acec221d79fa32cca8bc486900bdafadd2ce",
     "component": "vendor/start-save-format/component.json",
     "provenance": "vendor/start-save-format/README.md",
-    "permissionBasis": "The project maintainer explicitly confirmed permission to incorporate the officially bundled HTML migration tool and publish its integration on the Web on 2026-10-16. No standardized upstream license was supplied. This records the maintainer confirmation, not an independently inspected rights-holder message. Retain README.md provenance and permission scope; do not assert a general third-party license or attribute this tool to the separate START Save Migrate author.",
+    "permissionBasis": "On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.",
     "integration": "Separate adapted forward-only module under vendor/start-save-format; host facade in src/start-save/format-l.js. Loaded with the migration task, cached initially for offline ROM updates. Worker use does not establish legal separation.",
-    "changes": "Official old-to-L SaveCrypt/LFormat rules, with strict structural validation, wrap-aware counters, owned-copy/raw-region preservation and output verification. No reverse conversion or rounding. Host applies existing reviewed pre-0.38.1 corrections before the format step, normalizes a 1MiB container, preserves 0x31ff for first-load game updates, and rejects mixed old/L or newer saves. No ROM, save, PKS, original HTML, patch or artwork is distributed."
+    "changes": "Official old-to-L SaveCrypt/LFormat rules, with strict structural validation, wrap-aware counters, owned-copy/raw-region preservation and output verification. No reverse conversion or rounding. Host applies existing reviewed pre-0.38.1 corrections before the format step, normalizes a 1MiB container, preserves 0x31ff for first-load game updates, and rejects mixed old/L or newer saves. No ROM, save, PKS, original HTML, patch or artwork is distributed. Updated from the separately supplied 0.50.1 HTML: older main-bank backup plus a conditional sector-16 page-zero backup avoid the converted-save flash alias false negative. Existing L bytes, 0x31ff and the independent runtime correction are retained.",
+    "publicationStatus": "Permission scope confirmed by maintainer on 2026-10-16, conditional on existing credits; reviewed in release 0.3.35. Deployment requires successful validation of the same commit."
   }
 }

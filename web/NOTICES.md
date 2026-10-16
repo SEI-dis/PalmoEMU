@@ -1,5 +1,14 @@
 # Copyright, credits and modification notices
 
+Permission follow-up (2026-10-16): after the requested scope was explained, the
+maintainer reported that the separate PokemonStart 0.50.x converter may be
+modified, incorporated, distributed offline and published with modified source
+on GitHub/in ZIPs, conditional on credit attribution. The developer is already
+credited; retain the existing PokemonStart developer and project/tool links.
+This is the maintainer report, not independent inspection of an author message.
+Earlier held/unpublished entries remain historical; see the current component
+record. No general upstream license or individual tool author is invented.
+
 This is an unofficial Web port of ManicEMU, not a release endorsed by its authors.
 
 Current bundled-artwork exception: seven ManicEMU standard skins under CC BY 4.0,
@@ -936,3 +945,16 @@ Original host integration and tests are AGPL-3.0-or-later; that does not relicen
 the supplied component. ROMs, PKS packages, original HTML, patches, artwork and
 user saves are not included. The offline/source inventory identifies this
 component separately and pins its engine, provenance and permission record.
+
+Modified 2026-10-16 (unpublished): updated that separate format component to the
+maintainer-supplied 0.50.1 HTML. Adopted the forward writer's older main-bank
+backup and conditional physical-sector-16 page-zero backup. The independent
+strict validation, preservation checks, 0x31ff guard and valid-L no-op remain.
+Provenance and permission scope are unchanged; see its updated README/component
+record for the HTML and decoded-source digests. The pre-existing runtime-only
+flash-probe correction remains separately gated by ROM structure and native
+capacity; no ROM or user-save bytes are included in this update.
+
+## PalmoEMU 0.3.35 — 2026-10-16
+
+Updates the separately attributed PokemonStart converter to the supplied 0.50.1 forward-writer fixes. Existing credits and source/provenance notices remain. Original PalmoEMU changes unify save-history navigation with validated reads and the existing safe restoration transactions, simplify duplicate controls/explanations, align setting names, and remove unused translation entries. The release includes the previously recorded offline/import/export/cover improvements. No user ROM/save, original bundled HTML/PKS, new native core or third-party artwork is distributed. Maintainer-confirmed permission and scoped validation are recorded above and in the component documentation.

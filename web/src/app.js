@@ -65,8 +65,10 @@ import {createCaptureControls} from './capture/capture-controls.js';
 import {clamp,normalizedPosition} from './skins/control-layout.js';
 import {createSkinSettings} from './views/skins.js';
 import {createStateDialogs} from './views/states.js';
-import {groupedOptions,gameShortcuts,stateDate,nativeAction,nativeSelect,nativeToggle} from './components/manic-ui.js';
+import {groupedOptions,gameShortcuts,nativeAction,nativeSelect,nativeToggle} from './components/manic-ui.js';
 import {createGameInfo} from './views/game-info.js';
+import {createSaveRescueView} from './views/save-rescue.js';
+import {readSaveHistory} from './storage/save-rescue.js';
 import {createLibraryView} from './views/library.js';
 import {createStartUpdatesView} from './views/start-updates.js';
 import {floatingPanel} from './components/floating-panel.js';
@@ -162,13 +164,13 @@ function sheet(title,html,resume=false,{root=false,onBack=null,confirmation=fals
  const dialog=$('#sheet');if(gameMenuReturn&&dialog.open&&dialog.classList.contains('game-info'))gameMenuReturn.scrollTop=$('.native-options')?.scrollTop||0;
  sheetCleanup();sheetCleanup=()=>{};if(dialog.open)dialog.close();
  dialog.classList.remove('port-menu','states-view','save-data','native-menu','game-info');$('#sheet-cover').hidden=true;$('#sheet-cover').removeAttribute('src');$('#sheet-tools').replaceChildren();$('#close-sheet').removeAttribute('data-action');sheetBack=onBack||(!root&&!engine&&!launching&&gameMenuReturn?()=>gameInfo.show(gameMenuReturn.game):null);
- const close=$('#close-sheet'),back=!!sheetBack&&!confirmation;close.classList.toggle('sheet-back',back);close.setAttribute('aria-label',back?tr('戻る'):tr('閉じる'));close.innerHTML=back?`${icon('back')}<span>${esc(tr('戻る'))}</span>`:icon('close');
+ const close=$('#close-sheet'),back=!!sheetBack&&!confirmation;close.hidden=confirmation;close.classList.toggle('sheet-back',back);close.setAttribute('aria-label',back?tr('戻る'):tr('閉じる'));close.innerHTML=back?`${icon('back')}<span>${esc(tr('戻る'))}</span>`:icon('close');
  linkPanel.hide();dialogResume=resume;$('#sheet-title').textContent=title;$('#sheet-body').innerHTML=html;dialog.showModal();dialog.scrollTop=0;
 }
 function menuTools(tools,handlers){$('#sheet-tools').innerHTML=tools.map(([id,label,ic])=>`<button class="sheet-tool ${id==='exit'?'danger':''}" data-shortcut="${id}" data-action="${id}" aria-label="${label}" title="${label}">${icon(ic)}</button>`).join('');$$('[data-shortcut]').forEach(b=>b.onclick=guardUpdateTask(()=>{try{return Promise.resolve(!rewindSession.busy?handlers[b.dataset.shortcut]():undefined).catch(error);}catch(e){error(e);}}));}
 function closeSheet({dismiss=false}={}){
  if(rewindSession.busy||$('#close-sheet').disabled)return;
- if(!dismiss&&!engine&&!launching&&sheetBack){try{Promise.resolve(sheetBack()).catch(error);}catch(e){error(e);}return;}
+ if(!dismiss&&!launching&&sheetBack){try{Promise.resolve(sheetBack()).catch(error);}catch(e){error(e);}return;}
  // A child sheet replaces the DOM, but its owning GameInfoView stays active.
  // Only explicit Play/Delete or closing the ROM menu dismisses that context.
  if(!dismiss&&!engine&&!launching&&gameMenuReturn&&$('#sheet').open&&!$('#sheet').classList.contains('game-info')){gameInfo.show(gameMenuReturn.game);return;}
@@ -194,7 +196,6 @@ $('#sheet').addEventListener('cancel',e=>{if(e.target!==e.currentTarget)return;e
 // A modal dialog paints above all ordinary z-index layers, including body toasts.
 $('#sheet').addEventListener('close',()=>{if(!$('#sheet').open)document.body.append($('#toast'));});
 $('#sheet').addEventListener('click',e=>{if(e.target===$('#sheet')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeSheet();}});
-$('#controllers').innerHTML=icon('game');$('#controllers').onclick=showControllers;
 $('#history').innerHTML=icon('history');$('#history').onclick=showHistory;
 $('#player-menu').innerHTML=icon('more');$('#player-menu').onclick=showGameMenu;
 function tabFromHash(){return location.hash==='#settings'?'settings':location.hash==='#imports'?'imports':'games';}
@@ -215,8 +216,8 @@ function renderGames(){libraryView.render();}
 // Local Files, skin settings and game-specific save import; original Web artwork.
 function renderImports(){
  $('#content').innerHTML=tr`<section class="page import-page" aria-label="インポート"><header class="import-hero"><img src="assets/icon.svg" alt=""></header>
-  <button class="import-file" id="choose-rom"><span class="import-file-icon">${icon('folder')}</span><span><strong>ファイル</strong><small>端末内のROMを追加</small></span></button>
-  <div class="import-services"><button class="import-service" id="import-saves" ${library.length?'':'disabled'}><span class="import-service-icon save-service">${icon('saveImport')}</span><strong>セーブデータ</strong><small>${library.length?tr('ゲームを選んで読み込む'):tr('先にゲームを追加')}</small></button><button class="import-service" id="import-skins"><span class="import-service-icon skin-service">${icon('image')}</span><strong>スキン</strong><small>追加・変更</small></button><button class="import-service" id="import-update-rom" ${library.length?'':'disabled'}><span class="import-service-icon">${icon('reload')}</span><strong>ROMを更新</strong><small>${library.length?tr('セーブを引き継ぐ'):tr('先にゲームを追加')}</small></button><button class="import-service" id="import-patch"><span class="import-service-icon">${icon('code')}</span><strong>ROMパッチ</strong><small>パッチを適用</small></button></div>
+  <button class="import-file" id="choose-rom"><span class="import-file-icon">${icon('folder')}</span><span><strong>ROMを追加</strong></span></button>
+  <div class="import-services"><button class="import-service" id="import-saves" ${library.length?'':'disabled'}><span class="import-service-icon save-service">${icon('saveImport')}</span><strong>セーブデータ</strong>${library.length?'':tr('<small>先にゲームを追加</small>')}</button><button class="import-service" id="import-skins"><span class="import-service-icon skin-service">${icon('image')}</span><strong>スキン</strong></button><button class="import-service" id="import-update-rom" ${library.length?'':'disabled'}><span class="import-service-icon">${icon('reload')}</span><strong>ROMを更新</strong>${library.length?'':tr('<small>先にゲームを追加</small>')}</button><button class="import-service" id="import-patch"><span class="import-service-icon">${icon('code')}</span><strong>ROMパッチ</strong></button></div>
   <div class="import-drop"><span class="import-drop-icon">${icon('import')}</span><span><strong>ドラッグ＆ドロップ</strong><small>ROMをこの画面にドロップ</small></span></div>
   <details class="import-formats"><summary>対応する形式</summary><p class="sheet-note">${Object.values(systems).map(s=>`${s.short}：${s.ext.map(ext=>'.'+ext).join(' / ')}`).join('<br>')}</p><p class="sheet-note">ZIPも追加できます。ROMとセーブは端末内に保存します。利用する権利のあるROMを使用してください。</p></details></section>`;
  $('#choose-rom').onclick=()=>$('#rom-input').click();
@@ -278,15 +279,15 @@ function menuControlCells(game=current){return {
  frameLimit:game?.system==='nds'&&coreFor(game).renderLimit?nativeToggle(tr('省電力モード'),'ndsPowerSave','bolt',settings.ndsPowerSave!==false,{detail:tr('描画を約30fpsに抑えて負荷を軽減')}):'',
  volume:nativeToggle(tr('音量'),'muted','volume',!settings.muted,{invert:true}),
  volumeLevel:row(tr('音量レベル'),tr`<input aria-label="音量レベル" data-setting="volume" type="range" min="0" max="1" step=".05" value="${settings.volume}">`,'volume'),
- fastForward:nativeSelect(tr('早送り'),'speed','fast',[[1,tr('通常速度')],...[2,3,4,5].map(n=>[n,n+tr('倍速')])],settings.speed),
- shaders:nativeSelect(tr('シェーダー'),'filter','image',videoFilters,settings.filter)+filterStrengthControl(settings)+videoFilterNote(settings.filter),
- haptic:supportsHaptics()?nativeSelect(tr('触覚'),'hapticStrength','haptic',[[0,tr('オフ')],[8,tr('弱振動')],[20,tr('強振動')]],settings.haptics?(settings.hapticStrength||8):0):nativeAction(tr('触覚'),null,'haptic',tr('このブラウザでは非対応')),
- controllerSetting:nativeAction(tr('コントローラー設定'),'controllers','game'),
+ fastForward:nativeSelect(tr('プレイ速度'),'speed','fast',[[1,tr('通常速度')],...[2,3,4,5].map(n=>[n,n+tr('倍速')])],settings.speed),
+ shaders:nativeSelect(tr('映像フィルター'),'filter','image',videoFilters,settings.filter)+filterStrengthControl(settings)+videoFilterNote(settings.filter),
+ haptic:supportsHaptics()?nativeSelect(tr('タッチの振動'),'hapticStrength','haptic',[[0,tr('オフ')],[8,tr('弱振動')],[20,tr('強振動')]],settings.haptics?(settings.hapticStrength||8):0):nativeAction(tr('タッチの振動'),null,'haptic',tr('このブラウザでは非対応')),
+ controllerSetting:nativeAction(tr('コントローラー・キーボード'),'controllers','game'),
  rewindEnabled:game&&supportsRewind(game.system,coreFor(game).key)?nativeToggle(tr('巻き戻しを記録'),'rewindEnabled','history',!!settings.rewindEnabled,{detail:tr('最大10秒・記録用メモリ8 MiBまで。通信中は停止')}):'',
  rewind:engine&&supportsRewind(current.system,coreFor(current).key)?nativeAction(tr('最大3秒戻す'),'rewind','history'):'',
  deadZone:nativeSelect(tr('デッドゾーン'),'deadZone','joystick',[[.1,'10%'],[.2,'20%'],[.3,'30%'],[.4,'40%'],[.5,'50%']],settings.deadZone??.4),
  cameraButton:nativeToggle(tr('スクリーンショットボタン'),'showCamera','camera',settings.showCamera!==false),
- hideControls:nativeToggle(tr('コントロール非表示'),'touchControls','hide',!settings.touchControls,{invert:true}),
+ hideControls:nativeToggle(tr('画面ボタン'),'touchControls','game',!!settings.touchControls),
  screenScaling:nativeSelect(tr('画面スケーリング'),'screenScaling','expand',[['fit',tr('アスペクト比を維持')],['stretch',tr('引き伸ばし')],['fill',tr('画面を埋める')]],settings.screenScaling||'fit')
 };}
 const gameInfo=createGameInfo({sheet,closeSheet,launch,refresh,error,toast,download,showSkins,showControllers,showCheats,showCategory:game=>libraryView.showCategory(game),
@@ -426,20 +427,23 @@ setInterval(()=>{if(engine&&!paused&&(settings.autosave||settings.recovery))pers
 // Crash recovery uses the native automatic-save tab, not a separate menu.
 async function showRecovery(interrupted=false){if(!engine)return;setPause(true);await showStates('auto',false,{interrupted});}
 async function exportGameSave(){const bytes=await engine.save();if(!bytes?.length){toast(tr('ゲーム内でセーブしてから書き出してください。'));return;}download(bytes,current.name+'.'+coreFor(current).saveExtension);}
-function showSaveData(){
- sheet(tr('ゲーム内セーブ・保存履歴'),tr`<p class="sheet-note">ゲーム内の「レポート」などで保存したデータです。</p><div class="settings-group">${action(tr('読み込む'),'restore','folder')}${action(tr('書き出す'),'export','import')}</div><div class="settings-group">${action(tr('保存履歴'),'backups','history')}</div>`,true);$('#sheet').classList.add('save-data');
- bindActions($('#sheet-body'),{restore:()=>chooseSaveImport(current),export:exportGameSave,backups:showBackups});
-}
-async function showBackups(mode='recent'){
- mode=mode==='archive'?'archive':'recent';
- const game=current,history=await db.get(mode==='archive'?'archives':'backups',saveKey(game))||[];
- sheet(tr('保存履歴'),tr`<div class="segmented" role="group" aria-label="保存履歴"><button data-backup-mode="recent" aria-pressed="${mode==='recent'}">直近</button><button data-backup-mode="archive" aria-pressed="${mode==='archive'}">5分ごとの履歴</button></div><p class="sheet-note">直近5世代と、変更があったセーブを5分間隔で最大10世代残します。</p><div class="settings-group">${history.map((record,i)=>tr`<article class="backup-entry"><div class="save-caption"><strong>セーブ ${i+1}</strong>${stateDate(record.at)}</div><button class="sheet-tool" data-backup-export="${i}" aria-label="セーブ ${i+1}を書き出す">${icon('import')}</button><button class="state-continue" data-backup-restore="${i}">復元</button></article>`).join('')||tr('<p class="sheet-note">バックアップはまだありません。</p>')}</div>`,true);$('#sheet').classList.add('save-data');
- $$('[data-backup-mode]').forEach(b=>b.onclick=()=>showBackups(b.dataset.backupMode));
- $$('[data-backup-export]').forEach(b=>b.onclick=async()=>{try{const record=history[Number(b.dataset.backupExport)];download(await protection.verify(record),game.name+'-backup-'+record.at+'.'+coreFor(game).saveExtension);}catch(e){error(e);}});
- $$('[data-backup-restore]').forEach(b=>b.onclick=()=>{
-  const record=history[Number(b.dataset.backupRestore)];sheet(tr('履歴から復元'),tr`<p class="sheet-note">${new Date(record.at).toLocaleString(locale())} のセーブで再起動します。現在のセーブもバックアップに残します。</p><div class="sheet-actions"><button class="secondary" id="cancel-backup">キャンセル</button><button class="primary" id="confirm-backup">復元</button></div>`,true);
-  $('#cancel-backup').onclick=()=>showBackups(mode);$('#confirm-backup').onclick=async()=>{const button=$('#confirm-backup');button.disabled=true;try{if(game!==current)throw new Error(tr('ゲームが変更されました。'));const bytes=await protection.verify(record);await persist({reason:'before-restore'});await rewindSession.clear();await engine.restore(bytes);await engine.reset();await persist({checkpoint:true,reason:'backup-restore'});closeSheet();toast(tr('復元しました。'));}catch(e){error(e);button.disabled=false;}};
- });
+const playingSaveData=createSaveRescueView({
+ sheet:(title,html,_resume,options)=>sheet(title,html,true,options),
+ onClose:cleanup=>{sheetCleanup=cleanup;},showGame:showGameMenu,importSave:chooseSaveImport,
+ download,error,toast,exportSave:exportGameSave,
+ didRestore:()=>{closeSheet({dismiss:true});toast(tr('復元しました。'));},
+ isActive:game=>!!engine&&current?.id===game.id&&!exiting&&!launching&&!exitStage,
+ restoreHistory:async(game,plan,index)=>{
+  const active=engine,record=await readSaveHistory(plan,index);
+  if(!active||engine!==active||current?.id!==game.id||!paused||exiting||launching||exitStage)throw Error(tr('ゲームが変更されました。'));
+  await applyGameSave(game,record.bytes,{history:true});
+ }
+});
+async function showSaveData(){
+ const active=engine,game=current,origin=$('#sheet-body').firstChild;if(!active||!game)return;
+ setPause(true);await pauseSaveTask;await protection.queue;
+ if(engine!==active||current!==game||!paused||origin!==$('#sheet-body').firstChild||exiting||launching||exitStage)return;
+ await playingSaveData.open(game);
 }
 // GameOptionsView.getListPage / GameOption.defaultGroupAndSort, with native-only
 // actions removed. Browser-only functions use the same grouped row components.
@@ -464,14 +468,14 @@ function showGameMenu(){
  bindSettings($('#sheet-body'));bindActions($('#sheet-body'),handlers);menuTools(shortcuts,handlers);
 }
 function confirmRestart(){
- sheet(tr('再起動しますか？'),tr('<p class="sheet-note">ゲーム内セーブから起動します。現在の状態も自動保存に残します。</p><div class="sheet-actions"><button class="secondary" id="cancel-restart">キャンセル</button><button class="primary" id="confirm-restart">再起動</button></div>'),true);
+ sheet(tr('再起動しますか？'),tr('<p class="sheet-note">ゲーム内セーブから起動します。現在の状態も自動保存に残します。</p><div class="sheet-actions"><button class="secondary" id="cancel-restart">キャンセル</button><button class="primary" id="confirm-restart">再起動</button></div>'),true,{confirmation:true});
  $('#cancel-restart').onclick=showGameMenu;$('#confirm-restart').onclick=async()=>{const button=$('#confirm-restart');button.disabled=true;try{await persist({checkpoint:true,reason:'before-restart'});await rewindSession.clear();await engine.reset();closeSheet();}catch(e){error(e);button.disabled=false;}};
 }
 function showStates(...args){return guardUpdateTask(()=>stateDialogs.showStates(...args))();}
 function confirmStateSave(...args){if(launching||exiting)return;return stateDialogs.confirmStateSave(...args);}
 function showQuickLoad(){if(launching||exiting)return;return stateDialogs.showQuickLoad();}
 function chooseSaveImport(game){saveImportTarget=game;$('#save-input').click();}
-function applyGameSave(game,input){return guardUpdateTask(async()=>{
+function applyGameSave(game,input,{history=false}={}){return guardUpdateTask(async()=>{
  if(applyingSave||launching||exiting||importing||rewindSession.busy)throw Error(tr('処理が完了してからやり直してください。'));
  if(link||linkStarting||linkSaveBlocked)throw Error(tr('通信を終了してからやり直してください。'));
  if(!game?.id)throw Error(tr('ゲームが見つかりません。'));
@@ -486,8 +490,8 @@ function applyGameSave(game,input){return guardUpdateTask(async()=>{
  let temporaryCore,temporaryProtection;applyingSave=true;controls.forEach(control=>control.disabled=true);
  try{
   if(activeCore){
-   setPause(true);await persist({reason:'before-import'});await rewindSession.clear();
-   await applyPausedSave(activeCore,bytes,()=>persist({reason:'import',resetRecovery:true}));
+   setPause(true);await persist({reason:history?'before-restore':'before-import'});await rewindSession.clear();
+   await applyPausedSave(activeCore,bytes,()=>persist({reason:history?'backup-restore':'import',resetRecovery:true,checkpoint:history}));
   }else{
    temporaryProtection=new SaveProtection(()=>{},{useWorker:false});await temporaryProtection.open(game,core.id);
    const rom=await db.get('roms',game.id);if(!rom)throw Error(tr('ROMが見つかりません。'));
@@ -510,7 +514,7 @@ function applyGameSave(game,input){return guardUpdateTask(async()=>{
    try{await captureControls.stop('exit');await rewindSession.dispose();await exitGame();}catch(exitError){error(exitError);showExitRetry();}
   }
  }
- if(activeCore){closeSheet();toast(tr('セーブを読み込みました。ゲームを再起動します。'));}
+ if(activeCore){if(!history){closeSheet({dismiss:true});toast(tr('セーブを読み込みました。ゲームを再起動します。'));}}
  else{showDetails(game);toast(tr('セーブデータをインポートしました。'));}
 })();}
 $('#save-input').onchange=guardUpdateTask(async e=>{

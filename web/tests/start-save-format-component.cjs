@@ -4,7 +4,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('nod
 const {createHash}=require('node:crypto'),{spawnSync}=require('node:child_process');
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 (async()=>{
- const {checkComponent,installedDirectory}=await import('../scripts/start-save-format/check.mjs');
+ const {checkComponent,checkPublicationPermission,installedDirectory}=await import('../scripts/start-save-format/check.mjs');
  const current=checkComponent(),snapshot=Object.fromEntries(fs.readdirSync(installedDirectory).map(name=>[name,fs.readFileSync(path.join(installedDirectory,name))]));
  assert.deepEqual(current.contract.saveBodyBytes,[131072,6291456]);assert.equal(current.contract.direction.to,'L');assert.equal(current.contract.direction.reverseConversion,false);
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'palmo-format-component-')),candidate=path.join(root,'candidate');fs.mkdirSync(candidate);
@@ -13,6 +13,22 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
   const editRecord=change=>{const name=path.join(candidate,'component.json'),record=JSON.parse(fs.readFileSync(name));change(record);fs.writeFileSync(name,JSON.stringify(record));};
   const editEngine=(change,repin=false)=>{const name=path.join(candidate,'engine.js');fs.writeFileSync(name,change(fs.readFileSync(name,'utf8')));if(repin)editRecord(record=>record.files['engine.js']=hash(fs.readFileSync(name)));};
   reset();assert.deepEqual(checkComponent(candidate).contract,current.contract);
+  // Synthetic permission records exercise the gate; they are not grants for the installed component.
+  const granted=structuredClone(current.record);
+  granted.publicationPermission={scopes:{incorporation:true,webPublication:true,modification:true,offlineDistribution:true,modifiedSourceRedistribution:true},confirmedOn:'2026-10-16',evidence:'Synthetic author-confirmation fixture only'};
+  assert.doesNotThrow(()=>checkPublicationPermission(granted));
+  for(const scope of Object.keys(granted.publicationPermission.scopes))for(const value of [null,false,undefined]){
+   const incomplete=structuredClone(granted);incomplete.publicationPermission.scopes[scope]=value;
+   // A release ready flag does not override an incomplete component grant.
+   incomplete.status='ready';incomplete.openItems=[];
+   assert.throws(()=>checkPublicationPermission(incomplete),/NOT READY FOR PUBLICATION/);
+  }
+  for(const field of ['confirmedOn','evidence']){const incomplete=structuredClone(granted);incomplete.publicationPermission[field]=null;assert.throws(()=>checkPublicationPermission(incomplete),/evidence/);}
+  reset();editRecord(record=>record.publicationPermission.scopes.modification=null);
+  checkComponent(candidate); // Local inspection/building remains possible while publication is held.
+  const publication=spawnSync(process.execPath,[path.join(__dirname,'../scripts/start-save-format/check.mjs'),candidate,'--publication'],{encoding:'utf8',windowsHide:true});
+  assert.equal(publication.status,1);assert.match(publication.stderr,/NOT READY FOR PUBLICATION/);
+  assert.match(fs.readFileSync(path.join(__dirname,'../scripts/check-release.cjs'),'utf8'),/start-save-format\/check\.mjs'\),'--publication'/,'Release verification must request the permission gate');
   for(const name of ['engine.js','README.md']){reset();fs.appendFileSync(path.join(candidate,name),'\n// changed');assert.throws(()=>checkComponent(candidate),/Changed component file/);}
   for(const change of [r=>r.direction.to='old',r=>r.direction.from='L',r=>r.direction.reverseConversion=true,r=>r.direction.rounding=true,r=>r.direction.versionGuard=0x3200,r=>r.saveBodyBytes.push(1048576),r=>r.optionalRTCBytes=32,r=>r.slotBytes=6291456,r=>r.hostContract='future-format']){
    reset();editRecord(change);assert.throws(()=>checkComponent(candidate),/Unsupported/);

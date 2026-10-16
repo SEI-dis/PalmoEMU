@@ -72,4 +72,13 @@ async function restore(plan,index){
   return game;
  });
 }
-export const inspectSaveRescue=guardUpdateTask(inspect),exportRescueOriginal=guardUpdateTask(exportOriginal),restoreSaveHistory=guardUpdateTask(restore);
+// Running cores and history exports share the same fresh, verified selection.
+// This reads only; the caller's existing save transaction owns any restoration.
+async function readHistory(plan,index){
+ const {game,entries}=await fresh(plan),source=entries[index];
+ if(source?.status!=='valid')throw Error(tr('整合性を確認できた保存履歴を選んでください。'));
+ const record=await sourceRecord(game,source),checked=await integrity(record,game);
+ if(checked.status!=='valid'||signature(checked)!==signature(source))throw Error(tr('保存履歴が変わりました。開き直して選び直してください。'));
+ return {bytes:bytesOf(record.bytes).slice(),name:game.name+'-backup-'+record.at+'.'+coreFor(game).saveExtension};
+}
+export const inspectSaveRescue=guardUpdateTask(inspect),exportRescueOriginal=guardUpdateTask(exportOriginal),restoreSaveHistory=guardUpdateTask(restore),readSaveHistory=guardUpdateTask(readHistory);

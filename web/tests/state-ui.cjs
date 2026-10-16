@@ -68,7 +68,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   for(const [width,height]of [[240,844],[844,390]]){await p.setViewportSize({width,height});await fits();}
   await p.locator('[data-setting=filter]').selectOption('pixel');
   await p.setViewportSize({width:390,height:844});await screenshot('game-menu');
-  await p.locator('#close-sheet').click();await p.locator('#quick-save').click();await p.locator('#cancel-state-save').click();assert.equal(await count(),2);await menu();await p.locator('[data-action=states]').click();
+  await p.locator('#close-sheet').click();await p.locator('#quick-save').click();assert.equal(await p.locator('#close-sheet').isVisible(),false);await p.locator('#cancel-state-save').click();assert.equal(await count(),2);await menu();await p.locator('[data-action=states]').click();
   await p.locator('#edit-states').click();await p.locator('[data-state-select]').first().check();await p.locator('#delete-selected-states').click();assert.equal(await count(),2);
   await p.setViewportSize({width:240,height:844});await fits();await p.locator('#cancel-state-delete').click();assert.equal(await count(),2);await p.setViewportSize({width:390,height:844});
   await p.locator('#edit-states').click();await p.locator('[data-slot-load]').first().click();await p.locator('#sheet').waitFor({state:'hidden'});assert.equal(await count(),2,'Loading cannot overwrite manual states');
@@ -98,14 +98,14 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   assert.equal(await count(),2,'One manual and one other-game record remain');
   assert.deepEqual(await p.evaluate(async id=>{const db=await import('./src/storage/storage.js');return {other:!!await db.get('states','other-game:keep'),save:JSON.stringify(await db.get('saves',id)),auto:JSON.stringify(await db.get('recoveries',id))};},before.id),{other:true,save:before.save,auto:before.auto});
   // Restart cannot happen before confirmation; cancelled restart leaves autos.
-  await menu();await p.locator('[data-shortcut=restart]').click();await p.locator('#cancel-restart').click();assert.equal(await p.evaluate(async id=>JSON.stringify(await (await import('./src/storage/storage.js')).get('recoveries',id)),before.id),before.auto);
+  await menu();await p.locator('[data-shortcut=restart]').click();assert.equal(await p.locator('#close-sheet').isVisible(),false);await p.locator('#cancel-restart').click();assert.equal(await p.evaluate(async id=>JSON.stringify(await (await import('./src/storage/storage.js')).get('recoveries',id)),before.id),before.auto);
   await p.locator('[data-action=restart]').click();await p.locator('#confirm-restart').click();await p.locator('#sheet').waitFor({state:'hidden'});
   assert.ok(await p.evaluate(async ({id,auto})=>(await (await import('./src/storage/storage.js')).get('recoveries',id))[0].at>JSON.parse(auto)[0].at,before),'Restart checkpoints before resetting');
   // Battery backups are a separate operation and cannot restore on the first tap.
   await menu();
   const battery=await p.evaluate(async id=>{const db=await import('./src/storage/storage.js'),value=await db.get('saves',id);await db.put('backups',id,[value]);return JSON.stringify(value);},before.id);
-  await p.locator('[data-action=saveData]').click();await p.locator('[data-action=backups]').click();await p.locator('[data-backup-restore]').first().click();
-  await p.setViewportSize({width:240,height:844});await fits();await p.locator('#cancel-backup').click();
+  await p.locator('[data-action=saveData]').click();await p.locator('[data-rescue-restore]').first().click();assert.equal(await p.locator('#close-sheet').isVisible(),false);
+  await p.setViewportSize({width:240,height:844});await fits();await p.locator('#save-rescue-cancel').click();
   assert.equal(await p.evaluate(async id=>JSON.stringify(await (await import('./src/storage/storage.js')).get('saves',id)),before.id),battery,'Cancelling backup restore leaves battery unchanged');
   // Observe the successful restore commit itself: a normal autosave may update
   // the latest record's reason immediately after the confirmation resumes play.
@@ -113,7 +113,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    const {SaveProtection}=await import('./src/storage/save-safety.js'),save=SaveProtection.prototype.save;window.backupRestoreCommits=[];
    SaveProtection.prototype.save=function(core,options){const result=save.call(this,core,options);return options?.reason==='backup-restore'?result.then(value=>{backupRestoreCommits.push(value?.save);return value;}):result;};
   });
-  await p.setViewportSize({width:390,height:844});await p.locator('[data-backup-restore]').first().click();await p.locator('#confirm-backup').click();await p.locator('#sheet').waitFor({state:'hidden'});
+  await p.setViewportSize({width:390,height:844});await p.locator('[data-rescue-restore]').first().click();await p.locator('#save-rescue-confirm').click();await p.locator('#sheet').waitFor({state:'hidden'});
   const restoredBattery=await p.evaluate(async id=>{const latest=await (await import('./src/storage/storage.js')).get('saves',id);return {commits:backupRestoreCommits.map(save=>({reason:save?.reason,hash:save?.hash,bytes:save?.bytes?[...save.bytes]:null})),latest:{hash:latest.hash,bytes:[...latest.bytes]}};},before.id),expectedBattery=JSON.parse(battery),expectedBytes=Object.values(expectedBattery.bytes);
   assert.deepEqual(restoredBattery.commits,[{reason:'backup-restore',hash:expectedBattery.hash,bytes:expectedBytes}],'Confirmation commits the selected backup exactly once');
   assert.deepEqual(restoredBattery.latest,{hash:expectedBattery.hash,bytes:expectedBytes},'Later automatic saves retain the restored battery contents');

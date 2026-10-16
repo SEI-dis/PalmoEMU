@@ -1,4 +1,4 @@
-/* PokemonStart v0.50.0 save-format migration, extracted and adapted for PalmoEMU.
+/* PokemonStart v0.50.1 save-format migration, extracted and adapted for PalmoEMU.
  * Source distributor: pm-start/PokemonStart. See README.md and component.json.
  * Project-specific permission; no standardized upstream license was supplied.
  * This component is separate from the earlier START Save Migrate component.
@@ -172,6 +172,11 @@ function writeLogical(img,logical){
  const sections=logical.sections.map(bytes=>bytes.slice()),body=sb1(sections);
  put32(body,MAP_OFFSET,fmt.magic);put32(body,MAP_OFFSET+4,logical.counter);body.fill(0,MAP_OFFSET+8,MAP_OFFSET+32);body.set(map,MAP_OFFSET+8);setSb1(sections,body);
  const bank=5*(logical.counter%2);for(let id=0;id<5;id++)seal(img,bank+id,sections[id],id,logical.counter,SECTION_SIZES[id]);
+ // Upstream 0.50.1: keep both low-flash probe sectors distinguishable from
+ // unused extended flash, before the first in-game save. The extra main bank
+ // is older; the unreferenced page-zero backup never replaces a box page.
+ if(logical.counter>0)for(let id=0;id<5;id++)seal(img,5-bank+id,sections[id],id,logical.counter-1,SECTION_SIZES[id]);
+ if(!pages.has(6))seal(img,16,p0,0x40,Math.max(logical.counter-1,0));
 }
 function verifyLogical(expected,actual){
  if(actual.format!=='L'||actual.counter!==expected.counter)fail('OUTPUT');

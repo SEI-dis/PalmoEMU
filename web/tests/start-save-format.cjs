@@ -27,6 +27,25 @@ const {old49,record,expectedL,newLayout,changePage,decode,encode,u16,u32,put16,p
  for(let slot=0;slot<2;slot++){const old=legacy.readSave(source.bytes,slot);assert.equal(legacy.getVariable(old,0x50ef),0x3100);for(let box=0;box<50;box++)for(let pos=0;pos<30;pos++)assert.deepEqual(legacy.readRecord(old,box*30+pos),source.slots[slot].boxes[box][pos]);}
  assert.deepEqual(inspect(source.bytes).map(({slot,valid,format,versionStamp,counter})=>({slot,valid,format,versionStamp,counter})),[0,1].map(slot=>({slot,valid:true,format:'old',versionStamp:0x3100,counter:7})));
  const converted=await convertFormatSave(source.bytes,{onProgress:event=>progress.push(event)});assert.ok(progress.length>0);assert.equal(converted.report.toFormat,'L');assert.equal(converted.report.fromFormat,'old');assert.equal(converted.report.versionStamp,0x31ff);assert.deepEqual(converted.report.convertedSlots,[0,1]);assert.deepEqual(converted.report.unchangedSlots,[]);assert.equal(converted.report.fullGameplayTest,false);assert.equal(hash(source.bytes),before);assert.equal(converted.bytes.length,source.bytes.length);
+ // The game's capability probe compares the first 16 raw flash bytes at
+ // sectors 0/16 against 32/752. A single active bank can leave sector 0 or
+ // 16 erased, falsely looking like aliases of unused extended flash.
+ const probePasses=(bytes,slot)=>[[0,32],[16,32],[0,752],[16,752]].every(([a,b])=>!bytes.subarray(slot*slotBytes+a*sector,slot*slotBytes+a*sector+16).every((value,i)=>value===bytes[slot*slotBytes+b*sector+i]));
+ assert.ok(probePasses(converted.bytes,0)&&probePasses(converted.bytes,1),'Converted slots must pass the unmodified extended-flash probe before a first in-game save');
+ for(const counter of [0,1,2,0xffffffff])for(const dense of [false,true]){
+  const fixture=old49({second:true,counter,dense,metadata:dense}),result=await convertFormatSave(fixture.bytes);
+  for(const slot of [0,1]){
+   const output=verifySlot(result.bytes,slot,fixture.slots[slot]),start=slot*slotBytes,active=5*(counter%2),backup=5-active;
+   assert.ok(probePasses(result.bytes,slot),`Raw flash probe: counter ${counter}, dense ${dense}, slot ${slot}`);
+   for(let id=0;id<5;id++){
+    assert.equal(u32(output.decoded,start+(active+id)*sector+4092),counter);
+    if(counter>0){assert.equal(u32(output.decoded,start+(backup+id)*sector+4092),counter-1);assert.deepEqual(output.decoded.subarray(start+(backup+id)*sector,start+(backup+id)*sector+payload),output.sections[id],'Backup bank retains the same payload at an older generation');}
+    else assert.ok(output.decoded.subarray(start+(backup+id)*sector,start+(backup+id+1)*sector).every(value=>value===255),'Counter zero does not invent an older generation');
+   }
+   if(!dense){assert.deepEqual(output.decoded.subarray(start+16*sector,start+16*sector+payload),output.p0,'Unused sector 16 holds a page-zero backup');assert.equal(u16(output.decoded,start+16*sector+4084),0x40);assert.equal(u32(output.decoded,start+16*sector+4092),Math.max(counter-1,0));}
+   else assert.equal(u16(output.decoded,start+16*sector+4084),0x46,'A populated box page in sector 16 must not be replaced');
+  }
+ }
  for(let slot=0;slot<2;slot++){verifySlot(converted.bytes,slot,source.slots[slot]);assert.deepEqual(converted.bytes.slice(slot*slotBytes+86*sector,(slot+1)*slotBytes),source.bytes.slice(slot*slotBytes+86*sector,(slot+1)*slotBytes),'Non-layout flash remains byte-identical');assert.deepEqual(converted.bytes.slice(slot*slotBytes+32*sector,slot*slotBytes+40*sector),source.bytes.slice(slot*slotBytes+32*sector,slot*slotBytes+40*sector));}
  assert.deepEqual(converted.bytes.slice(-16),source.bytes.slice(-16));assert.deepEqual(inspect(converted.bytes).map(s=>[s.valid,s.format,s.versionStamp,s.mons]),[[true,'L',0x31ff,1499],[true,'L',0x31ff,1499]]);
  const output=newLayout(converted.bytes),empty=output.readRecord(49,29);assert.equal(u16(empty,28),0);assert.equal(empty[16]&0x40,0x40,'An empty record is not normalized');assert.equal(u16(empty,58),0);assert.deepEqual(empty.slice(0,58),source.slots[0].boxes[49][29]);

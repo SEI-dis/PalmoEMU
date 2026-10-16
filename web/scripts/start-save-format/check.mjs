@@ -8,11 +8,17 @@ import {fileURLToPath} from 'node:url';
 import {parse} from '../i18n/vendor/acorn.mjs';
 
 export const installedDirectory=fileURLToPath(new URL('../../vendor/start-save-format/',import.meta.url));
+const publicationScopes=['incorporation','webPublication','modification','offlineDistribution','modifiedSourceRedistribution'];
+export function checkPublicationPermission(record){
+ const permission=record.publicationPermission;
+ assert(permission&&publicationScopes.every(scope=>permission.scopes?.[scope]===true),'NOT READY FOR PUBLICATION: format-L converter modification/offline/modified-source permission is not fully confirmed');
+ assert(/^\d{4}-\d{2}-\d{2}$/.test(permission.confirmedOn||'')&&typeof permission.evidence==='string'&&permission.evidence.trim(),'NOT READY FOR PUBLICATION: format-L permission confirmation evidence is required');
+}
 const expectedSources=[
- {name:'セーブデータ移行ツール.html',sha256:'3a6c4378e32ff3d975d4d3ba15fbd88955baec20c08b9ce6c05f9846cbd35b88'},
- {name:'statically decoded embedded JavaScript',sha256:'61c4e1bc7d64e7c49b3cb4f5569fa2339a60dc0f2fcadac90ed60d568d72a195'}
+ {name:'セーブデータ移行ツール.html',sha256:'96c1a970b2c65661db40237f8f3f0609faf6759d066bacbe887a8767b9d88ebc'},
+ {name:'statically decoded embedded JavaScript',sha256:'4517db68a1ad4a31c0e402501d6c828502656bdf1902382bd5f7b69767eb5332'}
 ];
-const expectedPermission='The project maintainer explicitly confirmed permission to incorporate the officially bundled HTML migration tool and publish its integration on the Web on 2026-10-16. No standardized upstream license was supplied. This records the maintainer confirmation, not an independently inspected rights-holder message. Retain README.md provenance and permission scope; do not assert a general third-party license or attribute this tool to the separate START Save Migrate author.';
+const expectedPermission="On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.";
 const expectedDirection={from:'old',to:'L',reverseConversion:false,rounding:false,versionGuard:0x31ff};
 const expectedExports=['containsFormatL','convertFormatSave','inspectFormatSave'];
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -74,13 +80,15 @@ export function checkComponent(directory=installedDirectory){
  assert.deepEqual(fs.readdirSync(location).sort(),['README.md','component.json','engine.js'],'Unexpected component files');
  const record=JSON.parse(read('component.json'));
  assert(record.schema===1&&record.hostContract==='start-format-l-forward-v1','Unsupported component record');
- assert.equal(record.distribution,'PokemonStart_v0.50.0.pks','Source distribution changed');
- assert.equal(record.distributionVersion,'0.50.0','Source distribution version changed');
+ assert.equal(record.distribution,'PokemonStart_v0.50.1.pks','Source distribution changed');
+ assert.equal(record.distributionVersion,'0.50.1','Source distribution version changed');
  assert.equal(record.sourceDistributor,'pm-start/PokemonStart','Source distributor changed');
  assert.equal(record.sourceURL,'https://github.com/pm-start/PokemonStart','Source URL changed');
  assert.equal(record.individualAuthor,null,'Do not invent an individual author');
  for(const key of ['author','license','spdxLicenseId'])assert(!Object.hasOwn(record,key),'Unreviewed author/license assertion');
  assert.equal(record.permission,expectedPermission,'Permission scope differs from reviewed provenance');
+ assert.deepEqual(Object.keys(record.publicationPermission?.scopes||{}).sort(),[...publicationScopes].sort(),'Explicit publication permission scopes required');
+ assert(Object.values(record.publicationPermission.scopes).every(value=>value===true||value===false||value===null),'Permission scopes must distinguish confirmed, refused and unconfirmed');
  assert.deepEqual(record.sources,expectedSources,'Source evidence differs from reviewed provenance');
  assert.deepEqual(record.direction,expectedDirection,'Unsupported migration direction or rounding');
  assert.deepEqual(record.saveBodyBytes,[131072,6291456],'Unsupported input body sizes');
@@ -97,8 +105,10 @@ export function checkComponent(directory=installedDirectory){
 }
 if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  try{
-  assert(process.argv.length<=3,'Usage: node web/scripts/start-save-format/check.mjs [candidate-directory]');
-  const checked=checkComponent(process.argv[2]||installedDirectory);
+  const args=process.argv.slice(2),publication=args.includes('--publication'),directories=args.filter(arg=>arg!=='--publication');
+  assert(directories.length<=1&&!directories.some(arg=>arg.startsWith('--')),'Usage: node web/scripts/start-save-format/check.mjs [candidate-directory] [--publication]');
+  const checked=checkComponent(directories[0]||installedDirectory);
+  if(publication)checkPublicationPermission(checked.record);
   console.log(`PASS: PokemonStart ${checked.record.distributionVersion} format component, reviewed provenance, pinned files, old → L contract and exported API (source not executed).`);
  }catch(error){console.error(error.message);process.exitCode=1;}
 }

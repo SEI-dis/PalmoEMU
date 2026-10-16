@@ -1,6 +1,84 @@
 {
   "releases": [
     {
+      "version": "0.3.35",
+      "date": "2026-10-16",
+      "changes": [
+        "PokemonStartの0.50系セーブ形式への変換に対応し、変換ツールを0.50.1版へ更新しました。変換直後に「ぼうけんのしょ2」が選べなくなる問題への修正を取り込みました。",
+        "オフラインで使う機種を選んで保存できるようになりました。アプリ更新では取得済みの同じファイルを再利用し、ダウンロード量を減らしました。",
+        "セーブやバックアップの一覧を開く処理を軽量化し、復元・削除時のデータ確認と保護を強化しました。",
+        "ファイルの書き出し画面と取り込み結果を整理しました。複数のROMを追加するとき、一部で失敗しても残りを続けて取り込めます。",
+        "カバー画像の切り抜き・位置調整に対応しました。スクリーンショットの保存名には撮影日時を付けます。",
+        "ゲームメニューの重複項目や説明を整理し、各設定から元の画面へ戻る操作を揃えました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "新增对 PokemonStart 0.50 系列存档格式的转换支持，并将转换工具更新至 0.50.1 版，修复了转换后无法立即选择“冒险之书2”的问题。",
+          "现在可以选择要保存以供离线使用的机种。应用更新会复用已下载的相同文件，减少下载量。",
+          "加快了存档和备份列表的打开速度，并加强了恢复或删除时的数据检查与保护。",
+          "简化了文件导出界面和导入结果。添加多个 ROM 时，即使部分文件失败，也会继续导入其余文件。",
+          "新增封面图片裁剪和位置调整功能。截图文件名现在包含拍摄日期和时间。",
+          "精简了游戏菜单中的重复项目和说明，并统一了从设置返回原页面的操作。"
+        ],
+        "zh-Hant": [
+          "新增對 PokemonStart 0.50 系列存檔格式的轉換支援，並將轉換工具更新至 0.50.1 版，修正了轉換後無法立即選擇「冒險之書2」的問題。",
+          "現在可以選擇要儲存以供離線使用的機種。應用程式更新會重複利用已下載的相同檔案，減少下載量。",
+          "加快了存檔與備份清單的開啟速度，並加強了還原或刪除時的資料檢查與保護。",
+          "簡化了檔案匯出畫面與匯入結果。加入多個 ROM 時，即使部分檔案失敗，也會繼續匯入其餘檔案。",
+          "新增封面圖片裁切與位置調整功能。螢幕截圖檔名現在包含拍攝日期與時間。",
+          "精簡了遊戲選單中的重複項目與說明，並統一了從設定返回原畫面的操作。"
+        ],
+        "ko": [
+          "PokemonStart 0.50 계열 세이브 형식으로의 변환을 지원하고 변환 도구를 0.50.1 버전으로 업데이트했습니다. 변환 직후 「모험의 서 2」를 선택할 수 없던 문제의 수정도 반영했습니다.",
+          "오프라인에서 사용할 기종을 선택해 저장할 수 있습니다. 앱 업데이트 시 이미 다운로드한 동일한 파일을 재사용하여 다운로드 용량을 줄였습니다.",
+          "세이브와 백업 목록을 여는 속도를 개선하고, 복원하거나 삭제할 때 데이터 검사와 보호를 강화했습니다.",
+          "파일 내보내기 화면과 가져오기 결과를 간소화했습니다. 여러 ROM을 추가할 때 일부 파일이 실패해도 나머지는 계속 가져옵니다.",
+          "표지 이미지 자르기와 위치 조정을 지원합니다. 스크린샷 파일명에 촬영 날짜와 시간이 포함됩니다.",
+          "게임 메뉴의 중복 항목과 설명을 정리하고, 설정에서 이전 화면으로 돌아가는 조작을 통일했습니다."
+        ],
+        "es": [
+          "Se añadió la conversión al formato de partidas guardadas de la serie 0.50 de PokemonStart y se actualizó el conversor a la versión 0.50.1, con la corrección del problema que impedía seleccionar el Libro de aventuras 2 justo después de la conversión.",
+          "Ahora puedes elegir qué sistemas guardar para usarlos sin conexión. Las actualizaciones de la aplicación reutilizan los archivos idénticos ya descargados para reducir las descargas.",
+          "Se agilizó la apertura de las listas de partidas guardadas y copias de seguridad, y se reforzaron la comprobación y protección de los datos al restaurar o eliminar.",
+          "Se simplificaron las pantallas de exportación y los resultados de importación. Al añadir varias ROM, la importación continúa aunque fallen algunos archivos.",
+          "Se añadieron opciones para recortar y ajustar la posición de las portadas. Los nombres de las capturas de pantalla ahora incluyen la fecha y hora de captura.",
+          "Se eliminaron opciones duplicadas del menú del juego y se acortaron las explicaciones. Se unificó la navegación para volver desde los ajustes a la pantalla anterior."
+        ],
+        "fr": [
+          "Ajout de la conversion vers le format de sauvegarde des versions 0.50 de PokemonStart et mise à jour de l’outil vers la version 0.50.1, avec son correctif pour le Livre d’aventure 2 inaccessible juste après la conversion.",
+          "Vous pouvez désormais choisir les consoles à enregistrer pour une utilisation hors ligne. Les mises à jour de l’application réutilisent les fichiers identiques déjà téléchargés pour réduire le volume des téléchargements.",
+          "L’ouverture des listes de sauvegardes et de copies de sauvegarde est plus rapide. Les vérifications et la protection des données ont été renforcées lors de la restauration ou de la suppression.",
+          "Les écrans d’exportation et les résultats d’importation ont été simplifiés. Lors de l’ajout de plusieurs ROM, l’importation continue même si certains fichiers échouent.",
+          "Ajout du recadrage et du repositionnement des jaquettes. Les noms des captures d’écran incluent désormais la date et l’heure de la capture.",
+          "Les entrées en double du menu du jeu ont été supprimées et les explications raccourcies. Le retour à l’écran précédent depuis les réglages a été harmonisé."
+        ],
+        "de": [
+          "Die Konvertierung in das Spielstandformat der PokemonStart-Versionsreihe 0.50 wird jetzt unterstützt. Das Konvertierungstool wurde auf Version 0.50.1 aktualisiert, einschließlich der Korrektur für das direkt nach der Konvertierung nicht auswählbare Abenteuerbuch 2.",
+          "Sie können jetzt auswählen, welche Systeme für die Offline-Nutzung gespeichert werden. App-Updates verwenden bereits heruntergeladene identische Dateien erneut und reduzieren so das Downloadvolumen.",
+          "Spielstand- und Sicherungslisten öffnen sich schneller. Die Datenprüfung und der Schutz beim Wiederherstellen oder Löschen wurden verbessert.",
+          "Die Ansichten für den Dateiexport und die Importergebnisse wurden vereinfacht. Beim Hinzufügen mehrerer ROMs wird der Import auch dann fortgesetzt, wenn einzelne Dateien fehlschlagen.",
+          "Coverbilder können jetzt zugeschnitten und ausgerichtet werden. Screenshot-Dateinamen enthalten nun das Aufnahmedatum und die Uhrzeit.",
+          "Doppelte Einträge im Spielmenü wurden entfernt und Erklärungen gekürzt. Die Rückkehr aus den Einstellungen zum vorherigen Bildschirm wurde vereinheitlicht."
+        ],
+        "pt": [
+          "Adicionamos a conversão para o formato de dados salvos da série 0.50 do PokemonStart e atualizamos o conversor para a versão 0.50.1, com a correção do problema que impedia selecionar o Livro de Aventuras 2 logo após a conversão.",
+          "Agora você pode escolher quais sistemas salvar para uso offline. As atualizações do aplicativo reutilizam arquivos idênticos já baixados para reduzir o volume de download.",
+          "Aceleramos a abertura das listas de dados salvos e backups e reforçamos a verificação e a proteção dos dados ao restaurar ou excluir.",
+          "Simplificamos as telas de exportação e os resultados de importação. Ao adicionar várias ROMs, a importação continua mesmo se alguns arquivos falharem.",
+          "Adicionamos recorte e ajuste de posição das capas. Os nomes dos arquivos de captura de tela agora incluem a data e a hora da captura.",
+          "Removemos itens duplicados do menu do jogo e encurtamos as explicações. Padronizamos a navegação para voltar das configurações à tela anterior."
+        ]
+      },
+      "changesEn": [
+        "Added conversion to the PokemonStart 0.50-series save format and updated the converter to version 0.50.1, including its fix for Adventure Book 2 being unavailable immediately after conversion.",
+        "You can now choose which systems to save for offline use. App updates reuse identical files already downloaded to reduce download size.",
+        "Made save and backup lists faster to open, and strengthened data checks and protection when restoring or deleting.",
+        "Simplified file export screens and import results. When adding multiple ROMs, importing continues even if some files fail.",
+        "Added cropping and positioning for cover images. Screenshot filenames now include the capture date and time.",
+        "Removed duplicate game menu items and shortened explanations. Made navigation back from settings more consistent."
+      ]
+    },
+    {
       "version": "0.3.34",
       "date": "2026-10-16",
       "changes": [

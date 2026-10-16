@@ -1,20 +1,20 @@
 {
   "schema": 1,
   "hostContract": "start-format-l-forward-v1",
-  "distribution": "PokemonStart_v0.50.0.pks",
-  "distributionVersion": "0.50.0",
+  "distribution": "PokemonStart_v0.50.1.pks",
+  "distributionVersion": "0.50.1",
   "sourceDistributor": "pm-start/PokemonStart",
   "sourceURL": "https://github.com/pm-start/PokemonStart",
   "individualAuthor": null,
-  "permission": "The project maintainer explicitly confirmed permission to incorporate the officially bundled HTML migration tool and publish its integration on the Web on 2026-10-16. No standardized upstream license was supplied. This records the maintainer confirmation, not an independently inspected rights-holder message. Retain README.md provenance and permission scope; do not assert a general third-party license or attribute this tool to the separate START Save Migrate author.",
+  "permission": "On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.",
   "sources": [
     {
       "name": "セーブデータ移行ツール.html",
-      "sha256": "3a6c4378e32ff3d975d4d3ba15fbd88955baec20c08b9ce6c05f9846cbd35b88"
+      "sha256": "96c1a970b2c65661db40237f8f3f0609faf6759d066bacbe887a8767b9d88ebc"
     },
     {
       "name": "statically decoded embedded JavaScript",
-      "sha256": "61c4e1bc7d64e7c49b3cb4f5569fa2339a60dc0f2fcadac90ed60d568d72a195"
+      "sha256": "4517db68a1ad4a31c0e402501d6c828502656bdf1902382bd5f7b69767eb5332"
     }
   ],
   "direction": {
@@ -24,12 +24,15 @@
     "rounding": false,
     "versionGuard": 12799
   },
-  "saveBodyBytes": [131072, 6291456],
+  "saveBodyBytes": [
+    131072,
+    6291456
+  ],
   "optionalRTCBytes": 16,
   "slotBytes": 3145728,
   "files": {
-    "engine.js": "3acd5ecc1a294c9d89e5fb47ad441ca26244e2a24ebcb80f8cac4398939d8b6f",
-    "README.md": "7af73831c5f0cb0d3750129c79db715bcf4042fe9a30301fb604a50ccf88c788"
+    "engine.js": "615c4029111b76d727260646e7bc7d48520df8d57110e6126cc5ed4680f5a7d4",
+    "README.md": "ba80edacf8e9a942a4dc393dedd29b00f89e248a67852723c63be4d9f537e9f1"
   },
   "localChanges": [
     "Migration-only ES module without UI, network or storage access",
@@ -37,6 +40,19 @@
     "Strict main/map/page/extension/overflow validation instead of empty-data substitution",
     "Wrap-aware uint32 counter ordering and ambiguity rejection",
     "Immutable caller input, selected-slot ownership and raw non-layout/RTC byte preservation",
-    "1500 logical records per converted slot and non-box metadata verified after writing"
-  ]
+    "1500 logical records per converted slot and non-box metadata verified after writing",
+    "Adopt 0.50.1 forward-writer backup main bank and conditional sector-16 page-zero backup; retain existing L saves byte-for-byte and the separate verified runtime probe correction"
+  ],
+  "publicationPermission": {
+    "scopes": {
+      "incorporation": true,
+      "webPublication": true,
+      "modification": true,
+      "offlineDistribution": true,
+      "modifiedSourceRedistribution": true
+    },
+    "confirmedOn": "2026-10-16",
+    "evidence": "In response to the explicit scope question, the maintainer said 「やって。クレジットに記載してたらOKって」 and clarified 「セーブデータの変換ツールにすでに開発者として記載済みだけどね」. Recorded as confirmation for the previously explained incorporation, modification, Web/offline distribution and modified-source publication scope, conditional on retaining existing credits. No independent inspection of the author message is claimed.",
+    "condition": "Retain the existing PokemonStart developer credit (onikoro334274-cell) and project/tool provenance links in licenses.html and source documentation."
+  }
 }

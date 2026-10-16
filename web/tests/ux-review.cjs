@@ -12,6 +12,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
   await context.route('**/*',route=>new URL(route.request().url()).origin===base?route.continue():route.abort());
   let workers=0;await context.route('**/src/library/rom-import-worker.js',async route=>{const response=await route.fetch(),prefix=++workers===1?`FileReader.prototype.readAsArrayBuffer=function(){Object.defineProperty(this,'error',{value:new DOMException('Synthetic read failure','NotReadableError')});setTimeout(()=>this.dispatchEvent(new ProgressEvent('error')),0);};\n`:'';await route.fulfill({response,body:prefix+await response.text()});});
   const page=await context.newPage();await page.goto(base);await page.locator('#rom-input').waitFor({state:'attached'});
+  assert.equal(await page.locator('#controllers').count(),0,'Settings own the controller entry');
   const source=Buffer.from(require('./link.cjs').cartridge(31,992)),later=Buffer.from(source);later[later.length-1]^=1;
   await page.locator('#rom-input').setInputFiles([{name:'Unsupported <file>.txt',mimeType:'text/plain',buffer:Buffer.from('fixture')},{name:'Failure.gba',mimeType:'application/octet-stream',buffer:source},{name:'Success.gba',mimeType:'application/octet-stream',buffer:later}]);
   await page.locator('#import-results-close').waitFor();const result=await page.locator('#sheet-body').textContent();assert.match(result,/1本/);assert.match(result,/Unsupported <file>\.txt/);assert.match(result,/Failure.gba/);assert.equal(workers,2,'Later files still attempted');assert.equal(await page.locator('#sheet-body file').count(),0);

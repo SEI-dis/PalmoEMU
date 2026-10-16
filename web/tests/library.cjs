@@ -33,7 +33,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await page.locator('[data-action=category]').click();await page.locator('[data-library-category=playing]').click();await page.locator('#sheet.game-info').waitFor();assert.match(await page.locator('[data-action=category]').textContent(),/プレイ中/);assert.equal(await page.locator('#player').isVisible(),false);
  // A stale, already-open menu must not revive a category removed elsewhere.
  await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');await db.setGamesLibraryMetadata(['a'],{category:''});});
- await page.locator('#game-more-button').click();await page.locator('[data-action=favorite]').click();await page.locator('#sheet.game-info').waitFor();
+ await page.locator('#game-favorite-button').click();await page.locator('#sheet.game-info').waitFor();
  const patched=await page.evaluate(async()=>{const db=await import('./src/storage/storage.js');return db.get('library','a');});assert.equal(patched.category,undefined);assert.equal(patched.favorite,true);await close();
  await page.locator('#library-select').click();await page.locator('[data-game=a]').click();await page.locator('[data-game=c]').click();assert.equal(await page.locator('#library-selected-count').textContent(),'2件を選択');assert.equal(await page.locator('#sheet').isVisible(),false);
  await page.locator('#library-category').click();assert.equal(await page.locator('[data-library-category][aria-pressed=true]').count(),0,'Mixed categories are not preselected');await page.locator('[data-library-category=backlog]').click();await page.locator('#sheet').waitFor({state:'hidden'});
@@ -57,7 +57,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  }
  await page.setViewportSize({width:390,height:844});require('node:fs').mkdirSync(path.join(__dirname,'../test-results'),{recursive:true});await page.screenshot({path:path.join(__dirname,'../test-results/library-'+kind+'.png')});
  // Cancel is inert; successful deletion removes only the selected records.
- await page.locator('#library-delete').click();assert.equal(await page.locator('#close-sheet').getAttribute('aria-label'),'閉じる');await page.locator('#close-sheet').click();assert.equal((await ids()).length,4);
+ await page.locator('#library-delete').click();assert.equal(await page.locator('#close-sheet').isVisible(),false);await page.keyboard.press('Escape');assert.equal((await ids()).length,4);
  await page.locator('#search').fill('alpha');await page.locator('#library-select-all').click();await page.locator('#library-delete').click();assert.equal(await page.locator('#library-delete-confirm').textContent(),'2件を削除');await page.locator('#library-delete-confirm').click();await page.locator('#sheet').waitFor({state:'hidden'});
  assert.equal((await ids()).length,0);await page.locator('#search').fill('');assert.deepEqual(await ids(),['c','d']);
  await page.keyboard.press('Escape');assert.equal(await page.locator('#library-select').textContent(),'選択');await page.locator('[data-game=c]').click();await page.locator('#sheet.game-info').waitFor();await close();

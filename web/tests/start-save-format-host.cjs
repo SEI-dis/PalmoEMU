@@ -28,6 +28,16 @@ const {newLayout,changePage,put16,u16}=require('./helpers/start-save-format-fixt
   assert.throws(()=>api.inspectStartUpdate(result.bytes,'0.49.0',target));
  }
  const save=fixture35({stamp:0x3100,second:true}),before=hash(save);
+ // The converter revision does not replace the layout's 0.50.0 boundary or
+ // stamp a target version early. Compatible later ROMs retain native updates.
+ for(const version of ['0.50.1','0.51.0']){
+  const later={...target,version},result=await api.migrateStartSave(save,{from:'0.49.0',target:later});
+  assert.equal(classify('0.49.0',later).status,'convert');
+  assert.equal(api.detectStartSaveVersion(result.bytes),'0.50.0');
+  assert.equal(api.inspectStartUpdate(result.bytes,'0.50.0',later).compatibility.status,'compatible');
+  assert.deepEqual((await api.migrateStartSave(result.bytes,{from:'0.50.0',target:later})).bytes,result.bytes);
+  assert.equal(hash(save),before);
+ }
  const one=await api.migrateStartSave(save,{from:'0.49.0',target,selection:1});
  assert.deepEqual(one.bytes.subarray(0,slotBytes),save.subarray(0,slotBytes));assert.equal(hash(save),before);
  assert.equal(api.detectStartSaveVersion(one.bytes),null,'Mixed old/L slots are never silently labelled as one version');

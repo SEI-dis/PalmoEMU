@@ -5,7 +5,8 @@ const {spawnSync}=require('node:child_process');
 function run(command,args){const r=spawnSync(command,args,{stdio:'inherit'});assert.equal(r.status,0,'Release verification failed: '+command+' '+args.join(' '));}
 const python=process.env.PYTHON||(process.platform==='win32'?'python':'python3');
 run(process.execPath,[path.join(__dirname,'start-save-migrate/check.mjs')]);
-run(process.execPath,[path.join(__dirname,'start-save-format/check.mjs')]);
+// A generic ready flag or valid source hashes cannot replace component permission.
+run(process.execPath,[path.join(__dirname,'start-save-format/check.mjs'),'--publication']);
 run(python,['-B','-X','utf8',path.join(__dirname,'audit-content.py')]);
 run(python,['-B','-X','utf8',path.join(__dirname,'check-bundled-skins.py')]);
 run(python,['-B','-X','utf8',path.join(__dirname,'package_source.py'),'--check']);

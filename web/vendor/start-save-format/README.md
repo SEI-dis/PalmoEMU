@@ -1,23 +1,28 @@
-# PokemonStart 0.50 save-format component
+# PokemonStart 0.50.1 save-format component
+
+**Permission clarification (2026-10-16).** Following an explicit explanation of
+modification, offline distribution and modified-source publication on GitHub/in
+ZIPs, the maintainer reported permission conditional on credit attribution, and
+confirmed that the developer is already credited. Retain the existing PokemonStart
+developer and project/tool credits in `licenses.html`; do not add an invented
+individual tool author. This records the maintainer confirmation, not a separately
+inspected rights-holder message. `component.json` records the scope and condition.
 
 Source distribution: [pm-start/PokemonStart](https://github.com/pm-start/PokemonStart),
-`PokemonStart_v0.50.0.pks`, bundled `セーブデータ移行ツール.html`.
+`PokemonStart_v0.50.1.pks`, bundled `セーブデータ移行ツール.html`.
+The maintainer supplied the 0.50.1 HTML separately for this update. Its decoded
+JavaScript was reviewed statically; the original HTML/UI is not distributed.
 This identifies the distributor, **not a verified individual author**. This is
 separate from the earlier くりーぱー START Save Migrate component; its author credit
 and permission must not be attributed to this different attachment.
 
-The project maintainer explicitly confirmed permission to incorporate this
-officially bundled HTML tool and publish its integration on the Web on
-2026-10-16. This records the maintainer's permission confirmation, not an
-independently inspected message from the rights holder. No standardized upstream
-license was supplied. **No MIT, GPL, AGPL, or general third-party license is
-asserted for this extracted/adapted component.** The host facade's AGPL notice
-does not relicense this directory. Preserve this provenance and permission scope.
+On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.
+The host facade AGPL notice does not relicense this component.
 
 Original HTML SHA-256:
-`3a6c4378e32ff3d975d4d3ba15fbd88955baec20c08b9ce6c05f9846cbd35b88`.
+`96c1a970b2c65661db40237f8f3f0609faf6759d066bacbe887a8767b9d88ebc`.
 Statically decoded JavaScript SHA-256:
-`61c4e1bc7d64e7c49b3cb4f5569fa2339a60dc0f2fcadac90ed60d568d72a195`.
+`4517db68a1ad4a31c0e402501d6c828502656bdf1902382bd5f7b69767eb5332`.
 
 ## Scope
 
@@ -76,3 +81,33 @@ not full gameplay compatibility. The original save must remain recoverable.
 When replacing this component, compare forward rules and constants against the
 new supplied tool, re-review each safeguard, update source and component hashes,
 and run both independent logical-record tests and the supplied-tool oracle.
+
+## 0.50.1: expanded-flash probe after conversion
+
+Adopt the supplied 0.50.1 forward writer's two additions: write the other main
+bank with the same payload and counter minus one when the counter is nonzero;
+and, only when physical sector 16 does not hold a mapped box page, write a
+page-zero backup there with counter `max(counter - 1, 0)`. This makes the low
+flash sectors used by the game's read-only alias probe distinguishable from
+unused extended flash. No box page, unselected slot, RTC tail or non-layout
+region is overwritten by the new rule.
+
+The format boundary remains 0.50.0 and the conversion guard remains `0x31ff`;
+the tool revision is not a new save format or a reason to stamp 0.50.1 early.
+Already valid L saves remain byte-identical, as in the supplied tool. To recreate
+an old 0.50.0 conversion with the new standalone writer, its original old-format
+input is needed; this component does not silently reconstruct existing L saves.
+
+The runtime-only, structure/capacity-gated correction in
+`src/core/mgba-compatibility.js` remains necessary for blank/new-game flash and
+earlier conversions. The supplied 0.50.1 ROM still contains the exact recognized
+probe. It is not removed based on a version number, and a future changed probe
+is not forced through the recognizer. No further runtime or save-byte workaround
+was added. These are separate protections: the writer corrects its output;
+the runtime correction applies only to the verified core's temporary ROM copy.
+
+Independent synthetic checks cover both slots, sparse/dense boxes, odd/even/zero
+and maximum counters, preservation of the real sector-16 box page, raw probe
+results and original/RTC bytes. Ten fixtures match the supplied 0.50.1 forward
+converter byte for byte. Original HTML, decoded source and actual ROM remain
+outside the distribution. This does not certify real gameplay or iPhone use.

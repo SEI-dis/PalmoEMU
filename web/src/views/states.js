@@ -76,7 +76,7 @@ function confirmStateSave(quick=false){
  if(runtime.busy||transferBusy||!runtime.engine)return;
  const game=runtime.current,image=runtime.engine.screenshot();
  if(!quick)return saveState(game,image,false);
- sheet(tr('セーブステートを保存'),tr`<p class="sheet-note">現在の状態を保存します。以前の保存も残ります。</p><div class="state-confirm"><img src="${image}" alt="現在の画面"></div><div class="sheet-actions"><button class="secondary" id="cancel-state-save">キャンセル</button><button class="primary" id="confirm-state-save">保存</button></div>`,true);
+ sheet(tr('セーブステートを保存'),tr`<p class="sheet-note">現在の状態を保存します。以前の保存も残ります。</p><div class="state-confirm"><img src="${image}" alt="現在の画面"></div><div class="sheet-actions"><button class="secondary" id="cancel-state-save">キャンセル</button><button class="primary" id="confirm-state-save">保存</button></div>`,true,{confirmation:true});
  $('#cancel-state-save').onclick=closeSheet;$('#confirm-state-save').onclick=()=>saveState(game,image,true);
 }
 $('#quick-save').onclick=()=>{if(!runtime.engine||runtime.link||$('#sheet').open)return;setPause(true);confirmStateSave(true);};
@@ -91,7 +91,7 @@ async function showQuickLoad(){
   entries.sort((a,b)=>b.value.at-a.value.at);
   const selection=entries.find(e=>runtime.protection.compatible(e.value)),state=selection?.value;
   if(!selection){await showStates();return;}
-  sheet(tr('この状態から再開しますか？'),tr`<div class="state-confirm">${state.image?tr`<img src="${state.image}" alt="読み込む画面">`:''}<small>${new Date(state.at).toLocaleString(locale())}</small></div><p class="sheet-note">読み込み前の状態も復旧用に残ります。</p><div class="sheet-actions"><button class="secondary" id="cancel-quick-load">キャンセル</button><button class="primary" id="confirm-quick-load">再開</button></div>`,true);
+  sheet(tr('この状態から再開しますか？'),tr`<div class="state-confirm">${state.image?tr`<img src="${state.image}" alt="読み込む画面">`:''}<small>${new Date(state.at).toLocaleString(locale())}</small></div><p class="sheet-note">読み込み前の状態も復旧用に残ります。</p><div class="sheet-actions"><button class="secondary" id="cancel-quick-load">キャンセル</button><button class="primary" id="confirm-quick-load">再開</button></div>`,true,{confirmation:true});
   const generation=++viewGeneration;onClose?.(()=>{if(generation===viewGeneration)viewGeneration++;entries.length=0;});
   $('#cancel-quick-load').onclick=closeSheet;
   $('#confirm-quick-load').onclick=async()=>{

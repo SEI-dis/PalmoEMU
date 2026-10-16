@@ -11,7 +11,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await page.locator('.game-launch').click();await root();
  // Returning from every pre-play child keeps the same ROM and its scroll offset.
  for(const [selector,title,escape] of [
-  ['[data-action=cover]','カバー変更',false],['[data-action=gameSkin]','スキン',true],['[data-action=states]','セーブステート',false],['[data-action=switchCore]','コアを変更',true],['[data-action=cheats]','チート',false],['[data-action=controllers]','コントローラーと操作補助',true],['[data-action=optionOrder]','機能順序設定',false],['[data-action=shortcuts]','ゲームショートカット',true],['#game-info-button','ゲーム情報',false],['#game-more-button','Navigation fixture',true]
+  ['[data-action=cover]','カバー変更',false],['[data-action=gameSkin]','スキン',true],['[data-action=states]','セーブステート',false],['[data-action=switchCore]','コアを変更',true],['[data-action=cheats]','チート',false],['[data-action=controllers]','コントローラーと操作補助',true],['[data-action=optionOrder]','機能順序設定',false],['[data-action=shortcuts]','ゲームショートカット',true],['#game-info-button','ゲーム情報',false]
  ]){
   // scrollIntoView performs the same parent scroll as a user's tap; capture it
   // immediately before activation so the expected position is independent.

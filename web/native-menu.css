@@ -67,3 +67,5 @@ html[data-theme=light] .native-menu .sheet-tools,html[data-theme=light] .native-
 .port-menu .sheet-head h2{grid-column:1;grid-row:1;white-space:normal;line-height:1.4}
 .port-menu .sheet-head #sheet-tools{grid-column:1/-1;grid-row:2;justify-self:end}
 .port-menu .sheet-head #close-sheet{grid-column:2;grid-row:1}
+
+.navigation-spacer{width:42px;flex-shrink:0}#game-favorite-button[aria-pressed=true]{color:var(--accent)}
