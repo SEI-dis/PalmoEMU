@@ -1129,3 +1129,10 @@ UI原文・翻訳辞書・変更通知・版番号、既存の保存形式・DB�
 - 8言語の新規変更通知40項目を独立校正。build-offline/check-i18nで9言語・各1460項目と変更通知の整合を確認。release-noticeはEdge/PC WebKitで成功し、全言語、初回/更新/再表示、詳細、オフライン、隠れたタブや作業中の延期、複数タブ、既存の合成ユーザーデータ不変を検査した。生成経路はLOCALIZATION_REVIEW.mdに記録した。 実0.3.34の通知上位3件と変更履歴の全40訳が校正済みJSONに一致すること、全9言語・320/390/844pxで横あふれ・ページエラー・外部通信がないことを両ブラウザで確認し、スクリーンショットも確認した。
 
 このチェックアウトには実0.49 ROMと実セーブがないため、その実行・再保存は今回の検証に含めない。別PCの読み取り専用のROM互換範囲の記録はROM_REVIEW.mdを参照し、実プレイ検証と混同しない。iPhone/Android実機も未検証。ROM・セーブ・HTML原本・名前/画像等のPROFILE素材は配布物へ追加しない。公開はこの変更を含む同一コミットの全CI成功後に行う。
+
+
+## 2026-10-16 CI fixture follow-up (publication held)
+
+The full CI run for d7e6f680a1d472e558af719684add456927ed86f exposed a missing prerequisite in localization-pipeline: its disposable development application copied build-offline.cjs but omitted the newly required scripts/start-save-migrate/build.mjs and its pinned source/definitions. This failed before translation started (MODULE_NOT_FOUND), rather than identifying a save/runtime or translation-content defect. The fixture now copies the real migration source/check and distributed component directories, preserving the production validation instead of stubbing or bypassing it.
+
+The corrected localization-pipeline passes locally, including actual development startup, unchanged translations, all eight language outputs after authored UI/release-note edits, local-only model routing, malformed provider responses and atomic failures. Only the test fixture and its distribution/source review records change; no UI wording, locale catalogue, runtime behavior, save data, native core, endpoint or license change is introduced. Publication remains held; this follow-up is for commit/push and CI verification.

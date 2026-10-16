@@ -95,8 +95,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 226620,
-      "sha256": "e2c876dbe3e0765876306f97a6c92c2c23f7067de2d85dd57ce626330ce0ae13",
+      "bytes": 227793,
+      "sha256": "454138a8209c1840c8c1d0301e0375948c341bd37c554476e120d0493fba42ab",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 9279,
-      "sha256": "0c565d8b01ff25d806ab857042743bffea6c87cf164ecd7a0bffefe4c783675d",
+      "sha256": "720ac981196748c591b5a6f589fb0dd32d43c98457d3156a4718d77b94bb4af9",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41538,7 +41538,7 @@
     {
       "path": "sw.js",
       "bytes": 6676,
-      "sha256": "deca87495d124119fc91cc74b35ea3d1df6aa09f00676aa85b74b23e8e7b28a2",
+      "sha256": "62d2db0c0a29ae5a661683f76dada2fced50352a82c57f026a0fc5baf81e8910",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41855,8 +41855,8 @@
     },
     {
       "path": "tests/localization-pipeline.cjs",
-      "bytes": 18833,
-      "sha256": "b427e723b8ffd70bfb05751f176c24a2b4386b280cab5387b5790ea9b560d912",
+      "bytes": 19155,
+      "sha256": "3523f99b965dbc5fe5f688acafa58c3b79a34bf52773c0c0138f47e161514dbd",
       "component": "web-port-code-and-documentation"
     },
     {

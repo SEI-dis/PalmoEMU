@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// App build: 3d72ff704182f5ca
+// App build: 179a6bdec25b40f7
 // Message keys are localized by the requesting page.
 const tr=source=>source;
 importScripts('./offline-manifest.js');
