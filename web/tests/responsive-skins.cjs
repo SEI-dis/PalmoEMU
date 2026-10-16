@@ -76,10 +76,10 @@ const sizes=[[240,320],[280,240],[320,320],[400,360],[480,240],[320,568],[360,80
   await p.locator('#quick-load').click();await p.locator('#cancel-quick-load').click();assert.equal(await count(),2);
   await p.locator('#quick-load').click();await p.locator('#confirm-quick-load').click();await p.locator('#sheet').waitFor({state:'hidden'});assert.equal(await count(),2);
   assert.ok(await p.evaluate(async()=>{const db=await import('./src/storage/storage.js');return(await db.all('recoveries')).flat().some(r=>r.bytes?.length&&r.hash&&Date.now()-r.at<5000);}),'Checkpoint before quick load');
-  await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').check();await p.locator('#close-sheet').click();
+  await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').uncheck();await p.locator('#close-sheet').click();
   assert.equal(await p.locator('.skin-button').count(),0);assert.equal(await p.locator('#quick-actions').isVisible(),false);
   const full=await p.locator('#screen').boundingBox();assert.ok(full.height>=358-.1,'Display-only uses all available height');
-  await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').uncheck();await p.locator('#close-sheet').click();assert.ok(await p.locator('.skin-button').count()>0);
+  await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').check();await p.locator('#close-sheet').click();assert.ok(await p.locator('.skin-button').count()>0);
   assert.deepEqual(errors,[]);assert.deepEqual(uploads,[]);
   console.log(`PASS: ${checked} responsive layouts, ${sizes.length} actual viewports, square dpad, aspect ratio, safe area, badges, unchanged-resize input stability, previews, confirmed save/load, pre-load recovery, no uploads.`);
   await context.close();

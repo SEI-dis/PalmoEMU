@@ -41,9 +41,9 @@ const kind=process.env.BROWSER_ENGINE||'chromium',pw=require('./browser-runtime.
   for(const [selector,key]of [['#screen','screen'],['.skin-button[aria-label=A]','a']]){const actual=await p.locator(selector).boundingBox();for(const prop of ['x','y','width','height'])assert.ok(Math.abs(actual[prop]-expected[key][prop])<.15,key+prop);}
  }
   await p.setViewportSize({width:390,height:844});await p.evaluate(()=>new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r))));const hit=await p.locator('.skin-button[aria-label=A]').boundingBox();await p.mouse.move(hit.x+hit.width/2,hit.y+hit.height/2);await p.mouse.down();await p.mouse.up();assert.ok(await p.evaluate(()=>keys.includes(1)));
- const withControls=await p.locator('#screen').boundingBox();await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').check();await close();
+ const withControls=await p.locator('#screen').boundingBox();await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').uncheck();await close();
  assert.deepEqual(await p.locator('#screen').boundingBox(),withControls,'Hiding controls retains custom screen geometry');
- await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').uncheck();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
+ await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').check();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
  // Bad and old preferences never place controls outside the screen or distort aspect ratios.
  await p.evaluate(async()=>{const {builtinSkin,builtinLayout}=await import('./src/skins/skin-art.js');for(const system of ['gb','gba','nds','nes','snes','md'])for(const [w,h]of [[240,320],[320,568],[844,390]]){
   const rep=builtinLayout(builtinSkin(system),w,h,{screen:{scale:20,x:-4,y:8},a:{scale:8,x:4,y:-1},dpad:{scale:-5}});

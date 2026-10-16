@@ -53,9 +53,9 @@ const pw=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||'chro
    for(let i=0;i<2;i++){const actual=await p.locator('.nds-display canvas').nth(i).boundingBox();for(const key of ['x','y','width','height'])assert.ok(Math.abs(actual[key]-expected[i][key])<.1,'Gameplay matches edited '+key);}
    await touch();await p.locator('#player-menu').click();await p.locator('[data-setting=ndsSwapScreens]').check();await p.locator('#close-sheet').click();await touch();
    const frames=await p.locator('.nds-display canvas').evaluateAll(cs=>cs.map(c=>({x:c.getBoundingClientRect().x,y:c.getBoundingClientRect().y,width:c.getBoundingClientRect().width,height:c.getBoundingClientRect().height})));
-   await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').check();await p.locator('#close-sheet').click();
+   await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').uncheck();await p.locator('#close-sheet').click();
    for(let i=0;i<2;i++){const actual=await p.locator('.nds-display canvas').nth(i).boundingBox();for(const key of ['x','y','width','height'])assert.ok(Math.abs(actual[key]-frames[i][key])<.1,'Hidden controls retain edited screen');}await touch();
-   await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').uncheck();await p.locator('[data-setting=ndsSwapScreens]').uncheck();await p.locator('#close-sheet').click();
+   await p.locator('#player-menu').click();await p.locator('[data-setting=touchControls]').check();await p.locator('[data-setting=ndsSwapScreens]').uncheck();await p.locator('#close-sheet').click();
   }
   // Fresh default layout with simulated iPhone safe areas and simultaneous controls/stylus.
   await p.locator('#player-menu').click();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
