@@ -33,7 +33,9 @@ export function createStartSaveDialog(api){
    const blockedTarget=!!(target||targetProfile)&&!targetReady;
    const from=$('#start-save-version').value,compatible=compatibility.status==='compatible',unknown=compatibility.status==='unknown',downgrade=compatibility.status==='downgrade',valid=!!from&&!validationError;
    if(!from||unknown||validationError)$('#start-version-required').append($('#start-version-field'));
-   const allowed=valid&&!blockedTarget&&!downgrade&&START_SOURCE_VERSIONS.some(entry=>entry.version===from)&&(!unknown||$('#start-save-unverified').checked);
+   // The worker validates the actual layout and target. The dropdown contains
+   // historical releases and must not reject a newly detected compatible source.
+   const allowed=valid&&targetReady&&!blockedTarget&&!downgrade&&(!unknown||$('#start-save-unverified').checked);
    $('#start-save-apply').disabled=compatible?(!onCopy||!valid):!allowed;$('#start-save-export').disabled=compatible||!allowed;
    $('#start-save-apply').textContent=compatible?tr('変換せずに引き継ぐ'):canApply?tr('セーブデータを変換して更新'):tr('変換セーブを書き出す');
    $('#start-save-unverified-row').hidden=!unknown||!valid||blockedTarget;

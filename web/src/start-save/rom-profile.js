@@ -76,6 +76,10 @@ export function readStartROMProfile(bytes){
  let stamp=null,writerCount=0,minimum=null,gateCount=0,maximumAccepted=null,formatGate=null;
  const formatLoaders=[];
  for(let p=0xc0;p+26<=bytes.length;p+=2){
+  // Every supported entry starts with one of these Thumb instruction bytes.
+  // Skip unrelated code/artwork early, but still scan the full ROM so a second
+  // writer or conflicting gate cannot be missed. All structural checks follow.
+  const high=bytes[p+1];if(high!==0xb5&&high!==0x21&&high!==0x4b&&high!==0x48)continue;
   if(bytes[p]===0xf0&&bytes[p+1]===0xb5){const cache=lFormatLoader(p);if(cache!==null)formatLoaders.push({cache,format:'L'});const wide=wFormatLoader(p);if(wide!==null)formatLoaders.push({cache:wide,format:'W'});}
   let candidate=-1;
   // Patch releases load the complete stamp from a literal pool.

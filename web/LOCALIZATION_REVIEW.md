@@ -205,3 +205,11 @@ build-offline / check-i18n成功（9言語、1427 UI項目）。隔離Chromium�
 Ollamaは未導入のためCodex生成下書きを用い、校正後に標準catalogues.mjsのcreatePlan/synchronize/assertCurrentで反映。state.jsonのハッシュを校正証明とはしていない。node web/scripts/build-offline.cjs と node web/scripts/check-i18n.mjs 成功（9言語、1427 UI項目/言語）。
 
 独立したChromium/PC WebKitで実生成された0.3.36通知・履歴を9言語×320/390/844pxで確認（各54画面条件）。24訳の完全一致、折り返し、横はみ出しなし、操作リンク、pageerror/外部要求なしを検査。日本語/ドイツ語の画像も確認。ROM更新画面→Worker変換→保存は両エンジンで0.50.0/0.50.1/0.53.1成功。offline-selection/release-noticeも両エンジン成功。iPhone実機は未確認。今回コミット・push・CIまでとし、公開しない。
+
+## 2026-10-17: 変換ボタンの対応版判定・内部性能の再監査
+
+変換ボタンを古い選択肢一覧ではなく、Workerの実データ検証で有効化するよう修正した。原文・配置・操作の意味は変更せず、既存の「セーブデータを変換して更新」「変換セーブを書き出す」、変換が必要な理由、未対応時の原本保持の4文言を全8翻訳言語で担当エージェントが再確認し、そのまま維持した。これはエージェント校正であり、人間の母語話者による確認ではない。通常の自動生成は新規ジョブなしで既存訳を保持し、build-offline/check-i18nが成功した。原文ハッシュは校正証明として使用していない。
+
+Chromium/PC WebKitの390px画面で0.50.1/0.52.0→0.53.1の操作、検証不一致時の無効化と再選択、既存の0.49→L/Wの操作を確認。文字列とレイアウトは先の多言語表示検査から変更していない。録画・ROM・セーブを公開せず、公開は保留する。
+
+同日の更新処理リファクタリングはCache Storageの内部照会だけを変更し、原文・表示場所・意味・操作・タイムアウトは変更しない。新規翻訳ジョブはなく、校正済み8言語の既存訳を保持する。更新とオフライン画面の既存操作はChromium/PC WebKitのupdate-delta / offline-selection / update-safetyで再検証した。

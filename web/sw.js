@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
-// App build: 5e21cdf1f3b0ccbb
+// App build: bbc68d0bb9f73ad6
 // Message keys are localized by the requesting page.
 const tr=source=>source;
 importScripts('./offline-manifest.js');
@@ -44,20 +44,30 @@ async function verifiedCached(cache,url){
  const headers=new Headers(response.headers);headers.delete('Content-Encoding');headers.delete('Content-Length');
  return new Response(bytes,{status:200,statusText:response.statusText,headers});
 }
-async function reuseAsset(cache,url,names,requireCopy=true){
+async function cacheSources(names,index=false){
+ const sources=[];
  for(const name of names){
-  let response;try{response=await verifiedCached(await caches.open(name),url);}catch{continue;}
+  try{
+   const cache=await caches.open(name);
+   sources.push({name,cache,...(index?{keys:new Set((await cache.keys()).map(key=>key.url)),record:await readRelease(cache)}:{})});
+  }catch(error){if(index)throw error;}
+ }
+ return sources;
+}
+async function reuseAsset(cache,url,sources,requireCopy=true){
+ for(const source of sources){
+  if(source.keys&&!source.keys.has(url))continue;
+  let response;try{response=await verifiedCached(source.cache,url);}catch{continue;}
   if(response){try{await cache.delete(url);await cache.put(url,response.clone());}catch(error){if(requireCopy)throw error;}return response;}
  }
  return null;
 }
-async function installationPlan(names){
- if(!names.length)return APP_OFFLINE.shell.map(file=>new URL(file,base).href);
+function installationPlan(sources){
+ if(!sources.length)return APP_OFFLINE.shell.map(file=>new URL(file,base).href);
  const stored=new Set();let previous;
- for(const name of [...names].reverse()){
-  const cache=await caches.open(name),keys=await cache.keys();for(const key of keys)if(allowed.has(key.url))stored.add(key.url);
-  const record=await readRelease(cache);
-  if(!previous&&record?.active&&name===prefix+record.version)previous={record,keys:new Set(keys.map(key=>key.url))};
+ for(const {name,keys,record} of [...sources].reverse()){
+  for(const url of keys)if(allowed.has(url))stored.add(url);
+  if(!previous&&record?.active&&name===prefix+record.version)previous={record,keys};
  }
  // Old workers did not record their manifest. One migration retains their
  // full staging policy, while still reusing all matching cached bodies.
@@ -127,17 +137,21 @@ async function cacheAsset(cache,url,retry=false){
 // Update reuse is content-verified, independent of HTTP freshness or ETags.
 self.addEventListener('install',e=>e.waitUntil((async()=>{
  const names=await previousCaches();try{
- for(const name of names){const failure=await readFailure(await caches.open(name));if(failure?.version===APP_OFFLINE.version&&failure.reason==='quota'&&failure.retryAfter>Date.now())throw new DOMException('Update storage retry deferred','QuotaExceededError');}
- const needed=await installationPlan(names),cache=await caches.open(cacheName);
+ const sources=await cacheSources(names,true);
+ for(const {cache} of sources){const failure=await readFailure(cache);if(failure?.version===APP_OFFLINE.version&&failure.reason==='quota'&&failure.retryAfter>Date.now())throw new DOMException('Update storage retry deferred','QuotaExceededError');}
+ const needed=installationPlan(sources),cache=await caches.open(cacheName),present=new Set((await cache.keys()).map(key=>key.url));
  Object.assign(progress,{done:0,total:needed.length,bytes:0,totalBytes:needed.reduce((sum,url)=>sum+assetSize(url),0),reused:0,downloaded:0});
  // Keep successful, verified downloads for a retry of this exact build. Only a
  // fully staged install can activate; a failed attempt leaves the old worker.
  let next=0,failure;await Promise.all(Array.from({length:4},async()=>{while(!failure&&next<needed.length){const url=needed[next++];try{
-  const local=await verifiedCached(cache,url);
+  // Snapshot only presence, never trust it as proof of valid contents. Each
+  // reused body still passes this build's hash check. Missing entries need no
+  // per-file Cache Storage lookup; late arrivals are preserved at activation.
+  const local=present.has(url)?await verifiedCached(cache,url):null;
   // Recommit verified partial entries. WebKit can retain an in-worker view of
   // a failed install's records after dropping their persistent backing store.
   if(local){await cache.delete(url);await cache.put(url,local.clone());}
-  const cached=local||await reuseAsset(cache,url,names);
+  const cached=local||await reuseAsset(cache,url,sources);
   if(cached)progress.reused++;else{await cache.delete(url);await cacheAsset(cache,url,true);progress.downloaded++;}
   progress.done++;progress.bytes+=assetSize(url);
  }catch(error){failure=error;}}}));
@@ -173,7 +187,7 @@ self.addEventListener('fetch',e=>{
  if(e.request.mode!=='navigate'&&(u.origin!==base.origin||u.search)){e.respondWith(new Response(null,{status:403}));return;}
  if(e.request.method!=='GET'||u.origin!==base.origin||u.search)return;
  if(u.href===base.href)u.pathname+='index.html';if(!allowed.has(u.href))return;
- e.respondWith((async()=>{try{const cache=await caches.open(cacheName);return await cache.match(u.href)||await reuseAsset(cache,u.href,await previousCaches(),false)||await cacheAsset(cache,u.href);}catch{return new Response(null,{status:503,statusText:'Application file unavailable for this version'});}})());
+ e.respondWith((async()=>{try{const cache=await caches.open(cacheName);return await cache.match(u.href)||await reuseAsset(cache,u.href,await cacheSources(await previousCaches()),false)||await cacheAsset(cache,u.href);}catch{return new Response(null,{status:503,statusText:'Application file unavailable for this version'});}})());
 });
 self.addEventListener('message',e=>{
  const port=e.ports[0];if(!port)return;
@@ -215,6 +229,9 @@ self.addEventListener('message',e=>{
  if(e.data?.type==='download'){
    let done=0;for(const url of needed){await cacheAsset(cache,url,true);port.postMessage({progress:++done,total:needed.length});}await writeRelease(cache,true,selection===undefined);
  }else if(e.data?.type!=='status')throw new Error(tr('オフライン保存を開始できませんでした。画面を開き直してください。'));
- let count=0,missingBytes=0;for(const url of needed)if(await cache.match(url))count++;else missingBytes+=assetSize(url);port.postMessage({done:true,ready:count===needed.length,cached:count,total:needed.length,bytes:needed.reduce((sum,url)=>sum+assetSize(url),0),missingBytes,version:APP_OFFLINE.version});
+ // Completeness depends on presence, not the response bodies. One key snapshot
+ // avoids opening every cached core/asset just to count the available files.
+ const present=new Set((await cache.keys()).map(key=>key.url));
+ let count=0,missingBytes=0;for(const url of needed)if(present.has(url))count++;else missingBytes+=assetSize(url);port.postMessage({done:true,ready:count===needed.length,cached:count,total:needed.length,bytes:needed.reduce((sum,url)=>sum+assetSize(url),0),missingBytes,version:APP_OFFLINE.version});
  })().catch(err=>port.postMessage({done:true,error:err.message})));
 });

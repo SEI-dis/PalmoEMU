@@ -20,11 +20,20 @@ self.onmessage=async({data})=>{
  try{
   await setWorkerLanguage(data.language);
   const source=await readSource(data.id,data.previous),{save,digest,sourceId,name}=source;
+  // Cache only the small profile within this request, never the ROM buffer.
+  // Inspecting a current save against its own ROM needs one database read/scan.
+  const profiles=new Map();
+  const storedProfile=async id=>{
+   if(!profiles.has(id)){
+    const rom=await db.get('roms',id);
+    profiles.set(id,{present:!!rom,identity:rom?identifyStartROM(rom instanceof Blob?new Uint8Array(await rom.arrayBuffer()):rom):null});
+   }
+   return profiles.get(id);
+  };
   let targetProfile=data.targetProfile;
-  if(data.targetId){const targetROM=await db.get('roms',data.targetId);targetProfile=targetROM?(identifyStartROM(targetROM instanceof Blob?new Uint8Array(await targetROM.arrayBuffer()):targetROM)||{version:null,unverified:true}):(targetProfile||{version:null,unverified:true});}
+  if(data.targetId){const {present,identity}=await storedProfile(data.targetId);targetProfile=present?(identity||{version:null,unverified:true}):(targetProfile||{version:null,unverified:true});}
   if(data.action==='inspect'){
-   const rom=await db.get('roms',sourceId),bytes=rom instanceof Blob?new Uint8Array(await rom.arrayBuffer()):rom;
-   const identity=bytes?identifyStartROM(bytes):null;
+   const {identity}=await storedProfile(sourceId);
    const sourceGame=await db.get('library',sourceId);
    let savedVersion=null;try{savedVersion=detectStartSaveVersion(save.bytes);}catch{}
    const version=savedVersion||identity?.version||startVersionFromName(sourceGame?.filename,name);
@@ -41,6 +50,8 @@ self.onmessage=async({data})=>{
   if(compatibility.status==='compatible')throw Error(tr('このセーブは変換せずに引き継げます。'));
   if(compatibility.status==='unknown'&&data.allowUnverified!==true)throw Error(tr('変換の必要性が未確認です。内容を確認してください。'));
   const result=await migrateStartSave(save.bytes,{from:data.from,target:targetProfile,onProgress:({index,total})=>self.postMessage({type:'progress',index,total})});
-  self.postMessage({type:'done',name,bytes:result.bytes,original:new Uint8Array(save.bytes),report:result.report});
+  // Both buffers are private to this one-shot worker. Transfer them together;
+  // database records are unaffected and no retry needs the detached snapshots.
+  self.postMessage({type:'done',name,bytes:result.bytes,original:save.bytes,report:result.report},[result.bytes.buffer,save.bytes.buffer]);
  }catch(error){self.postMessage({type:'error',message:error.message||tr('セーブを変換できませんでした。元のデータは残っています。')});}
 };
