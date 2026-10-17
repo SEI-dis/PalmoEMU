@@ -8,6 +8,8 @@
  * Modified 2026-10-12: negotiate legacy/batched Celio events, acknowledge
  * commands/session events, and bound ordered delivery and outgoing retries.
  * Modified 2026-10-14: accept explicitly selected, validated secure relays.
+ * Modified 2026-10-17: defer device startup while sharing a room in another app;
+ * retain the pre-handshake lobby without changing the upstream wire protocol.
  * This Source Code Form remains subject to the Mozilla Public License 2.0.
  * Under MPL 2.0 section 3.3, this file (including this port's modifications)
  * is also offered under GNU Affero General Public License version 3 or later
@@ -27,6 +29,8 @@ export class RoomLink {
   constructor(io,{onStatus=()=>{},onEnd=()=>{},server=CELIO_RELAY}={}){
     this.server=validateRelayURL(server,{loopback:globalThis.location?.hostname==='127.0.0.1'});this.io=io;this.onStatus=onStatus;this.onEnd=onEnd;
     this.closed=false;this.joined=false;this.connected=false;this.room='';this.sent=0;this.received=0;
+    this.backgrounded=false;this.deviceStarted=false;this.gameStarted=false;
+    this.lobbyCommands=[];this.lobbyData=[];
     this.sequence=0;this.expected=0;this.pending=new Map();this.seen=new Set();
     this.batched=false;this.nextAck=1;this.outgoing=[];this.inFlight=new Map();this.outgoingCount=0;
     this.device=new CelioDevice(io,value=>this.status(value),data=>this.sendData(data));
@@ -83,22 +87,62 @@ export class RoomLink {
   }
   status(value){
     if(!this.joined||this.closed)return;
+    if([LinkStatus.handshake,LinkStatus.connected,LinkStatus.reconnecting,LinkStatus.closed].includes(value)){
+      this.gameStarted=true;
+      if(this.backgrounded||globalThis.document?.hidden){this.close(tr('画面を離れたため接続を終了しました。'));return;}
+    }
     if(value===LinkStatus.closed)this.gameClosed=true;
     if(value===LinkStatus.connected)this.onStatus(tr('通信中'));
     if([0xFF02,...Object.values(LinkStatus)].includes(value))this.sendEvent('deviceStatus',{uuid:crypto.randomUUID(),linkStatus:value});
   }
   startDevice(){
-    if(this.connected)return;
-    this.connected=true;this.io.enable(true);this.device.reset();
-    this.io.event=kind=>{try{this.device.event(kind);}catch(error){this.close(error.message);}};
-    this.modeTimer=setTimeout(()=>{if(!this.closed){try{this.device.command(0);}catch(error){this.close(error.message);}}},500);
+    if(this.closed)return;
+    this.connected=true;
+    if(this.backgrounded||globalThis.document?.hidden){this.onStatus(tr('画面に戻るまで通信開始を待っています。'));return;}
+    if(!this.deviceStarted){
+      this.deviceStarted=true;this.io.enable(true);this.device.reset();
+      this.io.event=kind=>{try{this.device.event(kind);}catch(error){this.close(error.message);}};
+    }
+    for(const command of this.lobbyCommands){if(command===0x12||command===0x13)this.gameStarted=true;this.device.command(command);}
+    this.lobbyCommands=[];
+    for(const data of this.lobbyData){this.gameStarted=true;this.device.receive(data);}this.lobbyData=[];
+    this.requestMode();
     this.onStatus(tr('接続しました。両方のゲームでケーブル通信の受付へ進んでください。'));
+  }
+  get canWait(){return !this.closed&&!this.gameStarted;}
+  setBackground(hidden){
+    if(this.closed||this.backgrounded===hidden)return;
+    this.backgrounded=hidden;
+    if(hidden){
+      if(!this.canWait){this.close(tr('画面を離れたため接続を終了しました。'));return;}
+      clearTimeout(this.modeTimer);this.modeTimer=null;
+      if(this.connected)this.onStatus(tr('画面に戻るまで通信開始を待っています。'));
+    }else if(this.connected){
+      try{this.startDevice();}catch(error){this.close(error.message);}
+    }
+  }
+  requestMode(){
+    if(this.modeRequested||this.modeTimer||!this.deviceStarted||this.backgrounded||globalThis.document?.hidden)return;
+    this.modeTimer=setTimeout(()=>{
+      this.modeTimer=null;if(this.closed||this.backgrounded||globalThis.document?.hidden)return;
+      this.modeRequested=true;try{this.device.command(0);}catch(error){this.close(error.message);}
+    },500);
+  }
+  get deferLobby(){return this.canWait&&(!this.deviceStarted||this.backgrounded||globalThis.document?.hidden);}
+  receive(data){
+    if(this.deferLobby){
+      // A peer already at the cable desk may send before our CPU starts.
+      // ACK validated packets, retaining the same bounded device queue limit.
+      if(this.lobbyData.length>=512)throw new Error(tr('通信が遅れています。接続し直してください。'));
+      this.lobbyData.push(data);return;
+    }
+    this.gameStarted=true;this.device.receive(data);
   }
   deliver(packet){
     const seq=packet.sequence;if(seq<this.expected)return;
     if(seq>this.expected){if(this.pending.has(seq))return;if(seq-this.expected>1024||this.pending.size>=1024)throw new Error(tr('通信の順序を復元できませんでした。'));this.pending.set(seq,packet.data);return;}
-    this.device.receive(packet.data);this.received+=64;this.expected++;
-    while(this.pending.has(this.expected)){this.device.receive(this.pending.get(this.expected));this.received+=64;this.pending.delete(this.expected++);}
+    this.receive(packet.data);this.received+=64;this.expected++;
+    while(this.pending.has(this.expected)){this.receive(this.pending.get(this.expected));this.received+=64;this.pending.delete(this.expected++);}
   }
   message(raw){
     // The upstream batch limit is 1024 packets of 32 uint16 words.
@@ -132,6 +176,7 @@ export class RoomLink {
       const packets=Array.isArray(data)?data:[data];
       // Validate the whole batch before giving any of it to the emulated device.
       if(!packets.length||packets.length>1024||!packets.every(validPacket))throw new Error(tr('通信データが不正です。'));
+      if(!this.canWait&&(this.backgrounded||globalThis.document?.hidden)){this.acknowledge(id);this.close(tr('画面を離れたため接続を終了しました。'));return;}
       if(Array.isArray(data))this.batched=true;
       for(const packet of packets)this.deliver(packet);this.acknowledge(id);
     }
@@ -142,7 +187,18 @@ export class RoomLink {
       // receive an extra ACK callback (it changes their event payload shape).
       if(id>=0)this.batched=true;
       if(!this.seen.has(data.uuid)){
-        if(this.seen.size>=4096)throw new Error(tr('通信コマンドが多すぎます。'));this.seen.add(data.uuid);this.device.command(data.command);
+        if(this.seen.size>=4096)throw new Error(tr('通信コマンドが多すぎます。'));this.seen.add(data.uuid);
+        // A mode reply may arrive while the lobby is backgrounded. It does not
+        // advance the paused CPU. Handshake/connect commands do start gameplay.
+        if(this.deferLobby){
+          if(this.lobbyCommands.length>=32)throw new Error(tr('通信コマンドが多すぎます。'));
+          this.lobbyCommands.push(data.command);this.acknowledge(id);return;
+        }
+        if(data.command===0x12||data.command===0x13){
+          this.gameStarted=true;
+          if(this.backgrounded||globalThis.document?.hidden){this.acknowledge(id);this.close(tr('画面を離れたため接続を終了しました。'));return;}
+        }
+        this.device.command(data.command);
       }
       this.acknowledge(id);
     }else if(['partnerJoined','partnerLeft','sessionClose'].includes(event)){
@@ -158,9 +214,9 @@ export class RoomLink {
     if(this.closed)return this.completion;
     this.closed=true;clearInterval(this.heartbeat);clearTimeout(this.modeTimer);
     for(const request of this.inFlight.values())clearTimeout(request.timer);
-    this.inFlight.clear();this.outgoing=[];this.outgoingCount=0;this.pending.clear();this.seen.clear();
+    this.inFlight.clear();this.outgoing=[];this.outgoingCount=0;this.pending.clear();this.seen.clear();this.lobbyCommands=[];this.lobbyData=[];
     if(notify&&this.socket?.readyState===WebSocket.OPEN)try{this.socket.send('42["sessionLeft"]');}catch{}
-    this.socket?.close();this.device.close();this.io.event=null;if(this.connected)this.io.enable(false);
+    this.socket?.close();this.device.close();this.io.event=null;if(this.deviceStarted)this.io.enable(false);
     this.completion=Promise.resolve(this.onEnd(reason,{keep}));return this.completion;
   }
 }

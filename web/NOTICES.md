@@ -968,3 +968,7 @@ permission and developer/contributor attribution remain in force; no general
 third-party license or individual tool authorship is inferred. Original HTML,
 ROM and save attachments are excluded. See vendor/start-save-format/README.md and
 component.json for source hashes, allocations, guards and local safeguards.
+
+## 2026-10-17: room-sharing wait (0.3.36)
+
+Modified `src/link/room-link.js` to distinguish joining a Celio room from starting the local game handshake. Device startup is deferred while backgrounded; validated early commands and ordered data are acknowledged and retained within fixed limits, then consumed on return. Existing game-close commit and interrupted-session rollback rules remain. The wire protocol, relay endpoints, pinned upstream archives and license texts are unchanged. This modification retains the file's MPL-2.0 / AGPL-3.0-or-later offer, liru55 attribution and corresponding-source distribution.

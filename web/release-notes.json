@@ -6,49 +6,67 @@
       "changes": [
         "PokemonStartの0.53系セーブ形式への変換に対応しました。変換元と更新先の形式を確認し、必要な変換を選びます。",
         "オフラインの準備が完了しているとき、無効な準備ボタンが残る問題を修正しました。",
-        "PokemonStartの開発・協力クレジットを更新しました。"
+        "PokemonStartの開発・協力クレジットを更新しました。",
+        "部屋番号の共有中に相手が参加しても、ゲーム内の通信開始前なら画面に戻るまで待つようにしました。",
+        "セーブ変換時のROM確認とアプリ更新時のキャッシュ確認を軽量化し、更新準備中に待機画面が閉じる問題を修正しました。"
       ],
       "translations": {
         "zh-Hans": [
           "新增对 PokemonStart 0.53 系列存档格式的转换支持。会检查原存档与目标版本的格式，选择所需的转换。",
           "修复了离线准备完成后，已禁用的准备按钮仍然显示的问题。",
-          "更新了 PokemonStart 开发者与贡献者名单。"
+          "更新了 PokemonStart 开发者与贡献者名单。",
+          "分享房间号期间，即使对方加入，只要游戏内通信尚未开始，就会等你返回后再开始。",
+          "减少了转换存档时检查 ROM 和更新应用时检查缓存文件的处理量，并修复了更新准备尚未完成时等待界面就关闭的问题。"
         ],
         "zh-Hant": [
           "新增對 PokemonStart 0.53 系列存檔格式的轉換支援。會檢查原存檔與目標版本的格式，選擇所需的轉換。",
           "修正了離線準備完成後，已停用的準備按鈕仍然顯示的問題。",
-          "更新了 PokemonStart 開發者與貢獻者名單。"
+          "更新了 PokemonStart 開發者與貢獻者名單。",
+          "分享房間號期間，即使對方加入，只要遊戲內通訊尚未開始，就會等你返回後再開始。",
+          "減少了轉換存檔時檢查 ROM 與更新應用程式時檢查快取檔案的處理量，並修正了更新準備尚未完成時等待畫面就關閉的問題。"
         ],
         "ko": [
           "PokemonStart 0.53 계열 세이브 형식으로의 변환을 지원합니다. 원본과 업데이트 대상의 형식을 확인하여 필요한 변환을 선택합니다.",
           "오프라인 준비가 완료된 후에도 비활성화된 준비 버튼이 남아 있던 문제를 수정했습니다.",
-          "PokemonStart 개발자 및 기여자 크레딧을 업데이트했습니다."
+          "PokemonStart 개발자 및 기여자 크레딧을 업데이트했습니다.",
+          "방 번호를 공유하는 동안 상대방이 들어와도, 게임 내 통신이 시작되기 전이라면 화면으로 돌아올 때까지 기다리도록 했습니다.",
+          "세이브 변환 시 ROM 확인과 앱 업데이트 시 캐시 확인의 처리 부담을 줄이고, 업데이트 준비 중에 대기 화면이 닫히는 문제를 수정했습니다."
         ],
         "es": [
           "Se añadió la conversión al formato de partidas guardadas de la serie 0.53 de PokemonStart. Se comprueban los formatos de origen y destino para seleccionar la conversión necesaria.",
           "Se corrigió un problema que dejaba visible el botón de preparación desactivado tras completar la preparación para jugar sin conexión.",
-          "Se actualizaron los créditos de los desarrolladores y colaboradores de PokemonStart."
+          "Se actualizaron los créditos de los desarrolladores y colaboradores de PokemonStart.",
+          "Si alguien entra mientras compartes el número de sala, se espera a que vuelvas, siempre que la comunicación dentro del juego aún no haya empezado.",
+          "Se agilizaron las comprobaciones de ROM al convertir partidas guardadas y las de caché al actualizar la aplicación. Se corrigió un problema que cerraba la pantalla de espera durante la preparación de una actualización."
         ],
         "fr": [
           "Ajout de la conversion vers le format de sauvegarde des versions 0.53 de PokemonStart. Les formats source et cible sont vérifiés pour choisir la conversion nécessaire.",
           "Correction du bouton de préparation qui restait visible et désactivé une fois la préparation hors ligne terminée.",
-          "Mise à jour des crédits des développeurs et contributeurs de PokemonStart."
+          "Mise à jour des crédits des développeurs et contributeurs de PokemonStart.",
+          "Si un partenaire rejoint le salon pendant que vous partagez son numéro, la communication attend désormais votre retour, à condition qu’elle n’ait pas encore commencé dans le jeu.",
+          "Allègement de la vérification des ROM lors de la conversion des sauvegardes et du cache lors des mises à jour. Correction de la fermeture de l’écran d’attente pendant la préparation d’une mise à jour."
         ],
         "de": [
           "Die Konvertierung in das Spielstandformat der PokemonStart-Versionsreihe 0.53 wird jetzt unterstützt. Quell- und Zielformat werden geprüft, um die nötige Konvertierung auszuwählen.",
           "Ein Fehler wurde behoben, durch den nach abgeschlossener Offline-Vorbereitung weiterhin eine deaktivierte Vorbereitungsschaltfläche angezeigt wurde.",
-          "Die Angaben zu den Entwicklern und Mitwirkenden von PokemonStart wurden aktualisiert."
+          "Die Angaben zu den Entwicklern und Mitwirkenden von PokemonStart wurden aktualisiert.",
+          "Tritt jemand dem Raum bei, während Sie die Raumnummer teilen, wird nun auf Ihre Rückkehr gewartet, sofern die Kommunikation im Spiel noch nicht begonnen hat.",
+          "Die ROM-Prüfung bei der Spielstandkonvertierung und die Cache-Prüfung bei App-Updates wurden effizienter gestaltet. Ein Fehler wurde behoben, durch den sich die Warteansicht noch während der Update-Vorbereitung schloss."
         ],
         "pt": [
           "Adicionamos a conversão para o formato de dados salvos da série 0.53 do PokemonStart. Os formatos de origem e destino são verificados para selecionar a conversão necessária.",
           "Corrigimos um problema que mantinha o botão de preparação desativado visível após concluir a preparação para jogar offline.",
-          "Atualizamos os créditos dos desenvolvedores e colaboradores do PokemonStart."
+          "Atualizamos os créditos dos desenvolvedores e colaboradores do PokemonStart.",
+          "Se alguém entrar enquanto você compartilha o número da sala, a comunicação agora aguarda seu retorno, desde que ainda não tenha começado dentro do jogo.",
+          "Reduzimos o processamento das verificações de ROM na conversão de dados salvos e do cache nas atualizações do aplicativo. Corrigimos o fechamento da tela de espera durante a preparação de uma atualização."
         ]
       },
       "changesEn": [
         "Added conversion to the PokemonStart 0.53-series save format. The source and destination formats are checked to select the required conversion.",
         "Fixed a disabled preparation button remaining visible after offline preparation was complete.",
-        "Updated the PokemonStart developer and contributor credits."
+        "Updated the PokemonStart developer and contributor credits.",
+        "If a partner joins while you are sharing the room number, communication now waits for you to return, provided in-game communication has not started.",
+        "Reduced the work needed to check ROMs during save conversion and cached files during app updates. Fixed the waiting screen closing while update preparation was still in progress."
       ]
     },
     {

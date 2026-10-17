@@ -1427,5 +1427,8 @@ export default {
  "PalmoEMUのステートを追加します。保存の上書きや再開は行いません。": "Fügt einen PalmoEMU-Savestate hinzu, ohne vorhandene Speicherdaten zu überschreiben oder das Spiel fortzusetzen.",
  "PokemonStart · セーブデータ移行ツール": "PokemonStart · Werkzeug zur Spielstandmigration",
  "128KiB・6MiBの通常セーブを選択してください。": "Wählen Sie einen spielinternen Spielstand mit 128 KiB oder 6 MiB aus.",
- "PokemonStart開発・協力：": "Entwickler und Mitwirkende von PokemonStart:"
+ "PokemonStart開発・協力：": "Entwickler und Mitwirkende von PokemonStart:",
+ "開始前に端末内へバックアップします。切断や中止時は⟪0⟫通信前に戻ります。⟪1⟫⟪2⟫ゲーム内の通信開始後に別のタブやアプリへ移ると切断します。": "Vor dem Start wird eine Sicherung auf diesem Gerät erstellt. Bei Trennung oder Abbruch wird ⟪0⟫ auf den Zustand vor der Verbindung zurückgesetzt. ⟪1⟫ ⟪2⟫ Wenn Sie nach Beginn der Kommunikation im Spiel zu einem anderen Tab oder einer anderen App wechseln, wird die Verbindung getrennt.",
+ "部屋番号の共有中は、画面に戻るまで開始を待ちます。端末やサーバーが接続を切った場合は、部屋を作り直してください。": "Während Sie die Raumnummer teilen, wartet die Kommunikation auf Ihre Rückkehr. Falls das Gerät oder der Server die Verbindung trennt, erstellen Sie einen neuen Raum.",
+ "画面に戻るまで通信開始を待っています。": "Wartet auf Ihre Rückkehr, bevor die Kommunikation beginnt."
 };

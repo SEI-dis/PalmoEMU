@@ -14,7 +14,7 @@ import {coreFor} from '../core/core-registry.js';
 import {escapeHTML as esc,icon} from '../shared.js';
 import * as db from '../storage/storage.js';
 export function createLinkControls({state,setPause,release,applySettings,updateLinkButton,panel,toast,error,exitGame,download}){
-  const $=s=>document.querySelector(s);let mode='room',confirmFinish=false,finishWasPaused=false;
+  const $=s=>document.querySelector(s);let mode='room',confirmFinish=false,finishWasPaused=false,backgrounded=false;
   const isGB=()=>['gb','gbc'].includes(state.current?.system);
   const update=text=>{
     state.message=text;const el=$('#link-status');if(el)el.textContent=text;
@@ -55,7 +55,7 @@ export function createLinkControls({state,setPause,release,applySettings,updateL
         paired=new LocalLinkCore(core,secondary);state.engine=paired;
       }
       const callbacks={onClosing:()=>setPause(true),onStatus:text=>{
-        if(n.connected&&document.hidden){n.close(tr('画面を離れたため接続を終了しました。'));return;}update(text);
+        if(n.connected&&document.hidden&&!(selected==='room'&&n.canWait)){n.close(tr('画面を離れたため接続を終了しました。'));return;}update(text);
       },onEnd:async(text,{keep})=>{
         setPause(true);state.starting=false;confirmFinish=false;update(tr('通信を終了しています…'));render();
         try{
@@ -75,8 +75,9 @@ export function createLinkControls({state,setPause,release,applySettings,updateL
       }};
       n=paired?.nativeGB?new GBLocalLink(paired,callbacks):selected==='room'?new RoomLink(core.linkIO(),{...callbacks,server}):new DirectLink(paired?[core.linkIO(),secondary.linkIO()]:[core.linkIO()],{...callbacks,port});
       n.kind=selected;n.paired=paired;if(paired)paired.onError=e=>{diagnostics.record(e,'core');n.close(e.message);};state.link=n;core.setCheats([]);applySettings();
+      if(selected==='room')n.setBackground(backgrounded||document.hidden);
       await n.start(room);
-      if(!n.closed){state.starting=false;if(!document.hidden)setPause(false);else await n.close(tr('画面を離れたため接続を終了しました。'));render();}
+      if(!n.closed){state.starting=false;if(!backgrounded&&!document.hidden)setPause(false);else if(selected!=='room')await n.close(tr('画面を離れたため接続を終了しました。'));render();}
     }catch(e){
       if(n)await n.close(e.message);
       else{
@@ -103,7 +104,7 @@ export function createLinkControls({state,setPause,release,applySettings,updateL
     }else if(selected==='room')controls=tr`<button class="primary" id="link-create" ${disabled}>部屋を作る</button><label for="link-input">部屋番号で参加</label><div class="link-room-field"><input class="text-input" id="link-input" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4桁の番号" ${disabled}><button class="secondary" id="link-join" ${disabled}>参加</button></div><details class="sheet-note" id="link-server-settings"><summary>中継サーバー</summary><label for="link-server">接続先</label><input class="text-input" id="link-server" type="url" inputmode="url" maxlength="300" autocomplete="off" autocapitalize="none" spellcheck="false" value="${esc(readRelayOrigin())}" ${disabled}><p>変更する場合は、相手と同じCelio対応サーバーを指定してください。通信データと接続元IPアドレスが、そのサーバーに伝わります。</p><button class="secondary" id="link-server-reset" ${disabled}>標準に戻す</button></details>`;
     else if(selected==='local')controls=tr`<label for="link-2p-source">2Pのセーブ</label><select id="link-2p-source" ${disabled}><option value="saved">前回の2Pセーブ（初回は最初から）</option><option value="file">ファイルから読み込む</option><option value="blank">最初から</option></select><input id="link-2p-file" type="file" aria-label="2Pのセーブファイル" hidden ${disabled}><button class="primary" id="link-local-start" ${disabled}>2台で開始</button>`;
     else controls=tr`<p class="sheet-note">${navigator.serial?tr('PCのChrome / Edgeで、対応するUSB変換器を選んで接続します。'):tr('このブラウザはUSB接続に対応していません。PCのChrome / Edgeを使用してください。')}</p><button class="primary" id="link-usb-start" ${busy||!navigator.serial?'disabled':''}>USB機器を選んで接続</button>`;
-    body.innerHTML=tr`${tabs}<p id="link-status" role="status">${esc(message)}</p><div class="stack">${controls}</div><p class="sheet-note">${selected==='room'?tr('開始すると中継サーバーに接続します。ROM・セーブファイルは送信しません。'):selected==='local'?tr('端末内だけで通信します。1Pと2Pのセーブは別々です。'):tr('USB変換器へゲームの通信データを送ります。中継サーバーは使いません。')}</p><details class="sheet-note"><summary>通信について</summary><p>パネル上部をドラッグすると移動できます。閉じても通信は続きます。</p><p>${gb?tr('GB・GBCの通信ケーブルに対応するゲーム用です。この端末内で2台を動かします。'):tr('Celio方式に対応するGBAゲーム用です。オンラインの相手も同じ中継サーバーを使ってください。部屋番号はパスワードではありません。')}</p><p>開始前に端末内へバックアップします。切断や中止時は${selected==='usb'?tr('ブラウザ側だけ'):tr('この端末のゲームが')}通信前に戻ります。${selected==='usb'?tr('実機のセーブを戻すことはできません。'):''}${gb?tr('両方のゲームで通信とゲーム内セーブを終えたら、「両方のセーブを確定して終了」を押してください。'):tr('両方のゲーム内で通信を終えると結果を保存します。')}接続後に別のタブやアプリへ移ると切断します。</p><p>端末内通信の2Pには、1Pと同じROMを使います。「最初から」やファイルを選んでも、以前の2Pセーブを置き換えるのは正常終了時だけです。</p><p><a href="privacy.html" target="_blank" rel="noopener">プライバシー</a></p></details>`;
+    body.innerHTML=tr`${tabs}<p id="link-status" role="status">${esc(message)}</p><div class="stack">${controls}</div><p class="sheet-note">${selected==='room'?tr('開始すると中継サーバーに接続します。ROM・セーブファイルは送信しません。'):selected==='local'?tr('端末内だけで通信します。1Pと2Pのセーブは別々です。'):tr('USB変換器へゲームの通信データを送ります。中継サーバーは使いません。')}</p><details class="sheet-note"><summary>通信について</summary><p>パネル上部をドラッグすると移動できます。閉じても通信は続きます。</p><p>${gb?tr('GB・GBCの通信ケーブルに対応するゲーム用です。この端末内で2台を動かします。'):tr('Celio方式に対応するGBAゲーム用です。オンラインの相手も同じ中継サーバーを使ってください。部屋番号はパスワードではありません。')}</p><p>開始前に端末内へバックアップします。切断や中止時は${selected==='usb'?tr('ブラウザ側だけ'):tr('この端末のゲームが')}通信前に戻ります。${selected==='usb'?tr('実機のセーブを戻すことはできません。'):''}${gb?tr('両方のゲームで通信とゲーム内セーブを終えたら、「両方のセーブを確定して終了」を押してください。'):tr('両方のゲーム内で通信を終えると結果を保存します。')}ゲーム内の通信開始後に別のタブやアプリへ移ると切断します。</p><p>${selected==='room'?tr('部屋番号の共有中は、画面に戻るまで開始を待ちます。端末やサーバーが接続を切った場合は、部屋を作り直してください。'):''}</p><p>端末内通信の2Pには、1Pと同じROMを使います。「最初から」やファイルを選んでも、以前の2Pセーブを置き換えるのは正常終了時だけです。</p><p><a href="privacy.html" target="_blank" rel="noopener">プライバシー</a></p></details>`;
     body.querySelectorAll('[data-link-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.linkMode;state.message='';render();});
     body.querySelectorAll('[data-link-player]').forEach(b=>b.onclick=()=>{release();active.paired.select(Number(b.dataset.linkPlayer));render();});
     if($('#link-create'))$('#link-create').onclick=()=>start('');
@@ -124,5 +125,7 @@ export function createLinkControls({state,setPause,release,applySettings,updateL
     updateLinkButton();panel.place();
   }
   function renderClosing(){const button=$('#link-stop');if(button)button.disabled=true;}
-  return {render};
+  function background(){backgrounded=true;state.link?.setBackground?.(true);}
+  function foreground(){if(document.hidden)return;backgrounded=false;state.link?.setBackground?.(false);}
+  return {render,background,foreground};
 }

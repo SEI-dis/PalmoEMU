@@ -403,21 +403,22 @@ function layoutSkin(force=true){if(!current||!skinPair||!engine)return;
  btn.onpointerdown=e=>{e.preventDefault();if(item.inputs.includes?.('menu')){showGameMenu();return;}if(paused)return;engine?.unlockAudio();if($('#link-panel').contains(document.activeElement))document.activeElement.blur();skinPointers.start(btn,e,{move:Array.isArray(item.inputs)?undefined:input,end:()=>{pressed.delete(e.pointerId);btn.classList.toggle('pressed',skinPointers.has(btn));updateKeys();}});tapHaptic(settings);input(e);};});configureBuiltinTouchTargets($('#touch-controls'),settings);}
 function updateKeys(time){let keys=0,second=0;for(const [source,mask] of pressed){const player=source==='mapped-gamepad-2'?2:source==='mapped-keyboard'?inputControls.player(current?.system,'keyboard'):source==='mapped-gamepad'?1:inputControls.player(current?.system,'touch');if(player===2)second|=mask;else keys|=mask;}keys=inputControls.transform(keys,time);if(paused||launching||exiting||rewindSession.busy)keys=second=0;engine?.setKeys(keys);if(engine?.multiplayer)engine.setKeys(second,1);keys|=second;for(const view of dpadViews){const on=!!(keys&view.mask);if(on!==view.on){view.on=on;view.el.hidden=!on;}}}
 function release(){skinPointers.release();inputControls.release();stopHaptics();skinInputs?.release();pressed.clear();updateKeys();$$('.pressed').forEach(b=>b.classList.remove('pressed'));}
-function setPause(v,reason='pause'){if(!v&&(linkStarting||link?.closed||rewindSession.busy||exitStage))return;if(v){cameraBinding?.cancel();captureControls.pause(reason);}else pauseSaveTask=null;if(v&&playRunAt&&current){current.playDuration=(current.playDuration||0)+Math.max(0,Date.now()-playRunAt);playRunAt=0;}else if(!v&&!playRunAt&&engine)playRunAt=Date.now();paused=v;syncResume();release();if(!exitStage?.coreClosed)engine?.pause(v);void rewindSession.pause(v);if(!v)engine?.unlockAudio();syncRuntime();}
+function setPause(v,reason='pause'){if(!v&&(linkStarting||link?.closed||rewindSession.busy||exitStage))return;if(v){cameraBinding?.cancel();captureControls.pause(reason);}else {pauseSaveTask=null;linkControls.foreground();if(link?.closed)return;}if(v&&playRunAt&&current){current.playDuration=(current.playDuration||0)+Math.max(0,Date.now()-playRunAt);playRunAt=0;}else if(!v&&!playRunAt&&engine)playRunAt=Date.now();paused=v;syncResume();release();if(!exitStage?.coreClosed)engine?.pause(v);void rewindSession.pause(v);if(!v)engine?.unlockAudio();syncRuntime();}
 $('#resume-game').onclick=()=>{if(engine&&!launching&&!exiting&&!document.hidden)setPause(false);};
 function savePausedGame(options={}){
  if(!engine||!paused||launching||exiting||exitStage||applyingSave||link||linkStarting||linkSaveBlocked||rewindSession.busy)return;
  if(pauseSaveTask?.core===engine)return pauseSaveTask.promise;
  const task={core:engine};task.promise=persist(options).catch(error).finally(()=>{if(pauseSaveTask===task)pauseSaveTask=null;});pauseSaveTask=task;return task.promise;
 }
-function backgroundPause(){if(!engine||exiting||exitStage)return;const wasPaused=paused,wasLinked=!!link;setPause(true,'background');if(link?.connected)link.close(tr('画面を離れたため接続を終了しました。'));if(!wasLinked)savePausedGame({checkpoint:!wasPaused&&settings.recovery,reason:'background'});}
+function backgroundPause(){linkControls.background();if(!engine||exiting||exitStage)return;const wasPaused=paused,wasLinked=!!link;setPause(true,'background');if(link?.connected&&!link.canWait)link.close(tr('画面を離れたため接続を終了しました。'));if(!wasLinked)savePausedGame({checkpoint:!wasPaused&&settings.recovery,reason:'background'});}
+function foregroundResume(){linkControls.foreground();syncResume();}
 function syncResume(){$('#resume-game').hidden=!engine||!paused||!$('#loading').hidden||exiting||!!exitStage;}
 new ResizeObserver(scheduleSkinLayout).observe($('#player'));
 window.visualViewport?.addEventListener('resize',scheduleSkinLayout);
-window.addEventListener('resize',scheduleSkinLayout);window.addEventListener('blur',backgroundPause);window.addEventListener('focus',syncResume);
-document.addEventListener('visibilitychange',()=>{if(document.hidden)backgroundPause();else syncResume();});
-window.addEventListener('pagehide',backgroundPause);window.addEventListener('pageshow',event=>{if(event.persisted&&engine)setPause(true);syncResume();});
-document.addEventListener('freeze',backgroundPause);document.addEventListener('resume',syncResume);
+window.addEventListener('resize',scheduleSkinLayout);window.addEventListener('blur',backgroundPause);window.addEventListener('focus',foregroundResume);
+document.addEventListener('visibilitychange',()=>{if(document.hidden)backgroundPause();else foregroundResume();});
+window.addEventListener('pagehide',backgroundPause);window.addEventListener('pageshow',event=>{if(event.persisted&&engine)setPause(true);foregroundResume();});
+document.addEventListener('freeze',backgroundPause);document.addEventListener('resume',foregroundResume);
 function startPadPoll(){engine.beforeFrame=()=>{inputControls.poll();if(engine.rumble?.enabled)engine.rumble.setTarget(inputControls.rumbleTarget());rewindSession.frame();};}
 function persist(options={}){if(!engine||!current||launching||exitStage||link||linkStarting||linkSaveBlocked||rewindSession.busy)return Promise.resolve();const savingEngine=engine,started=performance.now();return protection.save(savingEngine,options).then(result=>{if(!result?.skipped)performanceDiagnostics.save(performance.now()-started,true,savingEngine);return result;}).catch(e=>{performanceDiagnostics.save(performance.now()-started,false,savingEngine);diagnostics.record(e,'save');throw e;});}
 // A settled native save can reach IndexedDB sooner without capturing a state.

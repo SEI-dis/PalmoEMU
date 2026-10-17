@@ -70,8 +70,18 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',playwright=require('./b
   // Closing while asynchronous backup is pending must also stay closed after connection.
   await p.evaluate(async()=>{const {SaveProtection}=await import('./src/storage/save-safety.js'),save=SaveProtection.prototype.save;SaveProtection.prototype.save=async function(core,options){if(options?.reason==='before-link')await new Promise(r=>setTimeout(r,250));return save.call(this,core,options);};});
   await trigger.tap();await p.locator('#link-input').fill('8969');await p.locator('#link-input').press('Enter');await p.locator('#link-panel-close').click();
+  await p.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});window.dispatchEvent(new Event('blur'));document.dispatchEvent(new Event('visibilitychange'));});
   await p.waitForFunction(()=>document.querySelector('#player-link').dataset.state==='connected');assert.equal(await panel.isVisible(),false);
-  await trigger.tap();await p.locator('#link-stop').click();await p.waitForFunction(()=>document.querySelector('#player-link').dataset.state==='idle');
+  assert.equal(await p.evaluate(()=>testEngine.paused),true,'Leaving during async backup keeps joined room paused');
+  await p.evaluate(()=>{delete document.hidden;window.dispatchEvent(new Event('focus'));document.dispatchEvent(new Event('visibilitychange'));});
+  await p.locator('#resume-game').click();
+  relay.send('42["deviceCommand",{"uuid":"begin-game","command":18}]');await p.waitForTimeout(30);
+  await p.evaluate(()=>window.dispatchEvent(new Event('blur')));
+  await p.waitForFunction(()=>document.querySelector('#player-link').dataset.state==='idle');
+  assert.equal(await p.evaluate(()=>testEngine.paused),true,'Leaving after handshake starts restores backup and pauses');
+  await p.evaluate(()=>window.dispatchEvent(new Event('focus')));if(await panel.isVisible())await p.locator('#link-panel-close').click();await p.locator('#resume-game').click();
+  await trigger.tap();await p.locator('#link-create').click();await p.locator('#link-stop').waitFor();
+  await p.locator('#link-stop').click();await p.waitForFunction(()=>document.querySelector('#player-link').dataset.state==='idle');
   assert.ok(wire.some(m=>m==='42["sessionLeft"]'));assert.equal(await p.evaluate(()=>testEngine.paused),true);
   await p.locator('#link-panel-close').click();await p.locator('#player-menu').click();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});
   // No Wi-Fi shortcut is offered for an unsupported machine.

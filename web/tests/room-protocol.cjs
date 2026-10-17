@@ -8,7 +8,7 @@ module.exports=async page=>{
   const create=()=>{
    const frames=[],words=[],commands=[],ended=[];
    const link=new RoomLink({enable(){},mask(){},write(){}},{onEnd:(reason,info)=>ended.push({reason,...info})});
-   link.joined=true;link.connected=true;link.socket={readyState:WebSocket.OPEN,bufferedAmount:0,send:text=>frames.push(text),close(){}};
+   link.joined=true;link.connected=true;link.deviceStarted=true;link.socket={readyState:WebSocket.OPEN,bufferedAmount:0,send:text=>frames.push(text),close(){}};
    link.device.receive=data=>words.push(data[0]);link.device.command=value=>commands.push(value);
    return {link,frames,words,commands,ended};
   };
@@ -57,9 +57,28 @@ module.exports=async page=>{
    const x=create();x.link.gameClosed=keep;message(x.link,17,event,{uuid:event});
    check(x.frames[0]==='4317[true]'&&x.ended[0].keep===keep,'ACK before close; commit only on normal game close');
   }
-  const join=create();join.link.connected=false;let resets=0;join.link.device.reset=()=>resets++;
+  const join=create();join.link.connected=false;join.link.deviceStarted=false;let resets=0;join.link.device.reset=()=>resets++;
   message(join.link,20,'partnerJoined',{uuid:'join'});message(join.link,21,'partnerJoined',{uuid:'join'});
   check(resets===1&&join.frames.includes('4321[true]'),'Retried join does not reset game');join.link.close();
+  const lobby=create();lobby.link.connected=false;lobby.link.deviceStarted=false;lobby.link.setBackground(true);let starts=0;lobby.link.io.enable=value=>{if(value)starts++;};
+  message(lobby.link,30,'partnerJoined',{uuid:'hidden-join'});message(lobby.link,31,'partnerJoined',{uuid:'hidden-join'});
+  check(lobby.link.connected&&!lobby.link.closed&&!lobby.link.deviceStarted&&starts===0,'Hidden join retains room without starting the device');
+  check(lobby.frames.includes('4331[true]'),'Hidden joins are acknowledged so server retries do not evict the room');
+  message(lobby.link,34,'deviceCommand',{uuid:'early-connect',command:0x13});message(lobby.link,35,'deviceCommand',{uuid:'early-connect',command:0x13});
+  message(lobby.link,36,'deviceData',[packet(1),packet(0)]);message(lobby.link,37,'deviceData',[packet(0)]);
+  check(lobby.words.length===0&&lobby.commands.length===0&&lobby.link.lobbyData.length===2&&lobby.link.lobbyCommands.length===1,'Early data/commands held once, in order, without touching device');
+  lobby.link.setBackground(false);lobby.link.setBackground(false);
+  check(starts===1,'Return starts device exactly once');
+  check(lobby.commands.filter(c=>c===0x13).length===1&&JSON.stringify(lobby.words)==='[0,1]','Return replays buffered input once in sequence');
+  check(!lobby.link.canWait,'Replayed game-start messages end lobby waiting');
+  lobby.link.setBackground(true);check(lobby.link.closed&&lobby.ended[0].keep===false,'Background during gameplay still rolls back');
+  const mode=create();mode.link.connected=false;mode.link.deviceStarted=false;mode.link.startDevice();mode.link.setBackground(true);await new Promise(r=>setTimeout(r,550));
+  check(!mode.commands.includes(0),'Background cancels pending mode request');mode.link.setBackground(false);await new Promise(r=>setTimeout(r,550));
+  check(mode.commands.filter(c=>c===0).length===1,'Return sends mode once');mode.link.status(0xFF03);check(!mode.link.canWait,'Local handshake ends waiting');mode.link.close();
+  const overflow=create();overflow.link.setBackground(true);message(overflow.link,40,'deviceData',Array.from({length:512},(_,i)=>packet(i)));
+  let limited=false;try{message(overflow.link,41,'deviceData',[packet(512)]);}catch{limited=true;}check(limited&&overflow.link.lobbyData.length===512,'Background packet buffer is bounded');overflow.link.close();check(!overflow.link.lobbyData.length,'Close discards pending lobby packets');
+  const cancelled=create();cancelled.link.connected=false;cancelled.link.deviceStarted=false;cancelled.link.setBackground(true);message(cancelled.link,32,'partnerJoined',{uuid:'cancel'});cancelled.link.close();cancelled.link.setBackground(false);check(!cancelled.link.deviceStarted,'Cancelled hidden lobby never restarts');
+  const raced=create();raced.link.gameStarted=true;raced.link.backgrounded=true;message(raced.link,33,'deviceCommand',{uuid:'late-handshake',command:0x12});check(raced.link.closed&&!raced.commands.includes(0x12),'A late game-start command cannot run while backgrounded');
   return 'PASS: batched/legacy protocol, command and data deduplication, ACK retry, validation, memory limits and cleanup.';
  });console.log(result);
 };

@@ -85,8 +85,18 @@ const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
   }
   const [p,q]=pages;await p.locator('#link-create').click();await p.waitForFunction(()=>/^\d{4}$/.test(document.querySelector('#link-room-number')?.value));
   console.log('UI host room created.');
+  // Share the room in another app. The visible peer can enter and reach its
+  // handshake, but the hidden host must not start its CPU/device or roll back.
+  await p.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});
   await q.locator('#link-input').fill(await p.locator('#link-room-number').inputValue());await q.locator('#link-join').click();
+  await p.waitForFunction(()=>document.querySelector('#link-status')?.textContent.includes('画面に戻るまで'));
+  await q.waitForTimeout(8000);
+  assert.equal(await p.locator('#link-room-number').count(),1,'Room survives a peer joining while sharing: '+await p.locator('#link-status').textContent());
+  assert.equal(await p.locator('#resume-game').isVisible(),true,'Background CPU remains paused');
+  assert.equal(await q.evaluate(()=>document.querySelector('#screen canvas').getContext('2d').getImageData(0,0,1,1).data[1]>200),false,'Peer cannot complete a transfer until host returns');
+  await p.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
   for(const page of pages){await page.locator('#link-room-number').waitFor();await page.locator('#link-panel-close').click();assert.equal(await page.locator('#boost').textContent(),'1×');assert.equal(await page.locator('#boost').isDisabled(),true);}
+  await p.locator('#resume-game').click();
   console.log('UI joined.');
   await p.waitForFunction(()=>document.querySelector('#screen canvas').getContext('2d').getImageData(0,0,1,1).data[1]>200);
   const before=await p.evaluate(async()=>{const db=await import('./src/storage/storage.js'),[game]=await db.all('library'),rs=await db.get('recoveries',game.id);return {id:game.id,image:rs[0]?.image,cpu:[...rs[0].bytes.slice(0x20,0x60)],recoveries:rs.map(r=>r.hash),saved:await db.get('saves',game.id)};});assert.ok(before.recoveries.length>0);
