@@ -50,3 +50,15 @@
 L形式の開始版0.50.0と更新ガード0x31ffは変更しない。0.50.1専用の変換許可や出力stampの先取りは加えていない。既存Lは提供ツールと同じくバイト同一のまま保持し、既存の0.50.0変換結果を書き直す追加処理も入れない。今回の実ROMでは従来の実行時補正でこの旧出力/空flashの誤判定を扱える。将来ROMの対応は版番号でなく実際のnative判定を確認する。
 
 正常な合成両スロットで、counter 0/1/2/7/0xffffffff × sparse/denseの10条件が提供0.50.1ツールのforward出力と全bytes一致。個体3000枠、メタデータ、main bank世代、実box pageとしてのsector 16、原本・RTC・非配置領域を確認した。修正前の変換結果ではraw flashの4組の比較が失敗し、修正後に通ることを回帰検査で確認する。
+
+## 2026-10-17: 0.53.1 / W形式（公開保留）
+
+上流CHANGELOG: https://github.com/pm-start/PokemonStart/blob/e06cb442232cc056d53853b6ccde826f1a745602/CHANGELOG.md 。0.53.0で保存形式変更、0.53.1は修正版。提供HTML/静的復号コードのSHA-256はvendor/start-save-format/component.jsonへ記録した。PKSとの同一性や個人作者を推測しない。
+
+提供ROM SHA-256 3264de947c098cf6250bc40aa2c8d81d13bdb787619c75f6bb25d16c680881f0。読み取り専用のThumb解析で保存版0x3501、最低0x2402、W/SHL3を確認。menu 0x10a2cd6から旧形式フラグ0x10e64d0を確認し、lower 0x10f54d4 / upper 0x10f54e4へ進む。loader 0x10e6530はSHEL・SHL2を拒否しSHL3を通常経路へ送る。3形式の比較、分岐方向、cache/初期化、戻り先を組で検証し、アドレス・CRC・版のホワイトリストを使わない。合成将来版/再配置/変更命令/条件反転の拒否を検査する。
+
+Wは63bytes（従来58+ext16+技hi24）、64個体/page、追加領域はglobal index 960から、9論理page・18物理候補、overflowはextra26から30候補。変換器の0x34ffガードを保持し、native初回更新を残す。Lは0x31ffのまま。元の厳密なchecksum/map/counter検査と全3000枠・メタデータ・未選択枠・RTC保護を維持。逆変換/丸めは取り込まない。
+
+counter 0/1/2/7/0xffffffff × sparse/denseについてold→WとL→Wの20合成ケースが、レビュー済みpure宣言のみの隔離VMで公式出力と全bytes一致。添付0.42.3実セーブからも全bytes一致し、原本ROM・セーブのハッシュ不変。実セーブはぼうけんのしょ1のみ・ボックス個体0であり、ボックスとしょ2は合成データで補う。出荷mGBAで変換結果を読み込み、2700frame内で「つづきから」からマサラタウンの画面に到達。旧拡張領域probeの構造は一致せず、一時ROM補正は適用されない。全ゲーム内容・通信・iPhone実機での動作保証ではない。
+
+原HTML、復号コード、ROM、実セーブ、テスト用変換結果、ゲーム画像はworkまたはDownloadsに留め、リポジトリ/配布物に含めない。

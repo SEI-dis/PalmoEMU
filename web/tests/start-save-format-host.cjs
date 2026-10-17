@@ -70,5 +70,20 @@ const {newLayout,changePage,put16,u16}=require('./helpers/start-save-format-fixt
  assert(progress.every(event=>Number.isFinite(event.index)&&event.index>=0&&event.total>0&&event.index<=event.total),'UI progress always has a finite index and total');
  const stopDuring=new AbortController();await assert.rejects(api.migrateStartSave(small,{from:'0.49.0',target,signal:stopDuring.signal,onProgress:()=>stopDuring.abort()}),{name:'AbortError'});assert.equal(hash(small),smallHash);
  const stop=new AbortController();stop.abort();await assert.rejects(api.migrateStartSave(save,{from:'0.49.0',target,signal:stop.signal}),{name:'AbortError'});assert.equal(hash(save),before);
+ const wideTarget={version:'0.53.1',minimumSaveVersion:'0.36.2',saveFormat:'W'};
+ const lSave=await api.migrateStartSave(save,{from:'0.49.0',target});
+ for(const [from,input]of [['0.22',fixture22()],['0.35.0',fixture35({second:true})],['0.49.0',save],['0.50.0',lSave.bytes]]){
+  const inputHash=hash(input),wide=await api.migrateStartSave(input,{from,target:wideTarget});
+  assert.equal(hash(input),inputHash);assert.equal(classify(from,wideTarget).status,'convert');
+  assert.equal(api.detectStartSaveVersion(wide.bytes),'0.53.0');assert.equal(wide.report.to,'0.53.0');
+  assert.equal(api.inspectStartUpdate(wide.bytes,'0.53.0',wideTarget).compatibility.status,'compatible');
+  assert.deepEqual((await api.migrateStartSave(wide.bytes,{from:'0.53.0',target:wideTarget})).bytes,wide.bytes);
+  assert.throws(()=>api.inspectStartSave(wide.bytes,'0.50.0'),{code:'START_MISMATCH'});
+  await assert.rejects(api.migrateStartSave(wide.bytes,{from:'0.53.0',target}));
+ }
+ for(const bad of [{...wideTarget,saveFormat:'L'},{...wideTarget,minimumSaveVersion:'0.53.0'},{...wideTarget,saveFormat:undefined}])assert.equal(canApply(bad,'0.49.0'),false);
+ assert.equal(classify('0.53.0',{...wideTarget,version:'0.54.0'}).status,'compatible');
+ const misleading=changePage(lSave.bytes,0,10,p=>put16(p,0x245,0x3501));assert.equal(api.detectStartSaveVersion(misleading),null,'L bytes cannot claim a W version');
+ assert.throws(()=>api.inspectStartSave(misleading,'0.53.1'));
  console.log('PASS: START 0.50 host routing, old converter chain, L inspection/bridge marker, immutable slots/RTC, noop, unknown format and downgrade refusal');
 })().catch(error=>{console.error(error);process.exitCode=1;});

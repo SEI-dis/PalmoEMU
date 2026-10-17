@@ -1,4 +1,4 @@
-# PokemonStart 0.50.1 save-format component
+# PokemonStart 0.53.1 save-format component
 
 **Permission clarification (2026-10-16).** Following an explicit explanation of
 modification, offline distribution and modified-source publication on GitHub/in
@@ -9,12 +9,14 @@ individual tool author. This records the maintainer confirmation, not a separate
 inspected rights-holder message. `component.json` records the scope and condition.
 
 Source distribution: [pm-start/PokemonStart](https://github.com/pm-start/PokemonStart),
-`PokemonStart_v0.50.1.pks`, bundled `セーブデータ移行ツール.html`.
-The maintainer supplied the 0.50.1 HTML separately for this update. Its decoded
+maintainer-supplied `セーブデータ移行ツール (1).html` alongside the 0.53.1 ROM.
+The source matches the W-format change documented in the upstream 0.53 changelog. Its decoded
 JavaScript was reviewed statically; the original HTML/UI is not distributed.
 This identifies the distributor, **not a verified individual author**. This is
 separate from the earlier くりーぱー START Save Migrate component; its author credit
 and permission must not be attributed to this different attachment.
+
+PokemonStart project development and contributions: **[onikoro334274-cell](https://github.com/onikoro334274-cell)** and **[liru55](https://github.com/liru55)**. Both accounts appear in the upstream contributor list (checked 2026-10-16); [the 0.50.1 publication commit](https://github.com/pm-start/PokemonStart/commit/62ebfdded673b10fa4450b94494166da8147d2bd) is by liru55. This project credit does not identify an individual author of the bundled converter or add a permission grant.
 
 On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.
 The host facade AGPL notice does not relicense this component.
@@ -111,3 +113,26 @@ and maximum counters, preservation of the real sector-16 box page, raw probe
 results and original/RTC bytes. Ten fixtures match the supplied 0.50.1 forward
 converter byte for byte. Original HTML, decoded source and actual ROM remain
 outside the distribution. This does not certify real gameplay or iPhone use.
+
+## 0.53: wide move records
+
+The 0.53.1 supplied HTML adds W/SHL3 records (63 bytes), after old/SHEL (58)
+and L/SHL2 (60). Forward old → L → W conversion relocates each of four move
+high bits from extension bits 9–12 into four six-bit fields in a 24-bit tail;
+location, level and the other extension bits are retained. W uses 64 records per
+page, extension records from index 960, nine logical extension pages and physical
+extension sectors 40–57 / overflow sectors 58–87. All 50 boxes remain available.
+
+The host reads both the native version gate and structural loader evidence to
+select L or W. 0.50–0.52 use L with guard 0x31ff; 0.53 and structurally compatible
+later targets use W with guard 0x34ff. These guards deliberately leave first-run
+game migrations pending. Unknown layouts/bounds fail closed. No version/CRC
+whitelist replaces the structural checks. Existing W saves remain byte-identical;
+downgrading W to L and upstream's lossy rounding remain unavailable.
+
+The adapted reader continues to reject corrupt maps, checksums, ambiguous counters
+and overlapping allocations instead of substituting empty boxes. L writes retain
+the previously reviewed sectors through 85; W owns through 87. Unselected slots,
+RTC and non-layout bytes remain unchanged. Runtime ROM-probe correction is a
+separate structure/capacity-gated feature; the supplied 0.53.1 probe does not match
+and is not patched. Input HTML, ROM and real saves are never distributed.

@@ -9,8 +9,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'palmo-format-l-'));let browser;
  try{
   browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
-  for(const patch of [0,1]){
-  const targetVersion=`0.50.${patch}`,targetBytes=fixture({stamp:0x3200+patch,rangeGate:true,upperImmediate:patch===0,lFormat:true}).bytes;
+  for(const [minor,patch] of [[50,0],[50,1],[53,1]]){
+  const targetVersion=`0.${minor}.${patch}`,targetBytes=fixture({stamp:(minor<<8)+patch,rangeGate:true,upperImmediate:patch===0,lFormat:minor===50,wFormat:minor===53}).bytes;
   const file=path.join(dir,`PokemonStart_v${targetVersion}.gba`);fs.writeFileSync(file,targetBytes);
   const original=fixture35({stamp:0x3100,second:true});
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),page=await context.newPage(),errors=[];
@@ -52,9 +52,9 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   },{source,targetVersion});
   assert.equal(result.source,hash(original));assert.equal(result.backup,hash(original));assert.notEqual(result.target,hash(original));
   assert.equal(result.unchanged,true);assert.equal(result.rejected,true);
-  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:'L',stamp:0x31ff})));
-  assert.deepEqual(result.migration,{kind:'start',from:'0.49.0',to:targetVersion,...(patch?{via:'0.50.0'}:{})});
-  assert.equal(result.current.version,'0.50.0');assert.equal(result.current.compatibility.status,'compatible');assert.equal(result.current.validationError,null);
+  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:minor===53?'W':'L',stamp:minor===53?0x34ff:0x31ff})));
+  assert.deepEqual(result.migration,{kind:'start',from:'0.49.0',to:targetVersion,...(patch?{via:`0.${minor}.0`}:{})});
+  assert.equal(result.current.version,`0.${minor}.0`);assert.equal(result.current.compatibility.status,'compatible');assert.equal(result.current.validationError,null);
   assert.equal(result.attempts,0);assert.deepEqual(errors,[]);
   await context.close();
   console.log('PASS: '+kind+' ROM update UI → Worker → '+targetVersion+' format migration, both slots, original/backup preservation, no unchecked copy, converted-save reinspection');

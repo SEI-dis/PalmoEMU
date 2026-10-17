@@ -1,11 +1,11 @@
-/* PokemonStart v0.50.1 save-format migration, extracted and adapted for PalmoEMU.
+/* PokemonStart v0.53.1 save-format migration, extracted and adapted for PalmoEMU.
  * Source distributor: pm-start/PokemonStart. See README.md and component.json.
  * Project-specific permission; no standardized upstream license was supplied.
  * This component is separate from the earlier START Save Migrate component.
  */
 
 const SECTOR=0x1000,DATA=0xff0,SIGNATURE=0x08012025,SLOT_BYTES=3*1024*1024;
-const FULL_BYTES=2*SLOT_BYTES,SMALL_BYTES=32*SECTOR,VERSION_OFFSET=0xba,VERSION_GUARD=0x31ff;
+const FULL_BYTES=2*SLOT_BYTES,SMALL_BYTES=32*SECTOR,VERSION_OFFSET=0xba,VERSION_GUARD=0x31ff,WIDE_VERSION_GUARD=0x34ff;
 const SECTION_SIZES=[0xf24,DATA,DATA,DATA,0xd98],MAP_OFFSET=0x1400;
 const PAGE0_MON=4+0x98+0xef+0xba0,EXT_META_SIZE=110,REGION_BOX_OFFSET=0x0203cabc-0x0203bfac;
 const SB1_BOX_OFFSET=0x18e8,SB2_BOX_OFFSET=0xf8,MON_BYTES=58,BOX_COUNT=50,BOX_SLOTS=30;
@@ -37,15 +37,16 @@ function decode(raw){
  }
  return out;
 }
-function format(name,magic,mon,p0Mons,pageMons,boxPages,shelfPages,extPages,extFirst,extMons,overflowCount){
+function format(name,magic,mon,p0Mons,pageMons,boxPages,shelfPages,extPages,extFirst,extMons,overflowCount,overflowFirst=24,extPhysicalCount=16){
  const p0Ext=PAGE0_MON+p0Mons*mon,extMetaOffset=(extMons-(extPages-1)*pageMons)*mon;
  return {name,magic,mon,p0Mons,pageMons,boxPages,shelfPages,extPages,extFirst,p0Ext,p0Overflow:p0Ext+1+extPages,
-  extMetaOffset,overflowOffset:extMetaOffset+EXT_META_SIZE,overflowCount,
+  extMetaOffset,overflowOffset:extMetaOffset+EXT_META_SIZE,overflowCount,overflowFirst,extPhysicalCount,
   monAt(index){if(index>=extFirst){index-=extFirst;return [shelfPages+Math.floor(index/pageMons),(index%pageMons)*mon];}
    if(index<p0Mons)return [0,PAGE0_MON+index*mon];index-=p0Mons;return [1+Math.floor(index/pageMons),(index%pageMons)*mon];}};
 }
 const OLD=format('old',0x4c454853,58,12,70,15,17,5,990,330,28);
 const LARGE=format('L',0x324c4853,60,11,68,16,18,8,1020,480,30);
+const WIDE=format('W',0x334c4853,63,11,64,16,18,9,960,540,30,26,18);
 // Modular serial arithmetic. The half-range difference is intrinsically
 // ambiguous and must never be resolved by an arbitrary bank/page preference.
 function compareCounter(a,b){const delta=(a-b)>>>0;if(delta===0x80000000)fail('COUNTER_AMBIGUOUS');return delta===0?0:delta<0x80000000?1:-1;}
@@ -73,7 +74,7 @@ function chooseMain(img){
 function sb1(sections){const out=new Uint8Array(DATA*3+0xd98);let pos=0;for(let id=1;id<5;id++){out.set(sections[id].subarray(0,SECTION_SIZES[id]),pos);pos+=SECTION_SIZES[id];}return out;}
 function setSb1(sections,bytes){let pos=0;for(let id=1;id<5;id++){sections[id].set(bytes.subarray(pos,pos+SECTION_SIZES[id]));pos+=SECTION_SIZES[id];}}
 function readLogical(img){
- const main=chooseMain(img),magic=u32(img,main.sections[2]+MAP_OFFSET-DATA),fmt=magic===OLD.magic?OLD:magic===LARGE.magic?LARGE:null;
+ const main=chooseMain(img),magic=u32(img,main.sections[2]+MAP_OFFSET-DATA),fmt=magic===OLD.magic?OLD:magic===LARGE.magic?LARGE:magic===WIDE.magic?WIDE:null;
  if(!fmt)fail('LAYOUT');
  const sections=main.sections.map(offset=>img.slice(offset,offset+DATA)),body=sb1(sections);
  if(u32(body,MAP_OFFSET+4)!==main.counter)fail('MAP_COUNTER');
@@ -93,14 +94,14 @@ function readLogical(img){
  if(extension===0x58){
   for(let i=0;i<fmt.extPages;i++){
    const physical=p0[fmt.p0Ext+1+i];if(physical===255)continue;
-   const entry=readPage(fmt.shelfPages+i,32+physical,40,55);pages.set(fmt.shelfPages+i,entry.data);counters.set(fmt.shelfPages+i,entry.counter);
+   const entry=readPage(fmt.shelfPages+i,32+physical,40,39+fmt.extPhysicalCount);pages.set(fmt.shelfPages+i,entry.data);counters.set(fmt.shelfPages+i,entry.counter);
   }
- }else if(![0,255].includes(extension)||fmt===LARGE)fail('EXT_MAP');
+ }else if(![0,255].includes(extension)||fmt!==OLD)fail('EXT_MAP');
  const last=fmt.shelfPages+fmt.extPages-1,lastPage=pages.get(last),overflow=lastPage?.[fmt.overflowOffset];
  if(overflow===0x59){
   for(let page=1;page<fmt.boxPages;page++){
    const physical=lastPage[fmt.overflowOffset+page];if(physical===255)continue;
-   const entry=readPage(page,32+physical,56,55+fmt.overflowCount),old=pages.get(page);
+   const entry=readPage(page,32+physical,32+fmt.overflowFirst,31+fmt.overflowFirst+fmt.overflowCount),old=pages.get(page);
    const order=old?compareCounter(entry.counter,counters.get(page)):1;
    if(order===0&&!equal(old,entry.data))fail('PAGE_CONFLICT');
    if(order>0){pages.set(page,entry.data);counters.set(page,entry.counter);}
@@ -112,16 +113,17 @@ function readLogical(img){
   p0Head:p0.slice(0,4),p0A:p0.slice(4,4+0x98),p0B:p0.slice(4+0x98,4+0x98+0xef),
   parasite:p0.slice(4+0x98+0xef,PAGE0_MON),region,extMeta:pageData(last).slice(fmt.extMetaOffset,fmt.extMetaOffset+EXT_META_SIZE),boxes:[],references};
  for(let box=0;box<BOX_COUNT;box++)for(let position=0;position<BOX_SLOTS;position++){
-  let source,offset,ext=0;
+  let source,offset,ext=0,hi=0;
   if(fmt===OLD&&box>=19&&box<25){
    if(box<22){source=region;offset=REGION_BOX_OFFSET+(box-19)*BOX_SLOTS*MON_BYTES+position*MON_BYTES;}
    else if(box<24){source=body;offset=SB1_BOX_OFFSET+(box-22)*BOX_SLOTS*MON_BYTES+position*MON_BYTES;}
    else{source=sections[0];offset=SB2_BOX_OFFSET+position*MON_BYTES;}
   }else{
-   const streamBox=fmt===LARGE?box:box<19?box:box<39?box-6:33+box-39;
-   const [page,at]=fmt.monAt(streamBox*BOX_SLOTS+position);source=pageData(page);offset=at;if(fmt===LARGE)ext=u16(source,offset+MON_BYTES);
+   const streamBox=fmt!==OLD?box:box<19?box:box<39?box-6:33+box-39;
+   const [page,at]=fmt.monAt(streamBox*BOX_SLOTS+position);source=pageData(page);offset=at;if(fmt!==OLD)ext=u16(source,offset+MON_BYTES);
+   if(fmt===WIDE)hi=source[offset+60]|source[offset+61]<<8|source[offset+62]<<16;
   }
-  if(offset+MON_BYTES>source.length)fail('RECORD');logical.boxes.push({bytes:source.slice(offset,offset+MON_BYTES),ext});
+  if(offset+MON_BYTES>source.length)fail('RECORD');logical.boxes.push({bytes:source.slice(offset,offset+MON_BYTES),ext,hi});
  }
  // These regions held six old-format boxes. Their logical records above are
  // preserved separately; clearing them frees the old layout without losing
@@ -139,24 +141,34 @@ function convertRecord(record){
   const level=(u16(bytes,0x34)&0x7f)+127;
   put16(bytes,0x34,(u16(bytes,0x34)&~0x7f)|(level&0x7f));ext=(level>>>7)<<8;bytes[0x10]&=~0x40;
  }
- return {bytes,ext};
+ return {bytes,ext,hi:0};
 }
-function convertedLogical(before){
- const after={...before,format:'L',sections:before.sections.map(bytes=>bytes.slice()),parasite:before.parasite.slice(),boxes:before.boxes.map(convertRecord)};
- // Keep the game's first-run migration available: do not stamp 0.50.0 here.
- const version=u16(after.parasite,VERSION_OFFSET);if(version&&version<VERSION_GUARD)put16(after.parasite,VERSION_OFFSET,VERSION_GUARD);
+function convertedLogical(before,to){
+ const boxes=before.boxes.map(record=>{
+  const converted=before.format==='old'?convertRecord(record):{...record,bytes:record.bytes.slice()};
+  if(to==='W'){
+   let hi=0;if(u16(converted.bytes,0x1c)!==0)for(let k=0;k<4;k++)hi|=((converted.ext>>>(9+k))&1)<<(6*k);
+   converted.ext=u16(converted.bytes,0x1c)===0?0:converted.ext&~0x1e00;converted.hi=hi;
+  }
+  return converted;
+ });
+ const after={...before,format:to,sections:before.sections.map(bytes=>bytes.slice()),parasite:before.parasite.slice(),boxes};
+ // Leave the destination game's first-run migration pending.
+ const guard=to==='W'?WIDE_VERSION_GUARD:VERSION_GUARD,version=u16(after.parasite,VERSION_OFFSET);
+ if(version&&version<guard)put16(after.parasite,VERSION_OFFSET,guard);
  return after;
 }
 function seal(img,physical,payload,id,counter,size=DATA){
  const sector=new Uint8Array(SECTOR);sector.set(payload);put16(sector,0xff4,id);put16(sector,0xff6,checksum(sector,0,size));put32(sector,0xff8,SIGNATURE);put32(sector,0xffc,counter);img.set(sector,physical*SECTOR);
 }
 function writeLogical(img,logical){
- const fmt=LARGE,pages=new Map(),page=id=>{if(!pages.has(id))pages.set(id,new Uint8Array(DATA));return pages.get(id);};
+ const fmt=logical.format==='W'?WIDE:LARGE,pages=new Map(),page=id=>{if(!pages.has(id))pages.set(id,new Uint8Array(DATA));return pages.get(id);};
  // The source tool owns these layout regions. Extended non-layout sectors
- // (32..39 and 86..767) are intentionally neither cleared nor re-encrypted.
- img.fill(255,0,32*SECTOR);img.fill(255,40*SECTOR,86*SECTOR);
+ // outside the selected target layout are neither cleared nor re-encrypted.
+ img.fill(255,0,32*SECTOR);img.fill(255,40*SECTOR,(32+fmt.overflowFirst+fmt.overflowCount)*SECTOR);
  for(let i=0;i<logical.boxes.length;i++){
-  const record=logical.boxes[i],bytes=new Uint8Array(60);bytes.set(record.bytes);put16(bytes,58,record.ext);
+  const record=logical.boxes[i],bytes=new Uint8Array(fmt.mon);bytes.set(record.bytes);put16(bytes,58,record.ext);
+  if(fmt===WIDE){bytes[60]=record.hi&255;bytes[61]=(record.hi>>>8)&255;bytes[62]=(record.hi>>>16)&255;}
   if(nonzero(bytes)){const [id,offset]=fmt.monAt(i);page(id).set(bytes,offset);}
  }
  const p0=page(0);p0.set(logical.p0Head);p0.set(logical.p0A,4);p0.set(logical.p0B,4+0x98);p0.set(logical.parasite,4+0x98+0xef);
@@ -179,7 +191,7 @@ function writeLogical(img,logical){
  if(!pages.has(6))seal(img,16,p0,0x40,Math.max(logical.counter-1,0));
 }
 function verifyLogical(expected,actual){
- if(actual.format!=='L'||actual.counter!==expected.counter)fail('OUTPUT');
+ if(actual.format!==expected.format||actual.counter!==expected.counter)fail('OUTPUT');
  for(const name of ['p0Head','p0A','p0B','parasite','region','extMeta'])if(!equal(expected[name],actual[name]))fail('OUTPUT');
  for(let id=0;id<5;id++){
   const left=expected.sections[id].slice(),right=actual.sections[id].slice();
@@ -188,7 +200,7 @@ function verifyLogical(expected,actual){
   if(!equal(left,right))fail('OUTPUT');
  }
  if(actual.boxes.length!==1500)fail('OUTPUT');
- for(let i=0;i<1500;i++)if(expected.boxes[i].ext!==actual.boxes[i].ext||!equal(expected.boxes[i].bytes,actual.boxes[i].bytes))fail('OUTPUT');
+ for(let i=0;i<1500;i++)if(expected.boxes[i].ext!==actual.boxes[i].ext||expected.boxes[i].hi!==actual.boxes[i].hi||!equal(expected.boxes[i].bytes,actual.boxes[i].bytes))fail('OUTPUT');
 }
 function image(raw,bodyBytes,slot){const out=new Uint8Array(SLOT_BYTES).fill(255),offset=slot*SLOT_BYTES;if(offset<bodyBytes)out.set(raw.subarray(offset,Math.min(offset+SLOT_BYTES,bodyBytes)));return decode(out);}
 function inspectSlot(raw,bodyBytes,slot){
@@ -210,37 +222,39 @@ export function containsFormatL(value){
   const signature=u32(bytes,offset+0xff8),encrypted=signature!==SIGNATURE;
   if(encrypted&&((signature^u32(key,0xff8))>>>0)!==SIGNATURE)continue;
   const id=u16(bytes,offset+0xff4)^(encrypted?u16(key,0xff4):0);
-  if(id===2&&((u32(bytes,offset+MAP_OFFSET-DATA)^(encrypted?u32(key,MAP_OFFSET-DATA):0))>>>0)===LARGE.magic)return true;
+  if(id===2&&[LARGE.magic,WIDE.magic].includes((u32(bytes,offset+MAP_OFFSET-DATA)^(encrypted?u32(key,MAP_OFFSET-DATA):0))>>>0))return true;
  }
  return false;
 }
 export function inspectFormatSave(value){const {raw,bodyBytes,rtcBytes}=input(value);return {size:raw.length,bodyBytes,rtcBytes,slots:[0,1].map(slot=>publicSlot(inspectSlot(raw,bodyBytes,slot)))};}
-export async function convertFormatSave(value,{selection='all',onProgress,signal}={}){
+export async function convertFormatSave(value,{selection='all',to='L',onProgress,signal}={}){
  abort(signal);const {raw,bodyBytes,rtcBytes}=input(value);
+ if(!['L','W'].includes(to))fail('TARGET');
  if(selection!=='all'&&selection!==0&&selection!==1)fail('SELECTION');
  const slots=[0,1].map(slot=>inspectSlot(raw,bodyBytes,slot));
  const chosen=slots.filter(slot=>selection==='all'?!slot.unused:slot.slot===selection);
  if(!chosen.length)fail('EMPTY');
  for(const slot of chosen)if(!slot.valid){const code=(slot.reason||'START_FORMAT_EMPTY').replace(/^START_FORMAT_/,'');fail(code,slot.slot);}
- const outputs=new Map(),changed=chosen.filter(slot=>slot.format==='old');let done=0,grow=false;
+ if(to==='L'&&chosen.some(slot=>slot.format==='W'))fail('DOWNGRADE');
+ const outputs=new Map(),changed=chosen.filter(slot=>slot.format!==to);let done=0,grow=false;
  onProgress?.({stage:'inspect',done,total:changed.length});abort(signal);
  for(const slot of changed){
-  const expected=convertedLogical(slot.logical),out=slot.img.slice();writeLogical(out,expected);
+  const expected=convertedLogical(slot.logical,to),out=slot.img.slice();writeLogical(out,expected);
   verifyLogical(expected,readLogical(out));
   if(bodyBytes===SMALL_BYTES&&!erased(out.subarray(32*SECTOR)))grow=true;
   outputs.set(slot.slot,out);done++;onProgress?.({stage:'convert',slot:slot.slot,done,total:changed.length});abort(signal);
   await Promise.resolve();
  }
  abort(signal);const outputBody=grow?FULL_BYTES:bodyBytes,bytes=new Uint8Array(outputBody+rtcBytes).fill(255);bytes.set(raw.subarray(0,bodyBytes));bytes.set(raw.subarray(bodyBytes),outputBody);
- for(const [slot,img] of outputs)for(const [first,last] of [[0,32],[40,86]])for(let physical=first;physical<last;physical++){
+ for(const [slot,img] of outputs)for(const [first,last] of [[0,32],[40,to==='W'?88:86]])for(let physical=first;physical<last;physical++){
   const target=slot*SLOT_BYTES+physical*SECTOR;if(target+SECTOR>outputBody)continue;
   const sector=img.subarray(physical*SECTOR,(physical+1)*SECTOR);bytes.set(u32(sector,0xff8)===SIGNATURE?xor(sector):sector,target);
  }
  // Validate the published representation, not just an intermediate plaintext.
- const after=inspectFormatSave(bytes);for(const slot of chosen){const actual=after.slots[slot.slot];if(!actual.valid||actual.format!=='L')fail('OUTPUT');}
+ const after=inspectFormatSave(bytes);for(const slot of chosen){const actual=after.slots[slot.slot];if(!actual.valid||actual.format!==to)fail('OUTPUT');}
  abort(signal);
  const versionStamp=after.slots[chosen[0].slot].versionStamp;
- return {bytes,report:{fromFormat:chosen.every(slot=>slot.format===chosen[0].format)?chosen[0].format:'mixed',toFormat:'L',versionStamp:chosen.every(slot=>after.slots[slot.slot].versionStamp===versionStamp)?versionStamp:null,
+ return {bytes,report:{fromFormat:chosen.every(slot=>slot.format===chosen[0].format)?chosen[0].format:'mixed',toFormat:to,versionStamp:chosen.every(slot=>after.slots[slot.slot].versionStamp===versionStamp)?versionStamp:null,
   convertedSlots:changed.map(slot=>slot.slot),unchangedSlots:slots.filter(slot=>!outputs.has(slot.slot)).map(slot=>slot.slot),grew:grow,
   slots:after.slots,recordsVerified:changed.length*1500,fullGameplayTest:false}};
 }

@@ -96,8 +96,8 @@ const viewports=[{name:'320-dark',width:320,height:844,theme:'dark'},
     await page.locator('#backup-preview details > summary').first().click();await check('backup-restore','#sheet',['#backup-select-all','[data-backup-game]','#backup-settings','#backup-confirm']);await page.locator('#close-sheet').click();
     await page.locator('#content [data-action=offline]').click();await page.waitForFunction(()=>!document.querySelector('#offline-download').disabled);
     await page.locator('#sheet-body details > summary').click();await check('offline-needed','#sheet',['#offline-download','#offline-all']);
-    await page.locator('#offline-download').click();await page.waitForFunction(()=>document.querySelector('#offline-download').disabled&&!document.querySelector('#offline-all').disabled);await check('offline-ready','#sheet',['#offline-all','#close-sheet']);
-    assert.deepEqual(await page.evaluate(()=>fixtureOfflineSelection.cores),['mgba']);await page.locator('#close-sheet').click();
+    await page.locator('#offline-download').click();await page.waitForFunction(()=>!document.querySelector('#offline-download').disabled&&!document.querySelector('#offline-all').disabled);await check('offline-ready','#sheet',['#offline-download','#offline-all','#close-sheet']);
+    assert.equal(await page.locator('#offline-download').textContent(),await page.evaluate(async()=>(await import('./src/i18n/index.js')).tr('完了')));assert.deepEqual(await page.evaluate(()=>fixtureOfflineSelection.cores),['mgba']);await page.locator('#offline-download').click();await page.locator('#sheet').waitFor({state:'hidden'});
     console.log('PASS '+engine+' '+prefix+': imports/game/backup/export/offline layout and accessible controls');
    }
    assert.deepEqual(errors,[],code+' page errors');await context.close();

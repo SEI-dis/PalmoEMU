@@ -55,10 +55,28 @@ export function readStartROMProfile(bytes){
    literal(initialize+2,3)!==cache||literal(initialize+4,2)!==cache+0xa8||literal(initialize+14,3)!==cache||literal(initialize+16,2)!==0x45484353)return null;
   return cache;
  };
+ // W storage rejects both 58- and 60-byte layouts through the same old-layout
+ // flag; the 63-byte magic reaches the normal loader. Match control flow and
+ // cache initialization as well as all three magics, independent of addresses.
+ const wFormatLoader=p=>{
+  if(!words(p,[0xb5f0,0x4646,0x46d6,0x464f,0xb5c0,0x26a0,null,0x681c,0x0176,0x59a3,null,0x189a,0xb096,0x2a00,0xd100,null,null,0x189d,0x426a,0x4155,0x2d00,0xd000,null,null,0x42bb])||
+   literal(p+0x14,2)!==0xb3bab7ad||literal(p+0x20,2)!==0xcdb3b7ad||literal(p+0x2e,7)!==0x334c4853||(u16(p+0x32)&0xff00)!==0xd000)return null;
+  const savePointer=literal(p+0x0c,3);
+  if(savePointer<0x03000000||savePointer>=0x03008000||(savePointer&3))return null;
+  const old=tail(p+0x1e),next=conditional(p+0x32),initialize=bl(old);
+  if(old<0||tail(p+0x2c)!==old||next<0||initialize<0||bl(next)!==initialize||bl(p+0x34)!==initialize||
+   !words(old+4,[0x23a7,0x2101,null,0x54d1])||tail(old+12)!==p+0x56||
+   !words(p+0x56,[0xb016,0xbc1c,0x4690,0x4699,0x46a2,0xbdf0]))return null;
+  const cache=literal(old+8,2);
+  if(cache<0x02000000||cache+0xa8>0x02040000||
+   !words(initialize,[0x2100,null,null,0x7019,0x3301,0x4293,0xd1fb,null,null,0x21ff,0x601a])||
+   literal(initialize+2,3)!==cache||literal(initialize+4,2)!==cache+0xa8||literal(initialize+14,3)!==cache||literal(initialize+16,2)!==0x45484353)return null;
+  return cache;
+ };
  let stamp=null,writerCount=0,minimum=null,gateCount=0,maximumAccepted=null,formatGate=null;
  const formatLoaders=[];
  for(let p=0xc0;p+26<=bytes.length;p+=2){
-  if(bytes[p]===0xf0&&bytes[p+1]===0xb5){const cache=lFormatLoader(p);if(cache!==null)formatLoaders.push(cache);}
+  if(bytes[p]===0xf0&&bytes[p+1]===0xb5){const cache=lFormatLoader(p);if(cache!==null)formatLoaders.push({cache,format:'L'});const wide=wFormatLoader(p);if(wide!==null)formatLoaders.push({cache:wide,format:'W'});}
   let candidate=-1;
   // Patch releases load the complete stamp from a literal pool.
   if(bytes[p]===0x10&&bytes[p+1]===0xb5&&words(p,[0xb510,null,null,null,null,null,0xbd10])&&
@@ -107,6 +125,6 @@ export function readStartROMProfile(bytes){
  }
  if(writerCount!==1)return null;
  // A changed or ambiguous gate must not silently grant compatibility.
- const verified=gateCount===1&&minimum<=stamp&&(maximumAccepted===null||maximumAccepted===stamp)&&(formatGate===null||formatLoaders.filter(cache=>cache===formatGate).length===1);
- return {version:stampVersion(stamp),minimumSaveVersion:verified?stampVersion(minimum):null,...(verified&&formatGate!==null?{saveFormat:'L'}:{})};
+ const verified=gateCount===1&&minimum<=stamp&&(maximumAccepted===null||maximumAccepted===stamp)&&(formatGate===null||formatLoaders.filter(loader=>loader.cache===formatGate).length===1);
+ return {version:stampVersion(stamp),minimumSaveVersion:verified?stampVersion(minimum):null,...(verified&&formatGate!==null?{saveFormat:formatLoaders.find(loader=>loader.cache===formatGate).format}:{})};
 }

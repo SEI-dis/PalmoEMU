@@ -86,5 +86,42 @@ const {old49,record,expectedL,newLayout,changePage,decode,encode,u16,u32,put16,p
  const aborted=new AbortController();aborted.abort();await assert.rejects(convertFormatSave(source.bytes,{signal:aborted.signal}),{name:'AbortError'});
  const during=new AbortController();await assert.rejects(convertFormatSave(source.bytes,{signal:during.signal,onProgress:()=>during.abort()}),{name:'AbortError'});assert.equal(hash(source.bytes),before);
  await assert.rejects(convertFormatSave(source.bytes,{onProgress:()=>{throw Error('Synthetic progress failure');}}),/Synthetic progress failure/);assert.equal(hash(source.bytes),before);
+// Authored wide-format regression coverage, appended inside the existing suite.
+ const wide=await convertFormatSave(source.bytes,{to:'W'});
+ assert.equal(hash(source.bytes),before);assert.deepEqual(wide.bytes.slice(-16),source.bytes.slice(-16));
+ assert.equal(wide.report.toFormat,'W');assert.equal(wide.report.recordsVerified,3000);
+ for(const slot of [0,1]){
+  const layout=newLayout(wide.bytes,slot,'W');assert.equal(u16(layout.p0,0x245),0x34ff);
+  for(let box=0;box<50;box++)for(let pos=0;pos<30;pos++){
+   const expected=new Uint8Array(63);expected.set(expectedL(source.slots[slot].boxes[box][pos]));
+   assert.deepEqual(layout.readRecord(box,pos),expected,`W ${slot}:${box+1}:${pos+1}`);
+  }
+  assert.deepEqual(layout.page(26).slice(1764,1874),source.slots[slot].metadata,'W box metadata moves after the final 28 records');
+  assert.deepEqual(wide.bytes.subarray(slot*slotBytes+88*sector,(slot+1)*slotBytes),source.bytes.subarray(slot*slotBytes+88*sector,(slot+1)*slotBytes),'Non-layout data stays byte-identical');
+ }
+ assert.deepEqual((await convertFormatSave(wide.bytes,{to:'W'})).bytes,wide.bytes,'W no-op preserves the whole container');
+ await assert.rejects(convertFormatSave(wide.bytes,{to:'L'}),{code:'START_FORMAT_DOWNGRADE'});
+ const selectedW=await convertFormatSave(converted.bytes,{to:'W',selection:1});assert.deepEqual(selectedW.bytes.slice(0,slotBytes),converted.bytes.slice(0,slotBytes));
+ assert.deepEqual(inspect(selectedW.bytes).map(s=>s.format),['L','W']);
+ // Independently authored high move bits exercise all 4 positions, level,
+ // location and unused extension bits. The 58-byte record remains identical.
+ let highL=converted.bytes;
+ for(const slot of [0,1])highL=changePage(highL,slot,10,page=>put16(page,3371+58,0xffff));
+ const highW=await convertFormatSave(highL,{to:'W'});
+ for(const slot of [0,1]){
+  const old=newLayout(highL,slot).readRecord(0,0),out=newLayout(highW.bytes,slot,'W').readRecord(0,0);
+  assert.deepEqual(out.slice(0,58),old.slice(0,58));assert.equal(u16(out,58),0xe1ff);
+  assert.equal(out[60]|out[61]<<8|out[62]<<16,0x41041,'4 independent move high bits occupy 6-bit fields');
+ }
+ // Native W moves can use all six high bits; a no-op must not truncate them.
+ const nativeW=changePage(wide.bytes,0,10,page=>{page.set([255,255,255],3371+60);put16(page,0x245,0x3501);});
+ assert.deepEqual((await convertFormatSave(nativeW,{to:'W'})).bytes,nativeW);
+ for(const [label,damage]of [
+  ['W checksum',bytes=>changePage(bytes,0,48,p=>{p[0]^=1;},{reseal:false})],
+  ['W extension outside allocation',bytes=>changePage(bytes,0,10,p=>{p[4065]=26;})],
+  ['W overflow overlaps extension',bytes=>changePage(bytes,0,48,p=>{p[1875]=24;})]
+ ]){const bytes=damage(wide.bytes),digest=hash(bytes);await assert.rejects(convertFormatSave(bytes,{to:'W'}),undefined,label);assert.equal(hash(bytes),digest);}
+ const cancelledW=new AbortController();await assert.rejects(convertFormatSave(source.bytes,{to:'W',signal:cancelledW.signal,onProgress:()=>cancelledW.abort()}),{name:'AbortError'});
+ console.log('PASS START W: all 3000 records, old/L → W, high move bits, both slots, selected slots, RTC, metadata, W no-op, downgrade/corruption/cancellation safety');
  console.log('PASS START format L: independent 3000-record 58→60 expectations, all box/page boundaries, level/empty/tail preservation, 0x31ff, both slots/RTC, 128 KiB growth, L no-op, counter coherence/wrap, overflow, corruption rejection and cancellation');
 })().catch(error=>{console.error(error);process.exitCode=1;});

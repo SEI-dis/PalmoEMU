@@ -1426,5 +1426,6 @@ export default {
  "強制終了の直前まで復旧できるとは限りません。": "Il n’est pas toujours possible de récupérer la progression jusqu’à l’instant précédant une fermeture forcée.",
  "PalmoEMUのステートを追加します。保存の上書きや再開は行いません。": "Ajoute un état de sauvegarde de PalmoEMU sans écraser les sauvegardes existantes ni reprendre le jeu.",
  "PokemonStart · セーブデータ移行ツール": "PokemonStart · Outil de migration de sauvegardes",
- "128KiB・6MiBの通常セーブを選択してください。": "Sélectionnez une sauvegarde de 128 KiB ou 6 MiB créée dans le jeu."
+ "128KiB・6MiBの通常セーブを選択してください。": "Sélectionnez une sauvegarde de 128 KiB ou 6 MiB créée dans le jeu.",
+ "PokemonStart開発・協力：": "Développeurs et contributeurs de PokemonStart :"
 };

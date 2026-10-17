@@ -15,6 +15,12 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
   return {before,download,after,all,invalid,files};
  });
  assert.equal(result.download.error,undefined);assert.equal(result.after.ready,true);assert.equal(result.after.missingBytes,0);assert.equal(result.all.ready,false);assert.ok(result.after.bytes<result.all.bytes);assert.ok(result.invalid.error);assert.ok(result.files.some(file=>file.endsWith('/cores/mgba/mgba.wasm')));assert.equal(result.files.some(file=>file.includes('/ipad_')),false);assert.equal(result.files.some(file=>file.includes('/cores/nds/')),false);
+ // A library whose selected files are already cached offers Done immediately.
+ await page.goto(base+'/index.html#settings');await page.locator('.settings-page').waitFor();
+ await page.evaluate(async()=>{const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),rom=new Uint8Array([1,2,3,4]),id=await hash(rom);await db.addGame({id,name:'Offline UI fixture',filename:'offline-ui.gba',system:'gba',size:rom.length,added:1,lastPlayed:0},rom);});
+ await page.reload();await page.locator('.settings-page').waitFor();if(await page.locator('#sheet.release-notice[open]').count())await page.locator('#close-sheet').click();
+ await page.evaluate(()=>{window.offlineDownloads=0;const send=ServiceWorker.prototype.postMessage;ServiceWorker.prototype.postMessage=function(message,...rest){if(message?.type==='download')window.offlineDownloads++;return send.call(this,message,...rest);};});
+ await page.locator('[data-action=offline]').click();await page.getByText('現在のゲームと設定で、オフラインで遊べます。',{exact:true}).waitFor();assert.equal(await page.locator('#offline-download').textContent(),'完了');await page.locator('#offline-download').click();await page.locator('#sheet').waitFor({state:'hidden'});assert.equal(await page.evaluate(()=>offlineDownloads),0,'Done closes without downloading again');
  // A real origin outage exercises the worker cache in both engines; WebKit's
  // offline emulation rejects this fetch despite the populated worker cache.
  server.closeAllConnections();await new Promise(resolve=>server.close(resolve));

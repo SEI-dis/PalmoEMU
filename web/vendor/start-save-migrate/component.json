@@ -30,12 +30,22 @@
   "files": {
     "engine.js": "117e1d365a3a6db8b05d50a998c34b4c789fa4dead069facfeb3fd1b7ec1daa7",
     "manifest.js": "f3052744667067733a3537ce90361fe16ef65c4eb7072f27f2f13ff629bd13b8",
-    "README.md": "f0d25f8845444f880b7f38ab467745af56cd94e4bf5bd65f682a652b98d50c6f"
+    "README.md": "950ede2e04046346804180e466317df3cd0638d0ef4c2c410d33480ea02e8124"
   },
   "localChanges": {
     "template": "scripts/start-save-migrate/base/engine.template.txt",
     "patches": "scripts/start-save-migrate/patches.json",
     "generator": "scripts/start-save-migrate/build.mjs",
     "note": "Reviewed extraction with separately maintained author-derived PalmoEMU corrections; not an unmodified upstream distribution."
+  },
+  "projectContributors": {
+    "accounts": [
+      "onikoro334274-cell",
+      "liru55"
+    ],
+    "role": "PokemonStart project development and contributions; not individual converter authorship",
+    "verifiedOn": "2026-10-16",
+    "contributorList": "https://api.github.com/repos/pm-start/PokemonStart/contributors",
+    "releaseCommit": "https://github.com/pm-start/PokemonStart/commit/62ebfdded673b10fa4450b94494166da8147d2bd"
   }
 }

@@ -6,7 +6,7 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 (async()=>{
  const {checkComponent,checkPublicationPermission,installedDirectory}=await import('../scripts/start-save-format/check.mjs');
  const current=checkComponent(),snapshot=Object.fromEntries(fs.readdirSync(installedDirectory).map(name=>[name,fs.readFileSync(path.join(installedDirectory,name))]));
- assert.deepEqual(current.contract.saveBodyBytes,[131072,6291456]);assert.equal(current.contract.direction.to,'L');assert.equal(current.contract.direction.reverseConversion,false);
+ assert.deepEqual(current.contract.saveBodyBytes,[131072,6291456]);assert.deepEqual(current.contract.direction.to,['L','W']);assert.equal(current.contract.direction.reverseConversion,false);
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'palmo-format-component-')),candidate=path.join(root,'candidate');fs.mkdirSync(candidate);
  try{
   const reset=()=>{for(const [name,bytes] of Object.entries(snapshot))fs.writeFileSync(path.join(candidate,name),bytes);};
@@ -37,7 +37,7 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
    reset();editRecord(change);assert.throws(()=>checkComponent(candidate));
   }
   // Re-pinning a changed executable must not bypass the known host contract.
-  for(const [before,after] of [['VERSION_GUARD=0x31ff','VERSION_GUARD=0x3200'],['SLOT_BYTES=3*1024*1024','SLOT_BYTES=2*1024*1024'],["60,11,68,16,18,8,1020,480,30","62,11,68,16,18,8,1020,480,30"],['[SMALL_BYTES,FULL_BYTES].includes(bodyBytes)','[SMALL_BYTES,1048576,FULL_BYTES].includes(bodyBytes)'],['[0,16].includes(rtcBytes)','[0,32].includes(rtcBytes)']]){
+  for(const [before,after] of [['WIDE_VERSION_GUARD=0x34ff','WIDE_VERSION_GUARD=0x3500'],['VERSION_GUARD=0x31ff','VERSION_GUARD=0x3200'],['SLOT_BYTES=3*1024*1024','SLOT_BYTES=2*1024*1024'],["60,11,68,16,18,8,1020,480,30","62,11,68,16,18,8,1020,480,30"],['[SMALL_BYTES,FULL_BYTES].includes(bodyBytes)','[SMALL_BYTES,1048576,FULL_BYTES].includes(bodyBytes)'],['[0,16].includes(rtcBytes)','[0,32].includes(rtcBytes)']]){
    reset();editEngine(source=>{assert(source.includes(before));return source.replace(before,after);},true);assert.throws(()=>checkComponent(candidate),/contract|layout|sizes|extent/);
   }
   reset();editEngine(source=>source.replace('export function containsFormatL','function containsFormatL'),true);assert.throws(()=>checkComponent(candidate),/API/);

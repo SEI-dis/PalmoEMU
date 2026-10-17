@@ -1,28 +1,37 @@
 {
   "schema": 1,
-  "hostContract": "start-format-l-forward-v1",
-  "distribution": "PokemonStart_v0.50.1.pks",
-  "distributionVersion": "0.50.1",
+  "hostContract": "start-format-forward-v2",
+  "distribution": "maintainer-supplied PokemonStart 0.53.1 migration HTML",
+  "distributionVersion": "0.53.1",
   "sourceDistributor": "pm-start/PokemonStart",
   "sourceURL": "https://github.com/pm-start/PokemonStart",
   "individualAuthor": null,
   "permission": "On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.",
   "sources": [
     {
-      "name": "セーブデータ移行ツール.html",
-      "sha256": "96c1a970b2c65661db40237f8f3f0609faf6759d066bacbe887a8767b9d88ebc"
+      "name": "セーブデータ移行ツール (1).html",
+      "sha256": "26f67be5bffa469f12837cbe6668a1e02b1a17883173878dca46a8d0cc2269c6"
     },
     {
       "name": "statically decoded embedded JavaScript",
-      "sha256": "4517db68a1ad4a31c0e402501d6c828502656bdf1902382bd5f7b69767eb5332"
+      "sha256": "4e80d3c60efed7187443e1cd06353422d3f9eff6da3e8dc9d1503aa98574dce2"
     }
   ],
   "direction": {
-    "from": "old",
-    "to": "L",
+    "from": [
+      "old",
+      "L"
+    ],
+    "to": [
+      "L",
+      "W"
+    ],
     "reverseConversion": false,
     "rounding": false,
-    "versionGuard": 12799
+    "versionGuards": {
+      "L": 12799,
+      "W": 13567
+    }
   },
   "saveBodyBytes": [
     131072,
@@ -31,8 +40,8 @@
   "optionalRTCBytes": 16,
   "slotBytes": 3145728,
   "files": {
-    "engine.js": "615c4029111b76d727260646e7bc7d48520df8d57110e6126cc5ed4680f5a7d4",
-    "README.md": "ba80edacf8e9a942a4dc393dedd29b00f89e248a67852723c63be4d9f537e9f1"
+    "engine.js": "a7baebeb4786fe33a0c9d2d5fa10ee5230142d1b0051b9f3028201d6a7c67497",
+    "README.md": "3ac1b60e96d636a5ef917c4884b180e1166941cfdf0869d4f5589c330b0e3af7"
   },
   "localChanges": [
     "Migration-only ES module without UI, network or storage access",
@@ -41,7 +50,8 @@
     "Wrap-aware uint32 counter ordering and ambiguity rejection",
     "Immutable caller input, selected-slot ownership and raw non-layout/RTC byte preservation",
     "1500 logical records per converted slot and non-box metadata verified after writing",
-    "Adopt 0.50.1 forward-writer backup main bank and conditional sector-16 page-zero backup; retain existing L saves byte-for-byte and the separate verified runtime probe correction"
+    "Adopt 0.50.1 forward-writer backup main bank and conditional sector-16 page-zero backup; retain existing L saves byte-for-byte and the separate verified runtime probe correction",
+    "Add reviewed W (63-byte) forward layout, move-high-bit relocation and 0x34ff bridge; retain target-specific allocation ownership, strict validation and no downgrade or lossy rounding"
   ],
   "publicationPermission": {
     "scopes": {
@@ -54,5 +64,15 @@
     "confirmedOn": "2026-10-16",
     "evidence": "In response to the explicit scope question, the maintainer said 「やって。クレジットに記載してたらOKって」 and clarified 「セーブデータの変換ツールにすでに開発者として記載済みだけどね」. Recorded as confirmation for the previously explained incorporation, modification, Web/offline distribution and modified-source publication scope, conditional on retaining existing credits. No independent inspection of the author message is claimed.",
     "condition": "Retain the existing PokemonStart developer credit (onikoro334274-cell) and project/tool provenance links in licenses.html and source documentation."
+  },
+  "projectContributors": {
+    "accounts": [
+      "onikoro334274-cell",
+      "liru55"
+    ],
+    "role": "PokemonStart project development and contributions; not individual converter authorship",
+    "verifiedOn": "2026-10-16",
+    "contributorList": "https://api.github.com/repos/pm-start/PokemonStart/contributors",
+    "releaseCommit": "https://github.com/pm-start/PokemonStart/commit/62ebfdded673b10fa4450b94494166da8147d2bd"
   }
 }

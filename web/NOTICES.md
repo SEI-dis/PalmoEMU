@@ -37,10 +37,11 @@ AGPL, MIT or another license by this project. The original author attribution
 and this distinction must be retained separately from the Web application's
 AGPL notices.
 
-Game attribution: [PokemonStart](https://github.com/pm-start/PokemonStart) developer
-**[onikoro334274-cell](https://github.com/onikoro334274-cell)**, separately
-from the migration-tool author くりーぱー. This credit does not establish a new
-license or make the game developer the author of the migration tool.
+Game attribution: [PokemonStart](https://github.com/pm-start/PokemonStart) project
+development and contributions by **[onikoro334274-cell](https://github.com/onikoro334274-cell)** and **[liru55](https://github.com/liru55)**, separately
+from the migration-tool author くりーぱー. Both accounts are listed as upstream
+contributors; [the 0.50.1 publication commit](https://github.com/pm-start/PokemonStart/commit/62ebfdded673b10fa4450b94494166da8147d2bd) is by liru55 (checked 2026-10-16). This credit does not establish
+a new license or identify the individual author of a bundled migration tool.
 
 Modified 2026-10-13: added an original save-update policy separating documented
 direct compatibility, legacy conversion and unverified combinations. The policy
@@ -958,3 +959,12 @@ capacity; no ROM or user-save bytes are included in this update.
 ## PalmoEMU 0.3.35 — 2026-10-16
 
 Updates the separately attributed PokemonStart converter to the supplied 0.50.1 forward-writer fixes. Existing credits and source/provenance notices remain. Original PalmoEMU changes unify save-history navigation with validated reads and the existing safe restoration transactions, simplify duplicate controls/explanations, align setting names, and remove unused translation entries. The release includes the previously recorded offline/import/export/cover improvements. No user ROM/save, original bundled HTML/PKS, new native core or third-party artwork is distributed. Maintainer-confirmed permission and scoped validation are recorded above and in the component documentation.
+
+### Unpublished 2026-10-17: PokemonStart W-format update
+
+The separately attributed PokemonStart component now incorporates forward-only
+W-format rules from the maintainer-supplied 0.53.1 HTML. Existing credit-conditional
+permission and developer/contributor attribution remain in force; no general
+third-party license or individual tool authorship is inferred. Original HTML,
+ROM and save attachments are excluded. See vendor/start-save-format/README.md and
+component.json for source hashes, allocations, guards and local safeguards.

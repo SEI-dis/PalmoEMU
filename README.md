@@ -131,6 +131,8 @@ Python 3は配布ソースZIPの生成と一部の検査に使用します。対
 
 ## クレジット・ライセンス
 
+[PokemonStart](https://github.com/pm-start/PokemonStart)の開発・協力：[onikoro334274-cell](https://github.com/onikoro334274-cell)、[liru55](https://github.com/liru55)。移行ツールごとの作者・出典は[クレジット](web/licenses.html#start-save-migrate)に記載しています。
+
 画面・メニューの構成はManicEMUの公開ソースをWebへ移植しています。PalmoEMUはManicEMU公式のWeb版ではありません。
 
 Web UIは[AGPL-3.0-or-later](LICENSE)です。コア・ライブラリ・移植部分・同梱スキンには、それぞれのライセンスが適用されます。[クレジット・ライセンス](https://sei-dis.github.io/PalmoEMU/licenses.html)、[著作権・変更通知](web/NOTICES.md)、[採用ソース](web/SOURCES.json)を参照してください。

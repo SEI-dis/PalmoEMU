@@ -612,18 +612,18 @@ let fpsEngine=null,fpsAt=0,fpsFrames=0;
 setInterval(()=>{const now=performance.now(),frames=engine?.frameCount?.()||0;if(!engine||paused||engine!==fpsEngine){fpsEngine=engine;fpsAt=now;fpsFrames=frames;$('#fps-meter').textContent=paused?tr('一時停止'):tr('計測中…');return;}if(now-fpsAt>=1000){const fps=Math.max(0,(frames-fpsFrames)*1000/(now-fpsAt));$('#fps-meter').textContent=$('#player').dataset.builtin==='true'?`${fps.toFixed(1)} fps · ${link?1:settings.speed}×`:tr`処理 ${fps.toFixed(1)} fps · ${link?1:settings.speed}倍`;fpsAt=now;fpsFrames=frames;}},250);
 async function showOffline(){
  sheet(tr('オフラインで使う'),tr`<p class="sheet-note">追加済みのゲームと現在の設定に必要なファイルを保存します。</p><p class="sheet-note" id="offline-status" role="status">保存状態を確認しています…</p><button class="primary wide-button" id="offline-download" disabled>オフライン用に準備</button><details class="sheet-note"><summary>詳細</summary><p>コア・スキン・画面サイズを変えた場合は、もう一度準備してください。</p><button class="text-button wide-button" id="offline-all">すべてのファイルを保存</button></details>`);
- const button=$('#offline-download'),status=$('#offline-status'),all=$('#offline-all');let revision=0,timer,busy=false;
+ const button=$('#offline-download'),status=$('#offline-status'),all=$('#offline-all');let revision=0,timer,busy=false,ready=false;
  const plan=()=>offlineGamePlan(library,preferences.global,{...playerSize(),screenWidth:screen.width,screenHeight:screen.height});
- const update=result=>{if(!status.isConnected)return;status.textContent=result.ready?tr('現在のゲームと設定で、オフラインで遊べます。'):tr`あと${bytesLabel(result.missingBytes??result.bytes)}のダウンロードが必要です。`;button.disabled=result.ready;};
- const check=async()=>{const token=++revision;button.disabled=true;try{if(!library.some(game=>!game.romMissing)){status.textContent=tr('先にゲームを追加してください。');return;}const selection=await plan(),result=await offlineStatus(false,()=>{},selection);if(token===revision&&!busy)update(result);}catch(e){if(token===revision&&status.isConnected){status.textContent=e.message;button.disabled=false;}}};
+ const update=result=>{if(!status.isConnected)return;ready=!!result.ready;status.textContent=ready?tr('現在のゲームと設定で、オフラインで遊べます。'):tr`あと${bytesLabel(result.missingBytes??result.bytes)}のダウンロードが必要です。`;button.textContent=ready?tr('完了'):tr('オフライン用に準備');button.disabled=false;};
+ const check=async()=>{const token=++revision;ready=false;button.textContent=tr('オフライン用に準備');button.disabled=true;try{if(!library.some(game=>!game.romMissing)){status.textContent=tr('先にゲームを追加してください。');return;}const selection=await plan(),result=await offlineStatus(false,()=>{},selection);if(token===revision&&!busy)update(result);}catch(e){if(token===revision&&status.isConnected){status.textContent=e.message;button.disabled=false;}}};
  const resized=()=>{clearTimeout(timer);timer=setTimeout(()=>{if(!busy)void check();},150);};window.addEventListener('resize',resized);sheetCleanup=()=>{revision++;clearTimeout(timer);window.removeEventListener('resize',resized);};
  const prepare=everything=>guardUpdateTask(async()=>{
-  if(busy)return;busy=true;revision++;button.disabled=all.disabled=true;
-  try{const selection=everything?undefined:await plan();const result=await offlineStatus(true,p=>{if(status.isConnected)status.textContent=tr`保存中… ${p.progress} / ${p.total}`;},selection);if(everything){if(status.isConnected)status.textContent=tr('すべてのファイルを保存しました。');}else update(result);}
+  if(busy)return;busy=true;ready=false;revision++;button.textContent=tr('オフライン用に準備');button.disabled=all.disabled=true;
+  try{const selection=everything?undefined:await plan();const result=await offlineStatus(true,p=>{if(status.isConnected)status.textContent=tr`保存中… ${p.progress} / ${p.total}`;},selection);update(result);if(everything&&result.ready&&status.isConnected)status.textContent=tr('すべてのファイルを保存しました。');}
   catch(e){if(status.isConnected){status.textContent=e.message;button.disabled=false;}}
   finally{busy=false;all.disabled=false;}
  });
- button.onclick=prepare(false);all.onclick=prepare(true);await check();
+ const download=prepare(false);button.onclick=()=>{if(busy)return;if(ready)closeSheet();else return download();};all.onclick=prepare(true);await check();
 }
 
 async function applyCheats(next,game=current){const old=cheatsFor(game),live=current?.id===game.id?engine:null;try{if(live)await rewindSession.clear();live?.setCheats(next);const updated=await db.setGameCheats(game.id,coreFor(game).key,next);for(const key of ['cheats','coreCheats']){if(Object.hasOwn(updated,key))game[key]=updated[key];else delete game[key];}}catch(e){live?.setCheats(old);throw e;}}

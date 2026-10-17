@@ -87,5 +87,17 @@ const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
  rejectL('New-format loading must use the same initializer',b=>branchLink(b,l.formatLoader+0xb0,l.formatInit+2));
  rejectL('Old-format rejection must return without clearing its flag',b=>word(b,l.formatLoader+0xac,0xe000));
  assert.equal(hash(l.bytes),lHash,'L format inspection is immutable');
+ const w=fixture({stamp:0x3501,rangeGate:true,wFormat:true,writer:0x16000,gate:0x12000,trampoline:0x20000}),wHash=hash(w.bytes);
+ assert.deepEqual(read(w.bytes),{version:'0.53.1',minimumSaveVersion:'0.36.2',saveFormat:'W'});
+ const futureW=fixture({stamp:0x3602,minimum:0x3500,rangeGate:true,wFormat:true});
+ assert.deepEqual(read(futureW.bytes),{version:'0.54.2',minimumSaveVersion:'0.53.0',saveFormat:'W'},'W compatibility follows native bounds, not a fixed release');
+ for(const at of [w.formatLoader+0x16,w.formatLoader+0x1e,w.formatLoader+0x2c,w.formatLoader+0x32,w.formatLoader+0xc4,w.formatLoader+0xcc,w.formatInit+6,w.gate-16]){
+  const bytes=w.bytes.slice();word(bytes,at,0x46c0);assert.deepEqual(read(bytes),{version:'0.53.1',minimumSaveVersion:null},'Changed W control flow must fail closed');
+ }
+ for(const [at,value] of [[w.formatLoader+0x104,0xb3bab7ae],[w.formatLoader+0x108,0xcdb3b7ae],[w.formatLoader+0x10c,0x334c4854],[w.formatLoader+0x110,0x020310e4]]){
+  const bytes=w.bytes.slice();literal(bytes,at,value);assert.deepEqual(read(bytes),{version:'0.53.1',minimumSaveVersion:null},'W layout and cache evidence must agree');
+ }
+ const invertedW=w.bytes.slice();word(invertedW,w.formatLoader+0x32,0xd11d);assert.deepEqual(read(invertedW),{version:'0.53.1',minimumSaveVersion:null},'Inverted W acceptance branch must fail closed');
+ assert.equal(hash(w.bytes),wHash);
  console.log('PASS: native START version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

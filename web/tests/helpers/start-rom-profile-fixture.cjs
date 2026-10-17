@@ -2,7 +2,7 @@
 // Authored Thumb instructions and cartridge markers, without game ROM data.
 const assert=require('node:assert/strict');
 const {word,literal,branchLink}=require('./mgba-save-probe-fixture.cjs');
-function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoline=0x2000,immediate=false,rangeGate=false,upperImmediate=false,lowerImmediate=false,lFormat=false,bytes}={}){
+function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoline=0x2000,immediate=false,rangeGate=false,upperImmediate=false,lowerImmediate=false,lFormat=false,wFormat=false,bytes}={}){
  bytes=bytes||new Uint8Array(0x2000008);
  const text=(at,value)=>bytes.set(Buffer.from(value),at);
  text(0xa0,'POKEMONSTART');text(0xac,'PKSJ');bytes[0xb2]=0x96;text(0x2000000,'PKSPICS1');
@@ -33,7 +33,7 @@ function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoli
   [0x4282,0x415b,0x0018,0x4770].forEach((op,i)=>word(bytes,lowerBody+i*2,op));
   const upperBody=constant(upper,3,upper+0x20,stamp,upperImmediate);
   [0x4283,0x4180,0x4240,0x4770].forEach((op,i)=>word(bytes,upperBody+i*2,op));
-  if(lFormat){
+  if(lFormat||wFormat){
    const formatGuard=gate+0x200,formatLoader=gate+0x400,formatInit=gate+0x600,cache=0x020310e0;
    const ops=(at,values)=>values.forEach((op,i)=>{if(op!==null)word(bytes,at+i*2,op);});
    // Authored instructions model the separate layout guard before version
@@ -53,6 +53,16 @@ function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoli
    branchLink(bytes,formatLoader+0xb0,formatInit);
    ops(formatInit,[0x2100,null,null,0x7019,0x3301,0x4293,0xd1fb,null,null,0x21ff,0x601a]);
    load(formatInit+2,3,formatInit+0x80,cache);load(formatInit+4,2,formatInit+0x84,cache+0xa8);load(formatInit+14,3,formatInit+0x80,cache);load(formatInit+16,2,formatInit+0x88,0x45484353);
+   if(wFormat){
+    bytes.fill(0,formatLoader,formatLoader+0x200);
+    ops(formatLoader,[0xb5f0,0x4646,0x46d6,0x464f,0xb5c0,0x26a0,null,0x681c,0x0176,0x59a3,null,0x189a,0xb096,0x2a00,0xd100,null,null,0x189d,0x426a,0x4155,0x2d00,0xd000,null,null,0x42bb]);
+    load(formatLoader+0x0c,3,formatLoader+0x100,0x03005048);
+    load(formatLoader+0x14,2,formatLoader+0x104,0xb3bab7ad);load(formatLoader+0x20,2,formatLoader+0x108,0xcdb3b7ad);load(formatLoader+0x2e,7,formatLoader+0x10c,0x334c4853);
+    branch(formatLoader+0x1e,formatLoader+0xc0);branch(formatLoader+0x2c,formatLoader+0xc0);
+    word(bytes,formatLoader+0x32,0xd000|((0x70-0x36)/2));branchLink(bytes,formatLoader+0x34,formatInit);branchLink(bytes,formatLoader+0x70,formatInit);
+    ops(formatLoader+0x56,[0xb016,0xbc1c,0x4690,0x4699,0x46a2,0xbdf0]);
+    branchLink(bytes,formatLoader+0xc0,formatInit);ops(formatLoader+0xc4,[0x23a7,0x2101,null,0x54d1]);load(formatLoader+0xc8,2,formatLoader+0x110,cache);branch(formatLoader+0xcc,formatLoader+0x56);
+   }
    return {bytes,writer,gate,trampoline,lower,upper,lowerBody,upperBody,formatGuard,formatLoader,formatInit};
   }
   return {bytes,writer,gate,trampoline,lower,upper,lowerBody,upperBody};
