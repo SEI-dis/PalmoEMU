@@ -42192,7 +42192,7 @@
     {
       "path": "tests/room-link.cjs",
       "bytes": 16066,
-      "sha256": "c894cbf5773ea7ffdddd57500cff9ffa28a086d09d82d3de134488126d63ac7d",
+      "sha256": "ad190ef13d8696a88f55b2bc6cf18137e4c2dfb6cb09dc2ec24feaf58248089d",
       "component": "web-port-code-and-documentation"
     },
     {

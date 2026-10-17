@@ -93,7 +93,7 @@ const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
   await q.waitForTimeout(8000);
   assert.equal(await p.locator('#link-room-number').count(),1,'Room survives a peer joining while sharing: '+await p.locator('#link-status').textContent());
   assert.equal(await p.locator('#resume-game').isVisible(),true,'Background CPU remains paused');
-  assert.equal(await q.evaluate(()=>document.querySelector('#screen canvas').getContext('2d').getImageData(0,0,1,1).data[1]>200),false,'Peer cannot complete a transfer until host returns');
+  assert.equal(await q.evaluate(()=>document.querySelector('#screen canvas').getContext('2d').getImageData(0,0,1,1).data[0]>200),false,'Peer cannot complete a transfer until host returns');
   await p.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
   for(const page of pages){await page.locator('#link-room-number').waitFor();await page.locator('#link-panel-close').click();assert.equal(await page.locator('#boost').textContent(),'1×');assert.equal(await page.locator('#boost').isDisabled(),true);}
   await p.locator('#resume-game').click();
