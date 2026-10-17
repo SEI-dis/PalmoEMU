@@ -10,7 +10,7 @@ const modules=['src/updates/auto-update.js','src/updates/offline.js','src/update
 const baseline=process.env.UPDATE_RECOVERY_BASELINE;
 const sources=new Map(['sw.js',...modules].map(name=>[name,baseline?require('node:child_process').execFileSync('git',['show',baseline+':web/'+name],{cwd:root,encoding:'utf8',windowsHide:true}):fs.readFileSync(path.join(root,name),'utf8')]));
 const names=['index.html','fixture.js',...modules,'assets/update-payload.bin'],shell=names.filter(name=>name!=='assets/update-payload.bin');
-const requested=process.env.UPDATE_RECOVERY_CASE?.split(','),allCases=['transient503','disconnect','recover','later','continue','pending','lease','lease-cancel','lease-reject'];
+const requested=process.env.UPDATE_RECOVERY_CASE?.split(','),allCases=['transient503','disconnect','recover','registration-gap','later','continue','pending','lease','lease-cancel','lease-reject'];
 let revision=1,helpMs=1200,assetMode='ok',failuresLeft=0,requests=0,held=[],heldAt=0,caseName='';
 function releaseAsset(){assetMode='ok';for(const finish of held.splice(0))finish();}
 function resource(name){
@@ -116,8 +116,23 @@ const server=http.createServer((req,res)=>{
      assetMode=caseName==='disconnect'?'disconnect':'transient';failuresLeft=1;
      await update();await applied(0);assert.ok(requests>=2,'The failed asset must be requested again');
      console.log('PASS '+engine+': '+caseName+' recovers the same build automatically, without a failure dialog or save loss.');
-    }else if(['recover','later'].includes(caseName)){
-     assetMode='permanent';await update();await page.locator('.update-progress[data-phase=failed][open]').waitFor();
+    }else if(['recover','registration-gap','later'].includes(caseName)){
+     assetMode='permanent';await update();
+     if(caseName==='registration-gap'){
+      await page.locator('.update-progress[data-phase=downloading][open]').waitFor();
+      // Registration attributes and worker state may arrive in separate tasks.
+      // Model the missing attribute before the still-installing worker reports
+      // its failure; keep the real worker, requests and statechange delivery.
+      const state=await page.evaluate(()=>{
+       const reg=fixtureUpdateRegistration,worker=reg.installing;
+       if(worker?.state!=='installing')throw Error('Expected an installing candidate');
+       Object.defineProperty(reg,'installing',{configurable:true,get:()=>null});
+       try{updater.refresh();return {open:document.querySelector('.update-progress').open,phase:document.querySelector('.update-progress').dataset.phase};}
+       finally{delete reg.installing;}
+      });
+      assert.deepEqual(state,{open:true,phase:'downloading'},'A registration gap must retain the candidate until its state is known');
+     }
+     await page.locator('.update-progress[data-phase=failed][open]').waitFor();
      assert.equal(await oldVersion(),'recovery-1');assert.equal(await page.evaluate(()=>fixtureRevision),1);assert.deepEqual(await sentinel(),[7,9,42]);
      const dialog=page.locator('.update-progress');assert.equal(await dialog.locator('.update-manual').isVisible(),true);assert.equal(await dialog.locator('button').textContent(),'あとで');assert.equal(await dialog.locator('button').isEnabled(),true);
      assert.ok(requests>=1&&requests<=3,'A permanent failure has bounded retries');
@@ -125,9 +140,9 @@ const server=http.createServer((req,res)=>{
      else await page.evaluate(()=>{safeToUpdate=false;});
      assetMode='ok';await update();await page.waitForFunction(async()=>!!(await navigator.serviceWorker.getRegistration()).waiting);
      await page.waitForTimeout(1500);assert.equal(await page.evaluate(()=>fixtureRevision),1,'Unsafe/deferred pages must keep the old version');
-     if(caseName==='recover'){
+     if(caseName!=='later'){
       await page.evaluate(()=>{safeToUpdate=true;updater.refresh();});await applied(1);
-      console.log('PASS '+engine+': real permanent failure keeps the old app; a same-build replacement automatically recovers only when safe.');
+      console.log('PASS '+engine+': '+caseName+' reports the real failure, keeps the old app and recovers a same-build replacement only when safe.');
      }else{
       assert.equal(await page.locator('.update-progress[open]').count(),0);assert.equal(await page.evaluate(()=>Number(sessionStorage.getItem('reloads'))),0);assert.deepEqual(await sentinel(),[7,9,42]);
       console.log('PASS '+engine+': Later remains deferred after a repaired same-build candidate arrives.');

@@ -72,6 +72,10 @@ export async function startAutoUpdates(canUpdate,onUpdated=()=>{},onDeferred=()=
   if(restorePending){if(!document.hidden&&safe()){restorePending=false;beforeReload();location.reload();}return;}
   const worker=candidate();
   // Registration attributes and worker state are delivered in separate tasks.
+  // Either may arrive first. Keep observing an installing/installed candidate
+  // when its registration slot disappears before its statechange. Otherwise
+  // closeStage() loses it and a later failure can no longer be reported.
+  if(navigator.onLine&&staging&&!worker&&['installing','installed'].includes(staging.state))return;
   // Retain the version lease and recheck before declaring a missing successor.
   if(navigator.onLine&&staging?.state==='redundant'&&!worker){missingCandidateAt??=performance.now();if(performance.now()-missingCandidateAt<750)return;}
   else missingCandidateAt=null;

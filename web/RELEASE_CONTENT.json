@@ -59,8 +59,8 @@
     },
     {
       "path": "LOCALIZATION_REVIEW.md",
-      "bytes": 36688,
-      "sha256": "1bb3feb067b6dd17dfa2b6267e395618bc9c1de03831a0ff932ce02b593cd302",
+      "bytes": 37040,
+      "sha256": "8ebdfd1925c355f6f0c4e5213678cd7badcb307894adbe40c8a1bc2d26c9d141",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -95,8 +95,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 281426,
-      "sha256": "4b7093d9a4af6c315e668b2bc78a41c60680545c15e55dc18fd6bc9e8c97727b",
+      "bytes": 282669,
+      "sha256": "1f9c45b5f4feadc1ad878b9614743eb8d0a2558e2b842e6466a4c8465ba4a7f1",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 9554,
-      "sha256": "2732641a5a01adcba223ca863ee7963f35a6c5c20e5f4739e510dcd4c89ba276",
+      "sha256": "bc385bd1161183faef5c8757ece0c275f0c6f822e5df004b64107066845b6c44",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41411,8 +41411,8 @@
     },
     {
       "path": "src/updates/auto-update.js",
-      "bytes": 15275,
-      "sha256": "b0b283ccd2dfedbd0cbaa74ab8a911f667c3fcb7ecaf4403a8cd54f1c332de4e",
+      "bytes": 15605,
+      "sha256": "285ff11d22ff5b2483091e52f0953c9250a37eea39a6912aa35bde6820e2d2c0",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41598,7 +41598,7 @@
     {
       "path": "sw.js",
       "bytes": 17492,
-      "sha256": "11c2f6c151220e58c967584b3fb91bc4856a3d1590f58394360a5d861b693743",
+      "sha256": "05008cdc871b4d5fcd158e97e1f3839e22cdcc70d7129cee9c6b178f608e02c3",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42479,8 +42479,8 @@
     },
     {
       "path": "tests/update-recovery.cjs",
-      "bytes": 14276,
-      "sha256": "2ee1a9bde965461f0d0220764d9ecc6768b0deb2d93fb67ab19f8b9f5952dee6",
+      "bytes": 15314,
+      "sha256": "fdadd48fb20a5bd2f97c80a36966ea219f74d2015ffe97eef7e2fbc147f68e7d",
       "component": "web-port-code-and-documentation"
     },
     {
