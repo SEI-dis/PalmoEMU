@@ -6,6 +6,7 @@ const sources=new Map(['sw.js','src/updates/auto-update-worker.js','src/updates/
 let revision=1,offline=false,fail=false,hold=false,quota=false,metadataQuota=false,installQuota=false,finish;
 const requests=[],files=['index.html','app.js','cores/used.bin','cores/late.bin','cores/cold.bin','cores/changed.bin','update.html','src/i18n/page.js','src/i18n/index.js',...[...sources.keys()].filter(file=>file!=='sw.js')];
 const shell=files.filter(file=>!file.startsWith('cores/')),large=Buffer.alloc(1024*1024,37);
+const activations=new Set();
 function bytes(file){
  if(file==='index.html')return Buffer.from('<!doctype html><meta charset="utf-8"><title>Delta '+revision+'</title><p>Delta '+revision+'</p>');
  if(file==='app.js')return Buffer.from('/* stable application shell */');
@@ -17,6 +18,9 @@ function bytes(file){
  let text=sources.get(file);assert.ok(text,file);
  if(file==='sw.js'){
   text+='\n// delta fixture '+revision;
+  // Observe natural activation without opening another controlled client.
+  // Navigating immediately after page.close() can keep the old worker alive.
+  text+='\nself.addEventListener("activate",event=>event.waitUntil(fetch(new URL("__fixture_activation?version="+encodeURIComponent(APP_OFFLINE.version),self.location.href))));';
   if(quota&&revision===2)text+="\nlet quotaActive=true;self.addEventListener('message',e=>{if(e.data?.type==='fixture-quota-off'){quotaActive=false;e.ports[0]?.postMessage({ok:true});}});const realPut=Cache.prototype.put;Cache.prototype.put=function(request,response){if(quotaActive&&String(request.url||request).endsWith('/cores/late.bin'))return Promise.reject(new DOMException('Synthetic cache quota','QuotaExceededError'));return realPut.call(this,request,response);};";
   if(metadataQuota&&revision===2)text+="\nlet quotaActive=true;self.addEventListener('message',e=>{if(e.data?.type==='fixture-quota-off'){quotaActive=false;e.ports[0]?.postMessage({ok:true});}});const realPut=Cache.prototype.put;Cache.prototype.put=async function(request,response){if(quotaActive&&String(request.url||request).endsWith('/.offline-release.json')&&(await response.clone().json()).active)throw new DOMException('Synthetic activation metadata quota','QuotaExceededError');return realPut.call(this,request,response);};";
   if(installQuota&&revision===2)text+="\nconst realPut=Cache.prototype.put;Cache.prototype.put=function(request,response){if(String(request.url||request).endsWith('/cores/changed.bin'))return Promise.reject(new DOMException('Synthetic install quota','QuotaExceededError'));return realPut.call(this,request,response);};";
@@ -25,6 +29,9 @@ function bytes(file){
 }
 function manifest(){return {version:'delta-'+revision,files,shell,bytes:files.reduce((n,file)=>n+bytes(file).length,0),sizes:Object.fromEntries(files.map(file=>[file,bytes(file).length])),integrity:Object.fromEntries(files.map(file=>[file,'sha256-'+crypto.createHash('sha256').update(bytes(file)).digest('base64')]))};}
 const server=http.createServer((req,res)=>{
+ const requestURL=new URL(req.url,'http://'+req.headers.host);
+ // Test-control traffic remains available while application assets are offline.
+ if(requestURL.pathname==='/__fixture_activation'){activations.add(requestURL.host+'/'+requestURL.searchParams.get('version'));res.writeHead(204).end();return;}
  const file=new URL(req.url,'http://localhost').pathname.slice(1)||'index.html';
  requests.push({revision,file,bytes:0});const entry=requests.at(-1);
  if(offline){req.socket.destroy();return;}
@@ -45,6 +52,13 @@ async function update(page){await page.evaluate(async()=>{const reg=await naviga
 async function waitPage(page,predicate){const deadline=Date.now()+30000;while(!await page.evaluate(predicate)){assert.ok(Date.now()<deadline,'Worker condition timed out');await page.waitForTimeout(25);}}
 async function waiting(page){await waitPage(page,async()=>!!(await navigator.serviceWorker.getRegistration()).waiting);}
 async function fetchText(page,file){return page.evaluate(file=>fetch(file).then(async response=>({status:response.status,text:await response.text()})),file);}
+async function closeForActivation(page,base,version){
+ const key=new URL(base).host+'/'+version;
+ assert.equal(activations.has(key),false,'The candidate must wait while the old page remains open');
+ await page.close();const deadline=Date.now()+30000;
+ while(!activations.has(key)){assert.ok(Date.now()<deadline,'Natural activation did not start after the last page closed: '+version);await new Promise(resolve=>setTimeout(resolve,25));}
+ // Navigation waits for the real activate handler (carry-forward/claim/retire).
+}
 (async()=>{
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));let base='http://127.0.0.1:'+server.address().port+'/';
  const browser=await runtime[engine].launch({headless:true,...(engine==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
@@ -85,7 +99,7 @@ async function fetchText(page,file){return page.evaluate(file=>fetch(file).then(
     assert.equal(await page.evaluate(async()=>await(await(await caches.open('manic-web:/:delta-2')).match('app.js')).text()),'/* stable application shell */');
     // This asset was NOT in the install snapshot. A late old-page fetch must
     // survive natural activation when the last tab closes, even offline.
-    assert.equal((await fetchText(page,'cores/late.bin')).status,200);offline=true;await page.close();
+    assert.equal((await fetchText(page,'cores/late.bin')).status,200);offline=true;await closeForActivation(page,base,'delta-2');
     page=await context.newPage();await page.goto(base);await page.waitForFunction(()=>!!navigator.serviceWorker.controller);
     assert.equal((await message(page,'app-version')).version,'delta-2');
     const used=await fetchText(page,'cores/used.bin');assert.equal(used.status,200);assert.equal(used.text,bytes('cores/used.bin').toString(),'Reused gzip responses retain their decoded body');assert.equal((await fetchText(page,'cores/late.bin')).status,200);
@@ -111,7 +125,7 @@ async function fetchText(page,file){return page.evaluate(file=>fetch(file).then(
     }
     if(!quotaCase){
      offline=false;const all=await message(page,'download');assert.equal(all.ready,true,'Explicit full offline download still includes cold assets');
-     revision=3;await update(page);await waiting(page);await page.close();page=await context.newPage();await page.goto(base);
+     revision=3;await update(page);await waiting(page);await closeForActivation(page,base,'delta-3');page=await context.newPage();await page.goto(base);
      assert.equal((await message(page,'status')).ready,true,'A full offline installation remains complete after an update');
      console.log('PASS '+engine+': explicit full-offline coverage survives another update.');
     }

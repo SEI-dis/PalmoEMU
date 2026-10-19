@@ -18,8 +18,18 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
    const captureCanvas=()=>document.querySelector('[data-recording-canvas]');
    if(!native){let failure;const recorder=createGameRecorder({onError:error=>failure=error});check(await recorder.start({canvas:canvas()})===false,'Unsupported browser does not start');check(recorder.state==='idle'&&failure&&!captureCanvas(),'Unsupported recorder leaves no resources');reports.push('Native recording unavailable: UI capability and failure cleanup verified');}
    else{
+    // CI hosts need no physical speaker. Keep real Web Audio processing and
+    // MediaRecorder encoding, but use its explicit non-device output sink.
+    const NativeAudioContext=window.AudioContext,fixtureAudio=[];
+    if(typeof NativeAudioContext.prototype.setSinkId==='function')window.AudioContext=class extends NativeAudioContext{constructor(options){super({...options,sinkId:{type:'none'}});}};
+    try{
     const makeCore=async(w=240,h=160,color='#ff0000',frequency=440)=>{
      const ac=new AudioContext(),gain=ac.createGain(),osc=ac.createOscillator(),branches=new Set();gain.gain.value=.2;gain.connect(ac.destination);osc.frequency.value=frequency;osc.connect(gain);osc.start();
+     // Establish the authored input before testing its recording; a running
+     // context alone does not prove that the host has rendered any samples.
+     const analyser=ac.createAnalyser(),samples=new Float32Array(analyser.fftSize);gain.connect(analyser);await ac.resume();let peak=0;const deadline=performance.now()+5000;
+     try{while(peak<=.02){check(performance.now()<deadline,'Synthetic recording input did not produce audio samples');analyser.getFloatTimeDomainData(samples);peak=Math.max(...samples.map(Math.abs));if(peak<=.02)await sleep(25);}}finally{gain.disconnect(analyser);}
+     fixtureAudio.push({ac,peak});
      const connect=gain.connect.bind(gain),disconnect=gain.disconnect.bind(gain);let speakerDisconnections=0;
      gain.connect=node=>{branches.add(node);return connect(node);};gain.disconnect=node=>{if(!node||node===ac.destination)speakerDisconnections++;branches.delete(node);return disconnect(node);};
      return {canvas:canvas(w,h,color),ac,gain,branches,unlockAudio:()=>ac.resume(),get speakerDisconnections(){return speakerDisconnections;},async close(){osc.stop();await ac.close();}};
@@ -59,7 +69,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
       // second real-time playback clock or the CI host's audio output device.
       let amplitude=0;if(sound){
        const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file);});
-       await window.recordingEvidence(label,data,{type:file.type,size:file.size,position,duration:video.duration,width:video.videoWidth,height:video.videoHeight,userAgent:navigator.userAgent});
+       await window.recordingEvidence(label,data,{type:file.type,size:file.size,position,duration:video.duration,width:video.videoWidth,height:video.videoHeight,userAgent:navigator.userAgent,inputAudio:fixtureAudio.map(({ac,peak})=>({state:ac.state,time:ac.currentTime,rate:ac.sampleRate,sink:ac.sinkId,peak}))});
        let audio,decodeError;try{if(forcePlayback)throw new DOMException('Forced alternate decoder regression','EncodingError');audio=await new OfflineAudioContext(1,1,48000).decodeAudioData(await file.arrayBuffer());}catch(error){decodeError=error;}
        if(audio){const first=Math.floor(position*audio.sampleRate),last=Math.min(audio.length,first+Math.floor(.48*audio.sampleRate));check(audio.numberOfChannels>0&&last-first>=Math.floor(.1*audio.sampleRate),'Recorded audio contains the selected time window');for(let channel=0;channel<audio.numberOfChannels;channel++){const samples=audio.getChannelData(channel);for(let i=first;i<last;i++)amplitude=Math.max(amplitude,Math.abs(samples[i]));}}
        else{amplitude=await playbackAudio(video,position);reports.push('Audio media-element decoder verified '+label+' after '+decodeError.name);}
@@ -82,6 +92,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
      const recorder=createGameRecorder();check(await recorder.start(core),'Dual screen starts');await sleep(700);const file=await recorder.stop(),decoded=await decode(file);check(decoded.height===(type==='nds'?384:480),'Dual screen combined dimensions');check(decoded.pixels[0][0]>200&&decoded.pixels[1][2]>200,'Both screens appear in video');if(type==='3ds')check(decoded.pixels[2].slice(0,3).every(v=>v<25),'3DS lower screen is centered');await core.close();
     }reports.push('NDS two-screen and centered 3DS composition decode');
     const primary=await makeCore(),secondary=await makeCore(240,160,'#0000ff',660);secondary.gain.gain.value=0;const pair={canvas:primary.canvas,cores:[primary,secondary]},pairRecorder=createGameRecorder();check(await pairRecorder.start(pair),'Local two-core recording starts');await sleep(400);primary.gain.gain.value=0;secondary.gain.gain.value=.2;pair.canvas.getContext('2d').drawImage(secondary.canvas,0,0);await sleep(500);const pairedFile=await pairRecorder.stop(),paired=await decode(pairedFile,{sound:true,position:.55,label:'paired'});check(paired.amplitude>.02&&paired.pixels[0][2]>200&&primary.branches.size===0&&secondary.branches.size===0,'Two contexts mix audio and detach both branches');await primary.close();await secondary.close();reports.push('Local two-core audio mixing and branch cleanup');
+    }finally{window.AudioContext=NativeAudioContext;}
    }
    // Deterministic codec, lifecycle, resource and race tests also run in Windows WebKit.
    const originals={MediaRecorder:window.MediaRecorder,MediaStream:window.MediaStream,AudioContext:window.AudioContext,capture:HTMLCanvasElement.prototype.captureStream};
