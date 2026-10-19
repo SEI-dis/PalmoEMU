@@ -70,6 +70,12 @@ jobs:
           }
           $selection = node web/scripts/test-all.cjs --list --shard=${{ matrix.shard }}/5
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          if ($env:BROWSER_ENGINE -eq 'chromium' -and ($selection | ConvertFrom-Json).tests.name -contains 'test:recording') {
+            # Windows Server needs Media Foundation for real AAC encoding.
+            # A preinstalled Edge and isTypeSupported alone are insufficient.
+            node work/test-deps/node_modules/playwright/cli.js install-deps chromium
+            if ($LASTEXITCODE) { exit $LASTEXITCODE }
+          }
           if (($selection | ConvertFrom-Json).tests.name -contains 'test:room-link') {
             python -B -X utf8 web/scripts/prepare-link-tests.py
             if ($LASTEXITCODE) { exit $LASTEXITCODE }

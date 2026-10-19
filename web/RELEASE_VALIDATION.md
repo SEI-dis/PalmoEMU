@@ -1440,3 +1440,9 @@ ab043bfのCI（39235197708）は10/11ジョブ成功し、自然activationの修
 汎用MP4だけtrue・AAC falseの模擬能力で、旧ab043bfはGeneric MP4 cannot bypass unsupported AACの新しい検査に失敗し、修正後はWebMを選ぶ。映像専用MP4しかない環境は録画非対応とする。実ブラウザでもAACのみ非対応にする能力fixtureで、本物のWebM映像・非無音・2コア音声・再開・清掃が成功。WebMの未確定duration（Infinity）でも指定時刻をseekし、先頭フレームを誤検査しないようテストを修正した。
 
 通常Chromiumの実MP4/音声とrecording-ui、PC WebKitの能力/模擬検査とrecording-uiは成功。原因を解消しなかった代替デコーダーは削除し、元のdecodeAudioDataと非無音閾値・時間範囲検査に戻した。生成動画・音源・codec能力の診断は残す。既存UIのMP4/WebM表示と8言語の録画・エラー・保存文言はそのまま意味が通り、新訳はない。READMEと配布記録を更新し、公開せずにpushとCI確認まで行う。
+
+## 2026-10-19 CIのWindowsメディア依存関係
+
+238ce98のCI（39237756458）は10/11成功し、録画だけが失敗。回収した音声なしMP4と能力フラグから、CIのEdge 154は明示的AACもtrueと返していたことを確認した。このため前節の汎用MP4ガードは独立した改善だが、このCI失敗の直接の解消ではない。入力サンプルは正常、既存の音声検査は失敗のまま保持されている。
+
+CIのWindows Server 2025では既存Edgeを使うだけで、PlaywrightがChromium向けに用意するWindowsメディア依存関係を準備していなかった。公式のinstallDependenciesWindowsとinstall_media_pack.ps1を確認し（https://raw.githubusercontent.com/microsoft/playwright/main/packages/playwright-core/src/server/registry/dependencies.ts）、実録画のtest:recordingを含むChromiumジョブにだけ `playwright install-deps chromium` を追加する。これはWindows ServerでServer-Media-Foundationを導入する公式処理で、テストのスキップ・閾値緩和・codec能力の偽装は行わない。ローカルはdry-runで実行するコマンドを確認し、利用者PCのWindows機能は変更していない。導入結果とAAC実録画の成功は次のCIで確認する。アプリ本体・UI・翻訳は前コミットから変更なし。公開は引き続き保留。
