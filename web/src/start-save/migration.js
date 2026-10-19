@@ -22,7 +22,11 @@ function view(value){
  if(value instanceof ArrayBuffer)return new Uint8Array(value);
  fail('input');
 }
-function copySave(value){const bytes=view(value);if(bytes.byteLength>maxSaveBytes||!sizes.has(bytes.byteLength))fail('size');return Uint8Array.from(bytes);}
+function checkedSave(value){const bytes=view(value);if(bytes.byteLength>maxSaveBytes||!sizes.has(bytes.byteLength))fail('size');return bytes;}
+function copySave(value){return Uint8Array.from(checkedSave(value));}
+// Synchronous readers never write or yield. The vendor owns its working copies;
+// only shared memory needs an entry snapshot against another thread's writes.
+function inspectionSave(value){const bytes=checkedSave(value);return typeof SharedArrayBuffer!=='undefined'&&bytes.buffer instanceof SharedArrayBuffer?Uint8Array.from(bytes):bytes;}
 function sourceVersion(value){if(typeof value!=='string'||value.length>16)fail('version');const source=sources.get(normalizeVersion(value));if(!source)fail('version');return source;}
 function cancelled(signal){if(signal?.aborted){const error=new Error('Migration cancelled');error.name='AbortError';throw error;}}
 const crcTable=Uint32Array.from({length:256},(_,value)=>{for(let bit=0;bit<8;bit++)value=value&1?0xedb88320^(value>>>1):value>>>1;return value>>>0;});
@@ -58,9 +62,9 @@ function inspectModern(bytes,from){
  if(slots.some(slot=>formatSourceVersion(slot.versionStamp,slot.format)!==from))fail('mismatch');
  return {sourceVersion:from,targetVersion:from,sampleTested:false,slots:info.slots.map(slot=>({...slot,boxes:50,encrypted:true,detectedVersion:slot.valid?from:null}))};
 }
-export function inspectStartSave(value,from){const bytes=copySave(value);return startVersionNumber(from)>=START_FORMAT_STAMP?inspectModern(bytes,from):inspect(bytes,sourceVersion(from));}
+export function inspectStartSave(value,from){const bytes=inspectionSave(value);return startVersionNumber(from)>=START_FORMAT_STAMP?inspectModern(bytes,from):inspect(bytes,sourceVersion(from));}
 export function detectStartSaveVersion(value){
- const bytes=copySave(value),versions=[];
+ const bytes=inspectionSave(value),versions=[];
  // The official converter writes 0x31ff to leave the game's first-load update
  // pending (0x34ff for W). Identify bridge markers only after layout validation.
  if(containsFormatL(bytes)){
@@ -82,11 +86,11 @@ export function detectStartSaveVersion(value){
 }
 export function inspectStartUpdate(value,from,target=START_MIGRATION_VERSION){
  const number=startVersionNumber(from);
- if(number>=START_FORMAT_STAMP){const info=inspectModern(copySave(value),from);return {...info,targetVersion:selectStartMigrationVersion(target,from),compatibility:startSaveCompatibility(from,target)};}
+ if(number>=START_FORMAT_STAMP){const info=inspectModern(inspectionSave(value),from);return {...info,targetVersion:selectStartMigrationVersion(target,from),compatibility:startSaveCompatibility(from,target)};}
  // New releases can retain the existing serialized layout. Only inspect them;
  // the old converter must never rewrite a source it does not understand.
  const source=sources.get(normalizeVersion(from))||(number>startVersionNumber(START_MIGRATION_VERSION)?{...sources.get(START_MIGRATION_VERSION),version:from,inspectionVersion:START_MIGRATION_VERSION,saveVersionStamp:number,saveSampleTested:false}:sourceVersion(from));
- const info=inspect(copySave(value),source);
+ const info=inspect(inspectionSave(value),source);
  // A filename or ROM revision alone cannot establish the actual save format.
  if(info.slots.some(slot=>slot.valid&&(slot.boxes!==source.boxes||slot.encrypted!==source.encrypted)))fail('mismatch');
  return {...info,targetVersion:selectStartMigrationVersion(target,source.version),compatibility:startSaveCompatibility(source.version,target)};

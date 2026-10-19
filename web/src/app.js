@@ -2,6 +2,7 @@
    Created by Aoshuang Lee / Max / Daiuno. Modified for Web on 2026-10-08. See NOTICES.md. */
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // UI port based on ManicEMU's GamesNavigationView, GameListView and HomeTabBar.
+import {maxROMBytes} from './core/rom-capacity.js';
 import './i18n/page.js';
 import {showROMPatch} from './views/rom-patch.js';
 import {showGBAOptions} from './views/gba-options.js';
@@ -247,7 +248,7 @@ async function importFiles(files){
   for(const [index,file] of files.entries()){
    const system=detectSystem(file.name),archive=/\.zip$/i.test(file.name);
    if(!system&&!archive){skipped.push(tr`${file.name}: 未対応の形式です。`);continue;}
-   const maxMiB=archive?maxROMZipSize/1048576:system==='3ds'?4096:system==='nds'?512:64;
+   const maxMiB=archive?maxROMZipSize/1048576:maxROMBytes(system)/1048576;
    if(file.size>maxMiB*1048576||!file.size){skipped.push(tr`${file.name}: 空のファイル、または${maxMiB}MBを超えるファイルは追加できません。`);continue;}
    progress.start(file,index+1,files.length);
    try{
@@ -329,14 +330,15 @@ async function launch(game,{safeMode=false,skipRecovery=false}={}){
  gameMenuReturn=null;sheetBack=null;current=game;paused=false;$('#resume-game').hidden=true;$('#save-status').hidden=true;$('#fps-meter').hidden=true;$('#loading').hidden=false;$('#loading').textContent=tr('コアを読み込んでいます…');$('#player').hidden=false;
  try{
   await preferences.flush();const stored=await db.get('library',game.id);if(!stored)throw new Error(tr('ゲームが見つかりません。'));current=game=stored;settingsGame=null;
-  const bytes=await db.get('roms',game.id);if(!bytes)throw new Error(tr('ROMが見つかりません。もう一度追加してください。'));
+  if(!await db.has('roms',game.id))throw new Error(tr('ROMが見つかりません。もう一度追加してください。'));
   const previous=await protection.open(game,coreFor(game).id);
   // The game lock now protects this baseline from another tab's final write.
   const lockedGame=await db.get('library',game.id);if(!lockedGame)throw new Error(tr('ゲームが見つかりません。'));game.playDuration=lockedGame.playDuration||0;
   if(previous.interrupted)diagnostics.record(null,'previous-session');
   await reloadSkins(false);$('#screen').replaceChildren();
   engine=createCore($('#screen'),game);engine.setVolume(settings.muted?0:settings.volume);engine.onAudioState=updateAudioButton;engine.adoptAudio?.(preparedAudio);
-  engine.onKeyboard=showCoreKeyboard;engine.onError=e=>{diagnostics.record(e,'core');setPause(true);void rewindSession.clear({halt:true});error(e);};engine.unlockAudio()?.catch?.(()=>{});engine.setCartridgeOptions?.(settings);engine.setNDSOptions?.(settings);await engine.load(bytes,game,systems[game.system]);
+  let bytes=await db.get('roms',game.id);if(!bytes)throw new Error(tr('ROMが見つかりません。もう一度追加してください。'));
+  engine.onKeyboard=showCoreKeyboard;engine.onError=e=>{diagnostics.record(e,'core');setPause(true);void rewindSession.clear({halt:true});error(e);};engine.unlockAudio()?.catch?.(()=>{});engine.setCartridgeOptions?.(settings);engine.setNDSOptions?.(settings);try{await engine.load(bytes,game,systems[game.system]);}finally{bytes=null;}
   // Hold emulation while restoring saves without stopping the audio session
   // acquired by Play. Restarting it after these awaits may need another tap.
   engine.pause(true,{preserveAudio:!paused&&!document.hidden});

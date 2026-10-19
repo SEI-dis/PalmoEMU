@@ -5,6 +5,10 @@
   "scripts": {
     "dev": "node scripts/develop.mjs",
     "test": "node tests/core.cjs",
+    "test:rom-memory": "node tests/rom-memory.cjs",
+    "test:rom-capacity": "node tests/rom-capacity.cjs",
+    "test:start-save-memory": "node tests/start-save-memory.cjs",
+    "test:start-save-worker-memory": "node tests/start-save-worker-memory.cjs",
     "test:mgba-memory": "node tests/mgba-memory.cjs",
     "test:mgba-allocation": "node tests/mgba-allocation.cjs",
     "test:core-teardown": "node tests/core-teardown.cjs",

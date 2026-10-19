@@ -184,3 +184,33 @@ the ROM-update view. Input-originated bubbling `cancel` events do not dismiss th
 main dialog; dialog-originated Escape/cancel still uses the guarded close route.
 The update coordinator continues receiving file-input cancellation to release its
 picker activity guard.
+
+
+## ROM capacity and bounded mGBA input
+
+`core/rom-capacity.js` is the reviewed admission contract. The future 128 MiB
+constant is descriptive only; current mGBA admission remains 64 MiB and VBA-Next
+remains 32 MiB. ZIP expansion and patch source/result budgets are independent.
+`rom-capacity.cjs` checks boundary admission and agreement with the native bridge
+and upstream build policy, not the correctness of a future native cartridge map.
+
+`library/rom-storage.js` stores new GBA files above 32 MiB and NDS as Blobs. An
+UnknownError during atomic persistence retries the same bytes; quota and other
+errors do not retry. GBA update validation still examines the authoritative bytes
+before storage conversion, under the existing source/destination locks. Legacy
+byte records, identity hashes, save keys and native ABI remain unchanged.
+
+`core/rom-input.js` copies Blob inputs into one allocated native ROM in bounded
+4 MiB reads. It reacquires HEAPU8 after each await, checks cancellation, and rejects
+short reads. `loadCompatibleMGBA` owns the pointer until the native owned-load
+call, which consumes it on both success and failure. Closing during a pending
+read aborts before native load and frees the untransferred pointer once. The same
+heap bytes supply CPU-clock classification and the runtime save probe. This
+reduces explicit JS read buffers, not the native ROM size or a guaranteed process
+RSS. Byte-array fallback and legacy records still materialize their full arrays.
+
+START synchronous inspection borrows ordinary byte views but snapshots shared
+memory; async migration still snapshots its input before yielding. ROM profile
+helpers return metadata only, and a worker reads a matching source/target once.
+Successful conversion transfers two independent buffers (result and original)
+without changing the persisted source. There is no cross-worker profile cache.

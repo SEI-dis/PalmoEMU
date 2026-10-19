@@ -54,7 +54,7 @@ const cases=[{name:'recognized structure',accepted:true},
    const result=await page.evaluate(async({id,gb})=>{
     testCore.pause(true);const db=await import('./src/storage/storage.js'),stored=await db.get('roms',id);
     const sha=async bytes=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)),b=>b.toString(16).padStart(2,'0')).join('');
-    const hash=await sha(stored),temporaryHash=gb?await sha(testCore.m.HEAPU8.subarray(loadedROMPointer,loadedROMPointer+stored.length)):null;
+    const hash=await sha(stored instanceof Blob?await stored.arrayBuffer():stored),temporaryHash=gb?await sha(testCore.m.HEAPU8.subarray(loadedROMPointer,loadedROMPointer+stored.length)):null;
     return {id:(await db.all('library'))[0].id,hash,temporaryHash,platform:testCore.m._web_platform(),cpu:testCore.overclock,compatibility:testCore.compatibility,loads:observedLoads};
    },{id,gb});
    assert.equal(result.id,id);assert.equal(result.hash,id,'Stored original and save identity stay unchanged');
@@ -66,7 +66,7 @@ const cases=[{name:'recognized structure',accepted:true},
    assert.deepEqual(result.loads.filter(l=>l.n===rom.length).map(({byte,otherByte,frames})=>({byte,otherByte,frames})),[{byte:accepted?1:0,otherByte:0,frames:0}],'One transferred load, before any frame');
    if(accepted&&!layout){
     const checks=await page.evaluate(async({id,offset,otherOffset})=>{
-     const {loadCompatibleMGBA}=await import('./src/core/mgba-compatibility.js'),db=await import('./src/storage/storage.js'),original=await db.get('roms',id);
+     const {loadCompatibleMGBA}=await import('./src/core/mgba-compatibility.js'),db=await import('./src/storage/storage.js'),stored=await db.get('roms',id),original=stored instanceof Blob?new Uint8Array(await stored.arrayBuffer()):stored;
      // An unrelated ROM change remains eligible; changed probe instructions
      // or a cartridge without the extended header remain untouched.
      const revised=original.slice();revised[revised.length-1]^=1;

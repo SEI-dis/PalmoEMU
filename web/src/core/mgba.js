@@ -5,6 +5,7 @@ import {VideoOutput} from '../rendering/video.js';
 import {GBASensors} from './gba-options.js';
 import {TimeStretch} from '../rendering/time-stretch.js';
 import {loadCompatibleMGBA} from './mgba-compatibility.js';
+import {romByteLength} from './rom-input.js';
 import {recommendedGBACPUClock,resolveGBACPUClock} from './mgba-clock.js';
 import {choosePixelTransfer,createPixelTransfer} from '../rendering/pixel-transfer.js';
 import {GameRumble} from '../input/game-rumble.js';
@@ -34,16 +35,17 @@ export function cleanupCoreResources(actions){
 export class MGBACore {
   constructor(canvas){this.canvas=canvas;this.keys=0;this.speed=1;this.volume=.7;this.paused=true;this.sources=new Set();this.frames=0;this.presented=0;this.cheatCount=0;this.preservePitch=true;}
   async load(bytes,{sharedCore}={}){
-    this.romSizeClass=romSizeClass(bytes.length);
+    this.romSizeClass=romSizeClass(romByteLength(bytes));
     this.stateIncludesSave=true; // The bridge restores SAVESTATE_SAVEDATA, including the active flash bank.
-    this.recommendedOverclock=recommendedGBACPUClock(bytes);
+    this.recommendedOverclock=1;
     if(sharedCore&&!sharedCore.supportsGBLink)throw Error(tr('通信機能を開始できません。'));
     const nativeModule=sharedCore?.nativeModule||await loadCoreResource(()=>window.createMGBA({locateFile:p=>new URL('../../cores/mgba/'+p,import.meta.url).href}));
     if(this.closed)throw new DOMException('Core closed during loading','AbortError');
     this.nativeModule=nativeModule;
     this.instance=sharedCore?1:0;this.m=coreInstance(this.nativeModule,this.instance);
     this.pixelTransferChoice=sharedCore?.pixelTransferChoice||choosePixelTransfer(this.m);
-    this.compatibility=await loadCompatibleMGBA(this.m,bytes);
+    this.compatibility=await loadCompatibleMGBA(this.m,bytes,{cancelled:()=>this.closed,onCopied:rom=>{this.recommendedOverclock=recommendedGBACPUClock(rom);}});
+    bytes=null;
     if(this.closed)throw new DOMException('Core closed during loading','AbortError');
     this.saveEpoch=(this.saveEpoch||0)+1;
     this.width=this.m._web_width();this.height=this.m._web_height();this.video=new VideoOutput(this.canvas,this.width,this.height);this.image=new ImageData(this.width,this.height);this.pixelTransfer=createPixelTransfer(this.m,this.width,this.height,this.pixelTransferChoice.mode);this.fps=this.m._web_fps();this.sensors=new GBASensors((...values)=>this.m._web_sensors?.(...values));

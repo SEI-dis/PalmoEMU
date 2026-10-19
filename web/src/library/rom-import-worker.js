@@ -5,6 +5,8 @@ import {largeFileIdentity} from '../core/development.js';
 import * as db from '../storage/storage.js';
 import {listROMZip,extractROMZip} from './rom-zip.js';
 import {finishROMUpdate} from './rom-update.js';
+import {supportsROMSize} from '../core/rom-capacity.js';
+import {storeROMData} from './rom-storage.js';
 const progress=(phase,loaded,total,name)=>self.postMessage({type:'progress',phase,loaded,total,name});
 function read(file){return new Promise((resolve,reject)=>{
  const reader=new FileReader();
@@ -15,8 +17,10 @@ function read(file){return new Promise((resolve,reject)=>{
  reader.readAsArrayBuffer(file);
 });}
 async function storeROM(file,system,unpacked,{inspectOnly=false,updatePlan,expectedId}={}){
+  if(!supportsROMSize(system,file.size))throw Error(tr('このROM容量には対応していません。'));
   progress('reading',0,file.size);
   const bytes=system==='3ds'?null:unpacked||await read(file);
+  if(bytes&&!supportsROMSize(system,bytes.byteLength))throw Error(tr('このROM容量には対応していません。'));
   progress('checking');
   const id=system==='3ds'?await largeFileIdentity(file):await hash(bytes);
   const game={id,name:file.name.replace(/\.[^.]+$/,''),filename:file.name,system,size:file.size,added:Date.now(),lastPlayed:0,favorite:false};
@@ -27,17 +31,11 @@ async function storeROM(file,system,unpacked,{inspectOnly=false,updatePlan,expec
   }
   if(!updatePlan&&await db.get('library',id)&&await db.has('roms',id))return {id,added:false};
   progress('saving');
-  // NDS files can reach 512 MiB. Blob storage avoids the serialized-value
-  // limit in Chromium. Some WebKit builds reject Blob persistence; those can
-  // still store the original bytes. Failed transactions leave neither record.
-  // ZIP entries carry metadata and bytes, not a second immutable File copy.
-  // Delay the NDS Blob copy until hashing and the duplicate check are complete.
-  const store=rom=>updatePlan?finishROMUpdate(updatePlan,game,rom,({index,total})=>progress('migrating',index,total)):db.addGame(game,rom);
-  try{await store(system==='nds'?(unpacked?new Blob([bytes],{type:'application/octet-stream'}):file.slice()):system==='3ds'?file:bytes);}
-  catch(error){
-   if(system!=='nds'||error.name!=='UnknownError')throw error;
-   await store(bytes);
-  }
+  // The update path rechecks the same authoritative bytes before choosing a
+  // storage representation. Ordinary imports reuse the immutable input File.
+  if(updatePlan)await finishROMUpdate(updatePlan,game,system==='3ds'?file:bytes,({index,total})=>progress('migrating',index,total));
+  else if(system==='3ds')await db.addGame(game,file);
+  else await storeROMData(system,bytes,rom=>db.addGame(game,rom),unpacked?undefined:file);
   return {id,added:true};
 }
 self.onmessage=async({data:{file,system,language,...options}})=>{

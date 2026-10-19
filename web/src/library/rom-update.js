@@ -6,6 +6,7 @@ import {coreFor,saveKey,supportsGame} from '../core/core-registry.js';
 import {hash} from '../shared.js';
 import * as db from '../storage/storage.js';
 import {isStartName} from '../start-save/version.js';
+import {storeROMData} from './rom-storage.js';
 
 export async function sourceSave(id){
  const game=await db.get('library',id);if(!game)throw Error(tr('元のゲームが見つかりません。'));
@@ -58,7 +59,8 @@ export async function finishROMUpdate(plan,game,rom,onProgress){
   }else if(plan.startCopy||plan.startMigration){
    throw Error(tr('この変換はGBAのPokemonStart用です。mGBAコアを選択してください。'));
   }
-  return db.commitROMUpdate({source,game,rom,save,targetSave,migration});
+  const store=storedROM=>db.commitROMUpdate({source,game,rom:storedROM,save,targetSave,migration});
+  return rom instanceof Blob?store(rom):storeROMData(game.system,rom,store);
  }
  return next(0);
 }

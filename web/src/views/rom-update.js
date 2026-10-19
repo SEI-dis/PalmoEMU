@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 import {tr} from '../i18n/index.js';
 import {escapeHTML as esc,detectSystem,bytesLabel} from '../shared.js';
-import {coreRegistry,coreFor} from '../core/core-registry.js';
+import {coreRegistry,coreFor,supportsGame} from '../core/core-registry.js';
 import {importROM} from '../library/rom-import.js';
 import {prepareROMUpdate,readROMUpdateBackup} from '../library/rom-update.js';
 import {guardUpdateTask} from '../updates/update-activity.js';
@@ -37,7 +37,7 @@ export function createROMUpdateDialog(api){
    try{
     const system=detectSystem(file.name),core=coreFor(game);
     if(system!==game.system)throw Error(tr('元のゲームと同じ機種のROMを選んでください。'));
-    if(!file.size||file.size>core.maxRom)throw Error(tr('このROM容量には対応していません。'));
+    if(!supportsGame(core,{size:file.size}))throw Error(tr('このROM容量には対応していません。'));
     $('#rom-update-status').textContent=tr('ROMを確認中…');
     if(reattach){
      await work(async()=>{await importROM(file,system,null,{expectedId:game.id});await api.refresh();api.showGame(await db.get('library',game.id));api.toast(tr('ROMを追加しました。'));});return;

@@ -16,6 +16,12 @@ async function readSource(id,previous){
  if(record.system!=='gba'||record.coreKey!=='mgba')throw Error(tr('この変換はGBAのPokemonStart用です。mGBAコアを選択してください。'));
  return {game,sourceId:record.sourceId,name:record.sourceName,save:record.save,digest:record.save.hash};
 }
+// Return metadata only, so a full ROM buffer cannot remain in the conversion
+// handler's scope while the asynchronous save migration runs.
+async function readROMProfile(id){
+ const rom=await db.get('roms',id);
+ return {present:!!rom,identity:rom?identifyStartROM(rom instanceof Blob?new Uint8Array(await rom.arrayBuffer()):rom):null};
+}
 self.onmessage=async({data})=>{
  try{
   await setWorkerLanguage(data.language);
@@ -25,8 +31,7 @@ self.onmessage=async({data})=>{
   const profiles=new Map();
   const storedProfile=async id=>{
    if(!profiles.has(id)){
-    const rom=await db.get('roms',id);
-    profiles.set(id,{present:!!rom,identity:rom?identifyStartROM(rom instanceof Blob?new Uint8Array(await rom.arrayBuffer()):rom):null});
+    profiles.set(id,await readROMProfile(id));
    }
    return profiles.get(id);
   };
@@ -52,6 +57,7 @@ self.onmessage=async({data})=>{
   const result=await migrateStartSave(save.bytes,{from:data.from,target:targetProfile,onProgress:({index,total})=>self.postMessage({type:'progress',index,total})});
   // Both buffers are private to this one-shot worker. Transfer them together;
   // database records are unaffected and no retry needs the detached snapshots.
-  self.postMessage({type:'done',name,bytes:result.bytes,original:save.bytes,report:result.report},[result.bytes.buffer,save.bytes.buffer]);
+  const original=save.bytes instanceof Uint8Array&&save.bytes.byteOffset===0&&save.bytes.byteLength===save.bytes.buffer.byteLength?save.bytes:new Uint8Array(save.bytes);
+  self.postMessage({type:'done',name,bytes:result.bytes,original,report:result.report},[result.bytes.buffer,original.buffer]);
  }catch(error){self.postMessage({type:'error',message:error.message||tr('セーブを変換できませんでした。元のデータは残っています。')});}
 };

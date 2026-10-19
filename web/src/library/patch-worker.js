@@ -2,13 +2,13 @@
 // Classic worker: MIT-licensed RomPatcher.js modules keep their original scope.
 importScripts('../../vendor/rom-patcher/HashCalculator.js','../../vendor/rom-patcher/BinFile.js','../../vendor/rom-patcher/RomPatcher.format.ips.js','../../vendor/rom-patcher/RomPatcher.format.bps.js','../../vendor/rom-patcher/RomPatcher.format.ups.js');
 // Bound every record before passing untrusted input to the upstream parser.
-function preflight(bytes,romSize){
- const limit=64*1048576,magic=new TextDecoder().decode(bytes.subarray(0,5));let pos=0,end=bytes.length,records=0;
+function preflight(bytes,romSize,{patchMaxROMBytes:limit,patchMaxFileBytes,isROMSizeSupported}){
+ const magic=new TextDecoder().decode(bytes.subarray(0,5));let pos=0,end=bytes.length,records=0;
  const bad=()=>{throw Error('invalid');},take=n=>{if(!Number.isSafeInteger(n)||n<0||pos+n>end)bad();const at=pos;pos+=n;return at;};
  const byte=()=>bytes[take(1)],be=n=>{let v=0;while(n--)v=v*256+byte();return v;};
  const vlv=()=>{let v=0,shift=1;for(let n=0;n<5;n++){const b=byte();v+=(b&127)*shift;if(v>0x7fffffff)bad();if(b&128)return v;shift*=128;v+=shift;}bad();};
  const count=()=>{if(++records>250000)bad();};
- if(!romSize||romSize>limit||end>limit)bad();
+ if(!isROMSizeSupported(romSize,limit)||!isROMSizeSupported(end,patchMaxFileBytes))bad();
  if(magic==='PATCH'){
   pos=5;let max=romSize;
   while(true){const offset=be(3);if(offset===0x454f46)break;count();let length=be(2);if(length)take(length);else{length=be(2);byte();if(!length)bad();}max=Math.max(max,offset+length);if(max>limit)bad();}
@@ -27,10 +27,12 @@ function preflight(bytes,romSize){
  }
  let offset=0;while(pos<end){count();offset+=vlv();if(offset>=Math.max(source,target))bad();let length=0;while(byte()){length++;if(offset+length>Math.max(source,target))bad();}offset+=length+1;}if(pos!==end)bad();return UPS;
 }
-self.onmessage=event=>{
+self.onmessage=async event=>{
  try{
   const {rom,patch}=event.data;if(!(rom instanceof ArrayBuffer)||!(patch instanceof ArrayBuffer))throw Error('invalid');
-  const bytes=new Uint8Array(patch),Type=preflight(bytes,rom.byteLength),patchFile=new BinFile(patch);
+  // Keep upstream classic-script scope while sharing the reviewed work budget.
+  const capacity=await import('../core/rom-capacity.js');
+  const bytes=new Uint8Array(patch),Type=preflight(bytes,rom.byteLength,capacity),patchFile=new BinFile(patch);
   // UPS's upstream reader does not verify its own checksum. Check both formats.
   if(Type!==IPS){const expected=new DataView(patch).getUint32(patch.byteLength-4,true);if(patchFile.hashCRC32(0,patch.byteLength-4)!==expected)throw Error('invalid');}
   const parsed=Type.fromFile(patchFile),source=new BinFile(rom);if(Type!==IPS&&!parsed.validateSource(source))throw Error('source');

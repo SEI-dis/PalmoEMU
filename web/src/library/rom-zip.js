@@ -2,8 +2,9 @@
 // Original bounded ZIP importer. Reads local Blob slices only, never paths or URLs.
 import {tr} from '../i18n/index.js';
 import {detectSystem} from '../shared.js';
-export const maxROMZipSize=576*1048576;
-const maxExpanded=512*1048576,maxEntries=256,maxDirectory=2*1048576;
+import {maxROMZipSize,maxROMZipExpandedSize,supportsROMSize} from '../core/rom-capacity.js';
+export {maxROMZipSize};
+const maxEntries=256,maxDirectory=2*1048576;
 const crcTable=Uint32Array.from({length:256},(_,value)=>{for(let i=0;i<8;i++)value=(value>>>1)^((value&1)?0xedb88320:0);return value>>>0;});
 const broken=()=>new Error(tr('ZIPが壊れているか、対応していない形式です。'));
 const view=bytes=>new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
@@ -30,7 +31,7 @@ export async function listROMZip(file){
   if(name.endsWith('/')||name.split('/').some(part=>part.startsWith('.')||part==='__MACOSX'))continue;
   const system=detectSystem(name);if(!system||system==='3ds')continue;
   if(flags&~0x080e||![0,8].includes(method)||(attributes>>>16&0xf000)===0xa000)throw broken();
-  if(!length||length>(system==='nds'?512:64)*1048576||(total+=length)>maxExpanded)throw new Error(tr('ZIP内のゲームが大きすぎます。解凍後の合計は512 MiBまでです。'));
+  if(!supportsROMSize(system,length)||(total+=length)>maxROMZipExpandedSize)throw new Error(tr('ZIP内のゲームが大きすぎます。解凍後の合計は512 MiBまでです。'));
   if(!packed||(method===0&&packed!==length)||local+30>start)throw broken();
   const header=await read(file,local,local+30),h=view(header);
   if(h.getUint32(0,true)!==0x04034b50||h.getUint16(6,true)!==flags||h.getUint16(8,true)!==method||h.getUint16(26,true)!==n)throw broken();
@@ -51,6 +52,7 @@ export async function listROMZip(file){
  return entries;
 }
 export async function extractROMZip(file,entry,onProgress=()=>{}){
+ if(!supportsROMSize(entry.system,entry.length)||entry.system==='3ds')throw broken();
  let stream=file.slice(entry.offset,entry.offset+entry.packed).stream();
  if(entry.method===8)try{stream=stream.pipeThrough(new DecompressionStream('deflate-raw'));}catch{throw new Error(tr('このブラウザではZIPを解凍できません。解凍してからゲームを追加してください。'));}
  const reader=stream.getReader(),bytes=new Uint8Array(entry.length);let offset=0,crc=0xffffffff,lastProgress=0;

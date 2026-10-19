@@ -1385,3 +1385,31 @@ link-panel / visibilityは両エンジンで成功。バックアップ中に別
 新しいUI3文＋通知2文の8言語40訳をAI下書きから独立エージェント校正（12訳修正）。既存24訳を維持。build-offline / check-i18n成功。日本語＋8言語で通信パネルと実際に生成された更新通知／全5項目の履歴を、両エンジン・幅320/390/844pxで確認。文字一致、折り返し、ボタン到達、ページエラーと画面検証中の外部要求なし。日本語／ドイツ語の狭幅スクリーンショットも目視。人間母語話者確認ではない。
 
 第三者のコード／コア／ライセンス全文／スキン／接続先は追加・差替えなし。MPL派生通信ファイルの変更日とNOTICESに今回の変更を記載し、元の権利表示と対応ソース提供を維持。提供ROM・セーブ・HTMLや作業用テスト出力を配布に含めない。
+
+
+## 2026-10-19 128 MiB準備と大容量ROMのメモリ最適化（未公開）
+
+対象はbaf659e上のローカル変更。受け入れ容量をrom-capacity.jsに集約し、通常取り込み・Worker直呼び・ZIP展開前・ROM更新・コア起動を検証した。現在のGBA64 MiB、VBA32 MiB、mGBAのABI/コアID/保存先/セーブ容量を維持し、128 MiBは未対応のまま。ROM上限、ZIP/パッチの作業予算、WASM容量を分けた。同梱の32/64 MiBマッピングを128 MiBへ変えるには上流コアの別レビュー・ビルド・境界検証が必要である。native/vendor、元コンポーネント、許諾、通信先は変更していない。
+
+新規32 MiB超GBAはBlobで保存し、起動時は4 MiBずつnativeの所有権移譲用バッファへ読み込む。合成64 MiB ROMで16回・最大4,194,304バイトを確認し、元の配列入力と第2バンクの画素が一致した。WASM容量は両方式とも98.25 MiBであり、今回nativeメモリを減らしたという主張ではない。新規保存のBlob化はChromiumで実際に確認。PC WebKitはBlobのIDB保存がUnknownErrorとなるため従来配列へ安全に戻ることを確認し、Blobの小分け起動自体は同じFileを直接渡して検証した。したがって、そのWebKitで通常起動の全量JS配列が減ると主張しない。iPhoneのBlob永続化可否・実際のピークメモリ・GC・起動時間は未測定。既存配列レコードを自動変換する処理もない。
+
+rom-memoryは読み取り失敗/短い読み取り/キャンセル、待機中heap差し替え、実MGBACoreの読み取り中close、native呼び出しゼロと解放1回、128 MiBの確保前拒否を検査。IDBへのBlob書込みUnknownErrorは原子性を保って配列で1回再試行、QuotaExceededErrorは再試行せずROM/ライブラリを残さない。大容量ROM更新も実取り込みWorkerを使い、元ROM・セーブ・手動ステート・更新前バックアップ・新保存先の一致を検証した。
+
+STARTホストの同期検査は通常ビューを読み取り専用で借用し、共有メモリと非同期移行の防御コピーは維持。6 MiB+RTC・両slotの合成0.49保存で、検出の累積大容量割り当ては102.34→96.34 MiB、互換性検査は277.03→271.03 MiB。これは累積値であり同時使用量・RSSではない。Workerは同一ROMの重複読み取りを2→1回にし、ROM生bytesを識別helper外へ保持しない。変換結果と独立した原本を転送し、通常6 MiB保存では原本コピー約6 MiBとメッセージclone約12 MiBを省く。オフセット付きビュー・ArrayBuffer・共有メモリ・途中で呼出元が書換えた入力・RTC・原本hash・偽profile拒否を回帰検証した。上流変換エンジン自体は未変更。
+
+成功した検査：
+- Node: module-links、check-modules、check-i18n（9言語1537キー）、mgba-memory、mgba-allocation、mgba-save-probe、core-upgrade、start-save-memory、start-save-migration、start-save-compatibility、start-rom-profile、start-save-format-host、start-save-component、start-save-format-component。
+- Chromium（Edge）/PC WebKit: rom-capacity、rom-memory、rom-import、rom-update、rom-zip、upstream-features、mgba-compatibility、launch-controls、core-teardown、save-byte-comparison、extended-save、audio-startup、gb-local-link、start-save-format-browser、start-save-worker-memory。
+
+最初のrom-memoryは新規保存が必ずBlobになる検査を置いていたためPC WebKitで失敗した。実際の既知フォールバックを明示的に検査し、小分け読込は省略せずFile入力で検証するよう修正し、両エンジンで成功した。利用者のROM/セーブ/ブラウザプロファイルは使わず、合成データと隔離コンテキスト・専用ローカルサーバーを使用。新規4テストは通常テスト集合へ登録し、ブラウザ3本はWebKit集合にも登録した。公開・バージョン更新・CI dispatchは未実施。実機iPhoneのメモリ確保失敗の解消は未確認。
+
+追加確認：start-save-uiもChromium/PC WebKitで成功し、実アプリからの互換コピー・明示変換・不一致拒否・ロールバック・旧保存の保持を確認した。最終の対応ソースZIP、オフラインマニフェスト、配布一覧、レビュー対象hashを再生成し、stagingのcheck-release（翻訳・CSP・対応ソース・第三者原本・配布物検査を含む）とgit diff --checkが成功した。
+
+
+## 2026-10-19 最新mainとの統合とコミット準備
+
+push前のfetchでd3f2753まで8件の別PC更新を確認し、未コミットの128 MiB準備を退避してfast-forward後に統合した。版は最新mainの0.3.36を維持する。付属変換ツールのW形式対応、更新候補の保持、共有中の通信待機、オフライン完了判定を残した。上のbaf659e基準の計測は初回ローカル実装の記録であり、最新mainにはWorkerの転送とROM識別の重複削減が既に一部入っていたため、その分を新しい改善として二重に計上しない。
+
+競合したmigration.jsは最新のinspectModernとW形式判定を保持し、同期の読み取り専用ビューだけを適用した。Workerのリクエスト内profileキャッシュを維持し、ROM識別を別関数へ分け、オフセット付き原本の転送時に無関係なbuffer範囲を含めない。新メモリ回帰はW形式の検査とL→W非同期変換中の入力変更も対象へ追加し、原本・RTC・共有メモリsnapshotと独立出力を確認した。統合後のstart-save-memory、start-save-format-host、module-links、check-i18n（9言語1430キー）が成功。翻訳文・UIラベルは追加変更していない。
+
+今回の指示はコミット・push・そのコミットのCI確認まで。Publish PalmoEMUは実行しない。

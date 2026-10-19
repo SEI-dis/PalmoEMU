@@ -4,10 +4,12 @@
 import {tr,language} from '../i18n/index.js';
 import {runWorkerTask} from '../workers/task.js';
 import {romSizeClass,withImportContext} from '../runtime/memory-diagnostics.js';
+import {maxROMBytes,maxROMZipSize,isROMSizeSupported} from '../core/rom-capacity.js';
 export function importROM(file,system,onProgress,options={}){
  let stage='starting';
  // A ZIP's compressed size is not the size of its contained ROM(s).
- const romClass=/\.zip$/i.test(file.name)?'unknown':romSizeClass(file.size);
+ const archive=/\.zip$/i.test(file.name),romClass=archive?'unknown':romSizeClass(file.size);
+ if(!isROMSizeSupported(file.size,archive?maxROMZipSize:maxROMBytes(system)))return Promise.reject(withImportContext(new Error(archive?tr('ZIPは576 MiB以下のファイルを選んでください。'):tr('このROM容量には対応していません。')),{stage,romSizeClass:romClass}));
  return runWorkerTask(
   ()=>new Worker(new URL('./rom-import-worker.js',import.meta.url),{type:'module'}),
   {file,system,language,...options},
