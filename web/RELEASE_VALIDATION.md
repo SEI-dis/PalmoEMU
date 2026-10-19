@@ -1430,3 +1430,13 @@ a08973dのValidate Web release（39230113575）は11ジョブ中10成功、Chrom
 recordingは代替デコーダーでも非無音の検査が失敗。今回回収できたprimary.mp4（4,906 bytes）は音声トラックを含まず、前のEncodingErrorを単なる復号API差として説明できない。CIの物理音声デバイスへの依存を取り除くため、ネイティブ録画のテスト内だけAudioContextの標準silent sink（type:none、対応時）を使用する。実Web Audioの生成とMediaRecorderの符号化は維持し、録画前に合成音源の実サンプルが0.02を超えることを5秒上限で検査する。コアのgainや音声トラックは無音化せず、録画されたファイルの元の検査を保つ。出力デバイスの違いがCIの原因だったかは次のCI結果まで未確定。参考はChromium公式のsilent output説明（https://developer.chrome.com/blog/audiocontext-setsinkid）。
 
 通常Chromium、PC WebKit（能力・模擬検査）、強制代替デコーダーが成功。新しい入力準備の下でも全音声／2コア目だけを消す故障注入はそれぞれ元の音声assertionで失敗した。合成MP4の診断に入力AudioContextの状態・時刻・sampleRate・sink・確認した波形peakを追加した。製品コード、UI・翻訳、利用者データ、バージョン、ライセンス条件は変更せず、配布記録のみ追従する。公開は保留。
+
+## 2026-10-19 AAC非対応時の録画形式選択
+
+ab043bfのCI（39235197708）は10/11ジョブ成功し、自然activationの修正は成功。録画だけが非無音検査で失敗した。CIの合成音源は実peak約0.2、AudioContextはrunningで時刻も進んでいるが、出力MP4には音声トラックが無かった。従って前節の出力デバイス仮説だけでは説明できない。
+
+録画本体を再確認し、AAC付きMP4が非対応でも汎用video/mp4へフォールバックしていた経路を修正。video/mp4自体の対応は音声codec対応の保証ではないため、汎用候補にはaudio/mp4;codecs=mp4a.40.2の対応も必要とし、非対応なら既存のWebM/Opusへ進む。明示的なAAC付きMP4、同期待ち・録画サイズ・セーブ・入力は変更しない。ChromiumのCanSupportMimeTypeは明示されたmp4a.40.2をAAC対応判定に通すが空codecではその判定を行わないことを一次ソースで確認した（https://chromium.googlesource.com/chromium/src.git/+/9cdecf0f71c6df902469a9015c8cff2e28f4ab27/third_party/blink/renderer/modules/mediarecorder/media_recorder_handler.cc）。CIのcodecフラグは次回の成果物へ記録する。
+
+汎用MP4だけtrue・AAC falseの模擬能力で、旧ab043bfはGeneric MP4 cannot bypass unsupported AACの新しい検査に失敗し、修正後はWebMを選ぶ。映像専用MP4しかない環境は録画非対応とする。実ブラウザでもAACのみ非対応にする能力fixtureで、本物のWebM映像・非無音・2コア音声・再開・清掃が成功。WebMの未確定duration（Infinity）でも指定時刻をseekし、先頭フレームを誤検査しないようテストを修正した。
+
+通常Chromiumの実MP4/音声とrecording-ui、PC WebKitの能力/模擬検査とrecording-uiは成功。原因を解消しなかった代替デコーダーは削除し、元のdecodeAudioDataと非無音閾値・時間範囲検査に戻した。生成動画・音源・codec能力の診断は残す。既存UIのMP4/WebM表示と8言語の録画・エラー・保存文言はそのまま意味が通り、新訳はない。READMEと配布記録を更新し、公開せずにpushとCI確認まで行う。

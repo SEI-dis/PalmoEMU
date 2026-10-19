@@ -4,10 +4,13 @@ import {tr} from '../i18n/index.js';
 import {recordingName} from './recording-file.js';
 
 const formats=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4','video/webm;codecs=vp8,opus','video/webm'];
+// Generic MP4 support can mean video only (for example without an AAC encoder).
+// Do not bypass an explicit audio-codec rejection through the generic fallback.
+const supportsFormat=type=>MediaRecorder.isTypeSupported(type)&&(type!=='video/mp4'||MediaRecorder.isTypeSupported('audio/mp4;codecs=mp4a.40.2'));
 const safely=fn=>{try{fn();}catch{}};
 export function recordingSupported(){
  const AudioContext=window.AudioContext||window.webkitAudioContext;
- try{return typeof MediaRecorder==='function'&&typeof HTMLCanvasElement.prototype.captureStream==='function'&&typeof AudioContext?.prototype.createMediaStreamDestination==='function'&&formats.some(type=>MediaRecorder.isTypeSupported(type));}catch{return false;}
+ try{return typeof MediaRecorder==='function'&&typeof HTMLCanvasElement.prototype.captureStream==='function'&&typeof AudioContext?.prototype.createMediaStreamDestination==='function'&&formats.some(supportsFormat);}catch{return false;}
 }
 export function createGameRecorder({onState=()=>{},onComplete=()=>{},onError=()=>{},onEmpty=()=>{},maxDurationMs=300000,maxBytes=64*1048576}={}){
  const durationLimit=Math.min(300000,Math.max(100,Number(maxDurationMs)||300000)),byteLimit=Math.min(64*1048576,Math.max(1024,Number(maxBytes)||64*1048576));
@@ -61,7 +64,7 @@ export function createGameRecorder({onState=()=>{},onComplete=()=>{},onError=()=
   s.startTimer=setTimeout(()=>fail(s,new Error(tr('録画を開始できませんでした。'))),8000);
   try{
    if(typeof MediaRecorder!=='function'||typeof HTMLCanvasElement.prototype.captureStream!=='function')throw new Error(tr('このブラウザは動画録画に対応していません。'));
-   const candidates=formats.filter(type=>MediaRecorder.isTypeSupported(type));if(!candidates.length)throw new Error(tr('このブラウザは動画録画に対応していません。'));
+   const candidates=formats.filter(supportsFormat);if(!candidates.length)throw new Error(tr('このブラウザは動画録画に対応していません。'));
    const layout=sources(core);if(!(layout.width>0&&layout.height>0))throw new Error(tr('ゲーム画面を録画できません。'));
    const audioCores=core.cores?.length?core.cores:[core];
    // Call all unlock methods before awaiting so iOS receives the user gesture.

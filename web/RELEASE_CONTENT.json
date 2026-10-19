@@ -89,14 +89,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 107674,
-      "sha256": "9acc8b555c1ed9deaa6b7be92df98febc172a192ad0beb84c87351f9d6157fc9",
+      "bytes": 107716,
+      "sha256": "8b53bec7e51f76e60f0f23c0c195fb9197173f7073d934e9f4bd246ce58abbe7",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 296351,
-      "sha256": "586bf2d5df95cb62e11e29839609b83e1da66ac833d15d662ce5f8a8c1effb06",
+      "bytes": 298621,
+      "sha256": "ce5cc8268733d9a1207193dc47635dba979efa5f8d4c7dc4ed7a88b558c582c0",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 9554,
-      "sha256": "52e7ba845d00a036745e4e3b01d637d10cb29b14b0b5e2ac79f741543d672967",
+      "sha256": "4af9f6632d0cfae0ddd9908cd35cf7c77af3d5e2d6e0b48ea91ece3ddcc10540",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -40643,8 +40643,8 @@
     },
     {
       "path": "src/capture/game-recorder.js",
-      "bytes": 10723,
-      "sha256": "b17bd1dd9c1027c127b6a907b1c5aa7f863176876cfc1f1ed20c7a2c96c7ab25",
+      "bytes": 10978,
+      "sha256": "94b33ed7370bf60ef416cf3032f09ef1c2453970fa3d97fb40559410b87aec45",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41616,7 +41616,7 @@
     {
       "path": "sw.js",
       "bytes": 17492,
-      "sha256": "ebbc30c405d45a44032c33410fa2cf404ecd06ceb8f7256409bbadfb4ee4eb98",
+      "sha256": "b6d2c927fdf051f3b88c003fe917a6896654264106beecf192a9b6c332249b46",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42149,8 +42149,8 @@
     },
     {
       "path": "tests/recording.cjs",
-      "bytes": 21092,
-      "sha256": "198b9d4600f5dd74297dda005b669e47bc0d5393b7440b9934adcf14479ddf7e",
+      "bytes": 20213,
+      "sha256": "bfb24cb9910ad5d84d47f631c063fc1d725599690cbe5659ac1454e594a1620e",
       "component": "web-port-code-and-documentation"
     },
     {
