@@ -1413,3 +1413,12 @@ push前のfetchでd3f2753まで8件の別PC更新を確認し、未コミット�
 競合したmigration.jsは最新のinspectModernとW形式判定を保持し、同期の読み取り専用ビューだけを適用した。Workerのリクエスト内profileキャッシュを維持し、ROM識別を別関数へ分け、オフセット付き原本の転送時に無関係なbuffer範囲を含めない。新メモリ回帰はW形式の検査とL→W非同期変換中の入力変更も対象へ追加し、原本・RTC・共有メモリsnapshotと独立出力を確認した。統合後のstart-save-memory、start-save-format-host、module-links、check-i18n（9言語1430キー）が成功。翻訳文・UIラベルは追加変更していない。
 
 今回の指示はコミット・push・そのコミットのCI確認まで。Publish PalmoEMUは実行しない。
+
+
+## 2026-10-19 CI録画検査の追従修正
+
+a08973dのValidate Web release（39230113575）は11ジョブ中10成功、Chromium 3/5のrecordingだけが`OfflineAudioContext.decodeAudioData`のEncodingErrorで失敗した。新ROM容量・メモリ検査、旧/L/W変換、WebKit全組は成功。録画本体は今回変更しておらず、同じ検査のローカル再実行は成功した。失敗時のMP4が旧テストの成果物に無いため、そのCI動画の正常性や失敗原因までは確定していない。
+
+検査用APIが復号に失敗した場合は同じ記録ファイルをHTML media element→Web Audioで再生し、指定した時刻から最大480msの区間の実サンプルを計測する。100ms以上のサンプルと既存の非無音閾値0.02を維持し、復号失敗・サンプル不足・無音・5秒の時間切れは失敗のままとする。音はgain=0で出力先へ接続し、実行端末に鳴らさない。検査後に全接続とAudioContextを閉じる。生成した合成録画とメタデータをtest-resultsへ保存し、再発時にコンテナ・codec・音声内容を確認できるようにした。エラーを無視した再試行や閾値の緩和ではない。
+
+通常経路のChromium/PC WebKitが成功し、EncodingErrorを注入した代替経路でも単独/2コアの実MP4音声と映像が成功。隔離routeで全音声を0にした場合と、2コア目のみ0にした場合は代替経路でもそれぞれ既存の音声検査で失敗することを確認した。Windows WebKitの実録画は未対応で、能力判定と模擬lifecycle検査のみ。アプリ・コア・セーブ・翻訳・録画本体は変更せず、テストと配布記録を更新して再pushする。公開は引き続き保留。

@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Authored canvas pixels and oscillator tones, isolated profile, no mic or ROM.
-const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||'chromium';
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),runtime=require('./browser-runtime.cjs'),kind=process.env.BROWSER_ENGINE||'chromium';
 (async()=>{
  const browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
  try{
   const context=await browser.newContext({serviceWorkers:'block'}),page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
   const base=process.env.TEST_URL||'http://127.0.0.1:4173/';await context.route('**/*',route=>{assert.equal(new URL(route.request().url()).origin,new URL(base).origin);return route.continue();});
   await page.goto(base);await page.locator('#add-first').waitFor();await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
-  const result=await page.evaluate(async()=>{
+  const output=path.resolve(__dirname,'../test-results/recording-'+kind);fs.mkdirSync(output,{recursive:true});
+  await page.exposeFunction('recordingEvidence',(name,data,metadata)=>{assert.ok(/^(primary|paired)$/.test(name));assert.ok(data.length<16*1048576);fs.writeFileSync(path.join(output,name+'.mp4'),Buffer.from(data.slice(data.indexOf(',')+1),'base64'));fs.writeFileSync(path.join(output,name+'.json'),JSON.stringify(metadata,null,2));});
+  const result=await page.evaluate(async forcePlayback=>{
    const {createGameRecorder,recordingSupported}=await import('./src/capture/game-recorder.js'),check=(value,label)=>{if(!value)throw Error(label);},sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
    const reports=[],native=recordingSupported();
    const {recordingName}=await import('./src/capture/recording-file.js'),date=new Date(2026,9,14,0,12,34),firstName=recordingName('A/B',date),secondName=recordingName('A/B',date);
@@ -22,7 +24,30 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
      gain.connect=node=>{branches.add(node);return connect(node);};gain.disconnect=node=>{if(!node||node===ac.destination)speakerDisconnections++;branches.delete(node);return disconnect(node);};
      return {canvas:canvas(w,h,color),ac,gain,branches,unlockAudio:()=>ac.resume(),get speakerDisconnections(){return speakerDisconnections;},async close(){osc.stop();await ac.close();}};
     };
-    const decode=async(file,{sound=false,position=.3}={})=>{
+    // A valid MediaRecorder MP4 can use a different decoding path in the media
+    // element than decodeAudioData. If the latter rejects, measure the same
+    // encoded file through Web Audio, waiting for actual samples/media time.
+    // Silence, missing audio, decode errors and timeouts remain hard failures.
+    const playbackAudio=async(video,position)=>{
+     const ac=new AudioContext(),source=ac.createMediaElementSource(video),processor=ac.createScriptProcessor(1024,2,1),mute=ac.createGain();mute.gain.value=0;
+     source.connect(processor);processor.connect(mute);mute.connect(ac.destination);let timer;
+     try{
+      await ac.resume();video.muted=false;video.currentTime=position;
+      if(video.seeking)await new Promise((resolve,reject)=>{video.onseeked=resolve;video.onerror=()=>reject(Error('Audio fallback seek failed'));});
+      return await new Promise((resolve,reject)=>{
+       let amplitude=0,frames=0,finished=false;
+       const done=error=>{if(finished)return;finished=true;if(error)reject(error);else if(frames<ac.sampleRate*.1)reject(Error('Recorded audio fallback has too few samples'));else resolve(amplitude);};
+       processor.onaudioprocess=event=>{
+        const time=video.currentTime;if(video.paused||video.seeking||time<position||time>position+.48)return;
+        const audio=event.inputBuffer;frames+=audio.length;
+        for(let c=0;c<audio.numberOfChannels;c++){const samples=audio.getChannelData(c);for(let i=0;i<samples.length;i++)amplitude=Math.max(amplitude,Math.abs(samples[i]));}
+       };
+       video.ontimeupdate=()=>{if(video.currentTime>=position+.48)done();};video.onended=()=>done();video.onerror=()=>done(Error('Recorded audio fallback cannot decode'));
+       timer=setTimeout(()=>done(Error('Recorded audio fallback timed out')),5000);video.play().catch(done);
+      });
+     }finally{clearTimeout(timer);video.pause();video.muted=true;video.ontimeupdate=video.onended=video.onerror=video.onseeked=null;processor.onaudioprocess=null;source.disconnect();processor.disconnect();mute.disconnect();await ac.close();}
+    };
+    const decode=async(file,{sound=false,position=.3,label='primary'}={})=>{
      const video=document.createElement('video'),url=URL.createObjectURL(file);video.src=url;video.playsInline=true;video.muted=true;document.body.append(video);
      try{
       await new Promise((resolve,reject)=>{video.onloadeddata=resolve;video.onerror=()=>reject(Error('Recorded video cannot decode'));});
@@ -32,7 +57,13 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
       const pixels=[[.5,.1],[.5,.9],[.01,.9]].map(([x,y])=>[...ctx.getImageData(Math.floor(x*frame.width),Math.floor(y*frame.height),1,1).data]);
       // Inspect the encoded audio in the same time window without relying on a
       // second real-time playback clock or the CI host's audio output device.
-      let amplitude=0;if(sound){const audio=await new OfflineAudioContext(1,1,48000).decodeAudioData(await file.arrayBuffer()),first=Math.floor(position*audio.sampleRate),last=Math.min(audio.length,first+Math.floor(.48*audio.sampleRate));check(audio.numberOfChannels>0&&last-first>=Math.floor(.1*audio.sampleRate),'Recorded audio contains the selected time window');for(let channel=0;channel<audio.numberOfChannels;channel++){const samples=audio.getChannelData(channel);for(let i=first;i<last;i++)amplitude=Math.max(amplitude,Math.abs(samples[i]));}}
+      let amplitude=0;if(sound){
+       const data=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file);});
+       await window.recordingEvidence(label,data,{type:file.type,size:file.size,position,duration:video.duration,width:video.videoWidth,height:video.videoHeight,userAgent:navigator.userAgent});
+       let audio,decodeError;try{if(forcePlayback)throw new DOMException('Forced alternate decoder regression','EncodingError');audio=await new OfflineAudioContext(1,1,48000).decodeAudioData(await file.arrayBuffer());}catch(error){decodeError=error;}
+       if(audio){const first=Math.floor(position*audio.sampleRate),last=Math.min(audio.length,first+Math.floor(.48*audio.sampleRate));check(audio.numberOfChannels>0&&last-first>=Math.floor(.1*audio.sampleRate),'Recorded audio contains the selected time window');for(let channel=0;channel<audio.numberOfChannels;channel++){const samples=audio.getChannelData(channel);for(let i=first;i<last;i++)amplitude=Math.max(amplitude,Math.abs(samples[i]));}}
+       else{amplitude=await playbackAudio(video,position);reports.push('Audio media-element decoder verified '+label+' after '+decodeError.name);}
+      }
       return {width:video.videoWidth,height:video.videoHeight,pixels,amplitude};
      }finally{video.pause();video.removeAttribute('src');video.load();video.remove();URL.revokeObjectURL(url);}
     };
@@ -50,7 +81,7 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
      const core=await makeCore();if(type==='nds')core.screens=[canvas(256,192,'#ff0000'),canvas(256,192,'#0000ff')];else core.rawScreens=[canvas(400,240,'#ff0000'),canvas(320,240,'#0000ff')];
      const recorder=createGameRecorder();check(await recorder.start(core),'Dual screen starts');await sleep(700);const file=await recorder.stop(),decoded=await decode(file);check(decoded.height===(type==='nds'?384:480),'Dual screen combined dimensions');check(decoded.pixels[0][0]>200&&decoded.pixels[1][2]>200,'Both screens appear in video');if(type==='3ds')check(decoded.pixels[2].slice(0,3).every(v=>v<25),'3DS lower screen is centered');await core.close();
     }reports.push('NDS two-screen and centered 3DS composition decode');
-    const primary=await makeCore(),secondary=await makeCore(240,160,'#0000ff',660);secondary.gain.gain.value=0;const pair={canvas:primary.canvas,cores:[primary,secondary]},pairRecorder=createGameRecorder();check(await pairRecorder.start(pair),'Local two-core recording starts');await sleep(400);primary.gain.gain.value=0;secondary.gain.gain.value=.2;pair.canvas.getContext('2d').drawImage(secondary.canvas,0,0);await sleep(500);const pairedFile=await pairRecorder.stop(),paired=await decode(pairedFile,{sound:true,position:.55});check(paired.amplitude>.02&&paired.pixels[0][2]>200&&primary.branches.size===0&&secondary.branches.size===0,'Two contexts mix audio and detach both branches');await primary.close();await secondary.close();reports.push('Local two-core audio mixing and branch cleanup');
+    const primary=await makeCore(),secondary=await makeCore(240,160,'#0000ff',660);secondary.gain.gain.value=0;const pair={canvas:primary.canvas,cores:[primary,secondary]},pairRecorder=createGameRecorder();check(await pairRecorder.start(pair),'Local two-core recording starts');await sleep(400);primary.gain.gain.value=0;secondary.gain.gain.value=.2;pair.canvas.getContext('2d').drawImage(secondary.canvas,0,0);await sleep(500);const pairedFile=await pairRecorder.stop(),paired=await decode(pairedFile,{sound:true,position:.55,label:'paired'});check(paired.amplitude>.02&&paired.pixels[0][2]>200&&primary.branches.size===0&&secondary.branches.size===0,'Two contexts mix audio and detach both branches');await primary.close();await secondary.close();reports.push('Local two-core audio mixing and branch cleanup');
    }
    // Deterministic codec, lifecycle, resource and race tests also run in Windows WebKit.
    const originals={MediaRecorder:window.MediaRecorder,MediaStream:window.MediaStream,AudioContext:window.AudioContext,capture:HTMLCanvasElement.prototype.captureStream};
@@ -82,7 +113,7 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
     check(await recorder.start(value),'Failure permits retry');await recorder.stop();clean();reports.push('Codec fallback, track end, start-stop race, encoder failures, duration/size bounds, stalled finalization and retry');
    }finally{window.MediaRecorder=originals.MediaRecorder;window.MediaStream=originals.MediaStream;window.AudioContext=originals.AudioContext;if(originals.capture)HTMLCanvasElement.prototype.captureStream=originals.capture;else delete HTMLCanvasElement.prototype.captureStream;}
    return {native,reports};
-  });
+  },process.env.RECORDING_AUDIO_DECODER==='playback');
   assert.deepEqual(errors,[]);for(const report of result.reports)console.log('PASS '+kind+': '+report);await context.close();
  }finally{await browser.close();}
 })().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});

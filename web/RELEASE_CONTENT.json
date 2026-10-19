@@ -95,8 +95,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 292177,
-      "sha256": "bd196594f7808d8898ce1b27bbfa9ec1437eca48461996aea3ab67e4be2ceb4d",
+      "bytes": 293993,
+      "sha256": "25b80f3d2907f2b24a7493b7b9e1f208d7559273c309bec37b0ee8add86bf102",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 9554,
-      "sha256": "94f80219d9160573afe38a503cae92dba4473908dd54aa0ed54bc332b9e11756",
+      "sha256": "fd0fe3f448d00864fc0b3f71edeb8586974fe41fe398fb50f9d8da553f95d96f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41616,7 +41616,7 @@
     {
       "path": "sw.js",
       "bytes": 17492,
-      "sha256": "de3e84000e2982a0ca2306a1d509da27cd74531deb002742e45c2b9797cffd5b",
+      "sha256": "57c6fb902afe9b8ab992dcee581bbac355a673317178b9cb42efe60e084bf427",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42149,8 +42149,8 @@
     },
     {
       "path": "tests/recording.cjs",
-      "bytes": 16479,
-      "sha256": "4616c21fc0c35233576ab165b5d426dd62c2f7b982aa22a23bdf885680ce83b5",
+      "bytes": 19876,
+      "sha256": "6df67ce833a0109589429431a15748e4477e1693798dba22da3d9b5bfd21b9c2",
       "component": "web-port-code-and-documentation"
     },
     {
