@@ -3,7 +3,10 @@
 公開用ワークフローは [Publish PalmoEMU](../.github/workflows/web-pages.yml) です。
 公開先は [PalmoEMU](https://sei-dis.github.io/PalmoEMU/)、公開用リポジトリは
 [SEI-dis/PalmoEMU](https://github.com/SEI-dis/PalmoEMU) です。GitHub Pagesで `main` の検査済みコミットを公開します。
-push は検査だけを実行し、サイトの公開は手動実行に限定しています。
+通常のpushは検査だけを実行し、サイトの公開は手動実行です。
+mGBAの自動更新だけは、権利・ビルド・互換性の検査と候補コミットの全CIが成功した後、
+同じコミットをmainへ反映し、検証実行IDを渡して公開を自動実行します。
+候補生成中・検証中にmainが進んだ場合は反映せず停止します。詳細は[コア更新](../web/CORE_UPDATES.md)を参照してください。
 
 ## 初回公開
 

@@ -132,6 +132,8 @@
     "test:mgba-logging": "node tests/mgba-logging.cjs",
     "test:save-completion": "node tests/save-completion.cjs",
     "test:upstream-watch": "node tests/upstream-watch.cjs",
+    "test:core-update": "python -B -X utf8 tests/core-update.py",
+    "test:core-auto": "node tests/core-auto.cjs",
     "test:relay-settings": "node tests/relay-settings.cjs",
     "test:relay-config": "node tests/relay-config.cjs",
     "test:security-policy": "node tests/security-policy.cjs",

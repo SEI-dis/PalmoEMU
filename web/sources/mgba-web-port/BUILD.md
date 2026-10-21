@@ -3,7 +3,7 @@
 This is an MPL-2.0 C bridge derived from `pm-start/mgba-celio-web`
 `de2c446e7369610f3ab402dd775e81d6a1661608`, compiled against
 `pm-start/mGBA_celio_edition`
-`0ba86121bd92aa570d38301086d8e8f584238d62` (`rom64`).
+the exact `mgba.sourceCommit` in `../../SOURCES.json` (`rom64`).
 The core source is in `../mgba-celio-rom64-source.tar.gz`.
 The original bridge source is in `../mgba-celio-web-source.tar.gz`.
 
@@ -33,7 +33,7 @@ and `src/room-link.js`, MPL-2.0). The bridge itself never sends data.
 
 The shipped archive contains the Web compiler dependency closure, required build inputs, and upstream notices. Rebuilding this source subset produced identical JS/WASM hashes; see ../build-evidence.json. GUI artwork, fonts and test cartridges are not included.
 
-To check a newer upstream revision without replacing this distribution, see
+For automatic upstream updates and isolated manual candidate checks, see
 `../../CORE_UPDATES.md`. The compiler build hash above belongs to
 `emscripten-releases`, not the emsdk installer Git repository. The candidate
 recipe in `upstream.json` pins those two repositories separately.

@@ -100,6 +100,8 @@ export async function main(){
   const report=await inspectUpstreams(config,sources,component),markdown=reportMarkdown(report);
   const output=path.join(web,'../work/upstream-review');await fs.mkdir(output,{recursive:true});
   await fs.writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2)+'\n');await fs.writeFile(path.join(output,'report.md'),markdown);
+  const mgba=report.items.find(item=>item.id==='mgba64');
+  if(process.env.GITHUB_OUTPUT&&mgba?.status==='candidate'&&sha(mgba.candidate))await fs.appendFile(process.env.GITHUB_OUTPUT,`mgba_commit=${mgba.candidate}\n`);
   if(process.env.GITHUB_STEP_SUMMARY)await fs.appendFile(process.env.GITHUB_STEP_SUMMARY,markdown);
   console.log(`Upstream review: ${report.summary.candidates} candidate(s), ${report.summary.errors} fetch error(s), ${report.summary.manual} manual source(s).`);
   if(report.summary.errors)process.exitCode=1;

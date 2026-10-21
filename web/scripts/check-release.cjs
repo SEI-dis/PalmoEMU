@@ -27,6 +27,10 @@ if(review.status!=='ready'||review.openItems.length||manifest.otherCores.corresp
 }else{
   // A status flip alone cannot clear an unresolved rights review.
   assert.equal(review.reviewedContentSha256,crypto.createHash('sha256').update(fs.readFileSync(path.join(root,'RELEASE_CONTENT.json'))).digest('hex'),'Approval must identify the exact reviewed inventory');
+  if(review.coreUpdatePolicy){
+    assert.equal(review.coreUpdatePolicy.file,'scripts/core-update.py');
+    assert.equal(crypto.createHash('sha256').update(fs.readFileSync(path.join(root,review.coreUpdatePolicy.file))).digest('hex'),review.coreUpdatePolicy.sha256,'Core adoption policy differs from review');
+  }
   for(const id of ['corresponding-source','nds-corresponding-source','alternate-corresponding-source','noncommercial-core-combination','asset-rights','bundled-skin-rights','source-archive-materials','external-artwork-policy','runtime-validation']){
     const e=review.resolutions?.find(item=>item.id===id);
     assert.ok(e?.evidenceFile&&e?.sha256,'Documented resolution required: '+id);

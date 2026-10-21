@@ -13,6 +13,8 @@ jobs:
   metadata:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      mgba_commit: ${{ steps.compare.outputs.mgba_commit }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -25,6 +27,7 @@ jobs:
       # Only the trusted repository's checker runs. Remote JS/CMake/scripts and
       # release assets are never executed/downloaded by this scheduled job.
       - name: Compare pinned sources with upstream metadata
+        id: compare
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node web/scripts/upstream-watch.mjs
@@ -36,3 +39,13 @@ jobs:
           path: work/upstream-review/report.*
           if-no-files-found: error
           retention-days: 30
+  update-mgba:
+    needs: metadata
+    if: ${{ !cancelled() && needs.metadata.outputs.mgba_commit != '' && github.ref == 'refs/heads/main' }}
+    permissions:
+      contents: write
+      actions: write
+    uses: ./.github/workflows/core-candidate.yml
+    with:
+      commit: ${{ needs.metadata.outputs.mgba_commit }}
+      adopt: true

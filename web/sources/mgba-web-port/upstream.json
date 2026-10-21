@@ -7,5 +7,5 @@
   "emscriptenReleasesCommit": "b412b6307e541b93dd93f01b61181e15c17302ec",
   "emscripten": "4.0.15",
   "reviewedMaxRomBytes": 67108864,
-  "policy": "Build update candidates separately. Never change the deployed core, capacity, state compatibility ID or license approval automatically."
+  "policy": "Build separately, preserve local patches, require unchanged rights/build/dependency policy and save ABI, then full Chromium/WebKit CI. Automatically adopt only the exact tested candidate on unchanged main and publish it. Capacity/state IDs and new license permissions are never changed automatically."
 }

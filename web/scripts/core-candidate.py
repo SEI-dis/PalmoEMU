@@ -6,6 +6,11 @@ This is an engineering check, not automatic permission to redistribute.
 from pathlib import Path, PurePosixPath
 import argparse, gzip, hashlib, importlib.util, io, json, os, re, shutil
 import subprocess, sys, tarfile
+from datetime import datetime, timezone
+
+spec = importlib.util.spec_from_file_location('core_update', Path(__file__).with_name('core-update.py'))
+update = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(update)
 
 WEB = Path(__file__).resolve().parents[1]
 REPO = WEB.parent
@@ -22,7 +27,7 @@ def write_json(path, value):
 
 def run(args, *, env=None, log=None, cwd=None):
     result = subprocess.run([str(a) for a in args], env=env, cwd=cwd,
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=1200)
     if log:
         log.write_bytes(result.stdout)
     if result.returncode:
@@ -96,6 +101,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--emsdk', type=Path, required=True)
     parser.add_argument('--commit', help='Exact 40-character upstream commit; default: branch head at start')
+    parser.add_argument('--adopt', action='store_true', help='Stage a policy-verified update bundle for full CI; never push or deploy here')
     args = parser.parse_args()
     if args.commit and not re.fullmatch('[0-9a-f]{40}', args.commit):
         parser.error('--commit must be an exact lowercase 40-character commit SHA')
@@ -126,6 +132,7 @@ def main():
     from tempfile import mkdtemp
     output = Path(mkdtemp(prefix=commit[:12] + '-', dir=parent))
     report = {'schema': 1, 'status': 'checking', 'published': False,
+              'checkedOn': datetime.now(timezone.utc).date().isoformat(),
               'repository': config['repository'], 'branch': config['branch'],
               'baselineCommit': current, 'candidateCommit': commit,
               'compareUrl': config['repository'].removesuffix('.git') + '/compare/' + current + '...' + commit,
@@ -138,16 +145,31 @@ def main():
     phase = 'source'
     print('Candidate:', commit, flush=True)
     print('Local output:', output, flush=True)
+    if os.environ.get('GITHUB_OUTPUT'):
+        with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf8') as sink:
+            sink.write('candidate_commit=' + commit + '\n')
     try:
         repo, source = output / 'upstream', output / 'source'
         run(['git', 'init', '-q', repo])
-        run(['git', '-C', repo, '-c', 'credential.helper=', 'fetch', '--depth=1',
-             config['repository'], commit], log=output / 'fetch.log')
-        payload = subprocess.check_output(['git', '-C', str(repo), 'archive', 'FETCH_HEAD'])
+        run(['git', '-C', repo, '-c', 'credential.helper=', 'fetch', '--depth=256', '--no-tags',
+             config['repository'], current, commit], log=output / 'fetch.log')
+        run(['git', '-C', repo, 'merge-base', '--is-ancestor', current, commit])
+        update.check_build_inputs(repo, current, commit)
+        payload = subprocess.check_output(['git', '-C', str(repo), 'archive', commit])
         extract_git_archive(payload, source)
+        previous_files = baseline_sources()
+        phase = 'local-patches'
+        report['localPatches'] = update.apply_local_patches(repo, current, source, previous_files)
+        report['checks']['local-patches'] = True
+        # CMake and other upstream build inputs are checked before any execution.
+        # Rights/dependency checks are repeated on the exact compiler closure.
+        phase = 'license-policy'
+        preview = {name: (source / name).read_bytes() for name in previous_files}
+        update.check_source_changes(previous_files, preview)
         phase = 'build'
         env = dict(os.environ)
         env['EM_CONFIG'] = str(sdk / '.emscripten')
+        env['EMSDK_PYTHON'] = sys.executable
         toolchain = sdk / 'upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake'
 
         def build_core(src, name):
@@ -163,7 +185,10 @@ def main():
         report['checks']['build'] = True
         phase = 'corresponding-source'
         files = source_closure(source, build, ninja)
-        previous_files = baseline_sources()
+        phase = 'license-policy'
+        update.check_source_changes(previous_files, files)
+        report['checks']['license-policy'] = True
+        phase = 'corresponding-source'
         prior = source_inventory(previous_files)
         inventory = source_inventory(files)
         different = sorted(n for n in inventory.keys() & prior.keys() if inventory[n] != prior[n])
@@ -207,15 +232,31 @@ def main():
                                'ninja': run([ninja, '--version'])}
         report['checks']['corresponding-source'] = True
         phase = 'synthetic-core'
-        test_env = dict(env, MGBA_CORE_PATH=str(package / 'mgba.js'))
+        test_env = dict(env, MGBA_CORE_PATH=str(package / 'mgba.js'), MGBA_REQUIRE_6M='1')
         run(['node', WEB / 'tests/core.cjs'], env=test_env, log=output / 'core-test.log')
         report['checks']['synthetic-core'] = True
         phase = 'upgrade-compatibility'
         run(['node', WEB / 'tests/core-upgrade.cjs', WEB / 'cores/mgba/mgba.js',
              package / 'mgba.js'], env=test_env, log=output / 'upgrade-test.log')
+        required_upgrade = ['old-state', 'old-battery', 'extended-flash', 'six-mib-save', 'extended-ram-state']
+        upgrade_text = (output / 'upgrade-test.log').read_text(encoding='utf8')
+        if any('PASS: ' + label not in upgrade_text for label in required_upgrade):
+            raise ValueError('A required save/state compatibility check was skipped')
+        report['upgradeChecks'] = [{'check': label, 'result': 'pass'} for label in required_upgrade]
         report['checks']['upgrade-compatibility'] = True
-        report['status'] = 'needs-review'
-        print('Automated checks passed. Candidate still requires review; shipped files unchanged.')
+        for test in ['mgba-memory', 'mgba-logging', 'mgba-allocation', 'mgba-save-completion',
+                     'mgba-peripherals', 'gb-link-core']:
+            phase = test
+            run(['node', WEB / 'tests' / (test + '.cjs')], env=test_env, log=output / (test + '.log'))
+            report['checks'][test] = True
+        report['status'] = 'verified'
+        report['requiresReview'] = ['Full Chromium/WebKit CI before main; policy changes remain manual']
+        write_json(output / 'report.json', report)
+        if args.adopt:
+            phase = 'stage'
+            bundle = update.stage(output)
+            shutil.copyfile(bundle, parent / 'update.zip')
+        print('Candidate policy/build/save checks passed; public adoption still requires full CI.')
     except Exception:
         # No local paths, environment, source excerpts or personal data in the uploadable report.
         report['checks'][phase] = False
@@ -231,7 +272,7 @@ def main():
             outcomes = []
             for line in upgrade_log.read_text(encoding='utf8', errors='replace').splitlines():
                 match = re.fullmatch(r'(CHECK|PASS|SKIP): ([a-z-]+)', line)
-                if match and match[2] in labels:
+                if match and match[1] in {'PASS', 'SKIP'} and match[2] in labels:
                     outcomes.append({'check': match[2], 'result': match[1].lower()})
             report['upgradeChecks'] = outcomes
         write_json(output / 'report.json', report)

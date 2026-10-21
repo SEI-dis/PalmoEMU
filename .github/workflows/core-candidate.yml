@@ -1,12 +1,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 name: Check upstream core update
 on:
+  workflow_call:
+    inputs:
+      commit:
+        type: string
+        required: true
+      adopt:
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       commit:
         description: 'Optional exact rom64 commit (empty: current branch head)'
         required: false
         type: string
+      adopt:
+        description: 'After policy/build checks, validate on a candidate branch and adopt automatically'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -16,6 +28,8 @@ jobs:
   candidate:
     runs-on: windows-latest
     timeout-minutes: 35
+    outputs:
+      commit: ${{ steps.build.outputs.candidate_commit }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
@@ -40,14 +54,25 @@ jobs:
           if ($LASTEXITCODE) { exit $LASTEXITCODE }
           python work/emsdk/emsdk.py activate 4.0.15
       - name: Build and check a separate candidate
+        id: build
         env:
           CANDIDATE_COMMIT: ${{ inputs.commit }}
+          ADOPT: ${{ inputs.adopt }}
         run: |
           $candidateArgs = @('-B', '-X', 'utf8', 'web/scripts/core-candidate.py', '--emsdk', 'work/emsdk')
           if ($env:CANDIDATE_COMMIT) { $candidateArgs += @('--commit', $env:CANDIDATE_COMMIT) }
+          if ($env:ADOPT -eq 'true') { $candidateArgs += '--adopt' }
           python @candidateArgs
-      # Candidate binaries and full upstream trees are NEVER uploaded: a license
-      # change could require a new decision before any public redistribution.
+      # Only policy-verified sources/binaries are uploaded. New dependencies,
+      # rights/build changes and patch conflicts stop before this step.
+      - name: Keep verified candidate for isolated promotion
+        if: inputs.adopt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: core-update-candidate
+          path: work/core-candidates/update.zip
+          if-no-files-found: error
+          retention-days: 7
       - name: Keep the review report
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -56,3 +81,27 @@ jobs:
           path: work/core-candidates/latest-report.json
           if-no-files-found: ignore
           retention-days: 14
+  candidate-branch:
+    needs: candidate
+    if: inputs.adopt && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: core-update-candidate
+          path: work/core-update-artifact
+      - name: Apply only the verified core update files
+        env:
+          BASE: ${{ github.sha }}
+          UPSTREAM: ${{ needs.candidate.outputs.commit }}
+        run: python3 -B web/scripts/core-update.py apply work/core-update-artifact/update.zip --base "$BASE" --upstream "$UPSTREAM"
+      - name: Push isolated candidate and explicitly start validation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node web/scripts/core-auto.mjs candidate
