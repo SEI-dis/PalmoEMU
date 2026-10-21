@@ -8,7 +8,7 @@
   },
   "mgba": {
     "repository": "https://github.com/pm-start/mGBA_celio_edition",
-    "sourceCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
+    "sourceCommit": "b6633141108285fc825106ffc28f7fae7c323305",
     "rom64Upstream": "https://github.com/pm-start/mGBA_celio_edition/tree/rom64",
     "license": "MPL-2.0",
     "localSource": "sources/mgba-celio-rom64-source.tar.gz",
@@ -88,6 +88,10 @@
       "license": "MPL-2.0",
       "localBridge": "sources/mgba-web-port/bridge.c",
       "changes": "Reject missing mandatory GBA work/extended/video RAM and audio buffer before loading/executing a cartridge. Destroy partial core and consume ROM on failure. Owned loader returns -1 for checked allocation failures; original copying ABI stays 0/1. No change to native archive, save/state formats or link drivers. Not a comprehensive native allocator audit."
+    },
+    "automaticUpdate": {
+      "policy": "scripts/core-update.py",
+      "report": "sources/mgba-update-review.json"
     }
   },
   "otherCores": {
@@ -193,7 +197,7 @@
     "cores/melonds/core.js": "25719a5678ec20664f81d8b2f10109a1f35db3db04dc79cbc8b25e56e961a3e4",
     "cores/melonds/core.wasm": "6a3ec8e00334c4474a9c2ce0f86ffe2e8ecb737e5cb11dfcf2a2348edcfdf6de",
     "cores/mgba/mgba.js": "fe8c6838117e05c709b74a34348d5816a840ea84f1ff0315ce852bd03836fccd",
-    "cores/mgba/mgba.wasm": "7edd217ed4d5ce7b59dd1fff49ea956f1ced74170ff9bdbdab77b985a4e9c093",
+    "cores/mgba/mgba.wasm": "69dab333861b0d1af127728e8201651ec17d7901ed9a8e0a72b120d8f74352b6",
     "cores/nds/core.js": "1f60f3ad71bc94f18276d7c27532689433644f782150519f1bd2343596b8e912",
     "cores/nds/core.wasm": "53c3512e603df8581cee396ae9d8a7848541c3d4c3c3c5a7ab6f064178434160",
     "cores/nes/core.js": "cd3799a369fa1b87d6fd085cd8eaecac8289dc4305ec259b21715a60c5f66f67",
@@ -240,7 +244,7 @@
     "sources/alternate-web/battery.cpp": "52f9f71d55b34510b9de832dc1c70ccdb471eb73c2077d3c435ef1ac3cdd5982",
     "sources/alternate-web/gba-bridge.c": "a848d45253a7125d6cb645951abde1bd3f91884ae2c8dc7a900182ab285ef785",
     "sources/alternate-web/nds-bridge.c": "5f7b33b7a5775748e821b9923d1e2c1c02ede6fe321bd04441324bf8ff446e17",
-    "sources/build-evidence.json": "46254cc1646aa3ba8d3cbdff4d436ce61b00848cda53d7025e9018c55a254be8",
+    "sources/build-evidence.json": "733ffd1b7e8d142d14dc09e691ff67beec61c86074f96927b9ee3c746bf8d3f4",
     "sources/celio-device-source.tar.gz": "0c0a5e7e2b2ae0626fd011571e73cf4084f01172889e28a17b2f031ff3ded907",
     "sources/celio-server-source.tar.gz": "3297aebba1cce33c696f6e472fb41b437ae0181c329c9fe7f1f44ef9837278e6",
     "sources/celio-web-transport/celio-serial.js": "2562ad97ccde5abbb7a9562d2b62b6e6560ab49084fbe7a4061c0855a119c8ac",
@@ -283,7 +287,7 @@
     "sources/manicemu-ui/SkinCollectionViewCell.swift": "e39d9b5f3564ded34e9299c24a4d55a5c9501890560ddff739b84b7d047355cc",
     "sources/manicemu-ui/SkinPreviewViewController.swift": "759f4e28d567651004c8260f3abc94bf72a0191899a0be32d3a14ee8d7a42cbb",
     "sources/manicemu-ui/SkinSettingsView.swift": "7a66934a6309cfe69bafde672433e1a1080b4308ecc786a7f731884ad2e9e7a7",
-    "sources/mgba-celio-rom64-source.tar.gz": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16",
+    "sources/mgba-celio-rom64-source.tar.gz": "b2f92819914d31f35e943b75019f94b75f0d869d45fc4f3159937e79b1023934",
     "sources/mgba-celio-web-source.tar.gz": "7d40fa0d7134ee877a1724de940b59957768fe05cf73c7e9c41b7d4079f566ba",
     "sources/mgba-web-port/BUILD.md": "3886a493ee8d68399c3aacbc74966ddac931171956bbd68b0b6a9d3a58465cdb",
     "sources/mgba-web-port/CMakeLists.txt": "43b4e296249f68ed7f4b69176afd59ae1693a109f0c66db91ae5ecd9d0f3fee2",

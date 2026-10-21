@@ -42,17 +42,17 @@
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "7edd217ed4d5ce7b59dd1fff49ea956f1ced74170ff9bdbdab77b985a4e9c093",
+        "sha256": "69dab333861b0d1af127728e8201651ec17d7901ed9a8e0a72b120d8f74352b6",
         "rebuildMatches": true
       }
     }
   },
   "archives": {
     "libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
-    "mgba-celio-rom64-source.tar.gz": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16"
+    "mgba-celio-rom64-source.tar.gz": "b2f92819914d31f35e943b75019f94b75f0d869d45fc4f3159937e79b1023934"
   },
-  "mgbaUpdatedOn": "2026-10-09",
-  "mgbaCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
+  "mgbaUpdatedOn": "2026-10-21",
+  "mgbaCommit": "b6633141108285fc825106ffc28f7fae7c323305",
   "fceummUpdatedOn": "2026-10-12",
   "fceummBackport": {
     "repository": "https://github.com/EmulatorJS/libretro-fceumm",
@@ -163,5 +163,30 @@
       "mgba-web-port/save-watch.h": "539244aab3e08f07accd6603288efdd7c7b2806b0704b1156c5886cdb31c144a",
       "mgba-web-port/upstream.json": "db9d454c9837306956d68c2c5383832fb911bba4bbb5bee83b28a509eee1d50c"
     }
+  },
+  "automaticUpdate": {
+    "report": "mgba-update-review.json",
+    "localPatches": [
+      {
+        "file": "src/arm/isa-arm.c",
+        "patchSha256": "180dbe3bab9676f778df36a3a5c4dec225630f899ef67313e105cd7b599b9ba9"
+      },
+      {
+        "file": "src/gba/renderers/software-mode0.c",
+        "patchSha256": "15c15dec2d8426451cbaa1f06900a552d9fed1273dbd3f79d40ad9a11f1a213a"
+      },
+      {
+        "file": "src/util/audio-buffer.c",
+        "patchSha256": "250cb16302d02f2571845a830c946a31676f0e7257145d0d09aae04e5dcada5e"
+      },
+      {
+        "file": "src/util/audio-resampler.c",
+        "patchSha256": "ee05d2e32d27673fc6349f908fc8b86d8c5f4575c3d25f108cc170d70a311f32"
+      },
+      {
+        "file": "version.cmake",
+        "patchSha256": "2b5c97f4e2c5e9ad2c191ad645edd9f545ccc329a3c035918211f1957de7b3c5"
+      }
+    ]
   }
 }

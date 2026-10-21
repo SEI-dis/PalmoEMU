@@ -107,8 +107,8 @@
     },
     {
       "path": "SOURCES.json",
-      "bytes": 54556,
-      "sha256": "317457ac0cba301a2905110017549c941e00d6ea25365a633bf294748bc25d14",
+      "bytes": 55449,
+      "sha256": "0b95ad84836969c0d4c85d63f0d6f8eb07afadd6f537413f2347ebb2b29673c8",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -821,8 +821,8 @@
     },
     {
       "path": "cores/mgba/mgba.wasm",
-      "bytes": 824127,
-      "sha256": "7edd217ed4d5ce7b59dd1fff49ea956f1ced74170ff9bdbdab77b985a4e9c093",
+      "bytes": 824599,
+      "sha256": "69dab333861b0d1af127728e8201651ec17d7901ed9a8e0a72b120d8f74352b6",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 9554,
-      "sha256": "68ff9c1cc837ae1fccb3cb4a7ed99c57b8f62f586d0766aa07cc29a360869314",
+      "sha256": "a713923a1daf66a9bf72e6af8cd9eff50c138db3a35d3d8253346dbf4fa82807",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -3863,8 +3863,8 @@
     },
     {
       "path": "sources/build-evidence.json",
-      "bytes": 10501,
-      "sha256": "46254cc1646aa3ba8d3cbdff4d436ce61b00848cda53d7025e9018c55a254be8",
+      "bytes": 11370,
+      "sha256": "733ffd1b7e8d142d14dc09e691ff67beec61c86074f96927b9ee3c746bf8d3f4",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -36167,8 +36167,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz",
-      "bytes": 667033,
-      "sha256": "49672a9208e2f1d0a246bed42ebf0977a5148157b1e7b7becf743951e0fe8e16",
+      "bytes": 667697,
+      "sha256": "b2f92819914d31f35e943b75019f94b75f0d869d45fc4f3159937e79b1023934",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -36185,8 +36185,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/README.md",
-      "bytes": 15358,
-      "sha256": "01c00ddf40db790ecfaf027f64e6e43ec452bc9b599ff17bbab46855a707995e",
+      "bytes": 15599,
+      "sha256": "6d0cdaa5d2248900e340e1d252cc8f46702350f0b5e31775bf1ce0e9a62b3acd",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -37553,8 +37553,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/src/gba/memory.c",
-      "bytes": 69908,
-      "sha256": "69d3bb9ec4a945d828d7f15ecdd6f668649c04ca3afd4748aa324355b63742c5",
+      "bytes": 71177,
+      "sha256": "c3d53ac687e5d0a55f66b82dc28f7fc9f08aa2fdf2ff4a9613e2d29263c2bdce",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -38573,8 +38573,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/version.cmake",
-      "bytes": 2833,
-      "sha256": "e66695fc2a68cedb43a41e57df7d764619f2d46b384a4312c1aa27d586ab1c07",
+      "bytes": 2766,
+      "sha256": "6aeee93e80310af471d9a56cbb81a609cb9c25f0eda451df8a1ba3684d4cc705",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -38627,8 +38627,8 @@
     },
     {
       "path": "sources/mgba-update-review.json",
-      "bytes": 2225,
-      "sha256": "2ca4ccec1c962577181fec33f29ad1115c96e255c10d94863476e45d9297811d",
+      "bytes": 3059,
+      "sha256": "d7c40fd512686f5bde71c9a29c58fc5d5424353e6e97ac337f1b5442f597f999",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -41628,7 +41628,7 @@
     {
       "path": "sw.js",
       "bytes": 17492,
-      "sha256": "757cb424a0a7a0a529664384c80126eb9352f302c525826472bb469b55cf042f",
+      "sha256": "8a58ea77706406c4f2b63ded849b8e946e0419edc8c363994f8b64c4bbf84b60",
       "component": "web-port-code-and-documentation"
     },
     {

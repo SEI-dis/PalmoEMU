@@ -1,14 +1,69 @@
 {
   "schema": 1,
-  "repository": "https://github.com/onikoro334274-cell/mGBA_celio_edition.git",
-  "baselineCommit": "dee555365ec5e4a2d21ee24f6f409412fa62cd94",
-  "candidateCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
-  "compareUrl": "https://github.com/onikoro334274-cell/mGBA_celio_edition/compare/dee555365ec5e4a2d21ee24f6f409412fa62cd94...0ba86121bd92aa570d38301086d8e8f584238d62",
-  "binaries": {
-    "mgba.js": "3073b2a121db575fc9578646be5b5998ebe7a919a7db18cbd0dc82758720c000",
-    "mgba.wasm": "6d89f5476207465d2cee6bf57be75d673b4966a92b5dbbb87174fb1248b64510"
+  "status": "verified",
+  "published": false,
+  "checkedOn": "2026-10-21",
+  "repository": "https://github.com/pm-start/mGBA_celio_edition.git",
+  "branch": "rom64",
+  "baselineCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
+  "candidateCommit": "b6633141108285fc825106ffc28f7fae7c323305",
+  "compareUrl": "https://github.com/pm-start/mGBA_celio_edition/compare/0ba86121bd92aa570d38301086d8e8f584238d62...b6633141108285fc825106ffc28f7fae7c323305",
+  "reviewedMaxRomBytes": 67108864,
+  "checks": {
+    "local-patches": true,
+    "build": true,
+    "license-policy": true,
+    "corresponding-source": true,
+    "synthetic-core": true,
+    "upgrade-compatibility": true,
+    "mgba-memory": true,
+    "mgba-logging": true,
+    "mgba-allocation": true,
+    "mgba-save-completion": true,
+    "mgba-peripherals": true,
+    "gb-link-core": true
   },
-  "sourceSha256": "fcd90d33ad210288a7f67e16a81878d0233e0a23cb1af27fb9756f6e26a2c1b8",
+  "requiresReview": [
+    "Full Chromium/WebKit CI before main; policy changes remain manual"
+  ],
+  "localPatches": [
+    {
+      "file": "src/arm/isa-arm.c",
+      "patchSha256": "180dbe3bab9676f778df36a3a5c4dec225630f899ef67313e105cd7b599b9ba9"
+    },
+    {
+      "file": "src/gba/renderers/software-mode0.c",
+      "patchSha256": "15c15dec2d8426451cbaa1f06900a552d9fed1273dbd3f79d40ad9a11f1a213a"
+    },
+    {
+      "file": "src/util/audio-buffer.c",
+      "patchSha256": "250cb16302d02f2571845a830c946a31676f0e7257145d0d09aae04e5dcada5e"
+    },
+    {
+      "file": "src/util/audio-resampler.c",
+      "patchSha256": "ee05d2e32d27673fc6349f908fc8b86d8c5f4575c3d25f108cc170d70a311f32"
+    },
+    {
+      "file": "version.cmake",
+      "patchSha256": "2b5c97f4e2c5e9ad2c191ad645edd9f545ccc329a3c035918211f1957de7b3c5"
+    }
+  ],
+  "sourceChanges": {
+    "added": [],
+    "removed": [],
+    "changed": [
+      "README.md",
+      "src/gba/memory.c"
+    ],
+    "lineEndingsOnly": [
+      "version.cmake"
+    ]
+  },
+  "sourceSha256": "b2f92819914d31f35e943b75019f94b75f0d869d45fc4f3159937e79b1023934",
+  "binaries": {
+    "mgba.js": "fe8c6838117e05c709b74a34348d5816a840ea84f1ff0315ce852bd03836fccd",
+    "mgba.wasm": "69dab333861b0d1af127728e8201651ec17d7901ed9a8e0a72b120d8f74352b6"
+  },
   "toolchain": {
     "emsdkCommit": "b44154299bdefe75ba287874bb63fc9806243771",
     "emscripten": "4.0.15",
@@ -16,42 +71,31 @@
     "cmake": "cmake version 3.31.6",
     "ninja": "1.11.1.git.kitware.jobserver-1"
   },
-  "reviewedOn": "2026-10-09",
-  "sourceChanges": {
-    "added": [
-      "cinema/gb/mooneye-gb/LICENSE"
-    ],
-    "removed": [],
-    "changed": [
-      "CMakeLists.txt",
-      "README.md",
-      "include/mgba/internal/arm/arm.h",
-      "include/mgba/internal/gba/gba.h",
-      "include/mgba/internal/gba/memory.h",
-      "include/mgba/internal/gba/savedata.h",
-      "include/mgba/internal/gba/serialize.h",
-      "readme.txt",
-      "src/arm/arm.c",
-      "src/arm/isa-arm.c",
-      "src/arm/isa-thumb.c",
-      "src/gba/core.c",
-      "src/gba/dma.c",
-      "src/gba/gba.c",
-      "src/gba/memory.c",
-      "src/gba/savedata.c",
-      "src/platform/qt/CMakeLists.txt"
-    ]
-  },
-  "lineEndingOnlyFiles": 377,
-  "compiledNoticesUnchanged": 128,
-  "packagedSourceRebuildMatches": true,
-  "upgradeTests": [
-    "old-state",
-    "old-battery",
-    "extended-flash",
-    "six-mib-save",
-    "extended-ram-state"
+  "upgradeChecks": [
+    {
+      "check": "old-state",
+      "result": "pass"
+    },
+    {
+      "check": "old-battery",
+      "result": "pass"
+    },
+    {
+      "check": "extended-flash",
+      "result": "pass"
+    },
+    {
+      "check": "six-mib-save",
+      "result": "pass"
+    },
+    {
+      "check": "extended-ram-state",
+      "result": "pass"
+    }
   ],
-  "testCorrection": "The first run assumed flash was initialized immediately after ROM load. The migration fixture now executes initialization before checking expanded size. The same candidate binaries passed the corrected test.",
-  "distribution": "Development repository only; no automatic public deployment."
+  "adoption": {
+    "baseCommit": "08ab1a07086ad7bdef8cebc3b68faf6f70353cbf",
+    "automatic": true,
+    "policy": "preserve-local-patches-and-compatible-saves-v1"
+  }
 }
