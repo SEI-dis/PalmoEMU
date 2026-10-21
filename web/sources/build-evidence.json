@@ -42,17 +42,17 @@
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "69dab333861b0d1af127728e8201651ec17d7901ed9a8e0a72b120d8f74352b6",
+        "sha256": "a129c7a42a8f5bc5764043d9ea35cc880c0f1ba2a5b6c42f94450ee1fb058d2b",
         "rebuildMatches": true
       }
     }
   },
   "archives": {
     "libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
-    "mgba-celio-rom64-source.tar.gz": "b2f92819914d31f35e943b75019f94b75f0d869d45fc4f3159937e79b1023934"
+    "mgba-celio-rom64-source.tar.gz": "f071ced8eabaf055c90fdab350d3ef1b2a20e3f63ca61db940883e7df6553019"
   },
   "mgbaUpdatedOn": "2026-10-21",
-  "mgbaCommit": "b6633141108285fc825106ffc28f7fae7c323305",
+  "mgbaCommit": "e691a05b10e3ad1c6f95485ea3f539037519877a",
   "fceummUpdatedOn": "2026-10-12",
   "fceummBackport": {
     "repository": "https://github.com/EmulatorJS/libretro-fceumm",
@@ -87,7 +87,7 @@
       "file": "src/gba/renderers/software-mode0.c",
       "beforeSha256": "b9d2a891930f37ab823e21950cb32f173559fe87c4e604a1eb7f7842240a104a",
       "upstreamSha256": "ecefc48132a467525c700746d1a852d5fd786096e32063146f20012879a6d586",
-      "modifiedSha256": "d12ab66f1a7fe182f025491a4cb11286a83f1d2010c5473618bb49419aaacadb"
+      "modifiedSha256": "86aa676c873b6bbdc18f174945b089046ba095a3317fa2ec13d4bc0be3efa528"
     }
   ],
   "peripheralBuildUpdatedOn": "2026-10-13",
@@ -164,7 +164,7 @@
       "mgba-web-port/upstream.json": "db9d454c9837306956d68c2c5383832fb911bba4bbb5bee83b28a509eee1d50c"
     }
   },
-  "automaticUpdate": {
+  "manualUpdate": {
     "report": "mgba-update-review.json",
     "localPatches": [
       {
@@ -187,6 +187,7 @@
         "file": "version.cmake",
         "patchSha256": "2b5c97f4e2c5e9ad2c191ad645edd9f545ccc329a3c035918211f1957de7b3c5"
       }
-    ]
+    ],
+    "releaseTag": "rom64-hgx-1"
   }
 }

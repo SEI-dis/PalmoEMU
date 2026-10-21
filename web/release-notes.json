@@ -1,6 +1,39 @@
 {
   "releases": [
     {
+      "version": "0.3.38",
+      "date": "2026-10-21",
+      "changes": [
+        "内蔵のmGBAコアをrom64-hgx-1に更新し、HGX対応ROMの隣接マップの拡張描画に対応しました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "已将内置 mGBA 核心更新至 rom64-hgx-1，支持 HGX 兼容 ROM 的相邻地图扩展渲染。"
+        ],
+        "zh-Hant": [
+          "已將內建 mGBA 核心更新至 rom64-hgx-1，支援 HGX 相容 ROM 的相鄰地圖擴充繪製。"
+        ],
+        "ko": [
+          "내장 mGBA 코어를 rom64-hgx-1로 업데이트하여 HGX 호환 ROM의 인접 맵 확장 렌더링을 지원합니다."
+        ],
+        "es": [
+          "Se actualizó el núcleo mGBA integrado a rom64-hgx-1, con soporte para la renderización ampliada de mapas adyacentes en ROM compatibles con HGX."
+        ],
+        "fr": [
+          "Le cœur mGBA intégré a été mis à jour vers rom64-hgx-1 pour prendre en charge le rendu étendu des cartes adjacentes dans les ROM compatibles HGX."
+        ],
+        "de": [
+          "Der integrierte mGBA-Core wurde auf rom64-hgx-1 aktualisiert und unterstützt nun die erweiterte Darstellung benachbarter Karten in HGX-kompatiblen ROMs."
+        ],
+        "pt": [
+          "O núcleo mGBA integrado foi atualizado para rom64-hgx-1, com suporte à renderização ampliada de mapas adjacentes em ROMs compatíveis com HGX."
+        ]
+      },
+      "changesEn": [
+        "Updated the built-in mGBA core to rom64-hgx-1, adding extended rendering of adjacent maps in HGX-compatible ROMs."
+      ]
+    },
+    {
       "version": "0.3.37",
       "date": "2026-10-21",
       "changes": [

@@ -47,8 +47,8 @@
     },
     {
       "path": "LICENSE_AUDIT.md",
-      "bytes": 41303,
-      "sha256": "d46a9399ef1202ceeeed8ede69e94aecbf8223bb786b0bea4fcd90c0bff08b9a",
+      "bytes": 42262,
+      "sha256": "462f20ccfbeedcd420f70e2c43572a7fb93f99a5fdd23d8f5021fb043d63fe45",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -59,8 +59,8 @@
     },
     {
       "path": "LOCALIZATION_REVIEW.md",
-      "bytes": 41741,
-      "sha256": "9858b9d65119ea87b4188e4e464ea95b17dba4a9ba0a5e48157142867e7af2aa",
+      "bytes": 44220,
+      "sha256": "417c5a2cb17735369cee11ae9d8ecceaa6f78b9667368d5a6c995dfdb52a1f0e",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -77,8 +77,8 @@
     },
     {
       "path": "NOTICES.md",
-      "bytes": 67901,
-      "sha256": "107b8ec0e4fe57e928b042addeee51ed24c0d5227abf1c5e2a1eb57b082f88ed",
+      "bytes": 68509,
+      "sha256": "27a0c34fbaa97d7300875e9c56a353299b77579c5a2c6b58d09bf56ed5bec3a5",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -89,14 +89,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 108066,
-      "sha256": "b6cd310689f4afab9ad380a74d4bdf1445f454c6da9a406aaf48180325341064",
+      "bytes": 107987,
+      "sha256": "e81d9e5f5a83bb233b84d81c14da04ca90f40e4b67a7d85c705d788c92cc8dd7",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 302939,
-      "sha256": "06e5279995882a4cf8561fbd7018c80dee642b8b04a8d856afcba24d2caaf51b",
+      "bytes": 312420,
+      "sha256": "7d32df3b8517db5dac5356912afc56118cb6f7e3f466957fc782730f9aeaf001",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -107,8 +107,8 @@
     },
     {
       "path": "SOURCES.json",
-      "bytes": 55449,
-      "sha256": "0b95ad84836969c0d4c85d63f0d6f8eb07afadd6f537413f2347ebb2b29673c8",
+      "bytes": 55860,
+      "sha256": "30707a6909bb0e5bc7eb62a0b88ed16a1d0190e8a6caed4bba6fe82773ca753f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -821,8 +821,8 @@
     },
     {
       "path": "cores/mgba/mgba.wasm",
-      "bytes": 824599,
-      "sha256": "69dab333861b0d1af127728e8201651ec17d7901ed9a8e0a72b120d8f74352b6",
+      "bytes": 828903,
+      "sha256": "a129c7a42a8f5bc5764043d9ea35cc880c0f1ba2a5b6c42f94450ee1fb058d2b",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -905,8 +905,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 6466,
-      "sha256": "0811d79f867f17bba90521711003a90d4d473df23da0fc18a19e2a6d2cc457e8",
+      "bytes": 7084,
+      "sha256": "751e58d3e1c10d01e303ebe984a02ccfa53ddc6c697efb4b29ec3fd84f124d28",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -923,8 +923,8 @@
     },
     {
       "path": "licenses.html",
-      "bytes": 19222,
-      "sha256": "9798896aaa97b2466727293f5b134e5ab3070423d3cf29c58c445f0dc5bf3158",
+      "bytes": 19840,
+      "sha256": "64f780cf5b421f3f4526572fe0617258bb1ce7ae9790f32d96d15277bc68dd15",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1151,14 +1151,14 @@
     },
     {
       "path": "notices.html",
-      "bytes": 141042,
-      "sha256": "8d56b0820dcd9f6c9bfd7db2c2e9327a29b96931cc456712c239d69f8b0d97c3",
+      "bytes": 142624,
+      "sha256": "e96c31086c82b8ce5d398d05919ad6abaa4f1ff0e35e401e3a76345b6fb303df",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "package.json",
-      "bytes": 9242,
-      "sha256": "85cfb86707cb1c7c746d8dca341451a28446f179a6ba3b5e87c0f904e93b1794",
+      "bytes": 9354,
+      "sha256": "c77864ac4c34d396ad616a226ffca3ef9624824eea2a37dea4a08ee220836c9d",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1169,8 +1169,8 @@
     },
     {
       "path": "release-notes.json",
-      "bytes": 127378,
-      "sha256": "43327f773776e03087bdc91f8cb9e054e9d2f56dfc06194e3d348d7a38c5ffb8",
+      "bytes": 129028,
+      "sha256": "c6df12fa148f57e3e22bfa09638d26514e5996288bb687e06d56f02df4cad63b",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1247,14 +1247,14 @@
     },
     {
       "path": "scripts/core-auto.mjs",
-      "bytes": 5514,
-      "sha256": "375c793990493961abdcb3eaefb1060454a4ffd320897866f0c56c9dab84678c",
+      "bytes": 5525,
+      "sha256": "cc7f98544627092e669b77c43c7ea899091d86008d45878b2a583ed918ddb1f0",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "scripts/core-candidate.py",
-      "bytes": 15453,
-      "sha256": "c3aa78b7924813e29999db55b421ff3c2c823af3ef5dca826f8d7d6018761541",
+      "bytes": 15465,
+      "sha256": "f2cdde65644c45f67e2fdb216032cd3b55042ba17f587155d76f4532725571a4",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1289,8 +1289,8 @@
     },
     {
       "path": "scripts/i18n/state.json",
-      "bytes": 182829,
-      "sha256": "33956993d10021bf1449d4f19751d47c36da8dbdea269aea5a34643bb50407d0",
+      "bytes": 182909,
+      "sha256": "2e7fd95d3875636e2d289bc7303845761e4bd5dc51678c579ffabd37c30f3460",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1421,8 +1421,8 @@
     },
     {
       "path": "scripts/test-all.cjs",
-      "bytes": 6567,
-      "sha256": "f87cd1bed8bd30c6cf9dd31252efde62a58fd27f31137af5de42f32d1b484a11",
+      "bytes": 6586,
+      "sha256": "a8d5074c7b5be246eaae23696cafeed707621c9e678b2dc86b347d1001debe60",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -3863,8 +3863,8 @@
     },
     {
       "path": "sources/build-evidence.json",
-      "bytes": 11370,
-      "sha256": "733ffd1b7e8d142d14dc09e691ff67beec61c86074f96927b9ee3c746bf8d3f4",
+      "bytes": 11401,
+      "sha256": "96c6f3065749c669f555d74073044e5ddec529b56f12a0b86cad0ac7abf06d71",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -36167,14 +36167,14 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz",
-      "bytes": 667697,
-      "sha256": "b2f92819914d31f35e943b75019f94b75f0d869d45fc4f3159937e79b1023934",
+      "bytes": 670982,
+      "sha256": "f071ced8eabaf055c90fdab350d3ef1b2a20e3f63ca61db940883e7df6553019",
       "component": "mgba-and-web-bridge"
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/CMakeLists.txt",
-      "bytes": 56536,
-      "sha256": "44856d52d7d75ecbf9d3bdd1ee432afb71a741735e2954b95c9fd0cebaffdee8",
+      "bytes": 57130,
+      "sha256": "c8af5831d2c3b3c37b88f076cd97058fd75ca722667f4565ab827e61140fb1e7",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -36917,8 +36917,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/include/mgba/internal/gba/renderers/video-software.h",
-      "bytes": 3411,
-      "sha256": "2c69ee820786c97d95604b77e14d71b0a40ee516b621b9c9491d1d7f973bc15b",
+      "bytes": 3591,
+      "sha256": "e14359bb192ba3da76715f846e7b6f266f7c4085e9eda703f16dbed4c691a4c6",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -36971,8 +36971,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/include/mgba/internal/gba/video.h",
-      "bytes": 7751,
-      "sha256": "d8e6caf7ba96346ea5db28cfa6c7022847373b82e53b72ba70fe878ee0e1edb1",
+      "bytes": 7833,
+      "sha256": "722bb6cbfbcbf3be686d568f676c35f4c4f8ee3b79a239b4913f22bd85d9b2cf",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -37499,8 +37499,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/src/gba/core.c",
-      "bytes": 69335,
-      "sha256": "21bae8f0cafa7b894985cb254969fe404c65dbf63d5e72b76f70f5761fefcad4",
+      "bytes": 69938,
+      "sha256": "94b9964c522b868b7ea006e0e67c0fc52da88c8a3f2669d3c8314eab2a69a1ba",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -37547,8 +37547,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/src/gba/io.c",
-      "bytes": 33050,
-      "sha256": "9aa22854e26fbd71c581d20a0664ada5238a9e6886095fdda73bc2f15fc535c2",
+      "bytes": 34571,
+      "sha256": "ce155791df63a4b66b8d50571bd6a2605aa76ab557144995209e791c691695a4",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -37589,8 +37589,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/src/gba/renderers/software-mode0.c",
-      "bytes": 17582,
-      "sha256": "d12ab66f1a7fe182f025491a4cb11286a83f1d2010c5473618bb49419aaacadb",
+      "bytes": 26771,
+      "sha256": "86aa676c873b6bbdc18f174945b089046ba095a3317fa2ec13d4bc0be3efa528",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -37607,8 +37607,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/src/gba/renderers/video-software.c",
-      "bytes": 45608,
-      "sha256": "a6c75397d74d556d8cb0702867e33ec905c9b042ef21e93761e02490d8cd58d1",
+      "bytes": 46433,
+      "sha256": "a31f9307c4504e77a1122f60a1815a8c2a837a0687ada3601755b4864a645784",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -37661,8 +37661,8 @@
     },
     {
       "path": "sources/mgba-celio-rom64-source.tar.gz!mgba/src/gba/video.c",
-      "bytes": 15357,
-      "sha256": "1a7989ca905451cf25fd149caa86ba6a8c9ee25371198fe05bd2fcc43a8d6d01",
+      "bytes": 15383,
+      "sha256": "3fbfa92b1ad6147ef7e3b678e5903104fd10008af3293d492098f74618ed1c3c",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -38627,14 +38627,14 @@
     },
     {
       "path": "sources/mgba-update-review.json",
-      "bytes": 3059,
-      "sha256": "d7c40fd512686f5bde71c9a29c58fc5d5424353e6e97ac337f1b5442f597f999",
+      "bytes": 5017,
+      "sha256": "1915fd12b56a1467d3f2a8ff83dd1c4646b0b44a2aaf82896f50503fbf4ef84b",
       "component": "mgba-and-web-bridge"
     },
     {
       "path": "sources/mgba-web-port/BUILD.md",
-      "bytes": 12441,
-      "sha256": "3886a493ee8d68399c3aacbc74966ddac931171956bbd68b0b6a9d3a58465cdb",
+      "bytes": 13992,
+      "sha256": "fec8f4ed65718bb228b85d35cb3effe1a4b7ad819cbdafa11d6efbcb45cd4697",
       "component": "mgba-and-web-bridge"
     },
     {
@@ -41628,7 +41628,7 @@
     {
       "path": "sw.js",
       "bytes": 17492,
-      "sha256": "de95f71f500285d4e6e887d50d125155da273ed0bad5177f943e19d3883c8e05",
+      "sha256": "3c0af04c507c99e2fffa3efdceceb1ec0a5ead8a2cd8421596f85e9f514b1c04",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41741,8 +41741,8 @@
     },
     {
       "path": "tests/core-auto.cjs",
-      "bytes": 1515,
-      "sha256": "c8a218729c6021b83402854874bef017fb742e5ceb8d1401b0b785b19e9e59ae",
+      "bytes": 1526,
+      "sha256": "fd13d2a26783104e3d82d8d337e8d85a10238be3e5d93cb17f3e2f961872f97c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41995,6 +41995,18 @@
       "path": "tests/mgba-compatibility.cjs",
       "bytes": 11734,
       "sha256": "303c61d1ea71167e5a034fd9b1a9d76f33dc5b6b7da0405db1d8a81b5c21c7a7",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/mgba-hgx-browser.cjs",
+      "bytes": 2550,
+      "sha256": "056e7fe1057f44fb8b511545fd92597943ab1e78e820a7a88f7b3d67a804b442",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/mgba-hgx.cjs",
+      "bytes": 4112,
+      "sha256": "9bd6daa2d95aac7935e4ed710f2b580cdc4e1713336dae5327cefea2ece88a0a",
       "component": "web-port-code-and-documentation"
     },
     {

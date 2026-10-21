@@ -19,7 +19,7 @@ export function validateUpdate(report, {base, upstream} = {}) {
      base&&report.adoption.baseCommit!==base||upstream&&report.candidateCommit!==upstream)
     throw Error('Invalid core adoption identity');
   const required=['local-patches','license-policy','build','corresponding-source','synthetic-core',
-    'upgrade-compatibility','mgba-memory','mgba-logging','mgba-allocation',
+    'upgrade-compatibility','mgba-hgx','mgba-memory','mgba-logging','mgba-allocation',
     'mgba-save-completion','mgba-peripherals','gb-link-core'];
   if(required.some(key=>report.checks?.[key]!==true)||Object.values(report.checks).some(value=>value!==true))
     throw Error('Core adoption checks are incomplete');

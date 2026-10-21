@@ -972,3 +972,13 @@ component.json for source hashes, allocations, guards and local safeguards.
 ## 2026-10-17: room-sharing wait (0.3.36)
 
 Modified `src/link/room-link.js` to distinguish joining a Celio room from starting the local game handshake. Device startup is deferred while backgrounded; validated early commands and ordered data are acknowledged and retained within fixed limits, then consumed on return. Existing game-close commit and interrupted-session rollback rules remain. The wire protocol, relay endpoints, pinned upstream archives and license texts are unchanged. This modification retains the file's MPL-2.0 / AGPL-3.0-or-later offer, liru55 attribution and corresponding-source distribution.
+
+## HGX2 background rendering (0.3.38)
+
+The bundled mGBA core includes the opt-in HGX2 extension by **liru55**, from
+[pm-start/mGBA_celio_edition rom64-hgx-1](https://github.com/pm-start/mGBA_celio_edition/releases/tag/rom64-hgx-1),
+commit `e691a05b10e3ad1c6f95485ea3f539037519877a`.
+Original mGBA/Celio credits, MPL-2.0 notices and corresponding source are retained.
+Existing PalmoEMU Web bridge and optimization changes are preserved. Dedicated
+HGX2 game-ROM checks cover adjacent-map rendering and desktop performance;
+the validation scope and limitations are recorded in RELEASE_VALIDATION.md.

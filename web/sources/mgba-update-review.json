@@ -4,10 +4,10 @@
   "published": false,
   "checkedOn": "2026-10-21",
   "repository": "https://github.com/pm-start/mGBA_celio_edition.git",
-  "branch": "rom64",
-  "baselineCommit": "0ba86121bd92aa570d38301086d8e8f584238d62",
-  "candidateCommit": "b6633141108285fc825106ffc28f7fae7c323305",
-  "compareUrl": "https://github.com/pm-start/mGBA_celio_edition/compare/0ba86121bd92aa570d38301086d8e8f584238d62...b6633141108285fc825106ffc28f7fae7c323305",
+  "branch": "rom64-hgx-1 (release tag)",
+  "baselineCommit": "b6633141108285fc825106ffc28f7fae7c323305",
+  "candidateCommit": "e691a05b10e3ad1c6f95485ea3f539037519877a",
+  "compareUrl": "https://github.com/pm-start/mGBA_celio_edition/compare/b6633141108285fc825106ffc28f7fae7c323305...e691a05b10e3ad1c6f95485ea3f539037519877a",
   "reviewedMaxRomBytes": 67108864,
   "checks": {
     "local-patches": true,
@@ -21,11 +21,18 @@
     "mgba-allocation": true,
     "mgba-save-completion": true,
     "mgba-peripherals": true,
-    "gb-link-core": true
+    "gb-link-core": true,
+    "mgba-hgx": true,
+    "hgx-chromium": true,
+    "hgx-webkit": true,
+    "compatibility-chromium": true,
+    "compatibility-webkit": true,
+    "real-hgx-adjacent-chromium": true,
+    "real-hgx-adjacent-webkit": true,
+    "real-hgx-adjacent-native": true,
+    "real-hgx-framebuffer-match": true
   },
-  "requiresReview": [
-    "Full Chromium/WebKit CI before main; policy changes remain manual"
-  ],
+  "requiresReview": [],
   "localPatches": [
     {
       "file": "src/arm/isa-arm.c",
@@ -52,17 +59,21 @@
     "added": [],
     "removed": [],
     "changed": [
-      "README.md",
-      "src/gba/memory.c"
+      "CMakeLists.txt",
+      "include/mgba/internal/gba/renderers/video-software.h",
+      "include/mgba/internal/gba/video.h",
+      "src/gba/core.c",
+      "src/gba/io.c",
+      "src/gba/renderers/software-mode0.c",
+      "src/gba/renderers/video-software.c",
+      "src/gba/video.c"
     ],
-    "lineEndingsOnly": [
-      "version.cmake"
-    ]
+    "lineEndingsOnly": []
   },
-  "sourceSha256": "b2f92819914d31f35e943b75019f94b75f0d869d45fc4f3159937e79b1023934",
+  "sourceSha256": "f071ced8eabaf055c90fdab350d3ef1b2a20e3f63ca61db940883e7df6553019",
   "binaries": {
     "mgba.js": "fe8c6838117e05c709b74a34348d5816a840ea84f1ff0315ce852bd03836fccd",
-    "mgba.wasm": "69dab333861b0d1af127728e8201651ec17d7901ed9a8e0a72b120d8f74352b6"
+    "mgba.wasm": "a129c7a42a8f5bc5764043d9ea35cc880c0f1ba2a5b6c42f94450ee1fb058d2b"
   },
   "toolchain": {
     "emsdkCommit": "b44154299bdefe75ba287874bb63fc9806243771",
@@ -93,9 +104,49 @@
       "result": "pass"
     }
   ],
+  "manualReview": {
+    "buildInput": "CMakeLists.txt",
+    "sha256": "48152a1b6a58775084ccec24b740466c3c77196e15f66f06b6ab0e5bee4b6c52",
+    "reason": "Opt-in BUILD_HGX_TEST target only; all other policy checks unchanged",
+    "reviewer": "Codex agent; not human review",
+    "releaseTag": "rom64-hgx-1"
+  },
   "adoption": {
-    "baseCommit": "08ab1a07086ad7bdef8cebc3b68faf6f70353cbf",
-    "automatic": true,
-    "policy": "preserve-local-patches-and-compatible-saves-v1"
+    "automatic": false,
+    "published": false,
+    "scope": "Manually reviewed 0.3.38 HGX release; maintainer authorizes publication after exact-commit CI succeeds. Desktop adjacent-map validation complete; physical iPhone and all-map coverage not claimed.",
+    "baseCommit": "b093a62153008c949cb063cafd20a9e8c37e3326"
+  },
+  "localGameValidation": {
+    "romVersion": "0.57.2",
+    "hgxROM": false,
+    "nativePrivateToPalmoTradeComplete": true,
+    "originalsUnchanged": true,
+    "browser": "desktop Edge",
+    "nativeNetworking": "built-in CelioNet"
+  },
+  "localHgxValidation": {
+    "romVersion": "0.57.0_hg_debug_20261021",
+    "romSha256": "690a0571c980c567eb73e85e4303b29208c68fad174ec0c017c5f8b42bb1e0e6",
+    "adjacentTiles": 768,
+    "changedPixelsWithoutHGX": 10496,
+    "framesPerScenario": 3600,
+    "desktopFramebuffersIdentical": true,
+    "decodedCacheBytes": 24064,
+    "originalsUnchanged": true,
+    "isolatedSavePositionFixture": true,
+    "iphoneTested": false,
+    "allMapsTested": false,
+    "evidence": "RELEASE_VALIDATION.md",
+    "liveAppBoundary": {
+      "route22BannerObserved": true,
+      "visibleFpsRange": [
+        59.3,
+        60.2
+      ],
+      "consoleErrors": 0,
+      "isolatedOrigin": true,
+      "originalNewGameStairsBlocked": true
+    }
   }
 }

@@ -190,3 +190,27 @@ failure, cleanup, and a successful retry with matching rendering when growth
 is allowed again. This tests the extended-RAM failure path, not every native
 allocation. Smaller unchecked allocations in the pinned core remain outside
 this guard; no claim of comprehensive out-of-memory recovery is made.
+
+## 2026-10-21 HGX support (0.3.38)
+
+Upstream release tag `rom64-hgx-1` resolves to
+`e691a05b10e3ad1c6f95485ea3f539037519877a` (liru55), based on the netlink-8
+`rom64` core. The opt-in HGX2 background renderer is built into the Web software
+renderer. Ordinary ROMs retain native VRAM behavior; ROM size, battery/state
+layouts, state IDs and existing PalmoEMU optimization patches are retained.
+The reviewed CMake addition only defines the optional, default-OFF native HGX
+test target. This was a manual review; CI policy was not relaxed. The shipped
+dependency closure and original MPL headers remain unchanged except for the
+reviewed core/build edits. Independent JS/WASM rebuilds match.
+
+The native HGX suite passes 39 checks. `tests/mgba-hgx.cjs` checks the actual
+Web bridge, raw/compressed resources, fallback, ordinary ROM isolation and
+state import into a fresh module. The browser variant passes on desktop
+Chromium and WebKit. Old states/battery saves, 6 MiB flash, extended RAM,
+allocation/ownership, logging, save completion, peripherals and GB link pass.
+Dedicated HGX2 game-ROM adjacent-map rendering, boundary movement and desktop
+performance have been verified; see RELEASE_VALIDATION.md. Physical-iPhone
+performance and all-map coverage remain unverified. Version 0.3.38 is approved
+for publication only after the exact release commit passes all CI checks.
+Scheduled updates still watch rom64, not the experimental branch. A candidate
+that lacks HGX support now fails the HGX regression instead of dropping it.

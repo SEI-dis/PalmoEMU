@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.37",
+  "version": "0.3.38",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
@@ -10,6 +10,8 @@
     "test:start-save-memory": "node tests/start-save-memory.cjs",
     "test:start-save-worker-memory": "node tests/start-save-worker-memory.cjs",
     "test:mgba-memory": "node tests/mgba-memory.cjs",
+    "test:mgba-hgx": "node tests/mgba-hgx.cjs",
+    "test:mgba-hgx-browser": "node tests/mgba-hgx-browser.cjs",
     "test:mgba-allocation": "node tests/mgba-allocation.cjs",
     "test:core-teardown": "node tests/core-teardown.cjs",
     "test:core-upgrade": "node tests/core-upgrade.cjs",
