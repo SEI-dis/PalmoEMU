@@ -1,6 +1,39 @@
 {
   "releases": [
     {
+      "version": "0.3.37",
+      "date": "2026-10-21",
+      "changes": [
+        "内蔵のmGBAコアをrom64-netlink-8に更新しました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "已将内置 mGBA 核心更新至 rom64-netlink-8。"
+        ],
+        "zh-Hant": [
+          "已將內建 mGBA 核心更新至 rom64-netlink-8。"
+        ],
+        "ko": [
+          "내장 mGBA 코어를 rom64-netlink-8로 업데이트했습니다."
+        ],
+        "es": [
+          "Se actualizó el núcleo mGBA integrado a rom64-netlink-8."
+        ],
+        "fr": [
+          "Le cœur mGBA intégré a été mis à jour vers rom64-netlink-8."
+        ],
+        "de": [
+          "Der integrierte mGBA-Core wurde auf rom64-netlink-8 aktualisiert."
+        ],
+        "pt": [
+          "O núcleo mGBA integrado foi atualizado para rom64-netlink-8."
+        ]
+      },
+      "changesEn": [
+        "Updated the built-in mGBA core to rom64-netlink-8."
+      ]
+    },
+    {
       "version": "0.3.36",
       "date": "2026-10-17",
       "changes": [
