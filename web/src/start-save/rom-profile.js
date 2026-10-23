@@ -6,7 +6,7 @@
 const versionVariable=0x50ef,varGet=0x0806dd5d,varSet=0x0806dd79;
 const stampVersion=stamp=>`0.${stamp>>>8}.${stamp&255}`;
 export function isStartROMFamily(bytes){
- if(!(bytes instanceof Uint8Array)||bytes.length<0x2000008||bytes.length>64*1048576)return false;
+ if(!(bytes instanceof Uint8Array)||bytes.length<0x2000008||bytes.length>128*1048576)return false;
  const text=(at,value)=>[...value].every((char,i)=>bytes[at+i]===char.charCodeAt(0));
  return text(0xa0,'POKEMONSTART')&&text(0xac,'PKSJ')&&bytes[0xb2]===0x96&&text(0x2000000,'PKSPICS1');
 }

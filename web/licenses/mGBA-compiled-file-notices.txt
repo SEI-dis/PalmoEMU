@@ -1,6 +1,7 @@
 Notices retained verbatim from compiled mGBA translation units. Full files and additional notices remain in the pinned source archive.
 
 src/arm/arm.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -8,6 +9,7 @@ src/arm/arm.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/arm/decoder-arm.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -15,6 +17,7 @@ src/arm/decoder-arm.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/arm/decoder-thumb.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -22,6 +25,7 @@ src/arm/decoder-thumb.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/arm/decoder.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -29,13 +33,11 @@ src/arm/decoder.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/arm/isa-arm.c
-/* Copyright (c) 2013-2014 Jeffrey Pfau
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* Modified 2026-10-13: optimization backport from pm-start/mgba-celio-web 23235bc6db1b67009808c0dc7e1f25131eb75e7a. */
 
 src/arm/isa-thumb.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -43,6 +45,7 @@ src/arm/isa-thumb.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/bitmap-cache.c
+
 /* Copyright (c) 2013-2019 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -50,6 +53,7 @@ src/core/bitmap-cache.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/cache-set.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -57,6 +61,7 @@ src/core/cache-set.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/cheats.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -64,6 +69,7 @@ src/core/cheats.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/config.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -71,6 +77,7 @@ src/core/config.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/core.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -78,6 +85,7 @@ src/core/core.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/directories.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -85,6 +93,7 @@ src/core/directories.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/input.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -92,6 +101,7 @@ src/core/input.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/interface.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -99,6 +109,7 @@ src/core/interface.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/library.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -106,6 +117,7 @@ src/core/library.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/lockstep.c
+
 /* Copyright (c) 2013-2024 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -113,6 +125,7 @@ src/core/lockstep.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/log.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -120,6 +133,7 @@ src/core/log.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/map-cache.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -127,6 +141,7 @@ src/core/map-cache.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/mem-search.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -134,6 +149,7 @@ src/core/mem-search.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/rewind.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -141,6 +157,7 @@ src/core/rewind.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/serialize.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -148,6 +165,7 @@ src/core/serialize.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/sync.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -155,6 +173,7 @@ src/core/sync.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/thread.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -162,6 +181,7 @@ src/core/thread.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/tile-cache.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -169,6 +189,7 @@ src/core/tile-cache.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/core/timing.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -176,6 +197,7 @@ src/core/timing.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/feature/commandline.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -183,6 +205,7 @@ src/feature/commandline.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/feature/proxy-backend.c
+
 /* Copyright (c) 2013-2023 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -190,6 +213,7 @@ src/feature/proxy-backend.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/feature/thread-proxy.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -197,6 +221,7 @@ src/feature/thread-proxy.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/feature/updater.c
+
 /* Copyright (c) 2013-2021 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -204,6 +229,7 @@ src/feature/updater.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/feature/video-backend.c
+
 /* Copyright (c) 2013-2023 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -211,6 +237,7 @@ src/feature/video-backend.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/feature/video-logger.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -218,6 +245,7 @@ src/feature/video-logger.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/audio.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -225,6 +253,7 @@ src/gb/audio.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/cheats.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -232,6 +261,7 @@ src/gb/cheats.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/core.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -239,6 +269,7 @@ src/gb/core.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/extra/proxy.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -246,6 +277,7 @@ src/gb/extra/proxy.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/gb.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -253,6 +285,7 @@ src/gb/gb.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/input.c
+
 /* Copyright (c) 2013-2019 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -260,6 +293,7 @@ src/gb/input.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/io.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -267,6 +301,7 @@ src/gb/io.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/mbc.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -274,6 +309,7 @@ src/gb/mbc.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/mbc/huc-3.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -281,6 +317,7 @@ src/gb/mbc/huc-3.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/mbc/licensed.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -288,6 +325,7 @@ src/gb/mbc/licensed.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/mbc/mbc.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -295,6 +333,7 @@ src/gb/mbc/mbc.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/mbc/pocket-cam.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -302,6 +341,7 @@ src/gb/mbc/pocket-cam.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/mbc/tama5.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -309,6 +349,7 @@ src/gb/mbc/tama5.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/mbc/unlicensed.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -316,6 +357,7 @@ src/gb/mbc/unlicensed.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/memory.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -323,6 +365,7 @@ src/gb/memory.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/overrides.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -330,6 +373,7 @@ src/gb/overrides.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/renderers/cache-set.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -337,6 +381,7 @@ src/gb/renderers/cache-set.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/renderers/software.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -344,6 +389,7 @@ src/gb/renderers/software.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/serialize.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -351,6 +397,7 @@ src/gb/serialize.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/sio.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -358,6 +405,7 @@ src/gb/sio.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/sio/lockstep.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -365,6 +413,7 @@ src/gb/sio/lockstep.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/sio/printer.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -372,6 +421,7 @@ src/gb/sio/printer.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/timer.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -379,6 +429,7 @@ src/gb/timer.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gb/video.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -386,6 +437,7 @@ src/gb/video.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/audio.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -393,6 +445,7 @@ src/gba/audio.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/bios.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -408,6 +461,7 @@ src/gba/cart/ereader.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/cart/gpio.c
+
 /* Copyright (c) 2013-2021 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -415,6 +469,7 @@ src/gba/cart/gpio.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/cart/matrix.c
+
 /* Copyright (c) 2013-2018 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -422,6 +477,7 @@ src/gba/cart/matrix.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/cart/unlicensed.c
+
 /* Copyright (c) 2013-2024 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -429,6 +485,7 @@ src/gba/cart/unlicensed.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/cart/vfame.c
+
 /* Copyright (c) 2016 taizou
  * Copyright (c) 2013-2024 Jeffrey Pfau
  *
@@ -437,6 +494,7 @@ src/gba/cart/vfame.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/cheats.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -444,6 +502,7 @@ src/gba/cheats.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/cheats/codebreaker.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -451,6 +510,7 @@ src/gba/cheats/codebreaker.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/cheats/gameshark.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -458,6 +518,7 @@ src/gba/cheats/gameshark.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/cheats/parv3.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -465,6 +526,7 @@ src/gba/cheats/parv3.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/core.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -472,6 +534,7 @@ src/gba/core.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/dma.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -479,6 +542,7 @@ src/gba/dma.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/extra/battlechip.c
+
 /* Copyright (c) 2013-2018 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -486,6 +550,7 @@ src/gba/extra/battlechip.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/extra/proxy.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -493,6 +558,7 @@ src/gba/extra/proxy.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/gba.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -500,6 +566,7 @@ src/gba/gba.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/input.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -507,6 +574,7 @@ src/gba/input.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/io.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -514,6 +582,7 @@ src/gba/io.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/memory.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -521,6 +590,7 @@ src/gba/memory.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/overrides.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -528,6 +598,7 @@ src/gba/overrides.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/renderers/cache-set.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -535,6 +606,7 @@ src/gba/renderers/cache-set.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/renderers/common.c
+
 /* Copyright (c) 2013-2019 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -542,6 +614,7 @@ src/gba/renderers/common.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/renderers/gl.c
+
 /* Copyright (c) 2013-2019 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -549,27 +622,39 @@ src/gba/renderers/gl.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/renderers/software-bg.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+src/gba/renderers/software-hgx4.c
+
+/* Copyright (c) 2026 mGBA contributors
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. https://mozilla.org/MPL/2.0/ */
 
 src/gba/renderers/software-mode0.c
-/* Copyright (c) 2013-2015 Jeffrey Pfau
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* Modified 2026-10-13: optimization backport from pm-start/mgba-celio-web 23235bc6db1b67009808c0dc7e1f25131eb75e7a. */
 
 src/gba/renderers/software-obj.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+src/gba/renderers/software-obj256.c
+
+/* Copyright (c) 2026 mGBA contributors
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. https://mozilla.org/MPL/2.0/ */
+
 src/gba/renderers/video-software.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -577,6 +662,7 @@ src/gba/renderers/video-software.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/savedata.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -584,6 +670,7 @@ src/gba/savedata.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/serialize.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -591,6 +678,7 @@ src/gba/serialize.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/sharkport.c
+
 /* Copyright (c) 2013-2021 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -598,6 +686,7 @@ src/gba/sharkport.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/sio.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -605,6 +694,7 @@ src/gba/sio.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/sio/dolphin.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -612,6 +702,7 @@ src/gba/sio/dolphin.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/sio/gbp.c
+
 /* Copyright (c) 2013-2021 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -619,6 +710,7 @@ src/gba/sio/gbp.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/sio/lockstep.c
+
 /* Copyright (c) 2013-2024 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -626,6 +718,7 @@ src/gba/sio/lockstep.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/timer.c
+
 /* Copyright (c) 2013-2018 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -633,6 +726,7 @@ src/gba/timer.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/gba/video.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -640,6 +734,7 @@ src/gba/video.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/platform/posix/memory.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -647,6 +742,7 @@ src/platform/posix/memory.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/sm83/decoder.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -654,6 +750,7 @@ src/sm83/decoder.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/sm83/isa-sm83.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -661,6 +758,7 @@ src/sm83/isa-sm83.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/sm83/sm83.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -668,6 +766,7 @@ src/sm83/sm83.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/third-party/inih/ini.c
+
 /* inih -- simple .INI file parser
 
 SPDX-License-Identifier: BSD-3-Clause
@@ -681,21 +780,62 @@ https://github.com/benhoyt/inih
 
 */
 
-src/util/audio-buffer.c
-/* Copyright (c) 2013-2024 Jeffrey Pfau
+src/third-party/zlib/adler32.c
+
+/* adler32.c -- compute the Adler-32 checksum of a data stream
+ * Copyright (C) 1995-2011, 2016 Mark Adler
+ * For conditions of distribution and use, see copyright notice in zlib.h
+ */
+
+src/third-party/zlib/crc32.c
+
+/* crc32.c -- compute the CRC-32 of a data stream
+ * Copyright (C) 1995-2022 Mark Adler
+ * For conditions of distribution and use, see copyright notice in zlib.h
  *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * This interleaved implementation of a CRC makes use of pipelined multiple
+ * arithmetic-logic units, commonly found in modern CPU cores. It is due to
+ * Kadatch and Jenkins (2010). See doc/crc-doc.1.0.pdf in this distribution.
+ */
+
+src/third-party/zlib/inffast.c
+
+/* inffast.c -- fast decoding
+ * Copyright (C) 1995-2017 Mark Adler
+ * For conditions of distribution and use, see copyright notice in zlib.h
+ */
+
+src/third-party/zlib/inflate.c
+
+/* inflate.c -- zlib decompression
+ * Copyright (C) 1995-2022 Mark Adler
+ * For conditions of distribution and use, see copyright notice in zlib.h
+ */
+
+src/third-party/zlib/inftrees.c
+
+/* inftrees.c -- generate Huffman trees for efficient decoding
+ * Copyright (C) 1995-2022 Mark Adler
+ * For conditions of distribution and use, see copyright notice in zlib.h
+ */
+
+src/third-party/zlib/zutil.c
+
+/* zutil.c -- target dependent utility functions for the compression library
+ * Copyright (C) 1995-2017 Jean-loup Gailly
+ * For conditions of distribution and use, see copyright notice in zlib.h
+ */
+
+src/util/audio-buffer.c
+
+/* Modified 2026-10-13: optimization backport from pm-start/mgba-celio-web 23235bc6db1b67009808c0dc7e1f25131eb75e7a. */
 
 src/util/audio-resampler.c
-/* Copyright (c) 2013-2024 Jeffrey Pfau
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* Modified 2026-10-13: optimization backport from pm-start/mgba-celio-web 23235bc6db1b67009808c0dc7e1f25131eb75e7a. */
 
 src/util/circle-buffer.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -703,6 +843,7 @@ src/util/circle-buffer.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/configuration.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -710,6 +851,7 @@ src/util/configuration.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/convolve.c
+
 /* Copyright (c) 2013-2021 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -717,6 +859,7 @@ src/util/convolve.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/crc32.c
+
 /*-
  *  COPYRIGHT (C) 1986 Gary S. Brown.  You may use this program, or
  *  code or tables extracted from it, as desired without restriction.
@@ -760,6 +903,7 @@ src/util/crc32.c
  */
 
 src/util/elf-read.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -767,6 +911,7 @@ src/util/elf-read.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/formatting.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -774,6 +919,7 @@ src/util/formatting.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/geometry.c
+
 /* Copyright (c) 2013-2023 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -781,6 +927,7 @@ src/util/geometry.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/image.c
+
 /* Copyright (c) 2013-2023 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -788,6 +935,7 @@ src/util/image.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/image/export.c
+
 /* Copyright (c) 2013-2023 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -795,6 +943,7 @@ src/util/image/export.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/image/font.c
+
 /* Copyright (c) 2013-2025 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -802,6 +951,7 @@ src/util/image/font.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/image/png-io.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -809,6 +959,7 @@ src/util/image/png-io.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/interpolator.c
+
 /* Copyright (c) 2013-2024 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -816,6 +967,7 @@ src/util/interpolator.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/md5.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -829,6 +981,7 @@ src/util/md5.c
  */
 
 src/util/patch-fast.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -836,6 +989,7 @@ src/util/patch-fast.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/patch-ips.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -843,6 +997,7 @@ src/util/patch-ips.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/patch-ups.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -850,6 +1005,7 @@ src/util/patch-ups.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/patch.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -857,6 +1013,7 @@ src/util/patch.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/ring-fifo.c
+
 /* Copyright (c) 2013-2014 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -864,6 +1021,7 @@ src/util/ring-fifo.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/sfo.c
+
 /* Copyright (c) 2013-2022 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -871,6 +1029,7 @@ src/util/sfo.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/sha1.c
+
 /* Copyright (c) 2013-2025 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -889,6 +1048,7 @@ src/util/sha1.c
  */
 
 src/util/string.c
+
 /* Copyright (c) 2013-2019 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -896,6 +1056,7 @@ src/util/string.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/table.c
+
 /* Copyright (c) 2013-2020 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -903,6 +1064,7 @@ src/util/table.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/text-codec.c
+
 /* Copyright (c) 2013-2016 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -910,6 +1072,7 @@ src/util/text-codec.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/vector.c
+
 /* Copyright (c) 2013-2023 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -917,6 +1080,7 @@ src/util/vector.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/vfs.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -924,6 +1088,7 @@ src/util/vfs.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/vfs/vfs-dirent.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -931,6 +1096,7 @@ src/util/vfs/vfs-dirent.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/vfs/vfs-fd.c
+
 /* Copyright (c) 2013-2020 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -938,6 +1104,7 @@ src/util/vfs/vfs-fd.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/vfs/vfs-fifo.c
+
 /* Copyright (c) 2013-2017 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -945,15 +1112,41 @@ src/util/vfs/vfs-fifo.c
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 src/util/vfs/vfs-mem.c
+
 /* Copyright (c) 2013-2015 Jeffrey Pfau
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-version.c
-/* Copyright (c) 2013-2016 Jeffrey Pfau
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+src/third-party/zlib/zlib.h (complete zlib license)
+
+/* zlib.h -- interface of the 'zlib' general purpose compression library
+  version 1.2.12, March 11th, 2022
+
+  Copyright (C) 1995-2022 Jean-loup Gailly and Mark Adler
+
+  This software is provided 'as-is', without any express or implied
+  warranty.  In no event will the authors be held liable for any damages
+  arising from the use of this software.
+
+  Permission is granted to anyone to use this software for any purpose,
+  including commercial applications, and to alter it and redistribute it
+  freely, subject to the following restrictions:
+
+  1. The origin of this software must not be misrepresented; you must not
+     claim that you wrote the original software. If you use this software
+     in a product, an acknowledgment in the product documentation would be
+     appreciated but is not required.
+  2. Altered source versions must be plainly marked as such, and must not be
+     misrepresented as being the original software.
+  3. This notice may not be removed or altered from any source distribution.
+
+  Jean-loup Gailly        Mark Adler
+  jloup@gzip.org          madler@alumni.caltech.edu
+
+
+  The data format used by the zlib library is described by RFCs (Request for
+  Comments) 1950 to 1952 in the files http://tools.ietf.org/html/rfc1950
+  (zlib format), rfc1951 (deflate format) and rfc1952 (gzip format).
+*/

@@ -2,35 +2,34 @@
   "schema": 1,
   "status": "verified",
   "published": false,
-  "checkedOn": "2026-10-21",
+  "checkedOn": "2026-10-23",
   "repository": "https://github.com/pm-start/mGBA_celio_edition.git",
-  "branch": "rom64-hgx-1 (release tag)",
-  "baselineCommit": "b6633141108285fc825106ffc28f7fae7c323305",
-  "candidateCommit": "e691a05b10e3ad1c6f95485ea3f539037519877a",
-  "compareUrl": "https://github.com/pm-start/mGBA_celio_edition/compare/b6633141108285fc825106ffc28f7fae7c323305...e691a05b10e3ad1c6f95485ea3f539037519877a",
-  "reviewedMaxRomBytes": 67108864,
+  "branch": "rom128",
+  "baselineCommit": "e691a05b10e3ad1c6f95485ea3f539037519877a",
+  "candidateCommit": "b3975350076fbd3d86e7dc6796cdadb0ccdb9a89",
+  "compareUrl": "https://github.com/pm-start/mGBA_celio_edition/compare/e691a05b10e3ad1c6f95485ea3f539037519877a...b3975350076fbd3d86e7dc6796cdadb0ccdb9a89",
+  "reviewedMaxRomBytes": 134217728,
   "checks": {
     "local-patches": true,
     "build": true,
-    "license-policy": true,
     "corresponding-source": true,
-    "synthetic-core": true,
-    "upgrade-compatibility": true,
+    "core": true,
+    "core-upgrade": true,
+    "mgba-rom128": true,
+    "mgba-hgx": true,
     "mgba-memory": true,
     "mgba-logging": true,
     "mgba-allocation": true,
     "mgba-save-completion": true,
     "mgba-peripherals": true,
     "gb-link-core": true,
-    "mgba-hgx": true,
-    "hgx-chromium": true,
-    "hgx-webkit": true,
-    "compatibility-chromium": true,
-    "compatibility-webkit": true,
-    "real-hgx-adjacent-chromium": true,
-    "real-hgx-adjacent-webkit": true,
-    "real-hgx-adjacent-native": true,
-    "real-hgx-framebuffer-match": true
+    "license-policy": true,
+    "synthetic-core": true,
+    "upgrade-compatibility": true,
+    "hgx4-hgz-upstream-288": true,
+    "real-rom-chromium": true,
+    "real-rom-webkit": true,
+    "16m-battery-browser-roundtrip": true
   },
   "requiresReview": [],
   "localPatches": [
@@ -40,113 +39,168 @@
     },
     {
       "file": "src/gba/renderers/software-mode0.c",
-      "patchSha256": "15c15dec2d8426451cbaa1f06900a552d9fed1273dbd3f79d40ad9a11f1a213a"
+      "patchSha256": "fbff3166bca0f6d61caef31e3ad18ebefc20200862e303cba74c82d5766d2714"
     },
     {
       "file": "src/util/audio-buffer.c",
       "patchSha256": "250cb16302d02f2571845a830c946a31676f0e7257145d0d09aae04e5dcada5e"
     },
     {
-      "file": "src/util/audio-resampler.c",
-      "patchSha256": "ee05d2e32d27673fc6349f908fc8b86d8c5f4575c3d25f108cc170d70a311f32"
-    },
-    {
       "file": "version.cmake",
       "patchSha256": "2b5c97f4e2c5e9ad2c191ad645edd9f545ccc329a3c035918211f1957de7b3c5"
+    },
+    {
+      "file": "src/util/audio-resampler.c",
+      "manualMerge": "Retain cached non-aliased counts and adopt upstream mAudioBufferFull for aliased buffers",
+      "sha256": "baf076f7ad2a66f44e45a51d398b35e00f40ad83ab792d11ee49e98d3f195bc1"
     }
   ],
-  "sourceChanges": {
-    "added": [],
-    "removed": [],
-    "changed": [
-      "CMakeLists.txt",
-      "include/mgba/internal/gba/renderers/video-software.h",
-      "include/mgba/internal/gba/video.h",
-      "src/gba/core.c",
-      "src/gba/io.c",
-      "src/gba/renderers/software-mode0.c",
-      "src/gba/renderers/video-software.c",
-      "src/gba/video.c"
-    ],
-    "lineEndingsOnly": []
-  },
-  "sourceSha256": "f071ced8eabaf055c90fdab350d3ef1b2a20e3f63ca61db940883e7df6553019",
+  "sourceSha256": "bb6422913a73a61b7fa8914634051f2edfd1f686c1298e1d218d8249abd528ee",
   "binaries": {
     "mgba.js": "fe8c6838117e05c709b74a34348d5816a840ea84f1ff0315ce852bd03836fccd",
-    "mgba.wasm": "a129c7a42a8f5bc5764043d9ea35cc880c0f1ba2a5b6c42f94450ee1fb058d2b"
+    "mgba.wasm": "daad7ac676459d3bfa4e4149a0fdf354eba8f58f4cb822e37c2911ee67117f17"
   },
-  "toolchain": {
-    "emsdkCommit": "b44154299bdefe75ba287874bb63fc9806243771",
-    "emscripten": "4.0.15",
-    "emscriptenReleasesCommit": "b412b6307e541b93dd93f01b61181e15c17302ec",
-    "cmake": "cmake version 3.31.6",
-    "ninja": "1.11.1.git.kitware.jobserver-1"
-  },
-  "upgradeChecks": [
-    {
-      "check": "old-state",
-      "result": "pass"
-    },
-    {
-      "check": "old-battery",
-      "result": "pass"
-    },
-    {
-      "check": "extended-flash",
-      "result": "pass"
-    },
-    {
-      "check": "six-mib-save",
-      "result": "pass"
-    },
-    {
-      "check": "extended-ram-state",
-      "result": "pass"
-    }
-  ],
   "manualReview": {
-    "buildInput": "CMakeLists.txt",
-    "sha256": "48152a1b6a58775084ccec24b740466c3c77196e15f66f06b6ab0e5bee4b6c52",
-    "reason": "Opt-in BUILD_HGX_TEST target only; all other policy checks unchanged",
-    "reviewer": "Codex agent; not human review",
-    "releaseTag": "rom64-hgx-1"
+    "release": "rom128-2",
+    "sourceReview": "Reviewed the build input changes, new MPL-2.0 HGX4/OBJ256 renderers, upstream zlib inflate dependency and unchanged license terms. Full notices retained. Native GUI/dependency changes are not compiled in the Web target.",
+    "recipe": "Bounded HGZ-only inflate; native state encoding unchanged",
+    "ownership": "Exact full GBA banks transfer to native writable ownership before RTC reset",
+    "newSourceInventory": [
+      {
+        "file": "CMakeLists.txt",
+        "reason": "Build input changed: CMakeLists.txt",
+        "sha256": "af235795022478fec48db45379d76e41d87a7ae77a8ab1f9e9c7113ba7500fac"
+      },
+      {
+        "file": "README_DE.md",
+        "reason": "Copyright/license header changed: README_DE.md",
+        "sha256": "bf46edde1cfdadc38a76f049666e1a094c71885c21bb3c68ad71c2f7e320e3e5"
+      },
+      {
+        "file": "src/core/version.c.in",
+        "reason": "Build input changed: src/core/version.c.in",
+        "sha256": "681712dd0a7cd8c7a7bd97d2ec0c3d69d03c858775782425fd298b9bd49797ec"
+      },
+      {
+        "file": "src/gba/CMakeLists.txt",
+        "reason": "Build input changed: src/gba/CMakeLists.txt",
+        "sha256": "64df7c67d434eeba1e50b939b01587e0946ac03bad33233a3aa8c3cf66008498"
+      },
+      {
+        "file": "src/gba/renderers/software-hgx4.c",
+        "reason": "added",
+        "sha256": "8706b3aeec77af86a3ad2f034388d0a3d3f06e6355272fd3b5e054332b3942fb"
+      },
+      {
+        "file": "src/gba/renderers/software-obj256.c",
+        "reason": "added",
+        "sha256": "78582723a7fa2fa135facb41e923557feeae9a3eead423cb988e42217ff1860a"
+      },
+      {
+        "file": "src/platform/qt/CMakeLists.txt",
+        "reason": "Build input changed: src/platform/qt/CMakeLists.txt",
+        "sha256": "4a14723b9b52b2b7f3827e6ddd69f4cd162e9b253d120e7e7da8c24f6cd4d183"
+      },
+      {
+        "file": "src/platform/test/CMakeLists.txt",
+        "reason": "Build input changed: src/platform/test/CMakeLists.txt",
+        "sha256": "3f6c63ac11aa9f20b58c9911aa141ec86f67c72dcf0ce938e2fa13313f69b76b"
+      },
+      {
+        "file": "src/third-party/discord-rpc/src/CMakeLists.txt",
+        "reason": "Build input changed: src/third-party/discord-rpc/src/CMakeLists.txt",
+        "sha256": "8b74e6f6c975cde001cb186adfb6e011694c38149a238317e61ef88ed6ef4fa2"
+      },
+      {
+        "file": "src/third-party/zlib/adler32.c",
+        "reason": "added",
+        "sha256": "77f6a3cb057ed493c15a268ef66a08ca0f28c44c427018e3cf2f22c92e69ea8f"
+      },
+      {
+        "file": "src/third-party/zlib/crc32.c",
+        "reason": "added",
+        "sha256": "e2148be1649b586d3d7a694f4945bf7c798ee0a5ad0bc9298f094b8b0bf391b6"
+      },
+      {
+        "file": "src/third-party/zlib/crc32.h",
+        "reason": "added",
+        "sha256": "5729f6816e505b456a743aa57c25d13dc070ee932e81aca4fc613f286f85317b"
+      },
+      {
+        "file": "src/third-party/zlib/gzguts.h",
+        "reason": "added",
+        "sha256": "54b6722aebae1ad59887dff1918ba2b9640edd204d18bda42d828e5381fad2b7"
+      },
+      {
+        "file": "src/third-party/zlib/inffast.c",
+        "reason": "added",
+        "sha256": "b49b29b752fe4f048588088385f2908cedfb917f57af3e1d384a83801603c8c4"
+      },
+      {
+        "file": "src/third-party/zlib/inffast.h",
+        "reason": "added",
+        "sha256": "69826e9bcdf9ae6a774d8eca4ae2e7f9f7a3c6f77f5d1f30de24b96a2c818780"
+      },
+      {
+        "file": "src/third-party/zlib/inffixed.h",
+        "reason": "added",
+        "sha256": "869a9f968e6b85ce2a2364db6325a35eb0f5b283727b40ac74d2cf053f364124"
+      },
+      {
+        "file": "src/third-party/zlib/inflate.c",
+        "reason": "added",
+        "sha256": "0db4df5f0ace88684bf771660742157ba9036a21d4842dfa20367822940fd6c3"
+      },
+      {
+        "file": "src/third-party/zlib/inflate.h",
+        "reason": "added",
+        "sha256": "2269ca49b70870364700396b98e82f9ee2d48e3c6470a04606afbc246c5e9567"
+      },
+      {
+        "file": "src/third-party/zlib/inftrees.c",
+        "reason": "added",
+        "sha256": "aca8b28d5dc20b4c72ef300f2a3e2e1d2dc382393c3ec955c04ed66388a7ec81"
+      },
+      {
+        "file": "src/third-party/zlib/inftrees.h",
+        "reason": "added",
+        "sha256": "d7066eba83ae46bd5e290e58ee2b39c692cc8c8466940c176665421420204e8c"
+      },
+      {
+        "file": "src/third-party/zlib/zconf.h",
+        "reason": "added",
+        "sha256": "de38c0a2242acb2b925c42481fff3853cc24efa7ead54b422ee6ed3a203ce2d1"
+      },
+      {
+        "file": "src/third-party/zlib/zlib.h",
+        "reason": "added",
+        "sha256": "325aa8068f98d26298f8c873076b90a86496b3e148ad804df7c9308e08931d1b"
+      },
+      {
+        "file": "src/third-party/zlib/zutil.c",
+        "reason": "added",
+        "sha256": "7f9b866063d12c4b57afda23e431c6ceae365b73af5dc7a816dd30948b3d3668"
+      },
+      {
+        "file": "src/third-party/zlib/zutil.h",
+        "reason": "added",
+        "sha256": "dd3b3a8cd0832e1f9eff92e8f231f33e2f1a1d9f0fb18511143874f5ae08754d"
+      },
+      {
+        "file": "version.cmake",
+        "reason": "Build input changed: version.cmake",
+        "sha256": "a645a3766a06ecfe4bc03e9b334fdbbe6fcc36da4618a3b3fdd5f677c9c2d048"
+      }
+    ]
   },
   "adoption": {
+    "baseCommit": "968361171758e179e58ef31c99ed9a38e8c49960",
     "automatic": false,
-    "published": false,
-    "scope": "Manually reviewed 0.3.38 HGX release; maintainer authorizes publication after exact-commit CI succeeds. Desktop adjacent-map validation complete; physical iPhone and all-map coverage not claimed.",
-    "baseCommit": "b093a62153008c949cb063cafd20a9e8c37e3326"
+    "policy": "Manual capacity/format/dependency review; local patches retained; independently rebuilt corresponding source; full exact-commit CI required before publication."
   },
-  "localGameValidation": {
-    "romVersion": "0.57.2",
-    "hgxROM": false,
-    "nativePrivateToPalmoTradeComplete": true,
-    "originalsUnchanged": true,
-    "browser": "desktop Edge",
-    "nativeNetworking": "built-in CelioNet"
-  },
-  "localHgxValidation": {
-    "romVersion": "0.57.0_hg_debug_20261021",
-    "romSha256": "690a0571c980c567eb73e85e4303b29208c68fad174ec0c017c5f8b42bb1e0e6",
-    "adjacentTiles": 768,
-    "changedPixelsWithoutHGX": 10496,
-    "framesPerScenario": 3600,
-    "desktopFramebuffersIdentical": true,
-    "decodedCacheBytes": 24064,
-    "originalsUnchanged": true,
-    "isolatedSavePositionFixture": true,
-    "iphoneTested": false,
-    "allMapsTested": false,
-    "evidence": "RELEASE_VALIDATION.md",
-    "liveAppBoundary": {
-      "route22BannerObserved": true,
-      "visibleFpsRange": [
-        59.3,
-        60.2
-      ],
-      "consoleErrors": 0,
-      "isolatedOrigin": true,
-      "originalNewGameStairsBlocked": true
-    }
-  }
+  "validationLimits": [
+    "Physical iPhone not tested",
+    "No claim of completed PokemonStart 0.59.0 cross-emulator trade; this release does not alter the Web Celio protocol",
+    "No all-map or ROM bug-fix claim"
+  ]
 }

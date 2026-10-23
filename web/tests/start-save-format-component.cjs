@@ -6,7 +6,7 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 (async()=>{
  const {checkComponent,checkPublicationPermission,installedDirectory}=await import('../scripts/start-save-format/check.mjs');
  const current=checkComponent(),snapshot=Object.fromEntries(fs.readdirSync(installedDirectory).map(name=>[name,fs.readFileSync(path.join(installedDirectory,name))]));
- assert.deepEqual(current.contract.saveBodyBytes,[131072,6291456]);assert.deepEqual(current.contract.direction.to,['L','W']);assert.equal(current.contract.direction.reverseConversion,false);
+ assert.deepEqual(current.contract.saveBodyBytes,[131072,6291456,16777216]);assert.deepEqual(current.contract.direction.to,['L','W']);assert.equal(current.contract.direction.reverseConversion,false);
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'palmo-format-component-')),candidate=path.join(root,'candidate');fs.mkdirSync(candidate);
  try{
   const reset=()=>{for(const [name,bytes] of Object.entries(snapshot))fs.writeFileSync(path.join(candidate,name),bytes);};
@@ -30,14 +30,14 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
   assert.equal(publication.status,1);assert.match(publication.stderr,/NOT READY FOR PUBLICATION/);
   assert.match(fs.readFileSync(path.join(__dirname,'../scripts/check-release.cjs'),'utf8'),/start-save-format\/check\.mjs'\),'--publication'/,'Release verification must request the permission gate');
   for(const name of ['engine.js','README.md']){reset();fs.appendFileSync(path.join(candidate,name),'\n// changed');assert.throws(()=>checkComponent(candidate),/Changed component file/);}
-  for(const change of [r=>r.direction.to='old',r=>r.direction.from='L',r=>r.direction.reverseConversion=true,r=>r.direction.rounding=true,r=>r.direction.versionGuard=0x3200,r=>r.saveBodyBytes.push(1048576),r=>r.optionalRTCBytes=32,r=>r.slotBytes=6291456,r=>r.hostContract='future-format']){
+  for(const change of [r=>r.direction.to='old',r=>r.direction.from='L',r=>r.direction.reverseConversion=true,r=>r.direction.rounding=true,r=>r.direction.versionGuard=0x3200,r=>r.saveBodyBytes.push(1048576),r=>r.optionalRTCBytes=32,r=>r.slotBytes=6291456,r=>r.hostContract='future-format',r=>r.storageLayout.markerVersion=3,r=>r.storageLayout.currentSlotStride=3145728]){
    reset();editRecord(change);assert.throws(()=>checkComponent(candidate),/Unsupported/);
   }
   for(const change of [r=>r.sourceDistributor='unverified-author',r=>r.sourceURL='https://example.invalid/tool',r=>r.individualAuthor='invented name',r=>r.license='MIT',r=>r.permission='Permission assumed from public availability',r=>r.sources[0].sha256='0'.repeat(64),r=>r.files['../engine.js']=r.files['engine.js'],r=>r.files['engine.js']='invalid']){
    reset();editRecord(change);assert.throws(()=>checkComponent(candidate));
   }
   // Re-pinning a changed executable must not bypass the known host contract.
-  for(const [before,after] of [['WIDE_VERSION_GUARD=0x34ff','WIDE_VERSION_GUARD=0x3500'],['VERSION_GUARD=0x31ff','VERSION_GUARD=0x3200'],['SLOT_BYTES=3*1024*1024','SLOT_BYTES=2*1024*1024'],["60,11,68,16,18,8,1020,480,30","62,11,68,16,18,8,1020,480,30"],['[SMALL_BYTES,FULL_BYTES].includes(bodyBytes)','[SMALL_BYTES,1048576,FULL_BYTES].includes(bodyBytes)'],['[0,16].includes(rtcBytes)','[0,32].includes(rtcBytes)']]){
+  for(const [before,after] of [['WIDE_VERSION_GUARD=0x34ff','WIDE_VERSION_GUARD=0x3500'],['VERSION_GUARD=0x31ff','VERSION_GUARD=0x3200'],['SLOT_BYTES=3*1024*1024','SLOT_BYTES=2*1024*1024'],["60,11,68,16,18,8,1020,480,30","62,11,68,16,18,8,1020,480,30"],['[SMALL_BYTES,FULL_BYTES,LARGE_FULL_BYTES].includes(bodyBytes)','[SMALL_BYTES,1048576,FULL_BYTES,LARGE_FULL_BYTES].includes(bodyBytes)'],['[0,16].includes(rtcBytes)','[0,32].includes(rtcBytes)']]){
    reset();editEngine(source=>{assert(source.includes(before));return source.replace(before,after);},true);assert.throws(()=>checkComponent(candidate),/contract|layout|sizes|extent/);
   }
   reset();editEngine(source=>source.replace('export function containsFormatL','function containsFormatL'),true);assert.throws(()=>checkComponent(candidate),/API/);

@@ -340,3 +340,9 @@ CMakeLists.txtの差分は既定OFFの描画テスト用ターゲット追加の
 通常の自動採用ポリシーを緩和せず、ほかの全ヘッダー・依存物は従来の検査で照合した。
 配布ソースの独立再ビルドでJS/WASMが一致。ROM・セーブ・BIOSは同梱していない。
 専用HGX2ゲームROMで隣接マップの描画・境界移動・PC環境の負荷を確認した。詳細と未確認範囲はRELEASE_VALIDATION.mdに記録する。利用者から0.3.38の公開指示を受け、同一コミットの全CI成功後に公開する。物理iPhoneと全マップの検証を完了したという意味ではない。
+
+## 2026-10-23 — 0.3.39 manual source/dependency review
+
+Reviewed rom128-2 b3975350076fbd3d86e7dc6796cdadb0ccdb9a89 against the shipped HGX core. CMake changes add HGX4/OBJ256 sources and optional native test/GUI settings; those native frontends are not compiled. version metadata is scoped to the source tree. README_DE copyright-year/punctuation changes do not alter permission. New HGX4/OBJ256 sources are MPL-2.0; newly compiled zlib inflate/adler/crc helpers retain upstream notices and the full zlib license in mGBA-compiled-file-notices.txt. Compression encoders and general VFS compression are not enabled in the shipped target. Independently rebuilt compiler-closure source produces identical JS/WASM.
+
+The supplied 0.59.0 converter is statically decoded and compared with the adapted forward-only engine. The maintainer-confirmed 2026-10-16 credit condition remains in component.json, README, SOURCES and licenses.html. The distributor/project is pm-start/PokemonStart, with onikoro334274-cell and liru55 project credits; no individual converter author is invented. Distribution contains the adapted engine and corresponding source, not the original HTML, ROM or user save. The current user explicitly requests commit/push/publication after validation.

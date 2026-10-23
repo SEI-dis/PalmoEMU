@@ -15,8 +15,8 @@ export function checkPublicationPermission(record){
  assert(/^\d{4}-\d{2}-\d{2}$/.test(permission.confirmedOn||'')&&typeof permission.evidence==='string'&&permission.evidence.trim(),'NOT READY FOR PUBLICATION: format permission confirmation evidence is required');
 }
 const expectedSources=[
- {name:'セーブデータ移行ツール (1).html',sha256:'26f67be5bffa469f12837cbe6668a1e02b1a17883173878dca46a8d0cc2269c6'},
- {name:'statically decoded embedded JavaScript',sha256:'4e80d3c60efed7187443e1cd06353422d3f9eff6da3e8dc9d1503aa98574dce2'}
+ {name:'セーブデータ移行ツール.html',sha256:'b4e6f2068ebc55ced0310a74f99c3e656aa2c611ff77936ba533bab7930fc3b6'},
+ {name:'statically decoded embedded JavaScript',sha256:'71c9cabf7a90273602b6f90a531819d50198607d2035eddc6fd5372227f3e883'}
 ];
 const expectedPermission="On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.";
 const expectedDirection={from:['old','L'],to:['L','W'],reverseConversion:false,rounding:false,versionGuards:{L:0x31ff,W:0x34ff}};
@@ -59,6 +59,9 @@ function engineContract(source){
  }
  const constants=Object.fromEntries(['SECTOR','DATA','SIGNATURE','SLOT_BYTES','FULL_BYTES','SMALL_BYTES','VERSION_OFFSET','VERSION_GUARD','WIDE_VERSION_GUARD','SECTION_SIZES','MAP_OFFSET'].map(name=>[name,value(declarations.get(name))]));
  assert.deepEqual(constants,{SECTOR:4096,DATA:4080,SIGNATURE:0x08012025,SLOT_BYTES:3145728,FULL_BYTES:6291456,SMALL_BYTES:131072,VERSION_OFFSET:0xba,VERSION_GUARD:0x31ff,WIDE_VERSION_GUARD:0x34ff,SECTION_SIZES:[0xf24,0xff0,0xff0,0xff0,0xd98],MAP_OFFSET:0x1400},'Unsupported serialized format contract');
+ assert.equal(value(declarations.get('LARGE_SLOT_BYTES')),8388608,'Unsupported 0.59 slot stride');
+ assert.equal(value(declarations.get('LARGE_FULL_BYTES')),16777216,'Unsupported 0.59 body extent');
+ assert.equal(value(declarations.get('MARK_OFFSET')),34*4096,'Unsupported storage marker sector');
  const layouts={};
  for(const [name,expected] of [['OLD',['old',0x4c454853,58,12,70,15,17,5,990,330,28]],['LARGE',['L',0x324c4853,60,11,68,16,18,8,1020,480,30]],['WIDE',['W',0x334c4853,63,11,64,16,18,9,960,540,30,26,18]]]){
   const node=declarations.get(name);assert(node?.type==='CallExpression'&&node.callee.type==='Identifier'&&node.callee.name==='format','Expected reviewed format descriptor');
@@ -68,7 +71,7 @@ function engineContract(source){
  visit(input,node=>{
   if(node.type==='CallExpression'&&node.callee.type==='MemberExpression'&&!node.callee.computed&&node.callee.property.name==='includes'&&node.callee.object.type==='ArrayExpression'&&node.arguments.length===1&&node.arguments[0].type==='Identifier')guards[node.arguments[0].name]=value(node.callee.object);
  });
- assert.deepEqual(guards.bodyBytes,[131072,6291456],'Input body sizes differ from contract');
+ assert.deepEqual(guards.bodyBytes,[131072,6291456,16777216],'Input body sizes differ from contract');
  assert.deepEqual(guards.rtcBytes,[0,16],'Input RTC sizes differ from contract');
  return {direction:{...expectedDirection},saveBodyBytes:guards.bodyBytes,optionalRTCBytes:16,slotBytes:constants.SLOT_BYTES,exports,layouts};
 }
@@ -79,9 +82,9 @@ export function checkComponent(directory=installedDirectory){
  };
  assert.deepEqual(fs.readdirSync(location).sort(),['README.md','component.json','engine.js'],'Unexpected component files');
  const record=JSON.parse(read('component.json'));
- assert(record.schema===1&&record.hostContract==='start-format-forward-v2','Unsupported component record');
- assert.equal(record.distribution,'maintainer-supplied PokemonStart 0.53.1 migration HTML','Source distribution changed');
- assert.equal(record.distributionVersion,'0.53.1','Source distribution version changed');
+ assert(record.schema===1&&record.hostContract==='start-format-forward-v3','Unsupported component record');
+ assert.equal(record.distribution,'maintainer-supplied PokemonStart 0.59.0 migration HTML','Source distribution changed');
+ assert.equal(record.distributionVersion,'0.59.0','Source distribution version changed');
  assert.equal(record.sourceDistributor,'pm-start/PokemonStart','Source distributor changed');
  assert.equal(record.sourceURL,'https://github.com/pm-start/PokemonStart','Source URL changed');
  assert.equal(record.individualAuthor,null,'Do not invent an individual author');
@@ -91,7 +94,8 @@ export function checkComponent(directory=installedDirectory){
  assert(Object.values(record.publicationPermission.scopes).every(value=>value===true||value===false||value===null),'Permission scopes must distinguish confirmed, refused and unconfirmed');
  assert.deepEqual(record.sources,expectedSources,'Source evidence differs from reviewed provenance');
  assert.deepEqual(record.direction,expectedDirection,'Unsupported migration direction or rounding');
- assert.deepEqual(record.saveBodyBytes,[131072,6291456],'Unsupported input body sizes');
+ assert.deepEqual(record.saveBodyBytes,[131072,6291456,16777216],'Unsupported input body sizes');
+ assert.deepEqual(record.storageLayout,{legacySlotStride:3145728,currentSlotStride:8388608,currentBodyBytes:16777216,markerSector:34,markerVersion:2,minimumTargetVersion:'0.59.0'},'Unsupported physical storage layout');
  assert.equal(record.optionalRTCBytes,16,'Unsupported RTC extent');assert.equal(record.slotBytes,3145728,'Unsupported slot extent');
  assert.deepEqual(Object.keys(record.files||{}).sort(),['README.md','engine.js'],'Invalid pinned component file list');
  assert(Array.isArray(record.localChanges)&&record.localChanges.length&&record.localChanges.every(note=>typeof note==='string'&&note.trim()),'Retain local adaptation notes');

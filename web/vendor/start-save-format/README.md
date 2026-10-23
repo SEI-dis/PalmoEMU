@@ -1,4 +1,4 @@
-# PokemonStart 0.53.1 save-format component
+# PokemonStart 0.59.0 save-format component
 
 **Permission clarification (2026-10-16).** Following an explicit explanation of
 modification, offline distribution and modified-source publication on GitHub/in
@@ -9,8 +9,8 @@ individual tool author. This records the maintainer confirmation, not a separate
 inspected rights-holder message. `component.json` records the scope and condition.
 
 Source distribution: [pm-start/PokemonStart](https://github.com/pm-start/PokemonStart),
-maintainer-supplied `セーブデータ移行ツール (1).html` alongside the 0.53.1 ROM.
-The source matches the W-format change documented in the upstream 0.53 changelog. Its decoded
+maintainer-supplied `セーブデータ移行ツール.html` alongside the 0.59.0 ROM.
+The 0.59.0 source retains the W-format rules and adds a new physical save-slot layout. Its decoded
 JavaScript was reviewed statically; the original HTML/UI is not distributed.
 This identifies the distributor, **not a verified individual author**. This is
 separate from the earlier くりーぱー START Save Migrate component; its author credit
@@ -22,13 +22,13 @@ On 2026-10-16 the project maintainer confirmed that incorporation, Web publicati
 The host facade AGPL notice does not relicense this component.
 
 Original HTML SHA-256:
-`96c1a970b2c65661db40237f8f3f0609faf6759d066bacbe887a8767b9d88ebc`.
+`b4e6f2068ebc55ced0310a74f99c3e656aa2c611ff77936ba533bab7930fc3b6`.
 Statically decoded JavaScript SHA-256:
-`4517db68a1ad4a31c0e402501d6c828502656bdf1902382bd5f7b69767eb5332`.
+`71c9cabf7a90273602b6f90a531819d50198607d2035eddc6fd5372227f3e883`.
 
 ## Scope
 
-`engine.js` extracts and adapts SaveCrypt and the **old → L** part of LFormat.
+`engine.js` extracts and adapts SaveCrypt, forward **old/L → L/W** conversion and the 0.59.0 physical slot relocation.
 The original tool's DOM, downloads, historical 14-sector migration, reverse
 conversion, value-rounding code and unrelated packaged files are not included.
 The existing historical migration component remains responsible for older game
@@ -116,7 +116,7 @@ outside the distribution. This does not certify real gameplay or iPhone use.
 
 ## 0.53: wide move records
 
-The 0.53.1 supplied HTML adds W/SHL3 records (63 bytes), after old/SHEL (58)
+The 0.59.0 supplied HTML adds W/SHL3 records (63 bytes), after old/SHEL (58)
 and L/SHL2 (60). Forward old → L → W conversion relocates each of four move
 high bits from extension bits 9–12 into four six-bit fields in a 24-bit tail;
 location, level and the other extension bits are retained. W uses 64 records per
@@ -134,5 +134,11 @@ The adapted reader continues to reject corrupt maps, checksums, ambiguous counte
 and overlapping allocations instead of substituting empty boxes. L writes retain
 the previously reviewed sectors through 85; W owns through 87. Unselected slots,
 RTC and non-layout bytes remain unchanged. Runtime ROM-probe correction is a
-separate structure/capacity-gated feature; the supplied 0.53.1 probe does not match
+separate structure/capacity-gated feature; the supplied 0.59.0 probe does not match
 and is not patched. Input HTML, ROM and real saves are never distributed.
+
+## 0.59.0 physical save layout
+
+The supplied HTML adds 16 MiB files and moves adventure 2 from 3 MiB to 8 MiB. PalmoEMU keeps W box records separate from this relocation, validates all occupied slots, checks complete sectors rather than only their first 16 bytes, refuses conflicting destinations/unknown markers, preserves unrelated bytes and the optional RTC trailer, and verifies the relocated bytes. Original saves are not overwritten. Layout 2 applies to verified W-format destination ROMs from 0.59.0 onward, not a single patch release. One-adventure saves need no relocation.
+
+Synchronous inspection borrows non-shared input without a full 16MiB copy. Slot decoding uses private buffers; shared input and every asynchronous conversion retain a defensive entry snapshot. Offset views and RTC are preserved.

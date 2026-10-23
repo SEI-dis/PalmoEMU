@@ -982,3 +982,9 @@ Original mGBA/Celio credits, MPL-2.0 notices and corresponding source are retain
 Existing PalmoEMU Web bridge and optimization changes are preserved. Dedicated
 HGX2 game-ROM checks cover adjacent-map rendering and desktop performance;
 the validation scope and limitations are recorded in RELEASE_VALIDATION.md.
+
+## PalmoEMU 0.3.39 — rom128-2 and PokemonStart 0.59.0 (2026-10-23)
+
+mGBA/Celio is built from pm-start/mGBA_celio_edition b3975350076fbd3d86e7dc6796cdadb0ccdb9a89 (rom128-2). Retain the existing onikoro334274-cell, liru55 and upstream mGBA credits. New HGX4/OBJ256 files retain the 2026 mGBA contributor MPL-2.0 notices. HGZ rendering compiles only the upstream zlib inflate/checksum dependencies under their retained zlib license; the complete source is included. Existing local backports, log throttling and Web link protocol remain. Native state IDs/encoding remain compatible; accepted ROM/save limits increase to 128MiB/16MiB. Full-bank writable ROM ownership avoids an RTC-triggered duplicate without changing the stored original.
+
+The separately supplied PokemonStart 0.59.0 migration HTML adds physical adventure-slot relocation (3MiB to 8MiB stride). W boxed records remain unchanged. The adapted engine checks both adventures, preserves RTC and unrelated raw bytes, validates all 3,000 logical box positions, and retains the old source save. Existing credit-conditional permission and project credits remain. The original HTML, ROM, save files and native executables are not distributed.

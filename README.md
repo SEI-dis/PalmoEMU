@@ -15,7 +15,7 @@
 | MD | ClownMDEmu / jgenesis | `.md` / `.gen` / `.smd` / `.bin` |
 | NDS（実験版） | DeSmuME 2015 / melonDS | `.nds` |
 
-GBAの64MiB ROMと最大6MiBの拡張セーブにはmGBA Celioを使用します。VBA-NextのROM上限は32MiBです。NDSの受付上限は512MiB、それ以外は64MiBですが、端末のメモリやゲームによっては動作しない場合があります。3DSは公開版の対象外です。
+GBAの128MiB ROMと最大16MiBの拡張セーブにはmGBA Celioを使用します。VBA-NextのROM上限は32MiBです。NDSの受付上限は512MiB、GBA（mGBA）は128MiB、それ以外は64MiBですが、端末のメモリやゲームによっては動作しない場合があります。3DSは公開版の対象外です。
 
 HGX対応ROMの隣接マップの拡張描画には、内蔵のmGBA Celio（rom64-hgx-1）を使用します。
 

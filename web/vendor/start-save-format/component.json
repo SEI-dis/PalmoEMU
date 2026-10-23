@@ -1,20 +1,20 @@
 {
   "schema": 1,
-  "hostContract": "start-format-forward-v2",
-  "distribution": "maintainer-supplied PokemonStart 0.53.1 migration HTML",
-  "distributionVersion": "0.53.1",
+  "hostContract": "start-format-forward-v3",
+  "distribution": "maintainer-supplied PokemonStart 0.59.0 migration HTML",
+  "distributionVersion": "0.59.0",
   "sourceDistributor": "pm-start/PokemonStart",
   "sourceURL": "https://github.com/pm-start/PokemonStart",
   "individualAuthor": null,
   "permission": "On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.",
   "sources": [
     {
-      "name": "セーブデータ移行ツール (1).html",
-      "sha256": "26f67be5bffa469f12837cbe6668a1e02b1a17883173878dca46a8d0cc2269c6"
+      "name": "セーブデータ移行ツール.html",
+      "sha256": "b4e6f2068ebc55ced0310a74f99c3e656aa2c611ff77936ba533bab7930fc3b6"
     },
     {
       "name": "statically decoded embedded JavaScript",
-      "sha256": "4e80d3c60efed7187443e1cd06353422d3f9eff6da3e8dc9d1503aa98574dce2"
+      "sha256": "71c9cabf7a90273602b6f90a531819d50198607d2035eddc6fd5372227f3e883"
     }
   ],
   "direction": {
@@ -35,13 +35,14 @@
   },
   "saveBodyBytes": [
     131072,
-    6291456
+    6291456,
+    16777216
   ],
   "optionalRTCBytes": 16,
   "slotBytes": 3145728,
   "files": {
-    "engine.js": "a7baebeb4786fe33a0c9d2d5fa10ee5230142d1b0051b9f3028201d6a7c67497",
-    "README.md": "3ac1b60e96d636a5ef917c4884b180e1166941cfdf0869d4f5589c330b0e3af7"
+    "engine.js": "50b202c7a8c9dd6f412294a02b34ee0b19482b3439fcef9e80c4e0100f2a6b31",
+    "README.md": "b4379ca5868d64c76e19fd5a92a582c3ad3b2a4d008568d3473402badbf80eb9"
   },
   "localChanges": [
     "Migration-only ES module without UI, network or storage access",
@@ -51,7 +52,10 @@
     "Immutable caller input, selected-slot ownership and raw non-layout/RTC byte preservation",
     "1500 logical records per converted slot and non-box metadata verified after writing",
     "Adopt 0.50.1 forward-writer backup main bank and conditional sector-16 page-zero backup; retain existing L saves byte-for-byte and the separate verified runtime probe correction",
-    "Add reviewed W (63-byte) forward layout, move-high-bit relocation and 0x34ff bridge; retain target-specific allocation ownership, strict validation and no downgrade or lossy rounding"
+    "Add reviewed W (63-byte) forward layout, move-high-bit relocation and 0x34ff bridge; retain target-specific allocation ownership, strict validation and no downgrade or lossy rounding",
+    "Add separately classified 16 MiB physical slot relocation, full-byte conflict checks, unknown-sector preservation and byte-exact relocation verification; retain all earlier record validation and no reverse conversion",
+    "Synchronous inspection borrows ordinary input; shared buffers and asynchronous conversion retain private entry snapshots. No input mutation or changed output bytes.",
+    "Decode the private slot buffer in place instead of cloning it a second time; 16MiB inspection large-buffer allocations fall from 28MiB to 6MiB."
   ],
   "publicationPermission": {
     "scopes": {
@@ -74,5 +78,13 @@
     "verifiedOn": "2026-10-16",
     "contributorList": "https://api.github.com/repos/pm-start/PokemonStart/contributors",
     "releaseCommit": "https://github.com/pm-start/PokemonStart/commit/62ebfdded673b10fa4450b94494166da8147d2bd"
+  },
+  "storageLayout": {
+    "legacySlotStride": 3145728,
+    "currentSlotStride": 8388608,
+    "currentBodyBytes": 16777216,
+    "markerSector": 34,
+    "markerVersion": 2,
+    "minimumTargetVersion": "0.59.0"
   }
 }

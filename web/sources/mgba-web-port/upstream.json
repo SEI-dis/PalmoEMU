@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "repository": "https://github.com/pm-start/mGBA_celio_edition.git",
-  "branch": "rom64",
+  "branch": "rom128",
   "emsdkRepository": "https://github.com/emscripten-core/emsdk.git",
   "emsdkCommit": "b44154299bdefe75ba287874bb63fc9806243771",
   "emscriptenReleasesCommit": "b412b6307e541b93dd93f01b61181e15c17302ec",
   "emscripten": "4.0.15",
-  "reviewedMaxRomBytes": 67108864,
+  "reviewedMaxRomBytes": 134217728,
   "policy": "Build separately, preserve local patches, require unchanged rights/build/dependency policy and save ABI, then full Chromium/WebKit CI. Automatically adopt only the exact tested candidate on unchanged main and publish it. Capacity/state IDs and new license permissions are never changed automatically."
 }

@@ -20,8 +20,10 @@ function measure(input,action){
  const old=fixture35({stamp:0x3100,second:true}),originalHash=hash(old);
  const converted=await api.migrateStartSave(old,{from:'0.49.0',target});
  const wideTarget={version:'0.54.0',minimumSaveVersion:'0.36.2',saveFormat:'W'},wide=await api.migrateStartSave(converted.bytes,{from:'0.50.0',target:wideTarget});
+ const {convertFormatSave}=await import('../src/start-save/format-l.js');
+ const wide16=await convertFormatSave(wide.bytes,{to:'W',storageLayout:2});
  const allocationResults=[];
- for(const [version,bytes] of [['0.49.0',old],['0.50.0',converted.bytes],['0.53.0',wide.bytes]]){
+ for(const [version,bytes] of [['0.49.0',old],['0.50.0',converted.bytes],['0.53.0',wide.bytes],['0.53.0',wide16.bytes]]){
   const padded=new Uint8Array(bytes.length+32).fill(0xac);padded.set(bytes,16);
   const input=padded.subarray(16,-16),before=hash(padded);
   const operations={detect:()=>api.detectStartSaveVersion(input),inspect:()=>api.inspectStartSave(input,version),update:()=>api.inspectStartUpdate(input,version,target)};
@@ -31,8 +33,9 @@ function measure(input,action){
    const expected=name==='detect'?api.detectStartSaveVersion(isolated):name==='inspect'?api.inspectStartSave(isolated,version):api.inspectStartUpdate(isolated,version,target);
    assert.deepEqual(measured.result,expected,`${version} ${name}: offset view and isolated input produce identical results`);
    assert.equal(hash(padded),before,`${version} ${name}: every input byte, both slots and RTC remain unchanged`);
-   assert.equal(measured.inputCopies,version!=='0.49.0'?1:0,`${version} ${name}: only the modern-format vendor retains its own input copy`);
-   if(version!=='0.49.0')assert.ok(measured.largeAllocations<=5,`${name}: Modern inspection omits the facade's redundant full input copy`);
+   assert.equal(measured.inputCopies,0,`${version} ${name}: synchronous inspection must not duplicate the whole ordinary input`);
+   if(version!=='0.49.0')assert.ok(measured.largeAllocations<=2,`${name}: Modern inspection uses slot working copies, not a full save snapshot`);
+   if(bytes.length>16000000)allocationResults.push({name,inputMiB:Number((bytes.length/1048576).toFixed(2)),inputCopies:measured.inputCopies,allocatedMiB:Number(measured.allocatedMiB.toFixed(2))});
    if(version==='0.49.0'&&name!=='inspect'){
     // Baseline before the borrowed read-only view: detect 17 / 102.34 MiB,
     // update 46 / 277.03 MiB. Keep at least the removed full input allocation.

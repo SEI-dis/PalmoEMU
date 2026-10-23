@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
+cmake_policy(SET CMP0079 NEW)
 project(mGBAWeb C)
+file(TO_CMAKE_PATH "${MGBA_SOURCE}" MGBA_SOURCE)
 if(NOT EMSCRIPTEN OR NOT MGBA_SOURCE)
   message(FATAL_ERROR "Use emcmake and pass -DMGBA_SOURCE=/path/to/extracted/rom64/source")
 endif()
@@ -13,6 +15,16 @@ set(USE_DISCORD_RPC OFF)
 set(HAVE_PTHREAD_H OFF CACHE BOOL "Single-thread Web runtime" FORCE)
 add_compile_definitions(DISABLE_THREADING DISABLE_ANON_MMAP _GNU_SOURCE)
 add_subdirectory(${MGBA_SOURCE} core)
+# HGZ materials need inflate. Keep general save-state/VFS compression unchanged;
+# only the HGX renderer enables zlib. Use the pinned upstream bundled sources.
+set(PALMO_ZLIB ${MGBA_SOURCE}/src/third-party/zlib)
+add_library(palmo-hgz STATIC
+  ${PALMO_ZLIB}/adler32.c ${PALMO_ZLIB}/crc32.c ${PALMO_ZLIB}/inflate.c
+  ${PALMO_ZLIB}/inffast.c ${PALMO_ZLIB}/inftrees.c ${PALMO_ZLIB}/zutil.c)
+target_include_directories(palmo-hgz PUBLIC ${PALMO_ZLIB})
+set_property(SOURCE ${MGBA_SOURCE}/src/gba/renderers/software-hgx4.c
+  DIRECTORY ${MGBA_SOURCE} APPEND PROPERTY COMPILE_DEFINITIONS USE_ZLIB)
+target_link_libraries(mgba palmo-hgz)
 add_executable(mgba-web bridge.c)
 get_target_property(CORE_DEFINITIONS mgba COMPILE_DEFINITIONS)
 target_compile_definitions(mgba-web PRIVATE ${CORE_DEFINITIONS})

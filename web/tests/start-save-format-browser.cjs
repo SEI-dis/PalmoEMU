@@ -6,17 +6,17 @@ const {fixture35,fakeROM,hash}=require('./helpers/start-save-fixtures.cjs');
 const {fixture}=require('./helpers/start-rom-profile-fixture.cjs');
 const {changePage,put16}=require('./helpers/start-save-format-fixtures.cjs');
 const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'http://127.0.0.1:4173/';
-(async()=>{
+async function run(cases=[[50,0,'0.49.0'],[50,1,'0.49.0'],[53,1,'0.49.0'],[53,1,'0.50.1'],[53,1,'0.52.0']]){
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'palmo-format-l-'));let browser;
  try{
   browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
   const {convertFormatSave}=await import('../src/start-save/format-l.js');
-  for(const [minor,patch,from] of [[50,0,'0.49.0'],[50,1,'0.49.0'],[53,1,'0.49.0'],[53,1,'0.50.1'],[53,1,'0.52.0']]){
-  const targetVersion=`0.${minor}.${patch}`,targetBytes=fixture({stamp:(minor<<8)+patch,rangeGate:true,upperImmediate:patch===0,lFormat:minor===50,wFormat:minor===53}).bytes;
+  for(const [minor,patch,from] of cases){
+  const targetVersion=`0.${minor}.${patch}`,targetBytes=fixture({stamp:(minor<<8)+patch,rangeGate:true,upperImmediate:patch===0,lFormat:minor===50,wFormat:minor>=53}).bytes;
   const file=path.join(dir,`PokemonStart_v${targetVersion}.gba`);fs.writeFileSync(file,targetBytes);
   let original=fixture35({stamp:0x3100,second:true});
   if(from!=='0.49.0'){
-   original=(await convertFormatSave(original)).bytes;
+   original=(await convertFormatSave(original,{to:from==='0.57.0'?'W':'L'})).bytes;
    const [,minor,patch]=from.split('.').map(Number);
    for(const slot of [0,1])original=changePage(original,slot,10,page=>put16(page,0x245,(minor<<8)+patch));
   }
@@ -83,13 +83,15 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
    }
    const before=await hash(save.bytes),plan=await prepareROMUpdate(source,target);let rejected=false;
    try{await importROM(rom,'gba',null,{updatePlan:{...plan,startCopy:{from,allowUnverified:true}}});}catch{rejected=true;}
-   return {source:await hash((await db.get('saves',source)).bytes),backup:await hash(backup.save.bytes),target:before,unchanged:before===await hash((await db.get('saves',target.id)).bytes),rejected,slots:profile.slots.map(s=>({valid:s.valid,format:s.format,stamp:s.versionStamp})),migration:game.romUpdate.migration,current,transfer,invalidStoredTarget,attempts:coreAttempts};
+   return {source:await hash((await db.get('saves',source)).bytes),backup:await hash(backup.save.bytes),target:before,unchanged:before===await hash((await db.get('saves',target.id)).bytes),rejected,bodyBytes:profile.bodyBytes,layout:profile.layout,slots:profile.slots.map(s=>({valid:s.valid,format:s.format,stamp:s.versionStamp})),migration:game.romUpdate.migration,current,transfer,invalidStoredTarget,attempts:coreAttempts};
   },{source,targetVersion,from});
   assert.equal(result.source,hash(original));assert.equal(result.backup,hash(original));assert.notEqual(result.target,hash(original));
   assert.equal(result.unchanged,true);assert.equal(result.rejected,true);
-  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:minor===53?'W':'L',stamp:minor===53?0x34ff:0x31ff})));
-  assert.deepEqual(result.migration,{kind:'start',from,to:targetVersion,...(patch?{via:`0.${minor}.0`}:{})});
-  assert.equal(result.current.version,`0.${minor}.0`);assert.equal(result.current.compatibility.status,'compatible');assert.equal(result.current.validationError,null);
+  const bridge=from==='0.57.0'?'0.57.0':minor>=53?'0.53.0':'0.50.0';
+  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:minor>=53?'W':'L',stamp:from==='0.57.0'?0x3900:minor>=53?0x34ff:0x31ff})));
+  assert.deepEqual(result.migration,{kind:'start',from,to:targetVersion,...(bridge!==targetVersion?{via:bridge}:{})});
+  if(minor>=59){assert.equal(result.bodyBytes,16777216);assert.equal(result.layout.version,2);}
+  assert.equal(result.current.version,bridge);assert.equal(result.current.compatibility.status,'compatible');assert.equal(result.current.validationError,null);
   assert.equal(result.current.testWorker.romReads.length,1,'Same-ROM inspection reads/scans the large ROM once');
   if(result.transfer){
    assert.equal(result.transfer.transfers,2);assert.equal(result.transfer.transferBytes,original.length*2);assert.equal(result.transfer.independent,true);
@@ -104,4 +106,6 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   if(browser)await browser.close();
   assert.equal(path.dirname(path.resolve(dir)),path.resolve(os.tmpdir()));assert(path.basename(dir).startsWith('palmo-format-l-'));fs.rmSync(dir,{recursive:true,force:true});
  }
-})().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});
+}
+module.exports=run;
+if(require.main===module)run().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

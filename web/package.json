@@ -1,14 +1,17 @@
 {
   "name": "palmoemu",
-  "version": "0.3.38",
+  "version": "0.3.39",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
     "test": "node tests/core.cjs",
     "test:rom-memory": "node tests/rom-memory.cjs",
     "test:rom-capacity": "node tests/rom-capacity.cjs",
+    "test:start-save-layout-browser": "node tests/start-save-layout-browser.cjs",
+    "test:start-save-layout": "node tests/start-save-layout.cjs",
     "test:start-save-memory": "node tests/start-save-memory.cjs",
     "test:start-save-worker-memory": "node tests/start-save-worker-memory.cjs",
+    "test:mgba-rom128": "node tests/mgba-rom128.cjs",
     "test:mgba-memory": "node tests/mgba-memory.cjs",
     "test:mgba-hgx": "node tests/mgba-hgx.cjs",
     "test:mgba-hgx-browser": "node tests/mgba-hgx-browser.cjs",

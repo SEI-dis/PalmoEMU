@@ -42,17 +42,17 @@
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "a129c7a42a8f5bc5764043d9ea35cc880c0f1ba2a5b6c42f94450ee1fb058d2b",
+        "sha256": "daad7ac676459d3bfa4e4149a0fdf354eba8f58f4cb822e37c2911ee67117f17",
         "rebuildMatches": true
       }
     }
   },
   "archives": {
     "libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
-    "mgba-celio-rom64-source.tar.gz": "f071ced8eabaf055c90fdab350d3ef1b2a20e3f63ca61db940883e7df6553019"
+    "mgba-celio-rom64-source.tar.gz": "bb6422913a73a61b7fa8914634051f2edfd1f686c1298e1d218d8249abd528ee"
   },
-  "mgbaUpdatedOn": "2026-10-21",
-  "mgbaCommit": "e691a05b10e3ad1c6f95485ea3f539037519877a",
+  "mgbaUpdatedOn": "2026-10-23",
+  "mgbaCommit": "b3975350076fbd3d86e7dc6796cdadb0ccdb9a89",
   "fceummUpdatedOn": "2026-10-12",
   "fceummBackport": {
     "repository": "https://github.com/EmulatorJS/libretro-fceumm",
@@ -69,13 +69,13 @@
       "file": "src/util/audio-buffer.c",
       "beforeSha256": "11d44588899bbdb745fe1dff8b5df1193a5e254ee7a3d7559ada43b6c5b99080",
       "upstreamSha256": "12e109f168494c64dc041a0f02c087085f060fd1424f1966f83a743d55ea1981",
-      "modifiedSha256": "6f5aeebc5918036b0e6b41d13d892f57a6ee82dbc679511be82a53c8b7c1faf9"
+      "modifiedSha256": "5618a1015ca9baabab70c14d9789688924596dc0a50c784c2be75d98d23c61c3"
     },
     {
       "file": "src/util/audio-resampler.c",
       "beforeSha256": "3ac0b801ad71fc65a2a72a4bb4b752aa7891d254834fe914bb6c604e20805192",
       "upstreamSha256": "378cc6d701e51f6d37cab802501508daef9b5a37c835b706eb187054e3099fd1",
-      "modifiedSha256": "92cf2d35c10e315565aa8fc6de24cb863f435559c59b51e19d6b311e4360d61d"
+      "modifiedSha256": "baf076f7ad2a66f44e45a51d398b35e00f40ad83ab792d11ee49e98d3f195bc1"
     },
     {
       "file": "src/arm/isa-arm.c",
@@ -87,7 +87,7 @@
       "file": "src/gba/renderers/software-mode0.c",
       "beforeSha256": "b9d2a891930f37ab823e21950cb32f173559fe87c4e604a1eb7f7842240a104a",
       "upstreamSha256": "ecefc48132a467525c700746d1a852d5fd786096e32063146f20012879a6d586",
-      "modifiedSha256": "86aa676c873b6bbdc18f174945b089046ba095a3317fa2ec13d4bc0be3efa528"
+      "modifiedSha256": "6cecc6fda21a38cc08abf0fcdf35fc1c2ad0a03ea0c5b979c02132b8fc6e9556"
     }
   ],
   "peripheralBuildUpdatedOn": "2026-10-13",
@@ -189,5 +189,38 @@
       }
     ],
     "releaseTag": "rom64-hgx-1"
+  },
+  "automaticUpdate": {
+    "report": "mgba-update-review.json",
+    "localPatches": [
+      {
+        "file": "src/arm/isa-arm.c",
+        "patchSha256": "180dbe3bab9676f778df36a3a5c4dec225630f899ef67313e105cd7b599b9ba9"
+      },
+      {
+        "file": "src/gba/renderers/software-mode0.c",
+        "patchSha256": "fbff3166bca0f6d61caef31e3ad18ebefc20200862e303cba74c82d5766d2714"
+      },
+      {
+        "file": "src/util/audio-buffer.c",
+        "patchSha256": "250cb16302d02f2571845a830c946a31676f0e7257145d0d09aae04e5dcada5e"
+      },
+      {
+        "file": "version.cmake",
+        "patchSha256": "2b5c97f4e2c5e9ad2c191ad645edd9f545ccc329a3c035918211f1957de7b3c5"
+      },
+      {
+        "file": "src/util/audio-resampler.c",
+        "manualMerge": "Retain cached non-aliased counts and adopt upstream mAudioBufferFull for aliased buffers",
+        "sha256": "baf076f7ad2a66f44e45a51d398b35e00f40ad83ab792d11ee49e98d3f195bc1"
+      }
+    ]
+  },
+  "rom128Build": {
+    "date": "2026-10-23",
+    "release": "rom128-2",
+    "method": "Separate full-source and distributed compiler-closure CMake/Ninja builds; JS/WASM byte-identical. HGZ-only zlib inflate; unchanged native state encoding. 288 upstream HGX/HGZ assertions passed against this linked core.",
+    "ownedRomHeapMiB": 187.125,
+    "actualRomBytes": 134217728
   }
 }

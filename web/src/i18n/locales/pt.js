@@ -1430,5 +1430,8 @@ export default {
  "PokemonStart開発・協力：": "Desenvolvedores e colaboradores do PokemonStart:",
  "開始前に端末内へバックアップします。切断や中止時は⟪0⟫通信前に戻ります。⟪1⟫⟪2⟫ゲーム内の通信開始後に別のタブやアプリへ移ると切断します。": "Antes de começar, será criado um backup neste dispositivo. Em caso de desconexão ou cancelamento, ⟪0⟫ será restaurado ao estado anterior à comunicação. ⟪1⟫ ⟪2⟫ A conexão será encerrada se você mudar para outra aba ou aplicativo depois que a comunicação dentro do jogo começar.",
  "部屋番号の共有中は、画面に戻るまで開始を待ちます。端末やサーバーが接続を切った場合は、部屋を作り直してください。": "Enquanto você compartilha o número da sala, a comunicação aguarda seu retorno. Se o dispositivo ou o servidor encerrar a conexão, crie uma nova sala.",
- "画面に戻るまで通信開始を待っています。": "Aguardando seu retorno para iniciar a comunicação."
+ "画面に戻るまで通信開始を待っています。": "Aguardando seu retorno para iniciar a comunicação.",
+ "mGBA celio edition · 128MiB対応": "mGBA celio edition · Suporte a 128MiB",
+ "128KiB・6MiB・16MiBの通常セーブを選択してください。": "Selecione dados salvos dentro do jogo de 128KiB, 6MiB ou 16MiB.",
+ "128KiB・1MiB・6MiB・16MiBの通常セーブを選択してください。": "Selecione dados salvos dentro do jogo de 128KiB, 1MiB, 6MiB ou 16MiB."
 };

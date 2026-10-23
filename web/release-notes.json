@@ -1,6 +1,57 @@
 {
   "releases": [
     {
+      "version": "0.3.39",
+      "date": "2026-10-23",
+      "changes": [
+        "内蔵mGBAをrom128-2に更新し、128MiB ROM・16MiBセーブと新しいHGX/HGZ描画に対応しました。",
+        "PokemonStart 0.59.0以降への更新時に、必要な場合は「ぼうけんのしょ2」の保存位置を自動変換します。元のROMとセーブは残ります。",
+        "時計機能を使う大きなROMの起動時に、ROMの重複コピーを減らしてメモリ使用量を削減しました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "内置 mGBA 已更新至 rom128-2，支持 128MiB ROM、16MiB 存档和新的 HGX/HGZ 渲染。",
+          "更新至 PokemonStart 0.59.0 或更高版本时，会在需要时自动转换冒险存档 2 的存储位置。原 ROM 和存档会保留。",
+          "减少了使用时钟功能的大容量 ROM 在启动时的重复复制，降低内存占用。"
+        ],
+        "zh-Hant": [
+          "內建 mGBA 已更新至 rom128-2，支援 128MiB ROM、16MiB 存檔與新的 HGX/HGZ 繪圖功能。",
+          "更新至 PokemonStart 0.59.0 或更新版本時，會在需要時自動轉換冒險存檔 2 的儲存位置。原本的 ROM 與存檔會保留。",
+          "減少使用時鐘功能的大容量 ROM 在啟動時的重複複製，降低記憶體用量。"
+        ],
+        "ko": [
+          "내장 mGBA를 rom128-2로 업데이트하여 128MiB ROM, 16MiB 세이브와 새로운 HGX/HGZ 렌더링을 지원합니다.",
+          "PokemonStart 0.59.0 이상으로 업데이트할 때 필요한 경우 모험 세이브 슬롯 2의 저장 위치를 자동으로 변환합니다. 원본 ROM과 세이브는 유지됩니다.",
+          "시계 기능을 사용하는 대용량 ROM을 시작할 때 중복 복사를 줄여 메모리 사용량을 낮췄습니다."
+        ],
+        "es": [
+          "El núcleo mGBA integrado se ha actualizado a rom128-2, con soporte para ROM de 128MiB, partidas guardadas de 16MiB y el nuevo renderizado HGX/HGZ.",
+          "Al actualizar a PokemonStart 0.59.0 o posterior, se convierte automáticamente la ubicación de almacenamiento de la segunda partida cuando es necesario. Se conservan la ROM y la partida originales.",
+          "Se han reducido las copias duplicadas de la ROM al iniciar juegos de gran tamaño que usan el reloj, para consumir menos memoria."
+        ],
+        "fr": [
+          "Le cœur mGBA intégré passe à rom128-2, avec la prise en charge des ROM de 128MiB, des sauvegardes de 16MiB et du nouveau rendu HGX/HGZ.",
+          "Lors du passage à PokemonStart 0.59.0 ou ultérieur, l’emplacement de sauvegarde de la deuxième aventure est converti automatiquement si nécessaire. La ROM et la sauvegarde d’origine sont conservées.",
+          "Les copies en double de la ROM au démarrage ont été réduites pour limiter la mémoire utilisée par les grandes ROM utilisant la fonction horloge."
+        ],
+        "de": [
+          "Der integrierte mGBA-Core wurde auf rom128-2 aktualisiert und unterstützt nun 128MiB-ROMs, 16MiB-Spielstände und die neue HGX/HGZ-Grafikdarstellung.",
+          "Beim Update auf PokemonStart 0.59.0 oder neuer wird der Speicherort des zweiten Abenteuers bei Bedarf automatisch umgewandelt. Die ursprüngliche ROM und der ursprüngliche Spielstand bleiben erhalten.",
+          "Beim Start großer ROMs mit Uhrfunktion werden weniger doppelte ROM-Kopien angelegt, um den Speicherverbrauch zu senken."
+        ],
+        "pt": [
+          "O núcleo mGBA integrado foi atualizado para rom128-2, com suporte a ROMs de 128MiB, dados salvos de 16MiB e à nova renderização HGX/HGZ.",
+          "Ao atualizar para PokemonStart 0.59.0 ou posterior, o local de armazenamento do segundo slot de aventura é convertido automaticamente quando necessário. A ROM e os dados salvos originais são mantidos.",
+          "Reduzimos as cópias duplicadas da ROM na inicialização para diminuir o uso de memória em ROMs grandes que usam a função de relógio."
+        ]
+      },
+      "changesEn": [
+        "Updated the built-in mGBA core to rom128-2, adding support for 128MiB ROMs, 16MiB saves and new HGX/HGZ rendering.",
+        "When updating to PokemonStart 0.59.0 or later, the storage location of adventure slot 2 is converted automatically when needed. The original ROM and save are kept.",
+        "Reduced duplicate ROM copies at startup to lower memory usage for large ROMs that use the clock feature."
+      ]
+    },
+    {
       "version": "0.3.38",
       "date": "2026-10-21",
       "changes": [

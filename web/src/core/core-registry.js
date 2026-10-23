@@ -5,7 +5,7 @@ import {defaultMaxROMBytes,mgbaMaxROMBytes,standardGBAROMBytes,ndsMaxROMBytes,de
 const MiB=1048576;
 import {development3DS} from './development.js';
 const definition=(key,name,adapter,id,directory,{maxRom=defaultMaxROMBytes,cheats=true,link=false,saveExtension='sav',maxSave=MiB,...extra}={})=>Object.freeze({key,name,adapter,id,directory,maxRom,cheats,link,saveExtension,maxSave,...extra});
-const mgba=definition('mgba','mGBA Celio (64 MB)','mgba','mgba-rom64-save6-v2','mgba',{maxRom:mgbaMaxROMBytes,link:true,maxSave:6*MiB+16,compatibleStateIds:['mgba-rom64-link-v1']});
+const mgba=definition('mgba','mGBA Celio (128 MiB)','mgba','mgba-rom64-save6-v2','mgba',{maxRom:mgbaMaxROMBytes,link:true,maxSave:16*MiB+16,compatibleStateIds:['mgba-rom64-link-v1']});
 const jgenesis=definition('jgenesis','jgenesis','jgenesis','jgenesis-0.14.1-web-v1','jgenesis',{cheats:false,saveExtension:'jgsav',maxSave:4*MiB});
 export const coreRegistry=Object.freeze({
  ...(development3DS?{'3ds':[definition('azahar',tr('Azahar（開発版）'),'3ds','azahar-'+globalThis.__LOCAL_PLAY_3DS_ABI__,'__dev3ds__',{maxRom:development3DSMaxROMBytes,maxSave:128*MiB,saveExtension:'lp3sav',cheats:false,renderLimit:false})]}:{}),

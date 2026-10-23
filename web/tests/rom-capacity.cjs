@@ -23,9 +23,9 @@ function directoryROM(system,size){
 (async()=>{
  const capacity=await import('../src/core/rom-capacity.js');
  const {standardGBAROMBytes,mgbaMaxROMBytes,futureGBAROMBytes,maxROMBytes,supportsROMSize,isROMSizeSupported,patchMaxROMBytes,patchMaxFileBytes,maxROMZipSize,maxROMZipExpandedSize}=capacity;
- assert.equal(standardGBAROMBytes,32*MiB);assert.equal(mgbaMaxROMBytes,64*MiB);assert.equal(futureGBAROMBytes,128*MiB);
- assert.equal(supportsROMSize('gba',futureGBAROMBytes),false,'128 MiB is a review target, never an enabled capacity');
- for(const [system,limit]of Object.entries({gba:64,gb:64,gbc:64,nes:64,snes:64,md:64,nds:512,'3ds':4096})){
+ assert.equal(standardGBAROMBytes,32*MiB);assert.equal(mgbaMaxROMBytes,128*MiB);assert.equal(futureGBAROMBytes,128*MiB);
+ assert.equal(supportsROMSize('gba',futureGBAROMBytes),true,'128 MiB is now a reviewed capacity');
+ for(const [system,limit]of Object.entries({gba:128,gb:64,gbc:64,nes:64,snes:64,md:64,nds:512,'3ds':4096})){
   assert.equal(maxROMBytes(system),limit*MiB);
   for(const size of [1,limit*MiB])assert.equal(supportsROMSize(system,size),true);
   for(const size of [0,-1,1.5,NaN,Infinity,limit*MiB+1])assert.equal(supportsROMSize(system,size),false);
@@ -35,9 +35,9 @@ function directoryROM(system,size){
  const {coreRegistry,supportsGame,saveKey,compatibleState}=await import('../src/core/core-registry.js');
  const [mgba,vba]=coreRegistry.gba;
  assert.equal(mgba.maxRom,mgbaMaxROMBytes);assert.equal(vba.maxRom,standardGBAROMBytes);
- assert.equal(supportsGame(mgba,{size:mgbaMaxROMBytes}),true);assert.equal(supportsGame(mgba,{size:futureGBAROMBytes}),false);
+ assert.equal(supportsGame(mgba,{size:mgbaMaxROMBytes}),true);assert.equal(supportsGame(mgba,{size:futureGBAROMBytes}),true);
  assert.equal(supportsGame(vba,{size:standardGBAROMBytes}),true);assert.equal(supportsGame(vba,{size:standardGBAROMBytes+1}),false);
- assert.equal(mgba.id,'mgba-rom64-save6-v2');assert.equal(mgba.maxSave,6*MiB+16);
+ assert.equal(mgba.id,'mgba-rom64-save6-v2');assert.equal(mgba.maxSave,16*MiB+16);
  assert.equal(saveKey({id:'synthetic',system:'gba'}),'synthetic');assert.equal(saveKey({id:'synthetic',system:'gba',coreKey:'vba-next'}),'synthetic@vba-next');
  assert.equal(compatibleState(mgba.id,{coreId:'mgba-rom64-link-v1'}),true);
  // This is a source/build-policy synchronization gate, not evidence that an
@@ -55,7 +55,7 @@ function directoryROM(system,size){
  const originalWorker=globalThis.Worker;let workers=0,stopped=0;
  globalThis.Worker=class {constructor(){workers++;}postMessage(){queueMicrotask(()=>this.onmessage({data:{type:'done'}}));}terminate(){stopped++;}};
  try{
-  for(const size of [0,-1,NaN,mgbaMaxROMBytes+1,futureGBAROMBytes])await assert.rejects(importROM({name:'synthetic.gba',size},'gba'),/このROM容量/);
+  for(const size of [0,-1,NaN,mgbaMaxROMBytes+1,256*MiB])await assert.rejects(importROM({name:'synthetic.gba',size},'gba'),/このROM容量/);
   await assert.rejects(importROM({name:'synthetic.zip',size:maxROMZipSize+1}),/ZIP/);
   assert.equal(workers,0,'Changing a UI limit cannot bypass admission or create a Worker for an oversized ROM');
   for(const size of [standardGBAROMBytes,mgbaMaxROMBytes])await importROM({name:'synthetic.gba',size},'gba');
@@ -64,9 +64,9 @@ function directoryROM(system,size){
  const {listROMZip,extractROMZip}=await import('../src/library/rom-zip.js');
  assert.equal((await listROMZip(directoryROM('gba',mgbaMaxROMBytes)))[0].length,mgbaMaxROMBytes);
  assert.equal((await listROMZip(directoryROM('nds',512*MiB)))[0].length,512*MiB);
- for(const size of [mgbaMaxROMBytes+1,futureGBAROMBytes])await assert.rejects(listROMZip(directoryROM('gba',size)),/ZIP内のゲームが大きすぎ/);
+ for(const size of [mgbaMaxROMBytes+1,mgbaMaxROMBytes*2])await assert.rejects(listROMZip(directoryROM('gba',size)),/ZIP内のゲームが大きすぎ/);
  let reads=0;const unreadable={slice(){reads++;throw Error('Unexpected input read');},arrayBuffer(){reads++;throw Error('Unexpected input read');}};
- await assert.rejects(extractROMZip(unreadable,{system:'gba',length:futureGBAROMBytes}),/ZIP/);assert.equal(reads,0,'Oversized ZIP entry is refused before slicing or output allocation');
+ await assert.rejects(extractROMZip(unreadable,{system:'gba',length:mgbaMaxROMBytes+1}),/ZIP/);assert.equal(reads,0,'Oversized ZIP entry is refused before slicing or output allocation');
  const {applyROMPatch}=await import('../src/library/rom-patch.js');
  for(const [rom,patch]of [[futureGBAROMBytes,1],[1,patchMaxFileBytes+1]])await assert.rejects(applyROMPatch({...unreadable,size:rom},{...unreadable,size:patch}),/64 MiB/);
  assert.equal(reads,0,'Oversized patch inputs are refused before ArrayBuffer copies');
@@ -93,7 +93,7 @@ function directoryROM(system,size){
     try{await applyROMPatch(rom,new File([new Uint8Array(bytes)],'synthetic.patch'));errors.push(null);}catch(error){errors.push(error.message);}
    }
    const workerErrors=[];
-   for(const size of [mgbaMaxROMBytes+1,futureGBAROMBytes]){
+   for(const size of [mgbaMaxROMBytes+1,mgbaMaxROMBytes*2]){
     workerErrors.push(await new Promise((resolve,reject)=>{
      const worker=new Worker(new URL('./src/library/rom-import-worker.js',location.href),{type:'module'}),timer=setTimeout(()=>{worker.terminate();reject(Error('Import guard timeout'));},10000);
      const finish=value=>{clearTimeout(timer);worker.terminate();resolve(value);};
@@ -109,5 +109,5 @@ function directoryROM(system,size){
   for(const error of result.workerErrors)assert.match(error,/このROM容量には対応していません/,'Direct Worker entry rejects unsupported size before trying FileReader');
   await context.close();
  }finally{try{if(browser)await browser.close();}finally{await new Promise(resolve=>server.close(resolve));}}
- console.log('PASS: '+kind+' reviewed 64 MiB / VBA 32 MiB contract, native-policy synchronization, pre-read import/ZIP/patch guards and disabled 128 MiB targets.');
+ console.log('PASS: '+kind+' reviewed 128 MiB / VBA 32 MiB contract, native-policy synchronization, pre-read import/ZIP/patch guards and separate 64 MiB patch budget.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

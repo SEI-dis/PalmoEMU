@@ -40,8 +40,8 @@ EMSCRIPTEN_KEEPALIVE int web_select(unsigned instance) {
   save=c->saveData; state=c->stateData; width=c->w; height=c->h;
   return 1;
 }
-/* 16 MiB extra RAM + 6 MiB flash + core/RTC metadata. */
-#define WEB_STATE_LIMIT (32 * 1024 * 1024)
+/* 16 MiB extra RAM + up to 16 MiB flash + core/RTC metadata. */
+#define WEB_STATE_LIMIT (48 * 1024 * 1024)
 #ifdef GBA_SIZE_FLASH_EXT
 #define WEB_GBA_SAVE_LIMIT (GBA_SIZE_FLASH_EXT + sizeof(struct GBASavedataRTCBuffer))
 #else
@@ -73,7 +73,7 @@ EMSCRIPTEN_KEEPALIVE void web_close(void) {
  * Browser callers can transfer their input instead of retaining two ROMs.
  * Returns 1 on success, 0 for rejected data, -1 for missing startup memory. */
 EMSCRIPTEN_KEEPALIVE int web_load_owned(void* data, size_t size) {
-  if (!data || !size || size > 64 * 1024 * 1024) { free(data); return 0; }
+  if (!data || !size || size > 128 * 1024 * 1024) { free(data); return 0; }
   web_close();
   web_log_init();
   rom = data;
@@ -106,6 +106,19 @@ EMSCRIPTEN_KEEPALIVE int web_load_owned(void* data, size_t size) {
   core->setVideoBuffer(core, pixels, 256);
   core->setAudioBufferSize(core, 4096);
   if (!core->loadROM(core, vf)) { vf->close(vf); web_close(); return 0; }
+  /* VFileFromMemory maps our private malloc allocation directly. Exact full
+   * GBA banks already have the native writable-buffer extent, so hand them to
+   * GBAUnloadROM now instead of making another full copy for GPIO/RTC reset.
+   * Smaller/odd ROMs keep native copy-on-write (it also supplies padding).
+   * Drop the bridge owner before reset; native unload alone frees this data. */
+  if (core->platform(core) == mPLATFORM_GBA &&
+      (size == 32 * 1024 * 1024 || size == 64 * 1024 * 1024 || size == 128 * 1024 * 1024)) {
+    struct GBA* gba = core->board;
+    if (gba->isPristine && (void*) gba->memory.rom == rom && gba->memory.romSize == size) {
+      gba->isPristine = false;
+      rom = NULL;
+    }
+  }
   web_options_init();
   core->reset(core);
   web_save_watch_init();
@@ -117,7 +130,7 @@ EMSCRIPTEN_KEEPALIVE int web_load_owned(void* data, size_t size) {
 EMSCRIPTEN_KEEPALIVE size_t web_gba_save_capacity(void) { return WEB_GBA_SAVE_LIMIT; }
 /* Retain the copying ABI for existing callers and saved tooling. */
 EMSCRIPTEN_KEEPALIVE int web_load(const void* data, size_t size) {
-  if (!data || !size || size > 64 * 1024 * 1024) return 0;
+  if (!data || !size || size > 128 * 1024 * 1024) return 0;
   web_close();
   void* copy = malloc(size);
   if (!copy) return 0;
@@ -155,6 +168,14 @@ EMSCRIPTEN_KEEPALIVE size_t web_save_export(void) {
 EMSCRIPTEN_KEEPALIVE void* web_save_data(void) { return save; }
 EMSCRIPTEN_KEEPALIVE size_t web_save_limit(void) { return core && core->platform(core) == mPLATFORM_GBA ? WEB_GBA_SAVE_LIMIT : 1024 * 1024; }
 EMSCRIPTEN_KEEPALIVE int web_save_import(const void* data, size_t size) {
+  /* The enlarged limit must not admit a truncated/odd-sized extended flash.
+   * Standard saves retain native validation; extended containers have only
+   * the reviewed 1/6/16 MiB bodies and optional 16-byte RTC trailer. */
+  if (core && core->platform(core) == mPLATFORM_GBA && size > 0x20000 + 16) {
+    size_t body = size & ~(size_t) 0xFFF, tail = size - body;
+    if ((tail != 0 && tail != 16) ||
+        (body != 0x100000 && body != 0x600000 && body != 0x1000000)) return 0;
+  }
   int ok = core && data && size && size <= web_save_limit() && core->savedataRestore(core, data, size, false);
   if (ok) web_save_watch_baseline();
   return ok;

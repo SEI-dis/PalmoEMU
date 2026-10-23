@@ -1,4 +1,4 @@
-/* PokemonStart v0.53.1 save-format migration, extracted and adapted for PalmoEMU.
+/* PokemonStart v0.59.0 save-format migration, extracted and adapted for PalmoEMU.
  * Source distributor: pm-start/PokemonStart. See README.md and component.json.
  * Project-specific permission; no standardized upstream license was supplied.
  * This component is separate from the earlier START Save Migrate component.
@@ -6,6 +6,7 @@
 
 const SECTOR=0x1000,DATA=0xff0,SIGNATURE=0x08012025,SLOT_BYTES=3*1024*1024;
 const FULL_BYTES=2*SLOT_BYTES,SMALL_BYTES=32*SECTOR,VERSION_OFFSET=0xba,VERSION_GUARD=0x31ff,WIDE_VERSION_GUARD=0x34ff;
+const LARGE_SLOT_BYTES=8*1024*1024,LARGE_FULL_BYTES=2*LARGE_SLOT_BYTES,MARK_OFFSET=34*SECTOR;
 const SECTION_SIZES=[0xf24,DATA,DATA,DATA,0xd98],MAP_OFFSET=0x1400;
 const PAGE0_MON=4+0x98+0xef+0xba0,EXT_META_SIZE=110,REGION_BOX_OFFSET=0x0203cabc-0x0203bfac;
 const SB1_BOX_OFFSET=0x18e8,SB2_BOX_OFFSET=0xf8,MON_BYTES=58,BOX_COUNT=50,BOX_SLOTS=30;
@@ -20,17 +21,20 @@ const key=Uint8Array.from({length:SECTOR},(_,i)=>{
 });
 function fail(code,slot){const error=new Error(code);error.code='START_FORMAT_'+code;if(slot!==undefined)error.slot=slot;throw error;}
 function abort(signal){if(signal?.aborted){const error=new Error('Migration cancelled');error.name='AbortError';throw error;}}
-function input(value){
+function input(value,copy=true){
  const bytes=value instanceof Uint8Array?value:value instanceof ArrayBuffer?new Uint8Array(value):null;
  if(!bytes)fail('INPUT');
  const rtcBytes=bytes.length%SECTOR,bodyBytes=bytes.length-rtcBytes;
- if(![SMALL_BYTES,FULL_BYTES].includes(bodyBytes)||![0,16].includes(rtcBytes))fail('SIZE');
- return {raw:Uint8Array.from(bytes),bodyBytes,rtcBytes};
+ if(![SMALL_BYTES,FULL_BYTES,LARGE_FULL_BYTES].includes(bodyBytes)||![0,16].includes(rtcBytes))fail('SIZE');
+ // Synchronous inspection borrows ordinary input. Async conversion and shared
+ // memory still need a snapshot; all decoding operates on private slot copies.
+ const shared=typeof SharedArrayBuffer!=='undefined'&&bytes.buffer instanceof SharedArrayBuffer;
+ return {raw:copy||shared?Uint8Array.from(bytes):bytes,bodyBytes,rtcBytes};
 }
 function checksum(bytes,offset,size){let sum=0;for(let i=0;i<(size&~3);i+=4)sum=(sum+u32(bytes,offset+i))>>>0;return ((sum>>>16)+sum)&65535;}
 function xor(bytes){const out=bytes.slice();for(let i=0;i<SECTOR;i++)out[i]^=key[i];return out;}
-function decode(raw){
- const out=raw.slice();
+// Caller supplies a private, padded slot buffer; never decode caller input.
+function decodeOwned(out){
  for(let o=0;o+SECTOR<=out.length;o+=SECTOR){
   if(u32(out,o+0xff8)===SIGNATURE)continue;
   if(((u32(out,o+0xff8)^u32(key,0xff8))>>>0)===SIGNATURE)out.set(xor(out.subarray(o,o+SECTOR)),o);
@@ -202,10 +206,31 @@ function verifyLogical(expected,actual){
  if(actual.boxes.length!==1500)fail('OUTPUT');
  for(let i=0;i<1500;i++)if(expected.boxes[i].ext!==actual.boxes[i].ext||expected.boxes[i].hi!==actual.boxes[i].hi||!equal(expected.boxes[i].bytes,actual.boxes[i].bytes))fail('OUTPUT');
 }
-function image(raw,bodyBytes,slot){const out=new Uint8Array(SLOT_BYTES).fill(255),offset=slot*SLOT_BYTES;if(offset<bodyBytes)out.set(raw.subarray(offset,Math.min(offset+SLOT_BYTES,bodyBytes)));return decode(out);}
+function marker(bytes){
+ if(bytes.length!==SECTOR)return null;
+ for(const crypt of [false,true]){
+  const at=i=>bytes[i]^(crypt?key[i]:0);
+  if(at(0)!==0x53||at(1)!==0x4c||at(2)!==0x56||at(3)!==0)continue;
+  const version=at(4)|(at(5)<<8),check=at(6)|(at(7)<<8);
+  if(version>=1&&version<=255&&check===(version^65535))return version;
+ }
+ return null;
+}
+function layout(raw,bodyBytes){
+ const mark=marker(raw.subarray(MARK_OFFSET,MARK_OFFSET+SECTOR));
+ if(mark!==null&&mark>2)fail('STORAGE_VERSION');
+ const legacy=bodyBytes>=FULL_BYTES&&!erased(raw.subarray(SLOT_BYTES,FULL_BYTES));
+ const modern=bodyBytes===LARGE_FULL_BYTES&&!erased(raw.subarray(LARGE_SLOT_BYTES,LARGE_SLOT_BYTES+SLOT_BYTES));
+ if(mark!==2&&legacy&&modern)fail('STORAGE_CONFLICT');
+ const version=mark===2||modern?2:1;
+ return {version,slotStride:version===2?LARGE_SLOT_BYTES:SLOT_BYTES,needsMigration:version===1&&legacy};
+}
+// A layout marker alone is not an adventure. Every other byte must be erased.
+function unusedImage(img){return erased(img)||marker(img.subarray(MARK_OFFSET,MARK_OFFSET+SECTOR))!==null&&erased(img.subarray(0,MARK_OFFSET))&&erased(img.subarray(MARK_OFFSET+SECTOR));}
+function image(raw,bodyBytes,slot){const out=new Uint8Array(SLOT_BYTES).fill(255),offset=slot*layout(raw,bodyBytes).slotStride;if(offset<bodyBytes)out.set(raw.subarray(offset,Math.min(offset+SLOT_BYTES,bodyBytes)));return decodeOwned(out);}
 function inspectSlot(raw,bodyBytes,slot){
  const img=image(raw,bodyBytes,slot);
- if(erased(img))return {slot,valid:false,unused:true,format:null,versionStamp:null,counter:null,bank:null,mons:0,reason:null};
+ if(unusedImage(img))return {slot,valid:false,unused:true,format:null,versionStamp:null,counter:null,bank:null,mons:0,reason:null};
  try{
   const logical=readLogical(img);
   return {slot,valid:true,unused:false,format:logical.format,versionStamp:u16(logical.parasite,VERSION_OFFSET),counter:logical.counter,bank:logical.bank,mons:logical.boxes.filter(record=>u16(record.bytes,0x1c)!==0).length,reason:null,logical,img};
@@ -216,8 +241,8 @@ const publicSlot=({logical,img,...slot})=>slot;
 // Read the few keyed header bytes directly, without decoding a 6MiB save.
 export function containsFormatL(value){
  const bytes=value instanceof Uint8Array?value:value instanceof ArrayBuffer?new Uint8Array(value):null;
- if(!bytes||bytes.length>FULL_BYTES+16)return false;
- for(const base of [0,SLOT_BYTES])for(let index=0;index<10;index++){
+ if(!bytes||bytes.length>LARGE_FULL_BYTES+16)return false;
+ for(const base of [0,SLOT_BYTES,LARGE_SLOT_BYTES])for(let index=0;index<10;index++){
   const offset=base+index*SECTOR;if(offset+SECTOR>bytes.length)break;
   const signature=u32(bytes,offset+0xff8),encrypted=signature!==SIGNATURE;
   if(encrypted&&((signature^u32(key,0xff8))>>>0)!==SIGNATURE)continue;
@@ -226,10 +251,33 @@ export function containsFormatL(value){
  }
  return false;
 }
-export function inspectFormatSave(value){const {raw,bodyBytes,rtcBytes}=input(value);return {size:raw.length,bodyBytes,rtcBytes,slots:[0,1].map(slot=>publicSlot(inspectSlot(raw,bodyBytes,slot)))};}
-export async function convertFormatSave(value,{selection='all',to='L',onProgress,signal}={}){
+export function inspectFormatSave(value){const {raw,bodyBytes,rtcBytes}=input(value,false);return {size:raw.length,bodyBytes,rtcBytes,layout:layout(raw,bodyBytes),slots:[0,1].map(slot=>publicSlot(inspectSlot(raw,bodyBytes,slot)))};}
+function relocate(raw){
+ const body=raw.length-raw.length%SECTOR,info=layout(raw,body);
+ if(!info.needsMigration)return {bytes:raw,moved:false};
+ // Validate both adventures and the entire destination extent. Never erase a
+ // competing save, unknown marker payload or unrelated current-layout bytes.
+ for(const slot of [0,1]){
+  const entry=inspectSlot(raw,body,slot);if(!entry.unused&&!entry.valid)fail('STORAGE_INVALID',slot);
+  const offset=slot*SLOT_BYTES+MARK_OFFSET,sector=raw.subarray(offset,offset+SECTOR);
+  if(!erased(sector)&&marker(sector)===null)fail('STORAGE_MARKER',slot);
+ }
+ const bytes=new Uint8Array(LARGE_FULL_BYTES+raw.length-body).fill(255);
+ bytes.set(raw.subarray(0,body));bytes.fill(255,SLOT_BYTES,FULL_BYTES);
+ bytes.set(raw.subarray(SLOT_BYTES,FULL_BYTES),LARGE_SLOT_BYTES);
+ const mark=new Uint8Array(SECTOR).fill(255);mark.set([0x53,0x4c,0x56,0,2,0,253,255]);
+ bytes.set(xor(mark),MARK_OFFSET);bytes.set(xor(mark),LARGE_SLOT_BYTES+MARK_OFFSET);
+ bytes.set(raw.subarray(body),LARGE_FULL_BYTES);
+ // Byte-exact relocation, excluding the two deliberately written markers.
+ for(const slot of [0,1])for(const [first,last] of [[0,MARK_OFFSET],[MARK_OFFSET+SECTOR,SLOT_BYTES]])
+  if(!equal(raw.subarray(slot*SLOT_BYTES+first,slot*SLOT_BYTES+last),bytes.subarray(slot*LARGE_SLOT_BYTES+first,slot*LARGE_SLOT_BYTES+last)))fail('OUTPUT');
+ return {bytes,moved:true};
+}
+export async function convertFormatSave(value,{selection='all',to='L',storageLayout=1,onProgress,signal}={}){
  abort(signal);const {raw,bodyBytes,rtcBytes}=input(value);
  if(!['L','W'].includes(to))fail('TARGET');
+ if(![1,2].includes(storageLayout))fail('TARGET');
+ const sourceLayout=layout(raw,bodyBytes);if(sourceLayout.version>storageLayout)fail('DOWNGRADE');
  if(selection!=='all'&&selection!==0&&selection!==1)fail('SELECTION');
  const slots=[0,1].map(slot=>inspectSlot(raw,bodyBytes,slot));
  const chosen=slots.filter(slot=>selection==='all'?!slot.unused:slot.slot===selection);
@@ -247,14 +295,14 @@ export async function convertFormatSave(value,{selection='all',to='L',onProgress
  }
  abort(signal);const outputBody=grow?FULL_BYTES:bodyBytes,bytes=new Uint8Array(outputBody+rtcBytes).fill(255);bytes.set(raw.subarray(0,bodyBytes));bytes.set(raw.subarray(bodyBytes),outputBody);
  for(const [slot,img] of outputs)for(const [first,last] of [[0,32],[40,to==='W'?88:86]])for(let physical=first;physical<last;physical++){
-  const target=slot*SLOT_BYTES+physical*SECTOR;if(target+SECTOR>outputBody)continue;
+  const target=slot*sourceLayout.slotStride+physical*SECTOR;if(target+SECTOR>outputBody)continue;
   const sector=img.subarray(physical*SECTOR,(physical+1)*SECTOR);bytes.set(u32(sector,0xff8)===SIGNATURE?xor(sector):sector,target);
  }
  // Validate the published representation, not just an intermediate plaintext.
- const after=inspectFormatSave(bytes);for(const slot of chosen){const actual=after.slots[slot.slot];if(!actual.valid||actual.format!==to)fail('OUTPUT');}
+ const relocated=storageLayout===2?relocate(bytes):{bytes,moved:false},after=inspectFormatSave(relocated.bytes);for(const slot of chosen){const actual=after.slots[slot.slot];if(!actual.valid||actual.format!==to)fail('OUTPUT');}
  abort(signal);
  const versionStamp=after.slots[chosen[0].slot].versionStamp;
- return {bytes,report:{fromFormat:chosen.every(slot=>slot.format===chosen[0].format)?chosen[0].format:'mixed',toFormat:to,versionStamp:chosen.every(slot=>after.slots[slot.slot].versionStamp===versionStamp)?versionStamp:null,
+ return {bytes:relocated.bytes,report:{layoutMoved:relocated.moved,fromFormat:chosen.every(slot=>slot.format===chosen[0].format)?chosen[0].format:'mixed',toFormat:to,versionStamp:chosen.every(slot=>after.slots[slot.slot].versionStamp===versionStamp)?versionStamp:null,
   convertedSlots:changed.map(slot=>slot.slot),unchangedSlots:slots.filter(slot=>!outputs.has(slot.slot)).map(slot=>slot.slot),grew:grow,
   slots:after.slots,recordsVerified:changed.length*1500,fullGameplayTest:false}};
 }

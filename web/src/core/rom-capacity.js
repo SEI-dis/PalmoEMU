@@ -2,8 +2,8 @@
 // Reviewed ROM capacities, independent of save/state sizes and WASM heap limits.
 const MiB=1048576;
 export const standardGBAROMBytes=32*MiB;
-export const mgbaMaxROMBytes=64*MiB;
-// A future review target only. Never use this value to admit or allocate a ROM.
+export const mgbaMaxROMBytes=128*MiB;
+// Retained for consumers identifying the reviewed 128 MiB boundary.
 export const futureGBAROMBytes=128*MiB;
 export const defaultMaxROMBytes=64*MiB;
 export const ndsMaxROMBytes=512*MiB;

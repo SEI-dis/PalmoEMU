@@ -244,7 +244,7 @@ def main():
             raise ValueError('A required save/state compatibility check was skipped')
         report['upgradeChecks'] = [{'check': label, 'result': 'pass'} for label in required_upgrade]
         report['checks']['upgrade-compatibility'] = True
-        for test in ['mgba-hgx', 'mgba-memory', 'mgba-logging', 'mgba-allocation', 'mgba-save-completion',
+        for test in ['mgba-rom128', 'mgba-hgx', 'mgba-memory', 'mgba-logging', 'mgba-allocation', 'mgba-save-completion',
                      'mgba-peripherals', 'gb-link-core']:
             phase = test
             run(['node', WEB / 'tests' / (test + '.cjs')], env=test_env, log=output / (test + '.log'))
