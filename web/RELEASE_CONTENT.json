@@ -95,8 +95,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 315946,
-      "sha256": "930799ffefb7e8febb35489d53e9ddd210d4b41384434789d3f0380a91217cde",
+      "bytes": 316531,
+      "sha256": "6b518309f670494a2f17b591e14ba31e9e9670ef8620524e6437cc57190c3e8f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 10276,
-      "sha256": "6042d99716d763472c5c642b4323a816330524e205f3fca61804aab14bcfbaf4",
+      "sha256": "941520faff4fa749d463391db88541df6a5abb7d8f17250d0e46f1be0917a37e",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41730,7 +41730,7 @@
     {
       "path": "sw.js",
       "bytes": 17492,
-      "sha256": "4c424f84fb98bf09e1afeb13ca8ce06de728fad4084858b7818cf13a409fdadf",
+      "sha256": "d37b335dde91b50d73ef3b7ca8acd8205d31ec7bfb3829a32646daeb84b3637d",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42341,8 +42341,8 @@
     },
     {
       "path": "tests/rom-memory.cjs",
-      "bytes": 8155,
-      "sha256": "fdaf9e4568684fcfe5c3af68b5f1bfb003e8dd714792d2eb8b149dbaaadb2bea",
+      "bytes": 8174,
+      "sha256": "92a9c56a3d15e394cacfd5b7307e4157b422770fa41288a4018ed19eb0590153",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42359,8 +42359,8 @@
     },
     {
       "path": "tests/rom-zip.cjs",
-      "bytes": 9297,
-      "sha256": "70d0b3fe5ee7528649c4663c6625f9e78436b0b4b0082bb60fa60f99a2c4aea2",
+      "bytes": 9522,
+      "sha256": "edbee6e511c2c2bffaca6c4e993da7ea09896ad62bf400d3112cc0ddd09d7bf5",
       "component": "web-port-code-and-documentation"
     },
     {

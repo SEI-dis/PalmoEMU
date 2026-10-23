@@ -55,8 +55,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
    const small=new Blob([new Uint8Array([1,2,3,4])]),growing={HEAPU8:new Uint8Array(20)};
    small.slice=()=>({arrayBuffer:async()=>{growing.HEAPU8=new Uint8Array(40);return new Uint8Array([1,2,3,4]).buffer;}});
    await copyROMToHeap(growing,8,small);check(growing.HEAPU8[11]===4,'Reacquire heap after awaited read');
-   let allocations=0;try{await loadCompatibleMGBA({_malloc:()=>{allocations++;return 1;}},new Blob([file,file]));}catch{}
-   check(allocations===0,'128 MiB remains rejected before allocation');
+   let allocations=0;try{await loadCompatibleMGBA({_malloc:()=>{allocations++;return 1;}},new Blob([file,file,new Uint8Array(1)]));}catch{}
+   check(allocations===0,'Above 128 MiB is rejected before allocation');
    // Blob failures retry the exact bytes; quota/write errors never retry.
    for(const name of ['UnknownError','QuotaExceededError']){
     const game={id:'failure-'+name,name,system:'gba',size:rom.length,added:1};let attempts=0;

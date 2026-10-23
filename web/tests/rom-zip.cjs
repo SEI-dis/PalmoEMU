@@ -40,7 +40,8 @@ function overlappingZip(){
   crc:zip([{name:'bad.gba',bytes:[1,2,3,4],badCRC:true}]),
   overlap:overlappingZip(),
   expanded:zip([{name:'large.nds',bytes:[1],length:512*1048576,method:8},{name:'extra.gba',bytes:[2]}]),
-  individual:zip([{name:'large.gba',bytes:[1],length:64*1048576+1,method:8}]),
+  maximum:zip([{name:'maximum.gba',bytes:[1],length:128*1048576,method:8}]),
+  individual:zip([{name:'large.gba',bytes:[1],length:128*1048576+1,method:8}]),
   streamCap:zip([{name:'understated.gba',bytes:[1,2,3,4,5],length:2,method:8}]),
   duplicate:zip([{name:'Renamed.gba',bytes:source,method:8}]),
   partial:zip([{name:'Partial success.gba',bytes:second,method:8},{name:'CRC failure.gba',bytes:[8,9,10],badCRC:true}]),
@@ -56,13 +57,14 @@ function overlappingZip(){
   const result=await page.evaluate(async({fixtures,source,identity})=>{
    const {listROMZip,extractROMZip}=await import('./src/library/rom-zip.js'),{importROM}=await import('./src/library/rom-import.js'),db=await import('./src/storage/storage.js');
    const check=(value,message)=>{if(!value)throw Error(message);},archive=name=>new File([new Uint8Array(fixtures[name])],name+'.zip');
-   const refuse=async action=>{let rejected=false;try{await action();}catch{rejected=true;}check(rejected,'Malformed archive must be rejected');};
+   const refuse=async(action,label)=>{let rejected=false;try{await action();}catch{rejected=true;}check(rejected,'Malformed archive must be rejected: '+label);};
    const normal=archive('normal'),entries=await listROMZip(normal);check(entries.length===2,'Only supported ROM entries are extracted');
    for(const [i,entry]of entries.entries()){
     const extracted=await extractROMZip(normal,entry);check(extracted.bytes.join()===(i?'5,6,7,8':'1,2,3,4'),'Stored and deflated bytes match');check(extracted.size===4&&extracted.name===(i?'second.gb':'first.gba'),'Entry metadata is preserved');check(!Object.hasOwn(extracted,'file'),'Extraction does not allocate a second immutable File');
    }
-   for(const name of ['overlap','expanded','individual'])await refuse(()=>listROMZip(archive(name)));
-   for(const name of ['crc','streamCap']){const file=archive(name),[entry]=await listROMZip(file);await refuse(()=>extractROMZip(file,entry));}
+   check((await listROMZip(archive('maximum'))).length===1,'128 MiB GBA entry passes the declared-size check');
+   for(const name of ['overlap','expanded','individual'])await refuse(()=>listROMZip(archive(name)),name);
+   for(const name of ['crc','streamCap','maximum']){const file=archive(name),[entry]=await listROMZip(file);await refuse(()=>extractROMZip(file,entry),name);}
    const first=await importROM(new File([new Uint8Array(source)],'Original.gba'),'gba');check(first.id===identity&&first.added,'Uncompressed identity remains SHA-256');
    const game=await db.get('library',identity);Object.assign(game,{name:'My game',favorite:true,lastPlayed:1234,preferences:{volume:.3}});await db.put('library',identity,game);await db.put('saves',identity,{bytes:new Uint8Array([9,8,7])});const before=JSON.stringify(game);
    const duplicate=await importROM(archive('duplicate'));check(duplicate.addedCount===0&&duplicate.duplicateCount===1,'ZIP duplicate uses the existing identity');check(JSON.stringify(await db.get('library',identity))===before,'ZIP duplicate preserves game metadata');check((await db.get('saves',identity)).bytes.join()==='9,8,7','ZIP duplicate preserves the existing save');
