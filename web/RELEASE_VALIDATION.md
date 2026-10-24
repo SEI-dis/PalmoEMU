@@ -1,5 +1,47 @@
 # 公開前の検証記録
 
+## 2026-10-24 — final 0.3.40 candidate, PokemonStart 0.59.6
+
+805bf36 was pushed but never deployed. The maintainer supplied the 0.59.6 egg-box
+fix before publication; its superseded CI run 40085964342 was cancelled. The final
+release still uses 0.3.40 and requires all CI on the follow-up commit.
+
+- Static 0.59.5→0.59.6 source comparison identifies native W egg checksum padding
+  (2026→2028 bytes), acceptance of the earlier tool's unaligned checksum, repair
+  when X shelves still contain W eggs, active-egg inspection and the seventh key.
+  The adaptation rejects unreadable active eggs instead of publishing a warning
+  and an unusable result. Same-format repair changes only egg sectors; native
+  keys, counters, EV/IV bits, other slots, unrelated bytes and RTC remain raw.
+- Independent regression covers native/legacy checksums, 120 egg records across
+  four blocks, 3,000 boxed records, all seven keys, same-version stale-egg detection,
+  selected-slot repair, idempotence and unknown/missing/corrupt active eggs. Old/L/W,
+  16MiB physical-layout and component/provenance regressions also pass. Four
+  supplied-source oracle cases (W/X × aligned/legacy sums) match every decoded
+  byte; fresh forward outputs match raw bytes too. The independent BigInt seventh
+  key codec matches the supplied encoder. Already-X output deliberately retains
+  native key bytes outside repaired eggs instead of re-signing the whole save.
+- Chromium and PC WebKit UI→Worker→storage pass 0.49.0→0.59.6, native-checksum
+  eggs from 0.57.0→0.59.6, stale eggs from 0.59.5→0.59.6, and the future verified-X
+  boundary case. Originals/backups survive; unchecked copy is rejected and
+  repaired output is reinspected as compatible.
+- Supplied 128MiB ROM SHA-256
+  ebdfb7893031b4893368653cf6eb32dc7c9a7bae2fcd93cc6a20e4f29ed62879
+  identifies structurally as 0.59.6/minimum 0.36.2/X. A real 0.57.0 save converts
+  byte-for-byte with the supplied tool. Chromium boots it, continues to the field
+  and saves in game; exported native data validates as 0.59.6, counter 26→27.
+  A fresh PC WebKit module reloads it to the field. No page errors; WASM capacity
+  187.125MiB. Source ROM hash and original saves remain unchanged in ignored work/.
+- Read-only 16MiB inspection still makes zero full-input copies and 6MiB cumulative
+  large working-buffer allocations; shared-snapshot and async ownership checks
+  pass. The change adds bounded egg-block checks, no whole-save copy or runtime
+  gameplay/codec change. Nine-language final notice/history checks and translated
+  text review pass as recorded in LOCALIZATION_REVIEW.md.
+
+Physical iPhone, every map, actual egg-box gameplay and 0.59.6 trades were not
+verified. Synthetic/oracle record preservation is not a claim of viewing every
+real box. Earlier 0.59.5 records remain historical. Full exact-commit CI and live
+publication verification are required next; neither is preclaimed in this record.
+
 ## 2026-10-24 — 0.3.40 release candidate
 
 The maintainer now authorizes commit, push and publication after exact-commit CI.

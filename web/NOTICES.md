@@ -1,5 +1,12 @@
 # Copyright, credits and modification notices
 
+0.3.40 pre-publication follow-up (2026-10-24): adopt the supplied PokemonStart
+0.59.6 converter's aligned egg checksums, stale W-egg repair within X saves and
+seventh versioned key. Retain both project developer credits and existing
+credit-conditional permission. PalmoEMU additionally refuses unreadable active
+eggs and preserves unrelated raw sectors instead of whole-save re-signing.
+The original HTML, ROM and private saves remain excluded.
+
 Release candidate 0.3.40 (2026-10-24): the maintainer explicitly requests commit,
 push and publication of the reviewed PokemonStart 0.59.5 converter after exact
 commit CI succeeds. Existing developer/project attribution and credit-conditional

@@ -1,4 +1,4 @@
-/* PokemonStart v0.59.5 save-format migration, extracted and adapted for PalmoEMU.
+/* PokemonStart v0.59.6 save-format migration, extracted and adapted for PalmoEMU.
  * Source distributor: pm-start/PokemonStart. See README.md and component.json.
  * Project-specific permission; no standardized upstream license was supplied.
  * This component is separate from the earlier START Save Migrate component.
@@ -7,7 +7,7 @@
 const SECTOR=0x1000,DATA=0xff0,SIGNATURE=0x08012025,SLOT_BYTES=3*1024*1024;
 const FULL_BYTES=2*SLOT_BYTES,SMALL_BYTES=32*SECTOR,VERSION_OFFSET=0xba,VERSION_GUARD=0x31ff,WIDE_VERSION_GUARD=0x34ff;
 const X_VERSION_GUARD=0x3b02,X_TAIL_BYTES=15,EMPTY_X=new Uint8Array(X_TAIL_BYTES);
-const SAVE_KEYS=[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f]],MAC_SECRET=0xe4ee25b3;
+const SAVE_KEYS=[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f],[0x3b06,0x446b6578]],MAC_SECRET=0xe4ee25b3;
 const LARGE_SLOT_BYTES=8*1024*1024,LARGE_FULL_BYTES=2*LARGE_SLOT_BYTES,MARK_OFFSET=34*SECTOR;
 const SECTION_SIZES=[0xf24,DATA,DATA,DATA,0xd98],MAP_OFFSET=0x1400;
 const PAGE0_MON=4+0x98+0xef+0xba0,EXT_META_SIZE=110,REGION_BOX_OFFSET=0x0203cabc-0x0203bfac;
@@ -253,23 +253,32 @@ function verifyLogical(expected,actual){
  if(actual.boxes.length!==1500)fail('OUTPUT');
  for(let i=0;i<1500;i++)if(expected.boxes[i].ext!==actual.boxes[i].ext||expected.boxes[i].hi!==actual.boxes[i].hi||!equal(expected.boxes[i].bytes,actual.boxes[i].bytes)||!equal(expected.boxes[i].x,actual.boxes[i].x))fail('OUTPUT');
 }
-const EGG_MAGIC=0x58424745,EGG_MON_OFFSET=136;
+const EGG_MAGIC=0x58424745,EGG_MON_OFFSET=136,EGG_SB1_OFFSET=0x043c,EGG_SB1_MAGIC=0x31424745;
 function eggChecksum(bytes,size){let sum=0x4547;for(let i=16;i<size;i++)sum+=bytes[i]+((i-16)&255);return sum&65535;}
-function convertEggs(img){
- const changed=[];
+function oldEggSectors(img,logical){
+ const old=[],body=logical.sections[1],count=body[EGG_SB1_OFFSET+10];
+ const active=u32(body,EGG_SB1_OFFSET)===EGG_SB1_MAGIC&&count>0&&count<=30?88+(body[EGG_SB1_OFFSET+8]&1):null;
  for(const physical of [88,89]){
   const offset=physical*SECTOR,sector=img.subarray(offset,offset+SECTOR);
-  if(u32(sector,0)!==EGG_MAGIC)continue;
+  if(u32(sector,0)!==EGG_MAGIC){if(physical===active)fail('EGG');continue;}
   const version=u16(sector,4),size=EGG_MON_OFFSET+30*(version===1?63:78);
-  if(![1,2].includes(version)||u16(sector,6)!==eggChecksum(sector,size))fail('EGG');
-  if(version===2)continue;
+  // Native W blocks include two alignment bytes. Retain read compatibility
+  // with the unaligned checksum written by the pre-0.59.6 converter.
+  if(![1,2].includes(version)||![eggChecksum(sector,(size+3)&~3),eggChecksum(sector,size)].includes(u16(sector,6)))fail('EGG');
+  if(version===1)old.push(physical);
+ }
+ return old;
+}
+function convertEggs(img,logical){
+ const changed=oldEggSectors(img,logical);
+ for(const physical of changed){
+  const sector=img.subarray(physical*SECTOR,(physical+1)*SECTOR);
   const original=sector.slice();sector.fill(0,EGG_MON_OFFSET,EGG_MON_OFFSET+30*78);
   for(let i=0;i<30;i++)sector.set(original.subarray(EGG_MON_OFFSET+i*63,EGG_MON_OFFSET+(i+1)*63),EGG_MON_OFFSET+i*78);
   put16(sector,4,2);put16(sector,6,eggChecksum(sector,EGG_MON_OFFSET+30*78));
   for(let i=0;i<30;i++)if(!equal(original.subarray(EGG_MON_OFFSET+i*63,EGG_MON_OFFSET+(i+1)*63),sector.subarray(EGG_MON_OFFSET+i*78,EGG_MON_OFFSET+i*78+63))||nonzero(sector.subarray(EGG_MON_OFFSET+i*78+63,EGG_MON_OFFSET+(i+1)*78)))fail('OUTPUT');
   // Some native writers wrap this block in a normal save-sector footer.
   if(u32(sector,0xff8)===SIGNATURE)put16(sector,0xff6,checksum(sector,0,payloadWords(u16(sector,0xff4))*4));
-  changed.push(physical);
  }
  return changed;
 }
@@ -300,7 +309,8 @@ function inspectSlot(raw,bodyBytes,slot){
   const img=image(raw,bodyBytes,slot);
   if(unusedImage(img))return {slot,valid:false,unused:true,format:null,versionStamp:null,counter:null,bank:null,mons:0,reason:null};
   const logical=readLogical(img);
-  return {slot,valid:true,unused:false,format:logical.format,versionStamp:u16(logical.parasite,VERSION_OFFSET),counter:logical.counter,bank:logical.bank,mons:logical.boxes.filter(record=>u16(record.bytes,0x1c)!==0).length,reason:null,logical,img};
+  const eggs=oldEggSectors(img,logical);
+  return {slot,valid:true,unused:false,format:logical.format,eggStale:logical.format==='X'&&eggs.length>0,versionStamp:u16(logical.parasite,VERSION_OFFSET),counter:logical.counter,bank:logical.bank,mons:logical.boxes.filter(record=>u16(record.bytes,0x1c)!==0).length,reason:null,logical,img};
  }catch(error){return {slot,valid:false,unused:false,format:null,versionStamp:null,counter:null,bank:null,mons:0,reason:error.code||'START_FORMAT_INVALID'};}
 }
 const publicSlot=({logical,img,...slot})=>slot;
@@ -357,24 +367,25 @@ export async function convertFormatSave(value,{selection='all',to='L',storageLay
  if(!chosen.length)fail('EMPTY');
  for(const slot of chosen)if(!slot.valid){const code=(slot.reason||'START_FORMAT_EMPTY').replace(/^START_FORMAT_/,'');fail(code,slot.slot);}
  const order=['old','L','W','X'];if(chosen.some(slot=>order.indexOf(slot.format)>order.indexOf(to)))fail('DOWNGRADE');
- const outputs=new Map(),changed=chosen.filter(slot=>slot.format!==to);let done=0,grow=false;
+ const outputs=new Map(),changed=chosen.filter(slot=>slot.format!==to||to==='X'&&slot.eggStale);let done=0,grow=false;
  onProgress?.({stage:'inspect',done,total:changed.length});abort(signal);
  for(const slot of changed){
-  if(to==='X'&&!erased(slot.img.subarray(160*SECTOR,218*SECTOR)))fail('STORAGE_CONFLICT',slot.slot);
-  const expected=convertedLogical(slot.logical,to),out=slot.img.slice();writeLogical(out,expected);
-  const eggs=to==='X'?convertEggs(out):[];
+  const rewrite=slot.format!==to;
+  if(rewrite&&to==='X'&&!erased(slot.img.subarray(160*SECTOR,218*SECTOR)))fail('STORAGE_CONFLICT',slot.slot);
+  const expected=rewrite?convertedLogical(slot.logical,to):slot.logical,out=slot.img.slice();if(rewrite)writeLogical(out,expected);
+  const eggs=to==='X'?convertEggs(out,expected):[];
   verifyLogical(expected,readLogical(out));
   if(bodyBytes===SMALL_BYTES&&!erased(out.subarray(32*SECTOR)))grow=true;
-  outputs.set(slot.slot,{img:out,eggs});done++;onProgress?.({stage:'convert',slot:slot.slot,done,total:changed.length});abort(signal);
+  outputs.set(slot.slot,{img:out,eggs,rewrite});done++;onProgress?.({stage:'convert',slot:slot.slot,done,total:changed.length});abort(signal);
   await Promise.resolve();
  }
  abort(signal);const outputBody=grow?FULL_BYTES:bodyBytes,bytes=new Uint8Array(outputBody+rtcBytes).fill(255);bytes.set(raw.subarray(0,bodyBytes));bytes.set(raw.subarray(bodyBytes),outputBody);
- for(const [slot,{img,eggs}] of outputs)for(const [first,last] of (to==='X'?[[0,32],[40,88],[160,218],...eggs.map(p=>[p,p+1])]:[[0,32],[40,to==='W'?88:86]]))for(let physical=first;physical<last;physical++){
+ for(const [slot,{img,eggs,rewrite}] of outputs)for(const [first,last] of (!rewrite?eggs.map(p=>[p,p+1]):to==='X'?[[0,32],[40,88],[160,218],...eggs.map(p=>[p,p+1])]:[[0,32],[40,to==='W'?88:86]]))for(let physical=first;physical<last;physical++){
   const target=slot*sourceLayout.slotStride+physical*SECTOR;if(target+SECTOR>outputBody)continue;
   const sector=img.subarray(physical*SECTOR,(physical+1)*SECTOR);bytes.set(encodeSector(sector,to),target);
  }
  // Validate the published representation, not just an intermediate plaintext.
- const relocated=storageLayout===2?relocate(bytes):{bytes,moved:false},after=inspectFormatSave(relocated.bytes);for(const slot of chosen){const actual=after.slots[slot.slot];if(!actual.valid||actual.format!==to)fail('OUTPUT');}
+ const relocated=storageLayout===2?relocate(bytes):{bytes,moved:false},after=inspectFormatSave(relocated.bytes);for(const slot of chosen){const actual=after.slots[slot.slot];if(!actual.valid||actual.format!==to||to==='X'&&actual.eggStale)fail('OUTPUT');}
  abort(signal);
  const versionStamp=after.slots[chosen[0].slot].versionStamp;
  return {bytes:relocated.bytes,report:{layoutMoved:relocated.moved,fromFormat:chosen.every(slot=>slot.format===chosen[0].format)?chosen[0].format:'mixed',toFormat:to,versionStamp:chosen.every(slot=>after.slots[slot.slot].versionStamp===versionStamp)?versionStamp:null,

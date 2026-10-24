@@ -93,6 +93,7 @@ export function inspectStartUpdate(value,from,target=START_MIGRATION_VERSION){
   if(destination&&compatibility.status!=='downgrade'){
    if(info.layout.version>(destination.storageLayout||1))compatibility.status='downgrade';
    else if(destination.storageLayout===2&&info.layout.needsMigration)compatibility.status='convert';
+   else if(destination.format==='X'&&info.slots.some(slot=>slot.valid&&slot.eggStale))compatibility.status='convert';
   }
   return {...info,targetVersion:selectStartMigrationVersion(target,from),compatibility};
  }

@@ -5,6 +5,7 @@ const runtime=require('./browser-runtime.cjs');
 const {fixture35,fakeROM,hash}=require('./helpers/start-save-fixtures.cjs');
 const {fixture}=require('./helpers/start-rom-profile-fixture.cjs');
 const {changePage,put16}=require('./helpers/start-save-format-fixtures.cjs');
+const {eggs}=require('./helpers/start-save-egg-fixture.cjs');
 const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'http://127.0.0.1:4173/';
 async function run(cases=[[50,0,'0.49.0'],[50,1,'0.49.0'],[53,1,'0.49.0'],[53,1,'0.50.1'],[53,1,'0.52.0']]){
  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'palmo-format-l-'));let browser;
@@ -16,11 +17,14 @@ async function run(cases=[[50,0,'0.49.0'],[50,1,'0.49.0'],[53,1,'0.49.0'],[53,1,
   const targetVersion=`0.${minor}.${patch}`,targetBytes=fixture({stamp:(minor<<8)+patch,rangeGate:true,upperImmediate:patch===0,lFormat:minor===50,wFormat:minor>=53&&!x,xFormat:x}).bytes;
   const file=path.join(dir,`PokemonStart_v${targetVersion}.gba`);fs.writeFileSync(file,targetBytes);
   let original=fixture35({stamp:0x3100,second:true});
-  if(from!=='0.49.0'){
+  const sourceX=/^0\.59\.[2-9]$/.test(from);
+  if(sourceX){original=eggs((await convertFormatSave(original,{to:'X',storageLayout:2})).bytes,{stamp:0x3b05});}
+  else if(from!=='0.49.0'){
    original=(await convertFormatSave(original,{to:from==='0.57.0'?'W':'L'})).bytes;
    const [,minor,patch]=from.split('.').map(Number);
    for(const slot of [0,1])original=changePage(original,slot,10,page=>put16(page,0x245,(minor<<8)+patch));
   }
+  if(from==='0.57.0')original=eggs(original,{key:2});
   const context=await browser.newContext({serviceWorkers:'block',viewport:{width:390,height:844}}),page=await context.newPage(),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await context.addInitScript(()=>{localStorage.setItem('palmo-start-updates-v1',JSON.stringify({enabled:false}));window.coreAttempts=0;});
@@ -88,8 +92,8 @@ async function run(cases=[[50,0,'0.49.0'],[50,1,'0.49.0'],[53,1,'0.49.0'],[53,1,
   },{source,targetVersion,from});
   assert.equal(result.source,hash(original));assert.equal(result.backup,hash(original));assert.notEqual(result.target,hash(original));
   assert.equal(result.unchanged,true);assert.equal(result.rejected,true);
-  const bridge=x?'0.59.2':from==='0.57.0'?'0.57.0':minor>=53?'0.53.0':'0.50.0';
-  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:x?'X':minor>=53?'W':'L',stamp:x?0x3b02:from==='0.57.0'?0x3900:minor>=53?0x34ff:0x31ff})));
+  const bridge=sourceX?from:x?'0.59.2':from==='0.57.0'?'0.57.0':minor>=53?'0.53.0':'0.50.0';
+  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:x?'X':minor>=53?'W':'L',stamp:sourceX?0x3b05:x?0x3b02:from==='0.57.0'?0x3900:minor>=53?0x34ff:0x31ff})));
   assert.deepEqual(result.migration,{kind:'start',from,to:targetVersion,...(bridge!==targetVersion?{via:bridge}:{})});
   if(minor>=59){assert.equal(result.bodyBytes,16777216);assert.equal(result.layout.version,2);}
   assert.equal(result.current.version,bridge);assert.equal(result.current.compatibility.status,'compatible');assert.equal(result.current.validationError,null);

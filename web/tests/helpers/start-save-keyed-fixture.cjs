@@ -3,7 +3,7 @@
 // No game data; production code is not imported. BigInt implements arithmetic
 // and the MAC state independently from the production rolling-word transform.
 const f=require('./start-save-format-fixtures.cjs');
-const keys=[0xcf0a5e2e,0x2b1db2eb,0x35bf48d2,0x557d0a65,0xfaf25c60,0xeea1554f];
+const keys=[0xcf0a5e2e,0x2b1db2eb,0x35bf48d2,0x557d0a65,0xfaf25c60,0xeea1554f,0x446b6578];
 const u=x=>BigInt.asUintN(32,x),n=x=>Number(u(x)),mul=(a,b)=>n(BigInt(a)*BigInt(b));
 function mix(seed,counter,j){let x=(seed^mul(counter,0x85ebca6b))>>>0;x=(x+mul(j,0x9e3779b1))>>>0;x=mul((x^(x>>>16))>>>0,0x7feb352d);x=mul((x^(x>>>15))>>>0,0x846ca68b);return (x^(x>>>16))>>>0;}
 const rot=(x,k)=>u((x<<BigInt(k))|(x>>BigInt(32-k)));

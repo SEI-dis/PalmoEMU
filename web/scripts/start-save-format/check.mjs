@@ -15,8 +15,8 @@ export function checkPublicationPermission(record){
  assert(/^\d{4}-\d{2}-\d{2}$/.test(permission.confirmedOn||'')&&typeof permission.evidence==='string'&&permission.evidence.trim(),'NOT READY FOR PUBLICATION: format permission confirmation evidence is required');
 }
 const expectedSources=[
- {name:'セーブデータ移行ツール.html',sha256:'3ee55e1e53f3095c32cc932f1bf6f161e4f9ebfc463e0e71772e891480ad4ac5'},
- {name:'statically decoded embedded JavaScript',sha256:'240cb3bd2ee0d6bca5c4e730713da9334b366c6cede63b10e2ace2078379d958'}
+ {name:'セーブデータ移行ツール.html',sha256:'d9f2f0376aabdb413dc8f0eeb3c800f77022db6a9ecb5a041a8c2ec6575a7856'},
+ {name:'statically decoded embedded JavaScript',sha256:'c6dea6c88c0f1ded2f51bd9a564e2872c241a2f7afa7e34483e012092db9b0b1'}
 ];
 const expectedPermission="On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.";
 const expectedDirection={from:['old','L','W'],to:['L','W','X'],reverseConversion:false,rounding:false,versionGuards:{L:0x31ff,W:0x34ff,X:0x3b02}};
@@ -65,7 +65,7 @@ function engineContract(source){
  assert.equal(value(declarations.get('X_VERSION_GUARD')),0x3b02,'Unsupported X version contract');
  assert.equal(value(declarations.get('X_TAIL_BYTES')),15,'Unsupported X record contract');
  assert.equal(value(declarations.get('MAC_SECRET')),0xe4ee25b3,'Unsupported integrity contract');
- assert.deepEqual(value(declarations.get('SAVE_KEYS')),[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f]],'Unsupported keyed-sector contract');
+ assert.deepEqual(value(declarations.get('SAVE_KEYS')),[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f],[0x3b06,0x446b6578]],'Unsupported keyed-sector contract');
  const layouts={};
  for(const [name,expected] of [['OLD',['old',0x4c454853,58,12,70,15,17,5,990,330,28]],['LARGE',['L',0x324c4853,60,11,68,16,18,8,1020,480,30]],['WIDE',['W',0x334c4853,63,11,64,16,18,9,960,540,30,26,18]],['XWIDE',['X',0x344c4853,78,8,52,16,18,14,780,720,30,156,28,128]]]){
   const node=declarations.get(name);assert(node?.type==='CallExpression'&&node.callee.type==='Identifier'&&node.callee.name==='format','Expected reviewed format descriptor');
@@ -87,8 +87,8 @@ export function checkComponent(directory=installedDirectory){
  assert.deepEqual(fs.readdirSync(location).sort(),['README.md','component.json','engine.js'],'Unexpected component files');
  const record=JSON.parse(read('component.json'));
  assert(record.schema===1&&record.hostContract==='start-format-forward-v4','Unsupported component record');
- assert.equal(record.distribution,'maintainer-supplied PokemonStart 0.59.5 migration HTML','Source distribution changed');
- assert.equal(record.distributionVersion,'0.59.5','Source distribution version changed');
+ assert.equal(record.distribution,'maintainer-supplied PokemonStart 0.59.6 migration HTML','Source distribution changed');
+ assert.equal(record.distributionVersion,'0.59.6','Source distribution version changed');
  assert.equal(record.sourceDistributor,'pm-start/PokemonStart','Source distributor changed');
  assert.equal(record.sourceURL,'https://github.com/pm-start/PokemonStart','Source URL changed');
  assert.equal(record.individualAuthor,null,'Do not invent an individual author');

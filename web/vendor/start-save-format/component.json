@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "hostContract": "start-format-forward-v4",
-  "distribution": "maintainer-supplied PokemonStart 0.59.5 migration HTML",
-  "distributionVersion": "0.59.5",
+  "distribution": "maintainer-supplied PokemonStart 0.59.6 migration HTML",
+  "distributionVersion": "0.59.6",
   "sourceDistributor": "pm-start/PokemonStart",
   "sourceURL": "https://github.com/pm-start/PokemonStart",
   "individualAuthor": null,
@@ -10,11 +10,11 @@
   "sources": [
     {
       "name": "セーブデータ移行ツール.html",
-      "sha256": "3ee55e1e53f3095c32cc932f1bf6f161e4f9ebfc463e0e71772e891480ad4ac5"
+      "sha256": "d9f2f0376aabdb413dc8f0eeb3c800f77022db6a9ecb5a041a8c2ec6575a7856"
     },
     {
       "name": "statically decoded embedded JavaScript",
-      "sha256": "240cb3bd2ee0d6bca5c4e730713da9334b366c6cede63b10e2ace2078379d958"
+      "sha256": "c6dea6c88c0f1ded2f51bd9a564e2872c241a2f7afa7e34483e012092db9b0b1"
     }
   ],
   "direction": {
@@ -44,8 +44,8 @@
   "optionalRTCBytes": 16,
   "slotBytes": 3145728,
   "files": {
-    "engine.js": "30d8413c30823a1c090d8dc32044e63372a80b511b76fa879b6b0ac812e1ed75",
-    "README.md": "db2fb403bfc794fdc32db01fcc94dbf5717a8004e496fd14e08909be61de7002"
+    "engine.js": "3d7b355fea28d4789abe6f37e473334e52820371e1037ff2b7b2fdc62235ec07",
+    "README.md": "2fcaa8505f34e38a3bdc4df10958ee7d14cb9c734896c1ee340110e3d49227c5"
   },
   "localChanges": [
     "Migration-only ES module without UI, network or storage access",
@@ -59,7 +59,8 @@
     "Add separately classified 16 MiB physical slot relocation, full-byte conflict checks, unknown-sector preservation and byte-exact relocation verification; retain all earlier record validation and no reverse conversion",
     "Synchronous inspection borrows ordinary input; shared buffers and asynchronous conversion retain private entry snapshots. No input mutation or changed output bytes.",
     "Decode the private slot buffer in place instead of cloning it a second time; 16MiB inspection large-buffer allocations fall from 28MiB to 6MiB.",
-    "Add X/SHL4 78-byte forward records from 0.59.2, W egg-block conversion, six supplied versioned keys and strict checksum/MAC rejection; preserve current X bytes and all existing tamper evidence. Unknown destination extents fail closed. Sector transforms use a rolling key pair."
+    "Add X/SHL4 78-byte forward records from 0.59.2, W egg-block conversion, six supplied versioned keys and strict checksum/MAC rejection; preserve current X bytes and all existing tamper evidence. Unknown destination extents fail closed. Sector transforms use a rolling key pair.",
+    "0.59.6: accept native aligned and earlier-tool egg checksums, repair stale W eggs in otherwise-X saves without rewriting other sectors, reject unreadable active egg storage, and recognize the seventh supplied sector key."
   ],
   "publicationPermission": {
     "scopes": {

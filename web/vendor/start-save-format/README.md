@@ -1,4 +1,4 @@
-# PokemonStart 0.59.5 save-format component
+# PokemonStart 0.59.6 save-format component
 
 **Permission clarification (2026-10-16).** Following an explicit explanation of
 modification, offline distribution and modified-source publication on GitHub/in
@@ -9,7 +9,7 @@ individual tool author. This records the maintainer confirmation, not a separate
 inspected rights-holder message. `component.json` records the scope and condition.
 
 Source distribution: [pm-start/PokemonStart](https://github.com/pm-start/PokemonStart),
-maintainer-supplied `セーブデータ移行ツール.html` alongside the 0.59.5 ROM.
+maintainer-supplied `セーブデータ移行ツール.html` alongside the 0.59.6 ROM.
 The 0.59.5 source adds X records, versioned sector obfuscation and integrity tags, retaining the 0.59.0 physical save-slot layout. Its decoded
 JavaScript was reviewed statically; the original HTML/UI is not distributed.
 This identifies the distributor, **not a verified individual author**. This is
@@ -22,9 +22,9 @@ On 2026-10-16 the project maintainer confirmed that incorporation, Web publicati
 The host facade AGPL notice does not relicense this component.
 
 Original HTML SHA-256:
-`3ee55e1e53f3095c32cc932f1bf6f161e4f9ebfc463e0e71772e891480ad4ac5`.
+`d9f2f0376aabdb413dc8f0eeb3c800f77022db6a9ecb5a041a8c2ec6575a7856`.
 Statically decoded JavaScript SHA-256:
-`240cb3bd2ee0d6bca5c4e730713da9334b366c6cede63b10e2ace2078379d958`.
+`c6dea6c88c0f1ded2f51bd9a564e2872c241a2f7afa7e34483e012092db9b0b1`.
 
 ## Scope
 
@@ -171,3 +171,22 @@ Only a rolling key pair is needed during sector transforms; there is no per-sect
 a duplicate 16MiB save. Target X extension ranges must be erased before an older
 layout is moved there. Unrelated raw sectors, unselected adventures and RTC bytes
 remain intact. Historical L/W allocation and validation rules are unchanged.
+
+## 0.59.6: native egg checksums and repair
+
+The native W egg block checksum includes the two bytes up to the next four-byte
+boundary; 0.59.5's tool omitted them. Read both checksum variants, write the aligned
+X checksum, and verify all 120 egg records across both slots and both blocks.
+Already-X saves may still contain W egg blocks left by the earlier tool. Inspect
+and repair these even on an otherwise compatible update; only affected egg
+sectors change, preserving raw native encryption, EV/IV data, counters and RTC.
+Already-repaired X saves remain byte-identical. The source's active-egg SB1 marker
+is checked; this adaptation refuses unreadable active data instead of warning and
+producing a potentially unreadable save. A damaged recognized inactive block also
+fails closed. Unknown unrelated bytes remain untouched. The seventh supplied
+key (0.59.6) is recognized; unknown keys and bad MACs remain rejected.
+
+The original 0.59.5 source hashes remain in Git history. The current header hashes
+identify the supplied 0.59.6 HTML and statically decoded JavaScript. Direction
+old/L/W→L/W/X is unchanged; X→X only repairs stale eggs, with no reverse conversion
+or rounding. Original HTML and real saves remain outside the distribution.
