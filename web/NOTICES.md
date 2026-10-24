@@ -1,5 +1,11 @@
 # Copyright, credits and modification notices
 
+Release candidate 0.3.40 (2026-10-24): the maintainer explicitly requests commit,
+push and publication of the reviewed PokemonStart 0.59.5 converter after exact
+commit CI succeeds. Existing developer/project attribution and credit-conditional
+permission remain unchanged. Earlier local-only statements describe the earlier
+integration stage. Private ROM/save files and the supplied HTML are not included.
+
 Permission follow-up (2026-10-16): after the requested scope was explained, the
 maintainer reported that the separate PokemonStart 0.50.x converter may be
 modified, incorporated, distributed offline and published with modified source
@@ -988,3 +994,15 @@ the validation scope and limitations are recorded in RELEASE_VALIDATION.md.
 mGBA/Celio is built from pm-start/mGBA_celio_edition b3975350076fbd3d86e7dc6796cdadb0ccdb9a89 (rom128-2). Retain the existing onikoro334274-cell, liru55 and upstream mGBA credits. New HGX4/OBJ256 files retain the 2026 mGBA contributor MPL-2.0 notices. HGZ rendering compiles only the upstream zlib inflate/checksum dependencies under their retained zlib license; the complete source is included. Existing local backports, log throttling and Web link protocol remain. Native state IDs/encoding remain compatible; accepted ROM/save limits increase to 128MiB/16MiB. Full-bank writable ROM ownership avoids an RTC-triggered duplicate without changing the stored original.
 
 The separately supplied PokemonStart 0.59.0 migration HTML adds physical adventure-slot relocation (3MiB to 8MiB stride). W boxed records remain unchanged. The adapted engine checks both adventures, preserves RTC and unrelated raw bytes, validates all 3,000 logical box positions, and retains the old source save. Existing credit-conditional permission and project credits remain. The original HTML, ROM, save files and native executables are not distributed.
+
+## PokemonStart 0.59.5 converter integration (2026-10-24, local development)
+
+The maintainer-supplied 0.59.5 HTML adds X/SHL4 78-byte boxed records from 0.59.2,
+egg-box migration, six versioned SaveCrypt keys and checksum/MAC verification.
+The adapted forward-only engine rejects unknown keys and invalid integrity tags,
+preserves existing tamper flags and leaves already-X saves byte-identical. Existing
+PokemonStart credits (onikoro334274-cell and liru55) and the confirmed
+credit-conditional permission remain; no individual converter authorship is inferred.
+Original HTML, ROM and user saves are excluded. Source hashes and intentional
+differences are recorded in vendor/start-save-format/README.md and component.json.
+This local integration is not a claim of publication or physical-iPhone validation.

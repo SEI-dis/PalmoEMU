@@ -1,5 +1,9 @@
 # Web版の公開に向けた確認記録 — 2026-10-13
 
+## 2026-10-24 — 0.3.40公開候補
+
+管理者が0.59.5対応のコミット・push・CI成功後の公開を今回明示した。既存のクレジット条件と出典記録を維持し、許諾範囲は変更しない。下記の「開発版・未公開」は統合確認時点の記録で、現在の公開候補は0.3.40。配布内容と対応ソースを再生成して検証し、公開は同じコミットの全CI成功後に限る。実ROM・実セーブ・元HTMLは配布しない。
+
 **現在の許諾確認（2026-10-16）：追加範囲と公開候補の技術検証を確認済み。** 管理者は改変・オフライン配布・GitHub/ZIPでの改変ソース公開を説明された後、「クレジットに記載してたらOKって」と回答し、開発者は既に記載済みと補足した。既存のPokemonStart開発者/プロジェクトへのクレジットを条件として維持する。作者本人のメッセージを独立閲覧したとは主張せず、標準ライセンスや一般的な第三者再利用条件も推定しない。下記の未確認・未公開記録は当時の履歴で、今回の回答をcomponent.json/README/SOURCESへ反映した。検証範囲はRELEASE_VALIDATION.mdを参照。公開は同じコミットのCI成功後に行う。
 
 対象はこの `web/`、検査CIとGitHub Pages用テンプレート、PalmoEMUの公開対象Git履歴です。
@@ -346,3 +350,16 @@ CMakeLists.txtの差分は既定OFFの描画テスト用ターゲット追加の
 Reviewed rom128-2 b3975350076fbd3d86e7dc6796cdadb0ccdb9a89 against the shipped HGX core. CMake changes add HGX4/OBJ256 sources and optional native test/GUI settings; those native frontends are not compiled. version metadata is scoped to the source tree. README_DE copyright-year/punctuation changes do not alter permission. New HGX4/OBJ256 sources are MPL-2.0; newly compiled zlib inflate/adler/crc helpers retain upstream notices and the full zlib license in mGBA-compiled-file-notices.txt. Compression encoders and general VFS compression are not enabled in the shipped target. Independently rebuilt compiler-closure source produces identical JS/WASM.
 
 The supplied 0.59.0 converter is statically decoded and compared with the adapted forward-only engine. The maintainer-confirmed 2026-10-16 credit condition remains in component.json, README, SOURCES and licenses.html. The distributor/project is pm-start/PokemonStart, with onikoro334274-cell and liru55 project credits; no individual converter author is invented. Distribution contains the adapted engine and corresponding source, not the original HTML, ROM or user save. The current user explicitly requests commit/push/publication after validation.
+
+## 2026-10-24 — PokemonStart 0.59.5 converter, local integration
+
+Statically decoded the newly supplied HTML without executing its wrapper/UI.
+Reviewed SaveKeys, SaveCrypt and forward LFormat changes: X records, egg boxes,
+versioned sectors and MAC verification. Embedded keys are supplied format data,
+not credentials obtained from a user account. Existing credit-conditional permission
+and both PokemonStart project credits are retained. No new third-party dependency,
+network request, ROM, original HTML or user save enters the distribution. The adapted
+engine and tests have independent provenance; its host AGPL notice does not relicense
+the source component. Hashes and scope are updated in the component record and SOURCES.
+The current task updates and verifies the development tree; commit, push, CI and
+publication of these changes have not occurred. The prior 0.3.39 release is separate.

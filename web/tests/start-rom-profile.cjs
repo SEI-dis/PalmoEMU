@@ -99,5 +99,15 @@ const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
  }
  const invertedW=w.bytes.slice();word(invertedW,w.formatLoader+0x32,0xd11d);assert.deepEqual(read(invertedW),{version:'0.53.1',minimumSaveVersion:null},'Inverted W acceptance branch must fail closed');
  assert.equal(hash(w.bytes),wHash);
- console.log('PASS: native START version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
+ const x=fixture({stamp:0x3b05,rangeGate:true,xFormat:true,writer:0x16000,gate:0x12000,trampoline:0x20000});
+ assert.deepEqual(read(x.bytes),{version:'0.59.5',minimumSaveVersion:'0.36.2',saveFormat:'X'});
+ const futureX=fixture({stamp:0x3c01,minimum:0x3b02,rangeGate:true,xFormat:true});
+ assert.deepEqual(read(futureX.bytes),{version:'0.60.1',minimumSaveVersion:'0.59.2',saveFormat:'X'});
+ for(const at of [x.formatLoader+26,x.formatLoader+34,x.formatLoader+46,x.formatLoader+52,x.formatLoader+94,x.formatLoader+102,x.formatInit+6,x.formatGuard+12,x.gate-102,x.gate-88,x.gate+14,x.gate+28,x.gate+46,x.gate+56]){
+  const b=x.bytes.slice();word(b,at,0x46c0);assert.deepEqual(read(b),{version:'0.59.5',minimumSaveVersion:null},'Changed X guard must fail closed: '+at);
+ }
+ for(const [at,value]of [[x.formatLoader+0x100,0xcdb3b7ae],[x.formatLoader+0x108,0xffffffff],[x.formatLoader+0x110,0x354c4853],[x.formatInit+0x84,0x02031188]]){
+  const b=x.bytes.slice();literal(b,at,value);assert.deepEqual(read(b),{version:'0.59.5',minimumSaveVersion:null},'X loader/cache evidence must agree');
+ }
+ console.log('PASS: native START L/W/X version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

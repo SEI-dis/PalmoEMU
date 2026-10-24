@@ -10,7 +10,9 @@ const {old49,newLayout,changePage,put16,slotBytes}=require('./helpers/start-save
  for(const slot of [0,1])source=changePage(source,slot,10,page=>put16(page,0x245,0x3900));
  const original=source.slice(),target={version:'0.59.0',minimumSaveVersion:'0.36.2',saveFormat:'W'};
  assert.equal(detectStartSaveVersion(source),'0.57.0');
- for(const version of ['0.59.0','0.59.1','0.60.0'])assert.equal(inspectStartUpdate(source,'0.57.0',{...target,version}).compatibility.status,'convert');
+ for(const version of ['0.59.0','0.59.1'])assert.equal(inspectStartUpdate(source,'0.57.0',{...target,version}).compatibility.status,'convert');
+ assert.equal(inspectStartUpdate(source,'0.57.0',{...target,version:'0.59.2'}).compatibility.status,'unknown','A W loader claiming an X-era revision is not a verified X target');
+ for(const version of ['0.59.2','0.60.0'])assert.equal(inspectStartUpdate(source,'0.57.0',{...target,version,saveFormat:'X'}).compatibility.status,'convert');
  assert.equal(inspectStartUpdate(source,'0.57.0',{...target,version:'0.58.9'}).compatibility.status,'compatible');
  const result=await migrateStartSave(source,{from:'0.57.0',target});
  assert.equal(result.bytes.length,16*1048576+16);assert.equal(result.report.layoutMoved,true);

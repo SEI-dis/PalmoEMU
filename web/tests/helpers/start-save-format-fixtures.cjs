@@ -53,19 +53,19 @@ function old49({second=false,rtc=true,encrypted=true,dense=true,counter=7,record
  if(encrypted)bytes=encode(bytes);return {bytes,slots};
 }
 function changePage(bytes,slot,physical,mutate,{reseal=true}={}){const out=decode(bytes),offset=slot*slotBytes+physical*sector,page=out.slice(offset,offset+sector);mutate(page);if(reseal){const id=u16(page,4084);seal(page,0,id,u32(page,4092),id<5?mainSizes[id]:payload);}out.set(page,offset);return encode(out);}
-function newLayout(bytes,slot=0,format='L'){
- const decoded=decode(bytes),start=slot*slotBytes;let bank;
+function newLayout(bytes,slot=0,format='L',decoder=decode){
+ const decoded=decoder(bytes),start=slot*(bytes.length>=16777216?8388608:slotBytes);let bank;
  for(let candidate=0;candidate<2;candidate++)if(u32(decoded,start+candidate*5*sector+4088)===signature){
   const count=u32(decoded,start+candidate*5*sector+4092),previous=bank===undefined?null:u32(decoded,start+bank*5*sector+4092);
   if(previous===null||count!==previous&&((count-previous)>>>0)<0x80000000)bank=candidate;
  }
  assert.notEqual(bank,undefined,'Converted layout has a main bank');const sections=mainSizes.map((_,i)=>decoded.slice(start+(bank*5+i)*sector,start+(bank*5+i)*sector+payload));
  const sb1=new Uint8Array(mainSizes.slice(1).reduce((a,b)=>a+b,0));let at=0;for(let i=1;i<5;i++){sb1.set(sections[i].subarray(0,mainSizes[i]),at);at+=mainSizes[i];}
- const wide=format==='W',recordBytes=wide?63:60,perPage=wide?64:68,extFirst=wide?960:1020;
- assert.equal(u32(sb1,0x1400),wide?0x334c4853:0x324c4853,format+' shelf signature');
+ const x=format==='X',wide=format==='W',recordBytes=x?78:wide?63:60,perPage=x?52:wide?64:68,extFirst=x?780:wide?960:1020,p0Count=x?8:11;
+ assert.equal(u32(sb1,0x1400),x?0x344c4853:wide?0x334c4853:0x324c4853,format+' shelf signature');
  const readPhysical=physical=>decoded.slice(start+physical*sector,start+physical*sector+payload),p0=readPhysical(sb1[0x1408]);
- const page=index=>{const physical=index<18?sb1[0x1408+index]:p0[(wide?4065:4032)+index-18];return physical===255?new Uint8Array(payload):readPhysical(index<18?physical:32+physical);};
- const readRecord=(box,pos)=>{const global=box*30+pos;let index,offset;if(global>=extFirst){index=18+Math.floor((global-extFirst)/perPage);offset=(global-extFirst)%perPage*recordBytes;}else if(global<11){index=0;offset=p0Records+global*recordBytes;}else{index=1+Math.floor((global-11)/perPage);offset=(global-11)%perPage*recordBytes;}return page(index).slice(offset,offset+recordBytes);};
+ const page=index=>{const physical=index<18?sb1[0x1408+index]:p0[(x?3996:wide?4065:4032)+index-18];return physical===255?new Uint8Array(payload):readPhysical(index<18?physical:32+physical);};
+ const readRecord=(box,pos)=>{const global=box*30+pos;let index,offset;if(global>=extFirst){index=18+Math.floor((global-extFirst)/perPage);offset=(global-extFirst)%perPage*recordBytes;}else if(global<p0Count){index=0;offset=p0Records+global*recordBytes;}else{index=1+Math.floor((global-p0Count)/perPage);offset=(global-p0Count)%perPage*recordBytes;}return page(index).slice(offset,offset+recordBytes);};
  return {decoded,sections,sb1,p0,page,readRecord,counter:u32(decoded,start+bank*5*sector+4092),bank};
 }
 module.exports={old49,record,expectedL,oldPosition,newLayout,changePage,decode,encode,u16,u32,put16,put32,seal,sector,payload,slotBytes,mainSizes};

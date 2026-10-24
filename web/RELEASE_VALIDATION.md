@@ -1,5 +1,76 @@
 # 公開前の検証記録
 
+## 2026-10-24 — 0.3.40 release candidate
+
+The maintainer now authorizes commit, push and publication after exact-commit CI.
+This supersedes the development-only publication status below. The version and
+two-item release notice are 0.3.40. All 16 new translations were drafted and then
+proofread by the responsible agent; see LOCALIZATION_REVIEW.md for the semantic
+correction. Nine-language Chromium/PC WebKit notice/history display, three widths,
+version transition, details link and seen-state suppression all pass without page
+errors or external requests. Build-offline and localization validation pass.
+
+The converter and real-ROM evidence below remains applicable: this release step
+changes version/notice/documentation only, so already-passed runtime tests were
+not repeated locally. The complete suite, including the new X browser regression
+on both engines, must pass on the exact pushed commit before deployment. Release
+packaging, provenance/source inventory and matching-source checks are regenerated
+and checked for this candidate. CI and live-deployment results remain external
+workflow evidence; this pre-commit record does not claim they have already passed.
+Physical iPhone, every map and 0.59.5 trades remain outside the tested scope.
+
+## 2026-10-24 — PokemonStart 0.59.5 converter (development)
+
+Baseline 1941dd6 / released 0.3.39. The supplied HTML was decoded statically;
+only the reviewed SaveKeys/SaveCrypt/LFormat declarations ran in an isolated
+source oracle, without UI, filesystem, network or code generation. Input ROM
+SHA-256 d98e7af4a75d420f1fee038b62a9e7355ca77fc23c21ab1a881e5933354330ae.
+Original ROM/save files are unchanged; all real inputs and outputs stay in ignored work/.
+
+- Format X/SHL4 starts at 0.59.2, independently of the 0.59.5 tool revision.
+  Structural ROM writer/menu/loader recognition finds 0.59.5, minimum 0.36.2 and X.
+  Relocated/future-version synthetic profiles pass; changed branches, magics,
+  cache extents and version predicates fail closed. No filename bypass was added.
+- Supplied-source oracle: 18 old/L/W→X combinations (sparse/dense, zero/ordinary/
+  max counters, both slots) match all bytes. Six supplied keyed-format cases pass
+  inspection/raw no-op, and both pre-X keys convert to the same source output.
+  A further keyed fixture with 120 egg records matches all output bytes, and its
+  independent BigInt test codec matches the source encoder. Unknown keys, bad
+  checksum/MAC, invalid eggs and occupied destination ranges reject unchanged input.
+- Independent X regression checks all 3,000 box positions and 120 egg records,
+  metadata/header bytes, new EV/IV bit preservation, selected-slot ownership, RTC,
+  downgrade refusal and 0.59.2/future verified-X boundaries. Existing format,
+  host/old-version chain and physical-layout suites pass. The earlier 0.60 W
+  expectation now correctly requires X evidence after the 0.59.2 boundary.
+- Real 0.57.0 save→X output matches the supplied converter byte-for-byte. Its sole
+  adventure needs no relocation, so it stays 6MiB plus RTC; the standalone optional
+  layout-stamping action would grow it, which is not required for this input.
+  Desktop Chromium boots the supplied 128MiB 0.59.5 ROM, continues to the field
+  and writes a new in-game report. The exported native save identifies as X/0.59.5
+  with counter advanced 26→27; the official verifier accepts its integrity tags.
+  A fresh PC WebKit module imports that native save and continues to the field.
+  No page errors; WASM capacity remains 187.125MiB. The real save has party members
+  and no boxed Pokémon: complete box preservation is established by the synthetic
+  fixtures/oracle, not by a claim of viewing every real box in the game.
+- UI→Worker→ROM-update storage passes in isolated Chromium and PC WebKit for
+  0.49.0→0.59.5, 0.57.0→0.59.5 and 0.52.0→a synthetic structurally verified 0.60.1.
+  Both adventures, original/backup hashes, no unchecked copy, current-save
+  reinspection and transferable buffer ownership are checked. The new suite is
+  registered for Chromium and WebKit CI. Full CI has not been run for this task.
+- Memory regression includes X: ordinary synchronous inspection has zero full-input
+  copies and 6MiB cumulative large working-buffer allocations for a 16MiB save.
+  Offset inputs, shared snapshots and asynchronous caller-mutation protection pass.
+  Transform keys use constant-size rolling state. These are allocation/native-frame
+  measurements, not physical-iPhone FPS or whole-browser peak RAM.
+- The existing seven conversion/error/preservation messages were rechecked in all
+  eight translations, with no wording changes. All nine languages at 320px pass
+  conversion-dialog/button/credits display in both desktop engines; the display
+  fixture's Worker is separate from the real end-to-end storage tests above.
+
+Not verified: physical iPhone, all maps, actual egg-box gameplay or cross-emulator
+trades for 0.59.5. No commit, push, new public release or new release notice has been
+made in this task. Publication still requires the exact release commit's full CI.
+
 ## 2026-10-21 0.3.37 コア更新の通知
 
 - 基準コミット `d96e4b1` からアプリの版番号を0.3.37へ上げ、既に公開済みのrom64-netlink-8コア更新を変更通知へ追加。コア本体・保存形式・通信処理は今回変更していない。

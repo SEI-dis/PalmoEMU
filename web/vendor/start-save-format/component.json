@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "hostContract": "start-format-forward-v3",
-  "distribution": "maintainer-supplied PokemonStart 0.59.0 migration HTML",
-  "distributionVersion": "0.59.0",
+  "hostContract": "start-format-forward-v4",
+  "distribution": "maintainer-supplied PokemonStart 0.59.5 migration HTML",
+  "distributionVersion": "0.59.5",
   "sourceDistributor": "pm-start/PokemonStart",
   "sourceURL": "https://github.com/pm-start/PokemonStart",
   "individualAuthor": null,
@@ -10,27 +10,30 @@
   "sources": [
     {
       "name": "セーブデータ移行ツール.html",
-      "sha256": "b4e6f2068ebc55ced0310a74f99c3e656aa2c611ff77936ba533bab7930fc3b6"
+      "sha256": "3ee55e1e53f3095c32cc932f1bf6f161e4f9ebfc463e0e71772e891480ad4ac5"
     },
     {
       "name": "statically decoded embedded JavaScript",
-      "sha256": "71c9cabf7a90273602b6f90a531819d50198607d2035eddc6fd5372227f3e883"
+      "sha256": "240cb3bd2ee0d6bca5c4e730713da9334b366c6cede63b10e2ace2078379d958"
     }
   ],
   "direction": {
     "from": [
       "old",
-      "L"
+      "L",
+      "W"
     ],
     "to": [
       "L",
-      "W"
+      "W",
+      "X"
     ],
     "reverseConversion": false,
     "rounding": false,
     "versionGuards": {
       "L": 12799,
-      "W": 13567
+      "W": 13567,
+      "X": 15106
     }
   },
   "saveBodyBytes": [
@@ -41,8 +44,8 @@
   "optionalRTCBytes": 16,
   "slotBytes": 3145728,
   "files": {
-    "engine.js": "50b202c7a8c9dd6f412294a02b34ee0b19482b3439fcef9e80c4e0100f2a6b31",
-    "README.md": "b4379ca5868d64c76e19fd5a92a582c3ad3b2a4d008568d3473402badbf80eb9"
+    "engine.js": "30d8413c30823a1c090d8dc32044e63372a80b511b76fa879b6b0ac812e1ed75",
+    "README.md": "db2fb403bfc794fdc32db01fcc94dbf5717a8004e496fd14e08909be61de7002"
   },
   "localChanges": [
     "Migration-only ES module without UI, network or storage access",
@@ -55,7 +58,8 @@
     "Add reviewed W (63-byte) forward layout, move-high-bit relocation and 0x34ff bridge; retain target-specific allocation ownership, strict validation and no downgrade or lossy rounding",
     "Add separately classified 16 MiB physical slot relocation, full-byte conflict checks, unknown-sector preservation and byte-exact relocation verification; retain all earlier record validation and no reverse conversion",
     "Synchronous inspection borrows ordinary input; shared buffers and asynchronous conversion retain private entry snapshots. No input mutation or changed output bytes.",
-    "Decode the private slot buffer in place instead of cloning it a second time; 16MiB inspection large-buffer allocations fall from 28MiB to 6MiB."
+    "Decode the private slot buffer in place instead of cloning it a second time; 16MiB inspection large-buffer allocations fall from 28MiB to 6MiB.",
+    "Add X/SHL4 78-byte forward records from 0.59.2, W egg-block conversion, six supplied versioned keys and strict checksum/MAC rejection; preserve current X bytes and all existing tamper evidence. Unknown destination extents fail closed. Sector transforms use a rolling key pair."
   ],
   "publicationPermission": {
     "scopes": {

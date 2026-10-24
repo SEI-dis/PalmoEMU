@@ -1,6 +1,48 @@
 {
   "releases": [
     {
+      "version": "0.3.40",
+      "date": "2026-10-24",
+      "changes": [
+        "セーブ変換をPokemonStart 0.59.5付属のツールに更新し、新しい保存形式（0.59.2以降）と難読化されたセーブに対応しました。",
+        "ボックスと卵ボックスのデータを保持して変換します。破損や未対応のセーブは変換せず、元のデータを残します。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "已采用 PokemonStart 0.59.5 附带的工具更新存档转换功能，支持新的存档格式（0.59.2 及更高版本）和经过混淆处理的存档。",
+          "转换时保留盒子和蛋盒中的数据。损坏或不支持的存档不会转换，原始数据会保留。"
+        ],
+        "zh-Hant": [
+          "已採用 PokemonStart 0.59.5 隨附的工具更新存檔轉換功能，支援新的存檔格式（0.59.2 及更新版本）與經過混淆處理的存檔。",
+          "轉換時會保留盒子與蛋盒中的資料。損壞或不支援的存檔不會轉換，原始資料會保留。"
+        ],
+        "ko": [
+          "PokemonStart 0.59.5에 포함된 도구로 세이브 변환 기능을 업데이트하여 새로운 저장 형식(0.59.2 이상)과 난독화된 세이브를 지원합니다.",
+          "박스와 알 박스의 데이터를 보존하여 변환합니다. 손상되었거나 지원하지 않는 세이브는 변환하지 않으며 원본 데이터를 유지합니다."
+        ],
+        "es": [
+          "La conversión de partidas guardadas se ha actualizado con la herramienta incluida en PokemonStart 0.59.5, con soporte para el nuevo formato (0.59.2 y posteriores) y las partidas ofuscadas.",
+          "La conversión conserva los datos de las cajas y las cajas de huevos. Las partidas dañadas o no compatibles no se convierten y se conservan los datos originales."
+        ],
+        "fr": [
+          "La conversion utilise désormais l’outil fourni avec PokemonStart 0.59.5 et prend en charge le nouveau format de sauvegarde (0.59.2 et versions ultérieures) ainsi que les sauvegardes obfusquées.",
+          "La conversion conserve les données des boîtes et des boîtes à œufs. Les sauvegardes endommagées ou non prises en charge ne sont pas converties et les données d’origine sont conservées."
+        ],
+        "de": [
+          "Die Spielstand-Konvertierung wurde auf das mit PokemonStart 0.59.5 gelieferte Tool aktualisiert und unterstützt das neue Speicherformat (ab 0.59.2) sowie verschleierte Spielstände.",
+          "Bei der Konvertierung bleiben die Daten der Boxen und Eierboxen erhalten. Beschädigte oder nicht unterstützte Spielstände werden nicht konvertiert; die Originaldaten bleiben erhalten."
+        ],
+        "pt": [
+          "A conversão de dados salvos foi atualizada com a ferramenta incluída no PokemonStart 0.59.5, com suporte ao novo formato (0.59.2 e posteriores) e aos dados salvos ofuscados.",
+          "A conversão preserva os dados das caixas e das caixas de ovos. Dados salvos corrompidos ou incompatíveis não são convertidos, e os dados originais são mantidos."
+        ]
+      },
+      "changesEn": [
+        "Updated save conversion to the tool supplied with PokemonStart 0.59.5, adding support for the new save format (0.59.2 and later) and obfuscated saves.",
+        "Conversion preserves box and egg box data. Corrupt or unsupported saves are not converted, and the original data is kept."
+      ]
+    },
+    {
       "version": "0.3.39",
       "date": "2026-10-23",
       "changes": [

@@ -60,7 +60,7 @@ function inspect(bytes,source){
 }
 function inspectModern(bytes,from){
  const info=inspectFormatSave(bytes),slots=info.slots.filter(slot=>!slot.unused);
- if(!slots.length||slots.some(slot=>!slot.valid||!['L','W'].includes(slot.format)))fail('slot');
+ if(!slots.length||slots.some(slot=>!slot.valid||!['L','W','X'].includes(slot.format)))fail('slot');
  if(slots.some(slot=>formatSourceVersion(slot.versionStamp,slot.format)!==from))fail('mismatch');
  return {sourceVersion:from,targetVersion:from,sampleTested:false,layout:info.layout,slots:info.slots.map(slot=>({...slot,boxes:50,encrypted:true,detectedVersion:slot.valid?from:null}))};
 }
@@ -71,7 +71,7 @@ export function detectStartSaveVersion(value){
  // pending (0x34ff for W). Identify bridge markers only after layout validation.
  if(containsFormatL(bytes)){
   try{const used=inspectFormatSave(bytes).slots.filter(slot=>!slot.unused);
-   if(used.length&&used.every(slot=>slot.valid&&['L','W'].includes(slot.format))){
+   if(used.length&&used.every(slot=>slot.valid&&['L','W','X'].includes(slot.format))){
     const found=used.map(slot=>formatSourceVersion(slot.versionStamp,slot.format));
     return found[0]&&found.every(version=>version===found[0])?found[0]:null;
    }

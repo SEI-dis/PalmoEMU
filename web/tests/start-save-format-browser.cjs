@@ -12,7 +12,8 @@ async function run(cases=[[50,0,'0.49.0'],[50,1,'0.49.0'],[53,1,'0.49.0'],[53,1,
   browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
   const {convertFormatSave}=await import('../src/start-save/format-l.js');
   for(const [minor,patch,from] of cases){
-  const targetVersion=`0.${minor}.${patch}`,targetBytes=fixture({stamp:(minor<<8)+patch,rangeGate:true,upperImmediate:patch===0,lFormat:minor===50,wFormat:minor>=53}).bytes;
+  const x=minor>59||minor===59&&patch>=2;
+  const targetVersion=`0.${minor}.${patch}`,targetBytes=fixture({stamp:(minor<<8)+patch,rangeGate:true,upperImmediate:patch===0,lFormat:minor===50,wFormat:minor>=53&&!x,xFormat:x}).bytes;
   const file=path.join(dir,`PokemonStart_v${targetVersion}.gba`);fs.writeFileSync(file,targetBytes);
   let original=fixture35({stamp:0x3100,second:true});
   if(from!=='0.49.0'){
@@ -87,14 +88,14 @@ async function run(cases=[[50,0,'0.49.0'],[50,1,'0.49.0'],[53,1,'0.49.0'],[53,1,
   },{source,targetVersion,from});
   assert.equal(result.source,hash(original));assert.equal(result.backup,hash(original));assert.notEqual(result.target,hash(original));
   assert.equal(result.unchanged,true);assert.equal(result.rejected,true);
-  const bridge=from==='0.57.0'?'0.57.0':minor>=53?'0.53.0':'0.50.0';
-  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:minor>=53?'W':'L',stamp:from==='0.57.0'?0x3900:minor>=53?0x34ff:0x31ff})));
+  const bridge=x?'0.59.2':from==='0.57.0'?'0.57.0':minor>=53?'0.53.0':'0.50.0';
+  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:x?'X':minor>=53?'W':'L',stamp:x?0x3b02:from==='0.57.0'?0x3900:minor>=53?0x34ff:0x31ff})));
   assert.deepEqual(result.migration,{kind:'start',from,to:targetVersion,...(bridge!==targetVersion?{via:bridge}:{})});
   if(minor>=59){assert.equal(result.bodyBytes,16777216);assert.equal(result.layout.version,2);}
   assert.equal(result.current.version,bridge);assert.equal(result.current.compatibility.status,'compatible');assert.equal(result.current.validationError,null);
   assert.equal(result.current.testWorker.romReads.length,1,'Same-ROM inspection reads/scans the large ROM once');
   if(result.transfer){
-   assert.equal(result.transfer.transfers,2);assert.equal(result.transfer.transferBytes,original.length*2);assert.equal(result.transfer.independent,true);
+   assert.equal(result.transfer.transfers,2);assert.equal(result.transfer.transferBytes,original.length+result.bodyBytes+original.length%4096);assert.equal(result.transfer.independent,true);
    assert.equal(result.transfer.output,result.target);assert.equal(result.transfer.original,hash(original));
    assert.equal(result.invalidStoredTarget.targetReady,false,'Stored unrecognized ROM cannot use a supplied optimistic profile');
   }

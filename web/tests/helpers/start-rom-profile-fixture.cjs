@@ -2,7 +2,7 @@
 // Authored Thumb instructions and cartridge markers, without game ROM data.
 const assert=require('node:assert/strict');
 const {word,literal,branchLink}=require('./mgba-save-probe-fixture.cjs');
-function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoline=0x2000,immediate=false,rangeGate=false,upperImmediate=false,lowerImmediate=false,lFormat=false,wFormat=false,bytes}={}){
+function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoline=0x2000,immediate=false,rangeGate=false,upperImmediate=false,lowerImmediate=false,lFormat=false,wFormat=false,xFormat=false,bytes}={}){
  bytes=bytes||new Uint8Array(0x2000008);
  const text=(at,value)=>bytes.set(Buffer.from(value),at);
  text(0xa0,'POKEMONSTART');text(0xac,'PKSJ');bytes[0xb2]=0x96;text(0x2000000,'PKSPICS1');
@@ -33,7 +33,7 @@ function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoli
   [0x4282,0x415b,0x0018,0x4770].forEach((op,i)=>word(bytes,lowerBody+i*2,op));
   const upperBody=constant(upper,3,upper+0x20,stamp,upperImmediate);
   [0x4283,0x4180,0x4240,0x4770].forEach((op,i)=>word(bytes,upperBody+i*2,op));
-  if(lFormat||wFormat){
+  if(lFormat||wFormat||xFormat){
    const formatGuard=gate+0x200,formatLoader=gate+0x400,formatInit=gate+0x600,cache=0x020310e0;
    const ops=(at,values)=>values.forEach((op,i)=>{if(op!==null)word(bytes,at+i*2,op);});
    // Authored instructions model the separate layout guard before version
@@ -62,6 +62,24 @@ function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoli
     word(bytes,formatLoader+0x32,0xd000|((0x70-0x36)/2));branchLink(bytes,formatLoader+0x34,formatInit);branchLink(bytes,formatLoader+0x70,formatInit);
     ops(formatLoader+0x56,[0xb016,0xbc1c,0x4690,0x4699,0x46a2,0xbdf0]);
     branchLink(bytes,formatLoader+0xc0,formatInit);ops(formatLoader+0xc4,[0x23a7,0x2101,null,0x54d1]);load(formatLoader+0xc8,2,formatLoader+0x110,cache);branch(formatLoader+0xcc,formatLoader+0x56);
+   }
+   if(xFormat){
+    // Independent authored X control flow, including distant guard and upper
+    // failure blocks; no cartridge bytes are copied into this fixture.
+    bytes.fill(0,gate-128,gate+0x80);const failure=gate-0x700,rejoin=failure+18;
+    word(bytes,getter,0x4728);load(gate,0,gate+0x80,0x50ef);load(gate+2,5,gate+0x84,0x0806dd5d);
+    branchLink(bytes,gate+4,getter);branchLink(bytes,gate+8,lower);
+    ops(gate+12,[0x2800,0xd006,0x2300,0x9305,0x3301,0x469b,0x469a,0x2600]);branch(gate+28,rejoin);
+    load(gate+30,0,gate+0x80,0x50ef);branchLink(bytes,gate+32,getter);branchLink(bytes,gate+36,upper);
+    ops(gate+40,[0x4682,0x2800,0xd000,null,0x2301,0x9005,0x9006,0x469b]);branch(gate+46,failure);branch(gate+56,rejoin);
+    ops(failure,[0x2301,0x469b,0x2300,0x9305,0x3301,0x9306,0x2300,0x2600,0x469a]);
+    branchLink(bytes,gate-110,formatGuard);ops(gate-106,[0x9006,0x2800,0xd031,0x2300,0x9306,0x3301,0x469b,0x9305,0x2600]);branch(gate-88,rejoin);
+    word(bytes,formatGuard+12,0x22b0);load(formatInit+4,2,formatInit+0x84,cache+0xb4);
+    bytes.fill(0,formatLoader,formatLoader+0x200);
+    ops(formatLoader,[0xb5f0,0x4646,0x46d6,0x464f,0xb5c0,0x26a0,null,0x468c,null,0x681c,0x0176,0x59a2,null,0x4013,0x4463,0xb096,0x2b00,0xd01a,null,0x18d5,0x426b,0x415d,0x2d00,0xd114,null,0x42ba,0xd01d]);
+    load(formatLoader+12,1,formatLoader+0x100,0xcdb3b7ad);load(formatLoader+16,3,formatLoader+0x104,0x03005048);load(formatLoader+24,3,formatLoader+0x108,0xfeffffff);load(formatLoader+36,3,formatLoader+0x10c,0xb3bab7ad);load(formatLoader+48,7,formatLoader+0x110,0x344c4853);
+    branchLink(bytes,formatLoader+54,formatInit);branch(formatLoader+88,formatLoader+102);branchLink(bytes,formatLoader+90,formatInit);
+    ops(formatLoader+94,[0x23b0,0x2101,null,0x54d1,0xb016,0xbc1c,0x4690,0x4699,0x46a2,0xbdf0]);load(formatLoader+98,2,formatLoader+0x114,cache);branchLink(bytes,formatLoader+114,formatInit);
    }
    return {bytes,writer,gate,trampoline,lower,upper,lowerBody,upperBody,formatGuard,formatLoader,formatInit};
   }

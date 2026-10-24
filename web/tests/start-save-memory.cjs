@@ -23,7 +23,8 @@ function measure(input,action){
  const {convertFormatSave}=await import('../src/start-save/format-l.js');
  const wide16=await convertFormatSave(wide.bytes,{to:'W',storageLayout:2});
  const allocationResults=[];
- for(const [version,bytes] of [['0.49.0',old],['0.50.0',converted.bytes],['0.53.0',wide.bytes],['0.53.0',wide16.bytes]]){
+ const x=await convertFormatSave(wide16.bytes,{to:'X',storageLayout:2});
+ for(const [version,bytes] of [['0.49.0',old],['0.50.0',converted.bytes],['0.53.0',wide.bytes],['0.53.0',wide16.bytes],['0.59.2',x.bytes]]){
   const padded=new Uint8Array(bytes.length+32).fill(0xac);padded.set(bytes,16);
   const input=padded.subarray(16,-16),before=hash(padded);
   const operations={detect:()=>api.detectStartSaveVersion(input),inspect:()=>api.inspectStartSave(input,version),update:()=>api.inspectStartUpdate(input,version,target)};

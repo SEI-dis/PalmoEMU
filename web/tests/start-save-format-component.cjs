@@ -6,7 +6,7 @@ const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 (async()=>{
  const {checkComponent,checkPublicationPermission,installedDirectory}=await import('../scripts/start-save-format/check.mjs');
  const current=checkComponent(),snapshot=Object.fromEntries(fs.readdirSync(installedDirectory).map(name=>[name,fs.readFileSync(path.join(installedDirectory,name))]));
- assert.deepEqual(current.contract.saveBodyBytes,[131072,6291456,16777216]);assert.deepEqual(current.contract.direction.to,['L','W']);assert.equal(current.contract.direction.reverseConversion,false);
+ assert.deepEqual(current.contract.saveBodyBytes,[131072,6291456,16777216]);assert.deepEqual(current.contract.direction.to,['L','W','X']);assert.equal(current.contract.direction.reverseConversion,false);
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'palmo-format-component-')),candidate=path.join(root,'candidate');fs.mkdirSync(candidate);
  try{
   const reset=()=>{for(const [name,bytes] of Object.entries(snapshot))fs.writeFileSync(path.join(candidate,name),bytes);};
