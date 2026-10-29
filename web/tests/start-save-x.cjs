@@ -5,7 +5,7 @@ const eggFixture=require('./helpers/start-save-egg-fixture.cjs');
 (async()=>{
  const {convertFormatSave:convert,inspectFormatSave:inspect}=await import('../src/start-save/format-l.js');
  const api=await import('../src/start-save/migration.js'),{startSaveCompatibility:compat}=await import('../src/start-save/compatibility.js');
- const target={version:'0.59.6',minimumSaveVersion:'0.36.2',saveFormat:'X'};
+ const target={version:'0.59.5',minimumSaveVersion:'0.36.2',saveFormat:'X'},yTarget={...target,version:'0.59.6'};
  const source=f.old49({second:true}),before=hash(source.bytes),w=await convert(source.bytes,{to:'W'});
  const plain=crypt.decode(w.bytes),eggSum=b=>{let sum=0x4547;for(let i=16;i<136+30*(f.u16(b,4)===1?63:78);i++)sum+=b[i]+((i-16)&255);return sum&65535;};
  for(const base of [0,f.slotBytes])for(const physical of [88,89]){
@@ -31,7 +31,7 @@ const eggFixture=require('./helpers/start-save-egg-fixture.cjs');
  const native=crypt.encode(nativePlain);assert.equal(api.detectStartSaveVersion(native),'0.59.5');
  assert.deepEqual((await api.migrateStartSave(native,{from:'0.59.5',target})).bytes,native,'Native X and all new bits are a raw no-op');
  assert.equal(compat('0.59.1',target).status,'convert');assert.equal(compat('0.59.2',target).status,'compatible');
- assert.equal(compat('0.59.5',{...target,version:'0.60.1'}).status,'compatible');
+ assert.equal(compat('0.59.5',{...target,version:'0.60.1'}).status,'convert');
  assert.equal(compat('0.59.5',{version:'0.59.1',minimumSaveVersion:'0.36.2',saveFormat:'W'}).status,'downgrade');
  const migrated=await api.migrateStartSave(source.bytes,{from:'0.49.0',target});assert.equal(api.detectStartSaveVersion(migrated.bytes),'0.59.2');
  for(const index of [1,2,3,4,5,6,7]){const value=crypt.encode(index<3?crypt.decode(w.bytes):nativePlain,index);assert.ok(inspect(value).slots.every(s=>s.valid),'Known key '+index);}
@@ -57,14 +57,14 @@ const eggFixture=require('./helpers/start-save-egg-fixture.cjs');
  const stale=eggFixture.eggs(native,{stamp:0x3b06,key:7}),staleHash=hash(stale);
  assert.equal(api.detectStartSaveVersion(stale),'0.59.6');
  assert.ok(inspect(stale).slots.every(s=>s.valid&&s.eggStale));
- assert.equal(api.inspectStartUpdate(stale,'0.59.6',target).compatibility.status,'convert','Same-version X still needs stale egg repair');
- const fixed=await api.migrateStartSave(stale,{from:'0.59.6',target});
+ assert.equal(api.inspectStartUpdate(stale,'0.59.6',yTarget).compatibility.status,'convert','Same-version Y still needs stale egg repair');
+ const fixed=await api.migrateStartSave(stale,{from:'0.59.6',target:yTarget});
  assert.ok(inspect(fixed.bytes).slots.every(s=>s.valid&&!s.eggStale&&s.versionStamp===0x3b06));
- assert.equal(api.inspectStartUpdate(fixed.bytes,'0.59.6',target).compatibility.status,'compatible');
+ assert.equal(api.inspectStartUpdate(fixed.bytes,'0.59.6',yTarget).compatibility.status,'compatible');
  for(const slot of [0,1])for(const [a,b] of [[0,88*4096],[90*4096,8388608]])assert.deepEqual(fixed.bytes.subarray(slot*8388608+a,slot*8388608+b),stale.subarray(slot*8388608+a,slot*8388608+b),'Repair changes only egg blocks, not native keys/counters/EV-IV data');
  assert.deepEqual(fixed.bytes.slice(-16),stale.slice(-16));assert.equal(hash(stale),staleHash);
- const one=await convert(stale,{to:'X',storageLayout:2,selection:1});assert.deepEqual(one.bytes.slice(0,8388608),stale.slice(0,8388608));
- assert.deepEqual((await convert(fixed.bytes,{to:'X',storageLayout:2})).bytes,fixed.bytes,'Already repaired X remains a raw no-op');
+ const one=await convert(stale,{to:'Y',storageLayout:2,selection:1});assert.deepEqual(one.bytes.slice(0,8388608),stale.slice(0,8388608));
+ assert.deepEqual((await convert(fixed.bytes,{to:'Y',storageLayout:2})).bytes,fixed.bytes,'Already repaired Y remains a raw no-op');
  for(const edit of [b=>b[88*4096+136]^=1,b=>b.fill(255,88*4096,89*4096),b=>f.put16(b,88*4096+4,99)]){
   const invalid=crypt.decode(stale);edit(invalid);await reject(crypt.encode(invalid,7),'START_FORMAT_EGG');
  }

@@ -9,6 +9,8 @@ export const START_WIDE_STAMP=0x3500;
 export const START_WIDE_BRIDGE=0x34ff;
 export const START_X_VERSION='0.59.2';
 export const START_X_STAMP=0x3b02;
+export const START_Y_VERSION='0.59.6',START_Y_STAMP=0x3b06;
+export const START_Z_VERSION='0.61.0',START_Z_STAMP=0x3d00;
 export function startFormatTarget(target){
  const version=startVersionNumber(target?.version),minimum=startVersionNumber(target?.minimumSaveVersion);
  if(target?.unverified||version===null||minimum===null)return null;
@@ -16,7 +18,9 @@ export function startFormatTarget(target){
  // 0.59.0 changes the physical adventure-slot spacing, not W box records.
  // Apply the boundary to later verified W ROMs too, never one exact patch.
  if(target?.saveFormat==='W'&&version>=START_WIDE_STAMP&&version<START_X_STAMP&&minimum<=START_WIDE_BRIDGE)return {format:'W',version:START_WIDE_VERSION,stamp:START_WIDE_STAMP,...(version>=0x3b00?{storageLayout:2}:{})};
- if(target?.saveFormat==='X'&&version>=START_X_STAMP&&minimum<=START_X_STAMP)return {format:'X',version:START_X_VERSION,stamp:START_X_STAMP,storageLayout:2};
+ if(target?.saveFormat==='X'&&version>=START_X_STAMP&&version<START_Y_STAMP&&minimum<=START_X_STAMP)return {format:'X',version:START_X_VERSION,stamp:START_X_STAMP,storageLayout:2};
+ if(['X','Y'].includes(target?.saveFormat)&&version>=START_Y_STAMP&&version<START_Z_STAMP&&minimum<=START_Y_STAMP)return {format:'Y',version:START_Y_VERSION,stamp:START_Y_STAMP,storageLayout:2};
+ if(target?.saveFormat==='Z'&&version>=START_Z_STAMP&&minimum<=START_Z_STAMP)return {format:'Z',version:START_Z_VERSION,stamp:START_Z_STAMP,storageLayout:2};
  return null;
 }
 export function isStartFormatTarget(target){return startFormatTarget(target)!==null;}
@@ -29,7 +33,11 @@ export function formatSourceVersion(stamp,format='L'){
   if(stamp===START_WIDE_BRIDGE)return START_WIDE_VERSION;
   if(stamp<START_WIDE_STAMP||stamp>=START_X_STAMP)return null;
  }else if(format==='X'){
-  if(stamp<START_X_STAMP)return null;
+  if(stamp<START_X_STAMP||stamp>=START_Y_STAMP)return null;
+ }else if(format==='Y'){
+  if(stamp<START_Y_STAMP||stamp>=START_Z_STAMP)return null;
+ }else if(format==='Z'){
+  if(stamp<START_Z_STAMP)return null;
  }else return null;
  return `0.${stamp>>>8}.${stamp&255}`;
 }

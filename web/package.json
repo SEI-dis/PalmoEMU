@@ -1,6 +1,6 @@
 {
   "name": "palmoemu",
-  "version": "0.3.40",
+  "version": "0.3.41",
   "private": true,
   "scripts": {
     "dev": "node scripts/develop.mjs",
@@ -166,7 +166,9 @@
     "test:start-save-format": "node tests/start-save-format.cjs",
     "test:start-save-format-component": "node tests/start-save-format-component.cjs",
     "test:start-save-format-host": "node tests/start-save-format-host.cjs",
-    "test:start-save-format-browser": "node tests/start-save-format-browser.cjs"
+    "test:start-save-format-browser": "node tests/start-save-format-browser.cjs",
+    "test:start-save-z": "node tests/start-save-z.cjs",
+    "test:start-save-z-browser": "node tests/start-save-z-browser.cjs"
   },
   "license": "AGPL-3.0-or-later"
 }

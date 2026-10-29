@@ -13,8 +13,8 @@ async function run(cases=[[50,0,'0.49.0'],[50,1,'0.49.0'],[53,1,'0.49.0'],[53,1,
   browser=await runtime[kind].launch({headless:true,...(kind==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})});
   const {convertFormatSave}=await import('../src/start-save/format-l.js');
   for(const [minor,patch,from] of cases){
-  const x=minor>59||minor===59&&patch>=2;
-  const targetVersion=`0.${minor}.${patch}`,targetBytes=fixture({stamp:(minor<<8)+patch,rangeGate:true,upperImmediate:patch===0,lFormat:minor===50,wFormat:minor>=53&&!x,xFormat:x}).bytes;
+  const x=minor>59||minor===59&&patch>=2,y=minor>59||minor===59&&patch>=6,z=minor>=61;
+  const targetVersion=`0.${minor}.${patch}`,targetBytes=fixture({stamp:(minor<<8)+patch,rangeGate:true,upperImmediate:patch===0,lFormat:minor===50,wFormat:minor>=53&&!x,xFormat:x&&!z,zFormat:z}).bytes;
   const file=path.join(dir,`PokemonStart_v${targetVersion}.gba`);fs.writeFileSync(file,targetBytes);
   let original=fixture35({stamp:0x3100,second:true});
   const sourceX=/^0\.59\.[2-9]$/.test(from);
@@ -92,8 +92,8 @@ async function run(cases=[[50,0,'0.49.0'],[50,1,'0.49.0'],[53,1,'0.49.0'],[53,1,
   },{source,targetVersion,from});
   assert.equal(result.source,hash(original));assert.equal(result.backup,hash(original));assert.notEqual(result.target,hash(original));
   assert.equal(result.unchanged,true);assert.equal(result.rejected,true);
-  const bridge=sourceX?from:x?'0.59.2':from==='0.57.0'?'0.57.0':minor>=53?'0.53.0':'0.50.0';
-  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:x?'X':minor>=53?'W':'L',stamp:sourceX?0x3b05:x?0x3b02:from==='0.57.0'?0x3900:minor>=53?0x34ff:0x31ff})));
+  const bridge=z?'0.61.0':y?'0.59.6':sourceX?from:x?'0.59.2':from==='0.57.0'?'0.57.0':minor>=53?'0.53.0':'0.50.0';
+  assert.deepEqual(result.slots,[0,1].map(()=>({valid:true,format:z?'Z':y?'Y':x?'X':minor>=53?'W':'L',stamp:z?0x3d00:y?0x3b06:sourceX?0x3b05:x?0x3b02:from==='0.57.0'?0x3900:minor>=53?0x34ff:0x31ff})));
   assert.deepEqual(result.migration,{kind:'start',from,to:targetVersion,...(bridge!==targetVersion?{via:bridge}:{})});
   if(minor>=59){assert.equal(result.bodyBytes,16777216);assert.equal(result.layout.version,2);}
   assert.equal(result.current.version,bridge);assert.equal(result.current.compatibility.status,'compatible');assert.equal(result.current.validationError,null);

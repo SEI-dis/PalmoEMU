@@ -1,6 +1,48 @@
 {
   "releases": [
     {
+      "version": "0.3.41",
+      "date": "2026-10-29",
+      "changes": [
+        "セーブ変換をPokemonStart 0.62.0付属のツールに更新し、100箱の保存形式（0.61.0以降）に対応しました。",
+        "変換時はボックス・卵ボックス・手持ち・預かり屋のデータを保持します。元のROMとセーブは残します。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "已采用 PokemonStart 0.62.0 附带的工具更新存档转换功能，支持 100 个盒子的存档格式（0.61.0 及更高版本）。",
+          "转换时会保留盒子、蛋盒、同行队伍及寄放屋的数据。原始 ROM 和存档也会保留。"
+        ],
+        "zh-Hant": [
+          "已採用 PokemonStart 0.62.0 隨附的工具更新存檔轉換功能，支援 100 個盒子的存檔格式（0.61.0 及更新版本）。",
+          "轉換時會保留盒子、蛋盒、同行隊伍及寄放屋的資料。原始 ROM 與存檔也會保留。"
+        ],
+        "ko": [
+          "PokemonStart 0.62.0에 포함된 도구로 세이브 변환 기능을 업데이트하여 박스 100개를 지원하는 저장 형식(0.61.0 이상)에 대응했습니다.",
+          "변환 시 박스, 알 박스, 파티, 맡기미집의 데이터를 유지합니다. 원본 ROM과 세이브는 보관됩니다."
+        ],
+        "es": [
+          "La conversión de partidas guardadas se ha actualizado con la herramienta incluida en PokemonStart 0.62.0 y ahora admite el formato de 100 cajas (0.61.0 y posteriores).",
+          "La conversión conserva los datos de las cajas, las cajas de huevos, el equipo y la guardería. Se mantienen la ROM y la partida guardada originales."
+        ],
+        "fr": [
+          "La conversion utilise désormais l’outil fourni avec PokemonStart 0.62.0 et prend en charge le format de sauvegarde à 100 boîtes (0.61.0 et versions ultérieures).",
+          "La conversion conserve les données des boîtes, des boîtes à œufs, de l’équipe et de la pension. La ROM et la sauvegarde d’origine sont conservées."
+        ],
+        "de": [
+          "Die Spielstand-Konvertierung wurde auf das mit PokemonStart 0.62.0 gelieferte Tool aktualisiert und unterstützt das Speicherformat mit 100 Boxen (ab 0.61.0).",
+          "Bei der Konvertierung bleiben die Daten in Boxen, Eierboxen, Team und Pension erhalten. Die ursprüngliche ROM und der ursprüngliche Spielstand werden aufbewahrt."
+        ],
+        "pt": [
+          "A conversão de dados salvos foi atualizada com a ferramenta incluída no PokemonStart 0.62.0 e agora aceita o formato de 100 caixas (0.61.0 e posteriores).",
+          "A conversão preserva os dados das caixas, das caixas de ovos, da equipe e do berçário. A ROM e os dados salvos originais são mantidos."
+        ]
+      },
+      "changesEn": [
+        "Updated save conversion to the tool supplied with PokemonStart 0.62.0, adding support for the 100-box save format (0.61.0 and later).",
+        "Conversion preserves data in boxes, egg boxes, your party and the Day Care. The original ROM and save are kept."
+      ]
+    },
+    {
       "version": "0.3.40",
       "date": "2026-10-24",
       "changes": [

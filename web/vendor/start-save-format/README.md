@@ -1,4 +1,4 @@
-# PokemonStart 0.59.6 save-format component
+# PokemonStart 0.62.0 save-format component
 
 **Permission clarification (2026-10-16).** Following an explicit explanation of
 modification, offline distribution and modified-source publication on GitHub/in
@@ -9,7 +9,7 @@ individual tool author. This records the maintainer confirmation, not a separate
 inspected rights-holder message. `component.json` records the scope and condition.
 
 Source distribution: [pm-start/PokemonStart](https://github.com/pm-start/PokemonStart),
-maintainer-supplied `セーブデータ移行ツール.html` alongside the 0.59.6 ROM.
+maintainer-supplied `セーブデータ移行ツール (1).html` alongside the 0.62.0 ROM.
 The 0.59.5 source adds X records, versioned sector obfuscation and integrity tags, retaining the 0.59.0 physical save-slot layout. Its decoded
 JavaScript was reviewed statically; the original HTML/UI is not distributed.
 This identifies the distributor, **not a verified individual author**. This is
@@ -22,13 +22,15 @@ On 2026-10-16 the project maintainer confirmed that incorporation, Web publicati
 The host facade AGPL notice does not relicense this component.
 
 Original HTML SHA-256:
-`d9f2f0376aabdb413dc8f0eeb3c800f77022db6a9ecb5a041a8c2ec6575a7856`.
+`f89e3e793e8b067e7c21ce4ee68c39715826eaa9423e4d00203ab2b4f8ddf7f2`.
 Statically decoded JavaScript SHA-256:
-`c6dea6c88c0f1ded2f51bd9a564e2872c241a2f7afa7e34483e012092db9b0b1`.
+`a0ecd00b053570745ad1e8395d5f3c48d4ab1445b73dd6cb2683fa9ad8a36429`.
+
+**Latest-revision confirmation (2026-10-29).** On 2026-10-29, after being explicitly asked about the latest tool's restrictive notice, the maintainer confirmed that the same credit-conditional permission also applies to this latest supplied revision. This is a maintainer-reported specific permission, not a general license for other users or independent inspection of author correspondence. The generic source notice is retained as provenance here; the maintainer explicitly confirmed that the earlier permission covers this incorporation. Existing credits remain unchanged.
 
 ## Scope
 
-`engine.js` extracts and adapts SaveCrypt, forward **old/L/W → L/W/X** conversion and the 0.59.0 physical slot relocation.
+`engine.js` extracts and adapts SaveCrypt, forward **old/L/W/X/Y → L/W/X/Y/Z** conversion and the 0.59.0 physical slot relocation.
 The original tool's DOM, downloads, historical 14-sector migration, reverse
 conversion, value-rounding code and unrelated packaged files are not included.
 The existing historical migration component remains responsible for older game
@@ -190,3 +192,11 @@ The original 0.59.5 source hashes remain in Git history. The current header hash
 identify the supplied 0.59.6 HTML and statically decoded JavaScript. Direction
 old/L/W→L/W/X is unchanged; X→X only repairs stale eggs, with no reverse conversion
 or rounding. Original HTML and real saves remain outside the distribution.
+
+## 0.62.0: Y/Z, 100 boxes and current keys
+
+Y (0.59.6) keeps X/SHL4 78-byte records and party/daycare high-bit storage. Z (0.61.0) adds 50 boxes in 29 mapped pages, physical sectors 218–275, and 500 bytes of names/wallpapers. Forward conversion verifies 3000 records per adventure, retains all existing record bytes, and initializes only the newly introduced boxes. Native Z saves remain byte-identical unless stale eggs need repair. The 16 supplied sector keys through 0.62.0 are recognized.
+
+The host verifies the Z loader, map header/loop and native version limits, rather than whitelisting 0.62.0 or trusting a filename. Earlier verified X ROMs use the Y boundary from 0.59.6. Unknown loaders remain unsupported. Active party/daycare pool headers and checksums are validated; sectors 92/93 and owner fields are retained raw. Unreadable pages, invalid MACs, unknown keys and occupied new-box extents still reject conversion. No reverse conversion or lossy rounding is exposed.
+
+The engine runs only during inspection/conversion, in the existing Worker path. No ROM/core/gameplay loop changes are needed for this update. Private ROM/save/original HTML are not distributed.

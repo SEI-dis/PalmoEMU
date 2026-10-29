@@ -109,5 +109,13 @@ const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
  for(const [at,value]of [[x.formatLoader+0x100,0xcdb3b7ae],[x.formatLoader+0x108,0xffffffff],[x.formatLoader+0x110,0x354c4853],[x.formatInit+0x84,0x02031188]]){
   const b=x.bytes.slice();literal(b,at,value);assert.deepEqual(read(b),{version:'0.59.5',minimumSaveVersion:null},'X loader/cache evidence must agree');
  }
- console.log('PASS: native START L/W/X version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
+ for(const stamp of [0x3d00,0x3e00,0x3f01]){
+  const z=fixture({stamp,rangeGate:true,zFormat:true,writer:0x16000,gate:0x12000,trampoline:0x20000});
+  const version=`0.${stamp>>>8}.${stamp&255}`;
+  assert.deepEqual(read(z.bytes),{version,minimumSaveVersion:'0.36.2',saveFormat:'Z'});
+  for(const at of [z.formatGuard+14,z.formatLoader+18,z.formatLoader+52,z.formatLoader+100,z.formatInit+6,z.formatLoader+0x184,z.formatLoader+0x1b0,z.gate+46]){
+   const b=z.bytes.slice();word(b,at,0x46c0);assert.deepEqual(read(b),{version,minimumSaveVersion:null},'Changed 100-box guard/map copy must fail closed');
+  }
+ }
+ console.log('PASS: native START L/W/X/Z version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

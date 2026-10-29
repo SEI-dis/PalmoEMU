@@ -40,6 +40,10 @@ export function readStartROMProfile(bytes){
  // finding a magic word or a version writer alone is not format evidence.
  const conditional=p=>{const op=u16(p);if((op&0xf000)!==0xd000||(op&0x0f00)>=0x0e00)return -1;let distance=(op&255)<<1;if(distance&0x100)distance-=0x200;return p+4+distance;};
  const oldFormatFlag=(p,x=false)=>{
+  // 100-box cache: the same flag lives at 0x107 instead of 0xb0.
+  if(x&&words(p,[null,null,0x6819,0x2000,0x4291,0xd104,0x2208,0x32ff,0x5c98,0x1e43,0x4198,0x4770])&&literal(p+2,2)===0x45484353){
+   const cache=literal(p,3);return cache>=0x02000000&&cache+0x110<=0x02040000?cache:null;
+  }
   if(!words(p,[null,null,0x6819,0x2000,0x4291,0xd103,x?0x22b0:0x22a7,0x5c98,0x1e43,0x4198,0x4770])||literal(p+2,2)!==0x45484353)return null;
   const cache=literal(p,3);return cache>=0x02000000&&cache+(x?0xb4:0xa8)<=0x02040000?cache:null;
  };
@@ -88,6 +92,28 @@ export function readStartROMProfile(bytes){
    literal(initialize+2,3)!==cache||literal(initialize+4,2)!==cache+0xb4||literal(initialize+14,3)!==cache||literal(initialize+16,2)!==0x45484353)return null;
   return cache;
  };
+ // The 100-box loader retains SHL4 records but adds a 29-page map. Verify
+ // the old-layout rejection, cache size and that map's 0x5a/32..60 copy loop.
+ const zFormatLoader=p=>{
+  if(!words(p,[0xb5f0,0x4646,0x46d6,0x464f,0xb5c0,0x26a0,null,0x468c,null,0x681d,0x0176,0x59aa,null,0x4013,0x4463,0xb096,0x2b00,null,null,0x18d4,0x4263,0x415c,0x2c00,null,null,0x42ba])||
+   literal(p+12,1)!==0xcdb3b7ad||literal(p+24,3)!==0xfeffffff||literal(p+36,3)!==0xb3bab7ad||literal(p+48,7)!==0x344c4853||
+   (u16(p+34)&0xff00)!==0xd000||(u16(p+46)&0xff00)!==0xd100||(u16(p+52)&0xff00)!==0xd000)return null;
+  const pointer=literal(p+16,3),old=conditional(p+34),next=conditional(p+52),initialize=bl(old);
+  if(pointer<0x03000000||pointer>=0x03008000||(pointer&3)||old!==conditional(p+46)||initialize<0||bl(next)!==initialize||bl(p+54)!==initialize||
+   !words(old+4,[0x2308,0x2101,null,0x33ff,0x54d1,0xb016,0xbc1c,0x4690,0x4699,0x46a2,0xbdf0])||tail(p+88)!==old+14)return null;
+  const cache=literal(old+8,2);
+  if(cache<0x02000000||cache+0x110>0x02040000||
+   !words(initialize,[0x2100,null,null,0x7019,0x3301,0x4293,0xd1fb,null,null,0x21ff,0x601a])||
+   literal(initialize+2,3)!==cache||literal(initialize+4,2)!==cache+0x110||literal(initialize+14,3)!==cache||literal(initialize+16,2)!==0x45484353)return null;
+  let maps=0;
+  for(let q=next;q<next+0x800&&q+10<bytes.length;q+=2){
+   if(!words(q,[null,0x5ceb,0x2b5a,0xd100,null])||literal(q,3)!==0xfab)continue;
+   const copy=tail(q+8);
+   if(words(copy,[0x3b3a,null,0x189a,0x5ca9,null,0x189a,0x3301,0x7011,0x2b3d,0xd1f6])&&
+    literal(copy+2,2)===0xf8c&&literal(copy+8,2)===cache+0x3d&&tail(copy+20)===q+10)maps++;
+  }
+  return maps===1?cache:null;
+ };
  let stamp=null,writerCount=0,minimum=null,gateCount=0,maximumAccepted=null,formatGate=null;
  const formatLoaders=[];
  for(let p=0xc0;p+26<=bytes.length;p+=2){
@@ -95,7 +121,7 @@ export function readStartROMProfile(bytes){
   // Skip unrelated code/artwork early, but still scan the full ROM so a second
   // writer or conflicting gate cannot be missed. All structural checks follow.
   const high=bytes[p+1];if(high!==0xb5&&high!==0x21&&high!==0x4b&&high!==0x48)continue;
-  if(bytes[p]===0xf0&&bytes[p+1]===0xb5){const cache=lFormatLoader(p);if(cache!==null)formatLoaders.push({cache,format:'L'});const wide=wFormatLoader(p);if(wide!==null)formatLoaders.push({cache:wide,format:'W'});const x=xFormatLoader(p);if(x!==null)formatLoaders.push({cache:x,format:'X'});}
+  if(bytes[p]===0xf0&&bytes[p+1]===0xb5){const cache=lFormatLoader(p);if(cache!==null)formatLoaders.push({cache,format:'L'});const wide=wFormatLoader(p);if(wide!==null)formatLoaders.push({cache:wide,format:'W'});const x=xFormatLoader(p);if(x!==null)formatLoaders.push({cache:x,format:'X'});const z=zFormatLoader(p);if(z!==null)formatLoaders.push({cache:z,format:'Z'});}
   let candidate=-1;
   // Patch releases load the complete stamp from a literal pool.
   if(bytes[p]===0x10&&bytes[p+1]===0xb5&&words(p,[0xb510,null,null,null,null,null,0xbd10])&&

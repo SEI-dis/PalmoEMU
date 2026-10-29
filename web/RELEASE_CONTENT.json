@@ -47,8 +47,8 @@
     },
     {
       "path": "LICENSE_AUDIT.md",
-      "bytes": 45594,
-      "sha256": "9eba67fcf1e57a1c63e78ce9c18d5091c16f8d84da1be32d355fddd17ad64e6a",
+      "bytes": 46871,
+      "sha256": "8081f26f3628fcce3c5fbc01dc3e44dfb8bcc00054fc040083b1872d02e4848e",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -59,8 +59,8 @@
     },
     {
       "path": "LOCALIZATION_REVIEW.md",
-      "bytes": 49698,
-      "sha256": "a07c8113c2d36c3528e9fe6d0f24928eb5f4715f8340263894c81b736ec97b2d",
+      "bytes": 51088,
+      "sha256": "0420a0e55d2945654aca7d907830b164f922740b579d08f3be17723535297510",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -77,8 +77,8 @@
     },
     {
       "path": "NOTICES.md",
-      "bytes": 71400,
-      "sha256": "1bf235f00c199e882154eccf347ad207fad8ddbdc1f519e998d6d496a5ca40ae",
+      "bytes": 72219,
+      "sha256": "dc9ad269ad035f27fca0dc55409ca26deabc33148d590a711aaf30f311f606a3",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -89,14 +89,14 @@
     },
     {
       "path": "README.md",
-      "bytes": 108339,
-      "sha256": "68399c783a2548d271544614417bb6b4e8fc3818142b9d0abde1eb6509e3e50c",
+      "bytes": 108357,
+      "sha256": "3c384547d88f3ba9cf7cb7ed4832addc2b3b99f29966011120b93f0afed26101",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 324697,
-      "sha256": "928cc7fc64396e2cc29cd39a2dc7e2feaaa6c65a1a86ae5b40782121cb28f612",
+      "bytes": 328565,
+      "sha256": "2adfb53066d18c19f310443bc991badc5387eaef57453ac2d398c2ba31413d1b",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -107,8 +107,8 @@
     },
     {
       "path": "SOURCES.json",
-      "bytes": 57201,
-      "sha256": "03b84d0bd4a385a4def71c3dbd04bf3d678cbb2683fa73cc540015e1acaae92b",
+      "bytes": 57966,
+      "sha256": "ae1115e93ca2d85b4f25fc7ea09fe75979d663a8c06537bef41e3de9adc4e017",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -905,8 +905,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 8884,
-      "sha256": "c2fb94a82a858c705d741590ab67c298647df9db9fb276d2aa30349c26043238",
+      "bytes": 8755,
+      "sha256": "3755b69f1dc2664076bc24da10c8678db7309dd13937d5c2dafb816cfca9b1ce",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -923,8 +923,8 @@
     },
     {
       "path": "licenses.html",
-      "bytes": 21596,
-      "sha256": "f29385df8b9d7f644f9f2693705c448eedf6ad65618fb0ab109aa411bb83bb79",
+      "bytes": 21467,
+      "sha256": "f686af3e2540439b81e4d899608f5a722bff31ec13faffb7253e7a87dd772285",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1151,14 +1151,14 @@
     },
     {
       "path": "notices.html",
-      "bytes": 150780,
-      "sha256": "3629dcac5a29169fbba666ba348160552d43d09957ecdeb2ec10e7d8cd88a2fe",
+      "bytes": 154033,
+      "sha256": "faa9af216f03987573edf16c2114988606c04c5b172dd744d0b0854ab7ef1cbc",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "package.json",
-      "bytes": 9684,
-      "sha256": "a4a89dfe11747ab1907b85890d1c29de8dbcc2475914e072b5f4ec70abad2f5a",
+      "bytes": 9814,
+      "sha256": "924a6e0dd9cc6152eda4753fc6b5a5b3f9c377dd8abe90bf9e53db8c35631960",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1169,8 +1169,8 @@
     },
     {
       "path": "release-notes.json",
-      "bytes": 136942,
-      "sha256": "86e03ef4c7a3c68fffb420cb24f1538a9f461b47f2d457d5bd91e4bd06282779",
+      "bytes": 140137,
+      "sha256": "58a08806b3cae7db53d41611ea5df3d834e7c97ceab8f5a0f3eb960e46462ff3",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1289,8 +1289,8 @@
     },
     {
       "path": "scripts/i18n/state.json",
-      "bytes": 183470,
-      "sha256": "2dca406646955a3814425c37698fa00d2cca130e1df0fbb2fee151aaaddbf031",
+      "bytes": 183550,
+      "sha256": "c83ab488ea7333ed3f2b3d1a8f2231ddc3e0b6ad0bde521e33c48f04b9bf1123",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1373,8 +1373,8 @@
     },
     {
       "path": "scripts/start-save-format/check.mjs",
-      "bytes": 11734,
-      "sha256": "daa73547b22836eab2b8f59624f9d426d9ec0f706a6238e77ba93ebdc7969557",
+      "bytes": 12679,
+      "sha256": "676032f18a6125727ccccfe7c3df1210d26ef1e674ee6c79022554ab01de1a1a",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1421,8 +1421,8 @@
     },
     {
       "path": "scripts/test-all.cjs",
-      "bytes": 6637,
-      "sha256": "f3535e3fa09cffcf777c7b314087a6ce14739ef45177e62e2d8dc936f152ff72",
+      "bytes": 6660,
+      "sha256": "21fd36d2d9de71d2595b74db456efeb04fc750daa8a9b7647cd46a348a6b322e",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41435,14 +41435,14 @@
     },
     {
       "path": "src/start-save/format-version.js",
-      "bytes": 2098,
-      "sha256": "0d4facd4b9dc7ce5d43cff467a7c4ab5b6843c66b042ed6b96de24705d27d091",
+      "bytes": 2772,
+      "sha256": "e148e5d41db1232fce31368ae9835b414b39a6d46c48c7335065c0980d089e22",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "src/start-save/migration.js",
-      "bytes": 12911,
-      "sha256": "521c621e8732ec4edcf3b576a578fc04e7fc85ac85f3671cef5f9d79fd7369c3",
+      "bytes": 12957,
+      "sha256": "abea69823607fdba325a42d0b10c75d0e19c86a032af5fbebd6dc81ceb608ea2",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41453,8 +41453,8 @@
     },
     {
       "path": "src/start-save/rom-profile.js",
-      "bytes": 12707,
-      "sha256": "227ae8208539e46dd889102dd248c60c971010fdfacbec8487954aeda46d67b1",
+      "bytes": 14767,
+      "sha256": "210213956526735a36091b3d5398102fe49caba6ad1e7f2b689249a27478f4ee",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41730,7 +41730,7 @@
     {
       "path": "sw.js",
       "bytes": 17492,
-      "sha256": "5441af6087ac3f724c5d4797c57e26e3e6f823e0b67d958116fccf5321869d37",
+      "sha256": "a6d8206e32dfd55cfe7e2c09b9fa5aac8957ad4ace2037959ff9b249c35fb260",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41981,8 +41981,8 @@
     },
     {
       "path": "tests/helpers/start-rom-profile-fixture.cjs",
-      "bytes": 8311,
-      "sha256": "1bb43d79cd323d1f40a3fe80d9f8552c31923f4e9676d029d0f3582a164af31f",
+      "bytes": 9198,
+      "sha256": "ec3c01872e0cd7e3de31d642f19a146fadf270850f79fdf20f357a1e955ba8ef",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41999,14 +41999,14 @@
     },
     {
       "path": "tests/helpers/start-save-format-fixtures.cjs",
-      "bytes": 8022,
-      "sha256": "f05c81b068dd73ef606b41746db7d901c63eabb57e31337b189ac2896b8077c8",
+      "bytes": 8184,
+      "sha256": "2539cb60c4b57001d31f67dd300442234888b0ea8d6403900391952338399473",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "tests/helpers/start-save-keyed-fixture.cjs",
-      "bytes": 2561,
-      "sha256": "51bbe49560063c33ff46fed7e2021d37b831b0c3baa3948f42d01574cec3fd8e",
+      "bytes": 2660,
+      "sha256": "8177138ec6b567483f4910e94899f354aa6891ad1c9afe5c28b5ee3623a694e2",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42503,8 +42503,8 @@
     },
     {
       "path": "tests/start-rom-profile.cjs",
-      "bytes": 11603,
-      "sha256": "20cacf403806ee58cafe6d2d12e376e84da040f9def6017cec399c388ecac909",
+      "bytes": 12212,
+      "sha256": "981a007cab37e384ab18407432d84abbeed7fdcc7c43c6ecf9cc96ea7fe76126",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42521,14 +42521,14 @@
     },
     {
       "path": "tests/start-save-format-browser.cjs",
-      "bytes": 10670,
-      "sha256": "97bd181f830e140b28f046e03e28a4ab677086946084d42ba93885f137cb718d",
+      "bytes": 10781,
+      "sha256": "559421e8620752cf2fcd348158bc0e9028b8053dec7377771d0522f583058069",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "tests/start-save-format-component.cjs",
-      "bytes": 7460,
-      "sha256": "c934ff5d4fdec126b529ec46d8fb96aa98bc8d31b26f02082ba3c71f8411e0a5",
+      "bytes": 7606,
+      "sha256": "8af21d3b2a99f435339781321e76d35dcfe89f45bb5907966ebbd76de1ece3d2",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42557,8 +42557,8 @@
     },
     {
       "path": "tests/start-save-memory.cjs",
-      "bytes": 5993,
-      "sha256": "59c0cd67f36c24f809a3db811d932b4ef253fdd66d3a20175e173de1e09f464e",
+      "bytes": 6159,
+      "sha256": "fc0abfc1a661b67194c3f6260e11d95a56185c9ed1ada2c3275b3f0bfdb3126b",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42593,8 +42593,20 @@
     },
     {
       "path": "tests/start-save-x.cjs",
-      "bytes": 7051,
-      "sha256": "1018126bd243ec10f9ac353c712b165ae4400a1205b7519ba57febe4069e0472",
+      "bytes": 7095,
+      "sha256": "1ef00648d0b9c4ce1da15c0a335dab46c98431ec44173c6f08160e65416bd3b8",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/start-save-z-browser.cjs",
+      "bytes": 239,
+      "sha256": "4bbc6c5a9a6d1acc77858f417086f53e8a2a96543519c4c5c6627101bc26ffb6",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/start-save-z.cjs",
+      "bytes": 7098,
+      "sha256": "f5831a14e6e4314f94c0e50ae6f4e8ac09f0dc9e6223d7144199b458621ad9af",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42827,20 +42839,20 @@
     },
     {
       "path": "vendor/start-save-format/README.md",
-      "bytes": 13780,
-      "sha256": "2fcaa8505f34e38a3bdc4df10958ee7d14cb9c734896c1ee340110e3d49227c5",
+      "bytes": 15547,
+      "sha256": "29ed4363423dce612aa53415e4bcaceb15fb1b80b9c2af9660f9a8edb109e024",
       "component": "pokemonstart-bundled-format-tool-separate-permission-review"
     },
     {
       "path": "vendor/start-save-format/component.json",
-      "bytes": 5475,
-      "sha256": "4e4e6302e5e0a3213aa65f848f3521e995b942a64f7dadbdb16dc86ffdfa1178",
+      "bytes": 6554,
+      "sha256": "82d3edff2cdbb4c9e14d5586ae454f35db1398392f40663eb7918ec9c3870f0d",
       "component": "pokemonstart-bundled-format-tool-separate-permission-review"
     },
     {
       "path": "vendor/start-save-format/engine.js",
-      "bytes": 28524,
-      "sha256": "3d7b355fea28d4789abe6f37e473334e52820371e1037ff2b7b2fdc62235ec07",
+      "bytes": 31632,
+      "sha256": "9d76f1515ac748627e047ed8dcdf7b64cfad5bf87bba6b8b312877afdc9fc703",
       "component": "pokemonstart-bundled-format-tool-separate-permission-review"
     },
     {

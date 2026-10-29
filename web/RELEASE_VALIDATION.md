@@ -1,5 +1,58 @@
 # 公開前の検証記録
 
+## 2026-10-29 — 0.3.41 release candidate / PokemonStart 0.62.0
+
+Baseline 4b6ce9f. The maintainer requests incorporation, commit/push, publication
+and a short report. All required CI must pass on the exact commit before publishing;
+this pre-commit record does not claim CI or deployment has already succeeded.
+
+- The supplied 0.62.0 converter was statically decoded; its UI/wrapper was not
+  executed. Adopt Y (0.59.6), Z (0.61.0, 100 boxes), nine additional sector keys,
+  29-page maps and 500-byte extra-box metadata. Retain strict page/checksum/MAC,
+  counter ambiguity, occupied-extent and unknown-format rejection. Recognized
+  active party/daycare high-bit pool tables are validated, including legitimate
+  empty entries, and retained raw with owner fields. No downgrade or rounding.
+- Authored regressions pass: Y/Z boundaries and future unchanged-format revisions;
+  all 6,000 record positions across two adventures; populated boxes 51–100 with
+  names/wallpapers; old high-bit data, empty-species nonzero records, both pool
+  sectors, stale egg repair, RTC, slot selection, no-op bytes, all 16 keys and
+  malformed/conflicting maps. Existing X, physical layout, legacy host routing,
+  source/permission contract and native ROM-profile regressions pass. Contract
+  expectations were updated without weakening permission or integrity gates.
+- Private source-oracle comparison: supplied converter versus Palmo old/L/W/X/Y
+  to Z matches all 6,000 records, main data and metadata. The actual 0.57.0 save
+  also agrees logically; unrelated raw sectors intentionally retain their original
+  keys instead of re-signing the whole file. Original hashes remain unchanged.
+- Chromium and PC WebKit pass real UI → Worker → storage for 0.49.0, 0.57.0 and
+  0.59.5 → 0.62.0, and authored future 0.52.0 → 0.63.1. Source/backup retention,
+  no unchecked-copy bypass, target reinspection and transfer ownership pass.
+  Previous Y targets 0.59.6/0.60.1 pass on both browser engines too.
+- Actual supplied 128MiB PokemonStart 0.62.0 is structurally identified as Z.
+  Palmo converts an original-protected 0.57.0 save, boots it in Chromium, resumes
+  in Tokiwa City and saves in-game (counter 26 → 27, native stamp 0x3e00). A fresh
+  PC WebKit core reloads that native save and resumes on the field. No browser
+  errors, no external requests, original files unchanged. This actual save has
+  no boxed Pokemon; populated 100-box data is covered by authored/source-oracle
+  tests, not claimed as a manual game inspection of every box.
+- Memory regression includes Y/Z 16MiB inputs: synchronous inspect/detect/update
+  allocate 6MiB of large slot buffers and do not clone the whole input; shared
+  buffers and asynchronous mutation still receive defensive snapshots. This is
+  cumulative large-allocation accounting, not a heap peak benchmark. On the
+  actual 6MiB save, the existing core uses 187.125MiB WASM memory. No per-frame
+  code or core binary changes. Worker conversion stays off the main UI thread.
+- Official rom128-4 uses the already-bundled engine commit
+  b3975350076fbd3d86e7dc6796cdadb0ccdb9a89 (rom128-2); newer release packaging
+  affects Windows DLLs/recording/configuration, not the Web core. No rebuild of
+  unchanged core binaries or source archive is required.
+- All 16 new translations are responsible-agent proofread, then checked in both
+  browser engines; see LOCALIZATION_REVIEW.md. Source/provenance, release inventory
+  and matching-source ZIP are regenerated and validated for this candidate.
+
+Private ROM/save/original HTML/oracle copies remain ignored and excluded from
+CI and distribution. Physical iPhone, every map, and 0.62.0 trades are not tested.
+Local tests target the changed paths; the full suite is delegated to exact-commit
+CI, rather than redundantly repeated locally.
+
 ## 2026-10-24 — final 0.3.40 candidate, PokemonStart 0.59.6
 
 805bf36 was pushed but never deployed. The maintainer supplied the 0.59.6 egg-box

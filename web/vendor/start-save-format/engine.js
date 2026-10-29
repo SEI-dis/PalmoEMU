@@ -1,4 +1,4 @@
-/* PokemonStart v0.59.6 save-format migration, extracted and adapted for PalmoEMU.
+/* PokemonStart v0.62.0 save-format migration, extracted and adapted for PalmoEMU.
  * Source distributor: pm-start/PokemonStart. See README.md and component.json.
  * Project-specific permission; no standardized upstream license was supplied.
  * This component is separate from the earlier START Save Migrate component.
@@ -7,7 +7,8 @@
 const SECTOR=0x1000,DATA=0xff0,SIGNATURE=0x08012025,SLOT_BYTES=3*1024*1024;
 const FULL_BYTES=2*SLOT_BYTES,SMALL_BYTES=32*SECTOR,VERSION_OFFSET=0xba,VERSION_GUARD=0x31ff,WIDE_VERSION_GUARD=0x34ff;
 const X_VERSION_GUARD=0x3b02,X_TAIL_BYTES=15,EMPTY_X=new Uint8Array(X_TAIL_BYTES);
-const SAVE_KEYS=[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f],[0x3b06,0x446b6578]],MAC_SECRET=0xe4ee25b3;
+const Y_VERSION_GUARD=0x3b06,Z_VERSION_GUARD=0x3d00,NEW_META_BYTES=500;
+const SAVE_KEYS=[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f],[0x3b06,0x446b6578],[0x3b07,0xbd6ea138],[0x3b08,0xdd815660],[0x3b09,0x62359629],[0x3b0a,0x5c965f4f],[0x3b0b,0x728bba7e],[0x3c00,0xce5de03b],[0x3d00,0x6d8d2bc9],[0x3d01,0xeb4690aa],[0x3e00,0x4169cfe3]],MAC_SECRET=0xe4ee25b3;
 const LARGE_SLOT_BYTES=8*1024*1024,LARGE_FULL_BYTES=2*LARGE_SLOT_BYTES,MARK_OFFSET=34*SECTOR;
 const SECTION_SIZES=[0xf24,DATA,DATA,DATA,0xd98],MAP_OFFSET=0x1400;
 const PAGE0_MON=4+0x98+0xef+0xba0,EXT_META_SIZE=110,REGION_BOX_OFFSET=0x0203cabc-0x0203bfac;
@@ -72,8 +73,8 @@ function decodeSector(bytes,offset){
 }
 function encodeSector(bytes,to){
  if(u32(bytes,0xff8)!==SIGNATURE)return bytes;
- if(to!=='X')return xor(bytes);
- const out=bytes.slice(),index=3,[version,seed]=SAVE_KEYS[index-1],nonce=u32(out,0xffc),id=u16(out,0xff4),check=u16(out,0xff6),digest=mac(out,0,seed,index);
+ if(!['X','Y','Z'].includes(to))return xor(bytes);
+ const out=bytes.slice(),index=to==='Z'?14:to==='Y'?7:3,[version,seed]=SAVE_KEYS[index-1],nonce=u32(out,0xffc),id=u16(out,0xff4),check=u16(out,0xff6),digest=mac(out,0,seed,index);
  transform(out,0,seed,version,1);put32(out,0xff0,(index|(keyCheck(seed,nonce,id,check)<<8)|((digest>>>16)<<16))>>>0);
  for(let i=0;i<SECTOR;i++)out[i]^=key[i];return out;
 }
@@ -82,17 +83,22 @@ function decodeOwned(out){
  for(let o=0;o+SECTOR<=out.length;o+=SECTOR)decodeSector(out,o);
  return out;
 }
-function format(name,magic,mon,p0Mons,pageMons,boxPages,shelfPages,extPages,extFirst,extMons,overflowCount,overflowFirst=24,extPhysicalCount=16,extPhysicalFirst=8){
+function format(name,magic,mon,p0Mons,pageMons,boxPages,shelfPages,extPages,extFirst,extMons,overflowCount,overflowFirst=24,extPhysicalCount=16,extPhysicalFirst=8,newPages=0){
  const p0Ext=PAGE0_MON+p0Mons*mon,extMetaOffset=(extMons-(extPages-1)*pageMons)*mon;
  return {name,magic,mon,p0Mons,pageMons,boxPages,shelfPages,extPages,extFirst,p0Ext,p0Overflow:p0Ext+1+extPages,
+  newPages,newBase:shelfPages+extPages,newMetaOffset:newPages?(1500-(newPages-1)*pageMons)*mon:0,p0New:p0Ext+2+extPages,
   extMetaOffset,overflowOffset:extMetaOffset+EXT_META_SIZE,overflowCount,overflowFirst,extPhysicalCount,extPhysicalFirst,
-  monAt(index){if(index>=extFirst){index-=extFirst;return [shelfPages+Math.floor(index/pageMons),(index%pageMons)*mon];}
+  monAt(index){if(newPages&&index>=1500){index-=1500;return [shelfPages+extPages+Math.floor(index/pageMons),(index%pageMons)*mon];}
+   if(index>=extFirst){index-=extFirst;return [shelfPages+Math.floor(index/pageMons),(index%pageMons)*mon];}
    if(index<p0Mons)return [0,PAGE0_MON+index*mon];index-=p0Mons;return [1+Math.floor(index/pageMons),(index%pageMons)*mon];}};
 }
 const OLD=format('old',0x4c454853,58,12,70,15,17,5,990,330,28);
 const LARGE=format('L',0x324c4853,60,11,68,16,18,8,1020,480,30);
 const WIDE=format('W',0x334c4853,63,11,64,16,18,9,960,540,30,26,18);
 const XWIDE=format('X',0x344c4853,78,8,52,16,18,14,780,720,30,156,28,128);
+const YWIDE={...XWIDE,name:'Y'};
+const ZWIDE=format('Z',0x344c4853,78,8,52,16,18,14,780,720,30,156,28,128,29);
+const formats={old:OLD,L:LARGE,W:WIDE,X:XWIDE,Y:YWIDE,Z:ZWIDE},wideX=name=>['X','Y','Z'].includes(name);
 // Modular serial arithmetic. The half-range difference is intrinsically
 // ambiguous and must never be resolved by an arbitrary bank/page preference.
 function compareCounter(a,b){const delta=(a-b)>>>0;if(delta===0x80000000)fail('COUNTER_AMBIGUOUS');return delta===0?0:delta<0x80000000?1:-1;}
@@ -120,7 +126,8 @@ function chooseMain(img){
 function sb1(sections){const out=new Uint8Array(DATA*3+0xd98);let pos=0;for(let id=1;id<5;id++){out.set(sections[id].subarray(0,SECTION_SIZES[id]),pos);pos+=SECTION_SIZES[id];}return out;}
 function setSb1(sections,bytes){let pos=0;for(let id=1;id<5;id++){sections[id].set(bytes.subarray(pos,pos+SECTION_SIZES[id]));pos+=SECTION_SIZES[id];}}
 function readLogical(img){
- const main=chooseMain(img),magic=u32(img,main.sections[2]+MAP_OFFSET-DATA),fmt=[OLD,LARGE,WIDE,XWIDE].find(value=>value.magic===magic);
+ const main=chooseMain(img),magic=u32(img,main.sections[2]+MAP_OFFSET-DATA);
+ let fmt=[OLD,LARGE,WIDE,XWIDE].find(value=>value.magic===magic);
  if(!fmt)fail('LAYOUT');
  const sections=main.sections.map(offset=>img.slice(offset,offset+DATA)),body=sb1(sections);
  if(u32(body,MAP_OFFSET+4)!==main.counter)fail('MAP_COUNTER');
@@ -136,6 +143,8 @@ function readLogical(img){
   const entry=readPage(page,physical,10,31);pages.set(page,entry.data);counters.set(page,entry.counter);
  }
  const p0=pages.get(0);if(!p0)fail('PAGE_ZERO');
+ const stamp=u16(p0,4+0x98+0xef+VERSION_OFFSET);
+ if(fmt===XWIDE)fmt=stamp>=Z_VERSION_GUARD?ZWIDE:stamp>=Y_VERSION_GUARD?YWIDE:XWIDE;
  const extension=p0[fmt.p0Ext];
  if(extension===0x58){
   for(let i=0;i<fmt.extPages;i++){
@@ -143,6 +152,13 @@ function readLogical(img){
    const entry=readPage(fmt.shelfPages+i,32+physical,32+fmt.extPhysicalFirst,31+fmt.extPhysicalFirst+fmt.extPhysicalCount);pages.set(fmt.shelfPages+i,entry.data);counters.set(fmt.shelfPages+i,entry.counter);
   }
  }else if(![0,255].includes(extension)||fmt!==OLD)fail('EXT_MAP');
+ if(fmt.newPages){
+  if(p0[fmt.p0New]!==0x5a)fail('NEW_MAP');
+  for(let i=0;i<fmt.newPages;i++){
+   const physical=p0[fmt.p0New+1+i];if(physical===255)continue;
+   const entry=readPage(fmt.newBase+i,32+physical,218,275);pages.set(fmt.newBase+i,entry.data);counters.set(fmt.newBase+i,entry.counter);
+  }
+ }
  const last=fmt.shelfPages+fmt.extPages-1,lastPage=pages.get(last),overflow=lastPage?.[fmt.overflowOffset];
  if(overflow===0x59){
   for(let page=1;page<fmt.boxPages;page++){
@@ -157,8 +173,9 @@ function readLogical(img){
  region.set(pageData(fmt.boxPages));region.set(pageData(fmt.boxPages+1),DATA);
  const logical={format:fmt.name,bank:main.bank,counter:main.counter,sections,
   p0Head:p0.slice(0,4),p0A:p0.slice(4,4+0x98),p0B:p0.slice(4+0x98,4+0x98+0xef),
-  parasite:p0.slice(4+0x98+0xef,PAGE0_MON),region,extMeta:pageData(last).slice(fmt.extMetaOffset,fmt.extMetaOffset+EXT_META_SIZE),boxes:[],references};
- for(let box=0;box<BOX_COUNT;box++)for(let position=0;position<BOX_SLOTS;position++){
+  parasite:p0.slice(4+0x98+0xef,PAGE0_MON),region,extMeta:pageData(last).slice(fmt.extMetaOffset,fmt.extMetaOffset+EXT_META_SIZE),
+  newMeta:fmt.newPages?pageData(fmt.newBase+fmt.newPages-1).slice(fmt.newMetaOffset,fmt.newMetaOffset+NEW_META_BYTES):new Uint8Array(NEW_META_BYTES),boxes:[],references};
+ for(let box=0;box<(fmt.newPages?100:BOX_COUNT);box++)for(let position=0;position<BOX_SLOTS;position++){
   let source,offset,ext=0,hi=0,x=EMPTY_X;
   if(fmt===OLD&&box>=19&&box<25){
    if(box<22){source=region;offset=REGION_BOX_OFFSET+(box-19)*BOX_SLOTS*MON_BYTES+position*MON_BYTES;}
@@ -167,8 +184,8 @@ function readLogical(img){
   }else{
    const streamBox=fmt!==OLD?box:box<19?box:box<39?box-6:33+box-39;
    const [page,at]=fmt.monAt(streamBox*BOX_SLOTS+position);source=pageData(page);offset=at;if(fmt!==OLD)ext=u16(source,offset+MON_BYTES);
-   if(fmt===WIDE||fmt===XWIDE)hi=source[offset+60]|source[offset+61]<<8|source[offset+62]<<16;
-   if(fmt===XWIDE)x=source.slice(offset+63,offset+78);
+   if(fmt.mon>=63)hi=source[offset+60]|source[offset+61]<<8|source[offset+62]<<16;
+   if(fmt.mon===78)x=source.slice(offset+63,offset+78);
   }
   if(offset+MON_BYTES>source.length)fail('RECORD');logical.boxes.push({bytes:source.slice(offset,offset+MON_BYTES),ext,hi,x});
  }
@@ -179,6 +196,19 @@ function readLogical(img){
   region.fill(0,REGION_BOX_OFFSET,REGION_BOX_OFFSET+3*BOX_SLOTS*MON_BYTES);
   body.fill(0,SB1_BOX_OFFSET,SB1_BOX_OFFSET+2*BOX_SLOTS*MON_BYTES);setSb1(sections,body);
   sections[0].fill(0,SB2_BOX_OFFSET,SB2_BOX_OFFSET+BOX_SLOTS*MON_BYTES);
+ }
+ // This table owns party/daycare EV/IV high bits. We never rebuild it or
+ // round its values. Validate a recognized active table and retain its raw
+ // sectors and all owner fields byte-for-byte during forward conversion.
+ if(u32(body,0x448)===0x314c5053){
+  const generation=u16(body,0x44c),selected=body[0x450],count=body[0x451],version=body[0x452];
+  if(version!==1||selected>1||count>127)fail('POOL');
+  if(count){
+   const block=img.subarray((92+selected)*SECTOR,(93+selected)*SECTOR);
+   const sum=(offset,size)=>{let value=0x5350;for(let i=0;i<size;i++)value+=block[offset+i]+(i&255);return value&65535;};
+   if(u32(block,0)!==0x424c5053||u16(block,4)!==1||u16(block,8)!==generation||u16(block,10)!==count||u16(block,6)!==sum(16,count*32))fail('POOL');
+   for(let i=0;i<count;i++){const p=16+i*32;if(!nonzero(block.subarray(p,p+32)))continue;if(u32(block,p)===0||u16(block,p+28)!==sum(p,28))fail('POOL');}
+  }
  }
  return logical;
 }
@@ -193,45 +223,49 @@ function convertRecord(record){
 function convertedLogical(before,to){
  const boxes=before.boxes.map(record=>{
   const converted=before.format==='old'?convertRecord(record):{...record,bytes:record.bytes.slice()};
-  if((to==='W'||to==='X')&&['old','L'].includes(before.format)){
+  if((to==='W'||wideX(to))&&['old','L'].includes(before.format)){
    let hi=0;if(u16(converted.bytes,0x1c)!==0)for(let k=0;k<4;k++)hi|=((converted.ext>>>(9+k))&1)<<(6*k);
    converted.ext=u16(converted.bytes,0x1c)===0?0:converted.ext&~0x1e00;converted.hi=hi;
   }
-  if(to==='X')converted.x=EMPTY_X;
+  if(wideX(to)&&!wideX(before.format))converted.x=EMPTY_X;
   return converted;
  });
+ if(to==='Z')while(boxes.length<3000)boxes.push({bytes:new Uint8Array(MON_BYTES),ext:0,hi:0,x:EMPTY_X});
  const after={...before,format:to,sections:before.sections.map(bytes=>bytes.slice()),parasite:before.parasite.slice(),boxes};
  // Leave the destination game's first-run migration pending.
- const guard=to==='X'?X_VERSION_GUARD:to==='W'?WIDE_VERSION_GUARD:VERSION_GUARD,version=u16(after.parasite,VERSION_OFFSET);
- if(version&&version<guard)put16(after.parasite,VERSION_OFFSET,guard);
+ const guard=to==='Z'?Z_VERSION_GUARD:to==='Y'?Y_VERSION_GUARD:to==='X'?X_VERSION_GUARD:to==='W'?WIDE_VERSION_GUARD:VERSION_GUARD,version=u16(after.parasite,VERSION_OFFSET);
+ if((version||to==='Y'||to==='Z')&&version<guard)put16(after.parasite,VERSION_OFFSET,guard);
  return after;
 }
 function seal(img,physical,payload,id,counter,size=DATA){
  const sector=new Uint8Array(SECTOR);sector.set(payload);put16(sector,0xff4,id);put16(sector,0xff6,checksum(sector,0,size));put32(sector,0xff8,SIGNATURE);put32(sector,0xffc,counter);img.set(sector,physical*SECTOR);
 }
 function writeLogical(img,logical){
- const fmt=logical.format==='X'?XWIDE:logical.format==='W'?WIDE:LARGE,pages=new Map(),page=id=>{if(!pages.has(id))pages.set(id,new Uint8Array(DATA));return pages.get(id);};
+ const fmt=formats[logical.format],pages=new Map(),page=id=>{if(!pages.has(id))pages.set(id,new Uint8Array(DATA));return pages.get(id);};
  // The source tool owns these layout regions. Extended non-layout sectors
  // outside the selected target layout are neither cleared nor re-encrypted.
  img.fill(255,0,32*SECTOR);
- if(fmt===XWIDE)img.fill(255,40*SECTOR,88*SECTOR);
+ if(fmt.mon===78)img.fill(255,40*SECTOR,88*SECTOR);
  img.fill(255,(32+fmt.extPhysicalFirst)*SECTOR,(32+fmt.overflowFirst+fmt.overflowCount)*SECTOR);
+ if(fmt.newPages)img.fill(255,218*SECTOR,276*SECTOR);
  for(let i=0;i<logical.boxes.length;i++){
   const record=logical.boxes[i],bytes=new Uint8Array(fmt.mon);bytes.set(record.bytes);put16(bytes,58,record.ext);
-  if(fmt===WIDE||fmt===XWIDE){bytes[60]=record.hi&255;bytes[61]=(record.hi>>>8)&255;bytes[62]=(record.hi>>>16)&255;}
-  if(fmt===XWIDE)bytes.set(record.x,63);
+  if(fmt.mon>=63){bytes[60]=record.hi&255;bytes[61]=(record.hi>>>8)&255;bytes[62]=(record.hi>>>16)&255;}
+  if(fmt.mon===78)bytes.set(record.x,63);
   if(nonzero(bytes)){const [id,offset]=fmt.monAt(i);page(id).set(bytes,offset);}
  }
  const p0=page(0);p0.set(logical.p0Head);p0.set(logical.p0A,4);p0.set(logical.p0B,4+0x98);p0.set(logical.parasite,4+0x98+0xef);
  for(let i=0;i<2;i++){const bytes=logical.region.subarray(i*DATA,(i+1)*DATA);if(nonzero(bytes))page(fmt.boxPages+i).set(bytes);}
+ if(fmt.newPages&&nonzero(logical.newMeta))page(fmt.newBase+fmt.newPages-1).set(logical.newMeta,fmt.newMetaOffset);
  const last=fmt.shelfPages+fmt.extPages-1;
  if(nonzero(logical.extMeta)||[...pages.keys()].some(id=>id>=fmt.shelfPages)){
   const bytes=page(last);bytes.set(logical.extMeta,fmt.extMetaOffset);bytes[fmt.overflowOffset]=0x59;bytes.fill(255,fmt.overflowOffset+1,fmt.overflowOffset+fmt.boxPages);
  }
- const map=new Uint8Array(fmt.shelfPages).fill(255),extMap=new Uint8Array(fmt.extPages).fill(255);
- for(const id of pages.keys())if(id<fmt.shelfPages)map[id]=10+id;else extMap[id-fmt.shelfPages]=fmt.extPhysicalFirst+id-fmt.shelfPages;
+ const map=new Uint8Array(fmt.shelfPages).fill(255),extMap=new Uint8Array(fmt.extPages).fill(255),newMap=new Uint8Array(fmt.newPages).fill(255);
+ for(const id of pages.keys())if(id<fmt.shelfPages)map[id]=10+id;else if(id<fmt.newBase)extMap[id-fmt.shelfPages]=fmt.extPhysicalFirst+id-fmt.shelfPages;else newMap[id-fmt.newBase]=186+id-fmt.newBase;
  p0[fmt.p0Ext]=0x58;p0.set(extMap,fmt.p0Ext+1);p0[fmt.p0Overflow]=0;
- for(const [id,bytes] of pages)seal(img,id<fmt.shelfPages?10+id:32+fmt.extPhysicalFirst+id-fmt.shelfPages,bytes,0x40+id,logical.counter);
+ if(fmt.newPages){p0[fmt.p0New]=0x5a;p0.set(newMap,fmt.p0New+1);}
+ for(const [id,bytes] of pages)seal(img,id<fmt.shelfPages?10+id:id<fmt.newBase?32+fmt.extPhysicalFirst+id-fmt.shelfPages:218+id-fmt.newBase,bytes,0x40+id,logical.counter);
  const sections=logical.sections.map(bytes=>bytes.slice()),body=sb1(sections);
  put32(body,MAP_OFFSET,fmt.magic);put32(body,MAP_OFFSET+4,logical.counter);body.fill(0,MAP_OFFSET+8,MAP_OFFSET+32);body.set(map,MAP_OFFSET+8);setSb1(sections,body);
  const bank=5*(logical.counter%2);for(let id=0;id<5;id++)seal(img,bank+id,sections[id],id,logical.counter,SECTION_SIZES[id]);
@@ -243,15 +277,15 @@ function writeLogical(img,logical){
 }
 function verifyLogical(expected,actual){
  if(actual.format!==expected.format||actual.counter!==expected.counter)fail('OUTPUT');
- for(const name of ['p0Head','p0A','p0B','parasite','region','extMeta'])if(!equal(expected[name],actual[name]))fail('OUTPUT');
+ for(const name of ['p0Head','p0A','p0B','parasite','region','extMeta','newMeta'])if(!equal(expected[name],actual[name]))fail('OUTPUT');
  for(let id=0;id<5;id++){
   const left=expected.sections[id].slice(),right=actual.sections[id].slice();
   // Only the shelf pointer structure changes inside the main sections.
   if(id===2){left.fill(0,MAP_OFFSET-DATA,MAP_OFFSET-DATA+32);right.fill(0,MAP_OFFSET-DATA,MAP_OFFSET-DATA+32);}
   if(!equal(left,right))fail('OUTPUT');
  }
- if(actual.boxes.length!==1500)fail('OUTPUT');
- for(let i=0;i<1500;i++)if(expected.boxes[i].ext!==actual.boxes[i].ext||expected.boxes[i].hi!==actual.boxes[i].hi||!equal(expected.boxes[i].bytes,actual.boxes[i].bytes)||!equal(expected.boxes[i].x,actual.boxes[i].x))fail('OUTPUT');
+ if(actual.boxes.length!==expected.boxes.length)fail('OUTPUT');
+ for(let i=0;i<expected.boxes.length;i++)if(expected.boxes[i].ext!==actual.boxes[i].ext||expected.boxes[i].hi!==actual.boxes[i].hi||!equal(expected.boxes[i].bytes,actual.boxes[i].bytes)||!equal(expected.boxes[i].x,actual.boxes[i].x))fail('OUTPUT');
 }
 const EGG_MAGIC=0x58424745,EGG_MON_OFFSET=136,EGG_SB1_OFFSET=0x043c,EGG_SB1_MAGIC=0x31424745;
 function eggChecksum(bytes,size){let sum=0x4547;for(let i=16;i<size;i++)sum+=bytes[i]+((i-16)&255);return sum&65535;}
@@ -310,7 +344,7 @@ function inspectSlot(raw,bodyBytes,slot){
   if(unusedImage(img))return {slot,valid:false,unused:true,format:null,versionStamp:null,counter:null,bank:null,mons:0,reason:null};
   const logical=readLogical(img);
   const eggs=oldEggSectors(img,logical);
-  return {slot,valid:true,unused:false,format:logical.format,eggStale:logical.format==='X'&&eggs.length>0,versionStamp:u16(logical.parasite,VERSION_OFFSET),counter:logical.counter,bank:logical.bank,mons:logical.boxes.filter(record=>u16(record.bytes,0x1c)!==0).length,reason:null,logical,img};
+  return {slot,valid:true,unused:false,format:logical.format,boxes:logical.boxes.length/BOX_SLOTS,eggStale:wideX(logical.format)&&eggs.length>0,versionStamp:u16(logical.parasite,VERSION_OFFSET),counter:logical.counter,bank:logical.bank,mons:logical.boxes.filter(record=>u16(record.bytes,0x1c)!==0).length,reason:null,logical,img};
  }catch(error){return {slot,valid:false,unused:false,format:null,versionStamp:null,counter:null,bank:null,mons:0,reason:error.code||'START_FORMAT_INVALID'};}
 }
 const publicSlot=({logical,img,...slot})=>slot;
@@ -358,7 +392,7 @@ function relocate(raw){
 }
 export async function convertFormatSave(value,{selection='all',to='L',storageLayout=1,onProgress,signal}={}){
  abort(signal);const {raw,bodyBytes,rtcBytes}=input(value);
- if(!['L','W','X'].includes(to))fail('TARGET');
+ if(!['L','W','X','Y','Z'].includes(to))fail('TARGET');
  if(![1,2].includes(storageLayout))fail('TARGET');
  const sourceLayout=layout(raw,bodyBytes);if(sourceLayout.version>storageLayout)fail('DOWNGRADE');
  if(selection!=='all'&&selection!==0&&selection!==1)fail('SELECTION');
@@ -366,29 +400,30 @@ export async function convertFormatSave(value,{selection='all',to='L',storageLay
  const chosen=slots.filter(slot=>selection==='all'?!slot.unused:slot.slot===selection);
  if(!chosen.length)fail('EMPTY');
  for(const slot of chosen)if(!slot.valid){const code=(slot.reason||'START_FORMAT_EMPTY').replace(/^START_FORMAT_/,'');fail(code,slot.slot);}
- const order=['old','L','W','X'];if(chosen.some(slot=>order.indexOf(slot.format)>order.indexOf(to)))fail('DOWNGRADE');
- const outputs=new Map(),changed=chosen.filter(slot=>slot.format!==to||to==='X'&&slot.eggStale);let done=0,grow=false;
+ const order=['old','L','W','X','Y','Z'];if(chosen.some(slot=>order.indexOf(slot.format)>order.indexOf(to)))fail('DOWNGRADE');
+ const outputs=new Map(),changed=chosen.filter(slot=>slot.format!==to||wideX(to)&&slot.eggStale);let done=0,grow=false;
  onProgress?.({stage:'inspect',done,total:changed.length});abort(signal);
  for(const slot of changed){
   const rewrite=slot.format!==to;
-  if(rewrite&&to==='X'&&!erased(slot.img.subarray(160*SECTOR,218*SECTOR)))fail('STORAGE_CONFLICT',slot.slot);
+  if(rewrite&&wideX(to)&&!wideX(slot.format)&&!erased(slot.img.subarray(160*SECTOR,218*SECTOR)))fail('STORAGE_CONFLICT',slot.slot);
+  if(rewrite&&to==='Z'&&slot.format!=='Z'&&!erased(slot.img.subarray(218*SECTOR,276*SECTOR)))fail('STORAGE_CONFLICT',slot.slot);
   const expected=rewrite?convertedLogical(slot.logical,to):slot.logical,out=slot.img.slice();if(rewrite)writeLogical(out,expected);
-  const eggs=to==='X'?convertEggs(out,expected):[];
+  const eggs=wideX(to)?convertEggs(out,expected):[];
   verifyLogical(expected,readLogical(out));
   if(bodyBytes===SMALL_BYTES&&!erased(out.subarray(32*SECTOR)))grow=true;
   outputs.set(slot.slot,{img:out,eggs,rewrite});done++;onProgress?.({stage:'convert',slot:slot.slot,done,total:changed.length});abort(signal);
   await Promise.resolve();
  }
  abort(signal);const outputBody=grow?FULL_BYTES:bodyBytes,bytes=new Uint8Array(outputBody+rtcBytes).fill(255);bytes.set(raw.subarray(0,bodyBytes));bytes.set(raw.subarray(bodyBytes),outputBody);
- for(const [slot,{img,eggs,rewrite}] of outputs)for(const [first,last] of (!rewrite?eggs.map(p=>[p,p+1]):to==='X'?[[0,32],[40,88],[160,218],...eggs.map(p=>[p,p+1])]:[[0,32],[40,to==='W'?88:86]]))for(let physical=first;physical<last;physical++){
+ for(const [slot,{img,eggs,rewrite}] of outputs)for(const [first,last] of (!rewrite?eggs.map(p=>[p,p+1]):wideX(to)?[[0,32],[40,88],[160,to==='Z'?276:218],...eggs.map(p=>[p,p+1])]:[[0,32],[40,to==='W'?88:86]]))for(let physical=first;physical<last;physical++){
   const target=slot*sourceLayout.slotStride+physical*SECTOR;if(target+SECTOR>outputBody)continue;
   const sector=img.subarray(physical*SECTOR,(physical+1)*SECTOR);bytes.set(encodeSector(sector,to),target);
  }
  // Validate the published representation, not just an intermediate plaintext.
- const relocated=storageLayout===2?relocate(bytes):{bytes,moved:false},after=inspectFormatSave(relocated.bytes);for(const slot of chosen){const actual=after.slots[slot.slot];if(!actual.valid||actual.format!==to||to==='X'&&actual.eggStale)fail('OUTPUT');}
+ const relocated=storageLayout===2?relocate(bytes):{bytes,moved:false},after=inspectFormatSave(relocated.bytes);for(const slot of chosen){const actual=after.slots[slot.slot];if(!actual.valid||actual.format!==to||wideX(to)&&actual.eggStale)fail('OUTPUT');}
  abort(signal);
  const versionStamp=after.slots[chosen[0].slot].versionStamp;
  return {bytes:relocated.bytes,report:{layoutMoved:relocated.moved,fromFormat:chosen.every(slot=>slot.format===chosen[0].format)?chosen[0].format:'mixed',toFormat:to,versionStamp:chosen.every(slot=>after.slots[slot.slot].versionStamp===versionStamp)?versionStamp:null,
   convertedSlots:changed.map(slot=>slot.slot),unchangedSlots:slots.filter(slot=>!outputs.has(slot.slot)).map(slot=>slot.slot),grew:grow,
-  slots:after.slots,recordsVerified:changed.length*1500,fullGameplayTest:false}};
+  slots:after.slots,recordsVerified:changed.length*(to==='Z'?3000:1500),fullGameplayTest:false}};
 }

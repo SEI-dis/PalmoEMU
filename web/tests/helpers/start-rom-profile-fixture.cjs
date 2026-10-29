@@ -2,7 +2,8 @@
 // Authored Thumb instructions and cartridge markers, without game ROM data.
 const assert=require('node:assert/strict');
 const {word,literal,branchLink}=require('./mgba-save-probe-fixture.cjs');
-function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoline=0x2000,immediate=false,rangeGate=false,upperImmediate=false,lowerImmediate=false,lFormat=false,wFormat=false,xFormat=false,bytes}={}){
+function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoline=0x2000,immediate=false,rangeGate=false,upperImmediate=false,lowerImmediate=false,lFormat=false,wFormat=false,xFormat=false,zFormat=false,bytes}={}){
+ if(zFormat)xFormat=true;
  bytes=bytes||new Uint8Array(0x2000008);
  const text=(at,value)=>bytes.set(Buffer.from(value),at);
  text(0xa0,'POKEMONSTART');text(0xac,'PKSJ');bytes[0xb2]=0x96;text(0x2000000,'PKSPICS1');
@@ -80,6 +81,15 @@ function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoli
     load(formatLoader+12,1,formatLoader+0x100,0xcdb3b7ad);load(formatLoader+16,3,formatLoader+0x104,0x03005048);load(formatLoader+24,3,formatLoader+0x108,0xfeffffff);load(formatLoader+36,3,formatLoader+0x10c,0xb3bab7ad);load(formatLoader+48,7,formatLoader+0x110,0x344c4853);
     branchLink(bytes,formatLoader+54,formatInit);branch(formatLoader+88,formatLoader+102);branchLink(bytes,formatLoader+90,formatInit);
     ops(formatLoader+94,[0x23b0,0x2101,null,0x54d1,0xb016,0xbc1c,0x4690,0x4699,0x46a2,0xbdf0]);load(formatLoader+98,2,formatLoader+0x114,cache);branchLink(bytes,formatLoader+114,formatInit);
+    if(zFormat){
+     ops(formatGuard+10,[0xd104,0x2208,0x32ff,0x5c98,0x1e43,0x4198,0x4770]);load(formatInit+4,2,formatInit+0x84,cache+0x110);
+     for(const [at,op]of [[18,0x681d],[22,0x59aa],[38,0x18d4],[40,0x4263],[42,0x415c],[44,0x2c00],[52,0xd01e]])word(bytes,formatLoader+at,op);
+     branch(formatLoader+88,formatLoader+104);ops(formatLoader+94,[0x2308,0x2101,null,0x33ff,0x54d1,0xb016,0xbc1c,0x4690,0x4699,0x46a2,0xbdf0]);branchLink(bytes,formatLoader+116,formatInit);
+     const check= formatLoader+0x180,copy=formatLoader+0x1a0;
+     load(check,3,formatLoader+0x1e0,0xfab);ops(check+2,[0x5ceb,0x2b5a,0xd100]);branch(check+8,copy);
+     ops(copy,[0x3b3a,null,0x189a,0x5ca9,null,0x189a,0x3301,0x7011,0x2b3d,0xd1f6]);
+     load(copy+2,2,formatLoader+0x1e4,0xf8c);load(copy+8,2,formatLoader+0x1e8,cache+0x3d);branch(copy+20,check+10);
+    }
    }
    return {bytes,writer,gate,trampoline,lower,upper,lowerBody,upperBody,formatGuard,formatLoader,formatInit};
   }

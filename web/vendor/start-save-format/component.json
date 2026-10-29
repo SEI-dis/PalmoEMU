@@ -1,39 +1,46 @@
 {
   "schema": 1,
   "hostContract": "start-format-forward-v4",
-  "distribution": "maintainer-supplied PokemonStart 0.59.6 migration HTML",
-  "distributionVersion": "0.59.6",
+  "distribution": "maintainer-supplied PokemonStart 0.62.0 migration HTML",
+  "distributionVersion": "0.62.0",
   "sourceDistributor": "pm-start/PokemonStart",
   "sourceURL": "https://github.com/pm-start/PokemonStart",
   "individualAuthor": null,
-  "permission": "On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author.",
+  "permission": "On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author. On 2026-10-29, after being explicitly asked about the latest tool's restrictive notice, the maintainer confirmed that the same credit-conditional permission also applies to this latest supplied revision. This is a maintainer-reported specific permission, not a general license for other users or independent inspection of author correspondence.",
   "sources": [
     {
-      "name": "セーブデータ移行ツール.html",
-      "sha256": "d9f2f0376aabdb413dc8f0eeb3c800f77022db6a9ecb5a041a8c2ec6575a7856"
+      "name": "セーブデータ移行ツール (1).html",
+      "sha256": "f89e3e793e8b067e7c21ce4ee68c39715826eaa9423e4d00203ab2b4f8ddf7f2"
     },
     {
       "name": "statically decoded embedded JavaScript",
-      "sha256": "c6dea6c88c0f1ded2f51bd9a564e2872c241a2f7afa7e34483e012092db9b0b1"
+      "sha256": "a0ecd00b053570745ad1e8395d5f3c48d4ab1445b73dd6cb2683fa9ad8a36429"
     }
   ],
   "direction": {
     "from": [
       "old",
       "L",
-      "W"
+      "W",
+      "X",
+      "Y",
+      "Z"
     ],
     "to": [
       "L",
       "W",
-      "X"
+      "X",
+      "Y",
+      "Z"
     ],
     "reverseConversion": false,
     "rounding": false,
     "versionGuards": {
       "L": 12799,
       "W": 13567,
-      "X": 15106
+      "X": 15106,
+      "Y": 15110,
+      "Z": 15616
     }
   },
   "saveBodyBytes": [
@@ -44,8 +51,8 @@
   "optionalRTCBytes": 16,
   "slotBytes": 3145728,
   "files": {
-    "engine.js": "3d7b355fea28d4789abe6f37e473334e52820371e1037ff2b7b2fdc62235ec07",
-    "README.md": "2fcaa8505f34e38a3bdc4df10958ee7d14cb9c734896c1ee340110e3d49227c5"
+    "engine.js": "9d76f1515ac748627e047ed8dcdf7b64cfad5bf87bba6b8b312877afdc9fc703",
+    "README.md": "29ed4363423dce612aa53415e4bcaceb15fb1b80b9c2af9660f9a8edb109e024"
   },
   "localChanges": [
     "Migration-only ES module without UI, network or storage access",
@@ -60,7 +67,8 @@
     "Synchronous inspection borrows ordinary input; shared buffers and asynchronous conversion retain private entry snapshots. No input mutation or changed output bytes.",
     "Decode the private slot buffer in place instead of cloning it a second time; 16MiB inspection large-buffer allocations fall from 28MiB to 6MiB.",
     "Add X/SHL4 78-byte forward records from 0.59.2, W egg-block conversion, six supplied versioned keys and strict checksum/MAC rejection; preserve current X bytes and all existing tamper evidence. Unknown destination extents fail closed. Sector transforms use a rolling key pair.",
-    "0.59.6: accept native aligned and earlier-tool egg checksums, repair stale W eggs in otherwise-X saves without rewriting other sectors, reject unreadable active egg storage, and recognize the seventh supplied sector key."
+    "0.59.6: accept native aligned and earlier-tool egg checksums, repair stale W eggs in otherwise-X saves without rewriting other sectors, reject unreadable active egg storage, and recognize the seventh supplied sector key.",
+    "0.62.0: add Y (0.59.6) and Z (0.61.0) guards, 16 versioned keys and 100-box maps/metadata. Preserve party/daycare EV/IV pool sectors, eggs and all non-layout bytes. Validate recognized pool integrity and reject unknown occupied new-box extents. Verify all 3000 logical records per converted adventure; no reverse conversion or rounding."
   ],
   "publicationPermission": {
     "scopes": {
@@ -70,8 +78,8 @@
       "offlineDistribution": true,
       "modifiedSourceRedistribution": true
     },
-    "confirmedOn": "2026-10-16",
-    "evidence": "In response to the explicit scope question, the maintainer said 「やって。クレジットに記載してたらOKって」 and clarified 「セーブデータの変換ツールにすでに開発者として記載済みだけどね」. Recorded as confirmation for the previously explained incorporation, modification, Web/offline distribution and modified-source publication scope, conditional on retaining existing credits. No independent inspection of the author message is claimed.",
+    "confirmedOn": "2026-10-29",
+    "evidence": "In response to the explicit scope question, the maintainer said 「やって。クレジットに記載してたらOKって」 and clarified 「セーブデータの変換ツールにすでに開発者として記載済みだけどね」. Recorded as confirmation for the previously explained incorporation, modification, Web/offline distribution and modified-source publication scope, conditional on retaining existing credits. No independent inspection of the author message is claimed. Latest-revision confirmation: asked whether the previous incorporation/modification/publication permission applies despite the new notice, the maintainer answered 「最新版にも適用されると確認済み」. The previously explained scopes and credit condition remain unchanged.",
     "condition": "Retain the existing PokemonStart developer credit (onikoro334274-cell) and project/tool provenance links in licenses.html and source documentation."
   },
   "projectContributors": {

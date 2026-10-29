@@ -1,5 +1,16 @@
 # Copyright, credits and modification notices
 
+0.3.41 release candidate (2026-10-29): incorporate the maintainer-supplied
+PokemonStart 0.62.0 converter's Y/Z formats, 100-box mapping and current sector
+keys. Preserve existing PokemonStart, onikoro334274-cell and liru55 credits.
+The supplied HTML contains a general restrictive notice. After an explicit
+question about that notice, the maintainer confirmed that the previously explained
+credit-conditional incorporation/modification/Web/offline/modified-source permission
+also applies to this latest revision. This records the maintainer's confirmation,
+not independently inspected author correspondence or a general third-party license.
+Keep component.json and its provenance with the adapted source. The original HTML,
+ROMs and private saves are excluded. No core binaries or network endpoints change.
+
 0.3.40 pre-publication follow-up (2026-10-24): adopt the supplied PokemonStart
 0.59.6 converter's aligned egg checksums, stale W-egg repair within X saves and
 seventh versioned key. Retain both project developer credits and existing
