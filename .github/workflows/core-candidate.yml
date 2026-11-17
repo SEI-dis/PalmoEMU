@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
     inputs:
       commit:
-        description: 'Optional exact rom64 commit (empty: current branch head)'
+        description: 'Optional exact upstream commit (empty: configured build branch head)'
         required: false
         type: string
       adopt:

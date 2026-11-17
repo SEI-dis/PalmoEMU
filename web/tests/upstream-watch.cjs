@@ -33,6 +33,24 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  const broken=structuredClone(config);broken.sources.push(broken.sources[0]);assert.throws(()=>configuredSources(broken,sources));
  assert.throws(()=>configuredSources(config,{core:{...sources.core,commit:'main'}}));
  assert.throws(()=>configuredSources(config,{core:{...sources.core,repository:'https://github.com.evil.invalid/owner/core'}}));
+ // Follow the exact same branch as the core builder, including future reviewed
+ // branch changes. A missing/mismatched config must not silently use main.
+ const buildPath='sources/mgba-web-port/upstream.json',derived=structuredClone(config);
+ derived.converter.feed=null;derived.sources[0].buildConfig=buildPath;
+ const build={schema:1,repository:'https://github.com/owner/core.git',branch:'rom128'};
+ assert.throws(()=>configuredSources(derived,sources),/Mismatched build configuration/);
+ for(const branch of ['rom128','future-reviewed-branch']){
+  const calls=[],report=await inspectUpstreams(derived,sources,component,{buildConfigs:{[buildPath]:{...build,branch}},github:async url=>{
+   calls.push(url);assert.equal(url,'/repos/owner/core/commits/'+branch);return {sha:old};
+  }});
+  assert.equal(report.items[0].branch,branch);assert.equal(report.items[0].status,'current');assert.equal(calls.length,1);
+ }
+ for(const invalid of [{...build,branch:''},{...build,branch:null},{...build,schema:2},{...build,repository:'https://github.com/another/core'}])
+  assert.throws(()=>configuredSources(derived,sources,{[buildPath]:invalid}));
+ const duplicated=structuredClone(derived);duplicated.sources[0].branch='rom64';
+ assert.throws(()=>configuredSources(duplicated,sources,{[buildPath]:build}),/Invalid build configuration reference/);
+ const unexpected=structuredClone(derived);unexpected.sources[0].buildConfig='../untrusted.json';
+ assert.throws(()=>configuredSources(unexpected,sources,{[buildPath]:build}),/Invalid build configuration reference/);
  // The credential stays on a fixed API origin and redirects are refused.
  let request;const result=await githubJSON('/repos/owner/core',{token:'fixture-token',fetchImpl:async(url,options)=>{request={url,options};return new Response('{"default_branch":"main"}');}});
  assert.equal(result.default_branch,'main');assert.equal(request.url,'https://api.github.com/repos/owner/core');assert.equal(request.options.redirect,'error');
@@ -40,8 +58,13 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  await assert.rejects(githubJSON('/repos/owner/core',{fetchImpl:async()=>new Response('denied',{status:403})}),/403/);
  await assert.rejects(githubJSON('/repos/owner/core',{fetchImpl:async()=>new Response('x'.repeat(2*1024*1024+1))}),/too large/);
  const checkedIn=JSON.parse(fs.readFileSync(path.join(__dirname,'../scripts/upstream-sources.json'))),pins=require('../SOURCES.json');
- assert.equal(configuredSources(checkedIn,pins).length,13);assert.equal(checkedIn.converter.feed,null);
+ const checkedInBuild=JSON.parse(fs.readFileSync(path.join(__dirname,'..',buildPath))),resolved=configuredSources(checkedIn,pins,{[buildPath]:checkedInBuild});
+ assert.equal(resolved.length,13);assert.equal(checkedIn.converter.feed,null);
+ const mgbaEntry=checkedIn.sources.find(entry=>entry.id==='mgba64'),mgba=resolved.find(entry=>entry.id==='mgba64');
+ assert.equal(mgbaEntry.buildConfig,buildPath);assert.equal(mgbaEntry.branch,undefined);
+ assert.equal(mgba.branch,checkedInBuild.branch);assert.equal(mgba.baseline,pins.mgba.sourceCommit);
+ assert.equal(mgba.repository,checkedInBuild.repository.replace(/^https:\/\/github\.com\//,'').replace(/\.git$/,''));
  const workflow=fs.readFileSync(path.join(__dirname,'../../.github/workflows/upstream-watch.yml'),'utf8');
  assert.match(workflow,/contents: read/);assert(!workflow.includes('pull_request_target'));assert(!workflow.includes('workflow run'));
- console.log('PASS upstream watch: pinned metadata, candidates/branches/errors, no converter feed, optional release feed, bounded API, credential isolation and report escaping.');
+ console.log('PASS upstream watch: shared build branch, repository/config mismatch rejection, pinned metadata, candidates/errors, optional release feed, bounded API, credential isolation and report escaping.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

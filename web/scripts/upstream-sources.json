@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "sources": [
-    {"id":"mgba64","label":"mGBA celio edition (64 MiB)","sourcePath":["mgba"],"commitKey":"sourceCommit","branch":"rom64"},
+    {"id":"mgba64","label":"mGBA celio edition","sourcePath":["mgba"],"commitKey":"sourceCommit","buildConfig":"sources/mgba-web-port/upstream.json"},
     {"id":"desmume2015","label":"DeSmuME 2015","sourcePath":["nds"]},
     {"id":"fceumm","label":"FCEUmm","sourcePath":["otherCores","sources","fceumm"]},
     {"id":"mesen-s","label":"Mesen-S","sourcePath":["otherCores","sources","mesen-s"]},
@@ -12,7 +12,7 @@
     {"id":"manicemu","label":"ManicEMU UI","sourcePath":["manicemu"]},
     {"id":"celio-web","label":"mgba-celio-web","sourcePath":["celio","webTransport"]},
     {"id":"celio-device","label":"Celio device","sourcePath":["celio","device"]},
-    {"id":"celio-server","label":"Celio server","sourcePath":["celio","modernSessionReference"]},
+    {"id":"celio-server","label":"Celio server","sourcePath":["celio","partySessionReference"]},
     {"id":"rom-patcher","label":"RomPatcher.js","sourcePath":["romPatcher"]}
   ],
   "converter": {

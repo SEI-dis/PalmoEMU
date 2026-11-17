@@ -10,6 +10,9 @@
  * Modified 2026-10-14: accept explicitly selected, validated secure relays.
  * Modified 2026-10-17: defer device startup while sharing a room in another app;
  * retain the pre-handshake lobby without changing the upstream wire protocol.
+ * Modified 2026-11-17: negotiate the 51-byte Celio party protocol, following
+ * pm-start/mGBA_celio_edition CelioNet.cpp 9850760732751080044d05c4846c67edd067791b
+ * (MPL-2.0); retain two-player/legacy/USB limits and interrupted-save rollback.
  * This Source Code Form remains subject to the Mozilla Public License 2.0.
  * Under MPL 2.0 section 3.3, this file (including this port's modifications)
  * is also offered under GNU Affero General Public License version 3 or later
@@ -22,8 +25,8 @@ import {CelioDevice,LinkStatus} from './celio-device.js';
 import {CELIO_RELAY,validateRelayURL} from './relay-settings.js';
 export {CELIO_RELAY} from './relay-settings.js';
 const commands=new Set([0,1,0x10,0x11,0x12,0x13,0xFF0A]);
-const validWords=data=>Array.isArray(data)&&data.length===32&&data.every(v=>Number.isInteger(v)&&v>=0&&v<=65535);
-const validPacket=p=>p&&Number.isSafeInteger(p.sequence)&&p.sequence>=0&&p.sequence<Number.MAX_SAFE_INTEGER&&validWords(p.data);
+const validWords=(data,length=32,max=65535)=>Array.isArray(data)&&data.length===length&&data.every(v=>Number.isInteger(v)&&v>=0&&v<=max);
+const validPacket=(p,bytes)=>p&&Number.isSafeInteger(p.sequence)&&p.sequence>=0&&p.sequence<Number.MAX_SAFE_INTEGER&&validWords(p.data,bytes?51:32,bytes?255:65535);
 const validUUID=value=>typeof value==='string'&&value.length>0&&value.length<=128;
 export class RoomLink {
   constructor(io,{onStatus=()=>{},onEnd=()=>{},server=CELIO_RELAY}={}){
@@ -31,6 +34,7 @@ export class RoomLink {
     this.closed=false;this.joined=false;this.connected=false;this.room='';this.sent=0;this.received=0;
     this.backgrounded=false;this.deviceStarted=false;this.gameStarted=false;
     this.lobbyCommands=[];this.lobbyData=[];
+    this.byteProtocol=false;this.playerIndex=null;this.earlyParty=null;
     this.sequence=0;this.expected=0;this.pending=new Map();this.seen=new Set();
     this.batched=false;this.nextAck=1;this.outgoing=[];this.inFlight=new Map();this.outgoingCount=0;
     this.device=new CelioDevice(io,value=>this.status(value),data=>this.sendData(data));
@@ -82,8 +86,18 @@ export class RoomLink {
   acknowledge(id){if(id>=0)this.wire('43'+id+'[true]');}
   sendData(data){
     if(!this.joined||this.closed)return;
-    if(!validWords(data)||this.sequence>=Number.MAX_SAFE_INTEGER)throw new Error(tr('通信データが不正です。'));
-    this.sendEvent('deviceData',{sequence:this.sequence++,data:[...data]});this.sent+=64;
+    if(!validWords(data,this.byteProtocol?24:32)||this.sequence>=Number.MAX_SAFE_INTEGER)throw new Error(tr('通信データが不正です。'));
+    let payload=[...data];
+    if(this.byteProtocol){
+      if(this.playerIndex===null)throw new Error(tr('通信データの形式が一致しません。'));
+      payload=[];for(let c=0;c<3;c++){payload.push(this.playerIndex);for(let i=0;i<8;i++){const word=data[c*8+i];payload.push(word&255,word>>>8);}}
+    }
+    this.sendEvent('deviceData',{sequence:this.sequence++,data:payload});this.sent+=this.byteProtocol?51:64;
+  }
+  useByteProtocol(){
+    if(this.byteProtocol)return;
+    if(this.gameStarted||this.sequence||this.expected||this.pending.size)throw new Error(tr('通信データの形式が一致しません。'));
+    this.byteProtocol=true;this.batched=true;this.device.packetWords=24;
   }
   status(value){
     if(!this.joined||this.closed)return;
@@ -101,6 +115,9 @@ export class RoomLink {
     if(this.backgrounded||globalThis.document?.hidden){this.onStatus(tr('画面に戻るまで通信開始を待っています。'));return;}
     if(!this.deviceStarted){
       this.deviceStarted=true;this.io.enable(true);this.device.reset();
+      // Until PlayerSettings arrives, expose a consistent waiting slave rather
+      // than the default unassigned mask (which can echo our own handshake).
+      if(this.byteProtocol){this.device.master=false;this.io.mask(0x600B);}
       this.io.event=kind=>{try{this.device.event(kind);}catch(error){this.close(error.message);}};
     }
     for(const command of this.lobbyCommands){if(command===0x12||command===0x13)this.gameStarted=true;this.device.command(command);}
@@ -130,6 +147,12 @@ export class RoomLink {
   }
   get deferLobby(){return this.canWait&&(!this.deviceStarted||this.backgrounded||globalThis.document?.hidden);}
   receive(data){
+    if(this.byteProtocol){
+      // Only two seats are supported by this emulator. Do not silently route a
+      // third/fourth player's commands into the single emulated partner slot.
+      if(this.playerIndex===null||[0,17,34].some(i=>data[i]!==1-this.playerIndex))throw new Error(tr('通信データの形式が一致しません。'));
+      const words=[];for(let c=0;c<3;c++)for(let i=0;i<8;i++){const at=c*17+1+i*2;words.push(data[at]|data[at+1]<<8);}data=words;
+    }
     if(this.deferLobby){
       // A peer already at the cable desk may send before our CPU starts.
       // ACK validated packets, retaining the same bounded device queue limit.
@@ -141,11 +164,11 @@ export class RoomLink {
   deliver(packet){
     const seq=packet.sequence;if(seq<this.expected)return;
     if(seq>this.expected){if(this.pending.has(seq))return;if(seq-this.expected>1024||this.pending.size>=1024)throw new Error(tr('通信の順序を復元できませんでした。'));this.pending.set(seq,packet.data);return;}
-    this.receive(packet.data);this.received+=64;this.expected++;
-    while(this.pending.has(this.expected)){this.receive(this.pending.get(this.expected));this.received+=64;this.pending.delete(this.expected++);}
+    this.receive(packet.data);this.received+=this.byteProtocol?51:64;this.expected++;
+    while(this.pending.has(this.expected)){this.receive(this.pending.get(this.expected));this.received+=this.byteProtocol?51:64;this.pending.delete(this.expected++);}
   }
   message(raw){
-    // The upstream batch limit is 1024 packets of 32 uint16 words.
+    // Both relay forms fit 1024 packets (32 uint16 words or 51 bytes).
     if(typeof raw!=='string'||raw.length>262144)throw new Error(tr('通信メッセージが不正です。'));
     this.lastReceive=performance.now();
     if(raw[0]==='0'){if(this.authSent)throw new Error(tr('接続の手順が不正です。'));this.authSent=true;this.wire('40'+JSON.stringify({clientId:crypto.randomUUID()}));return;}
@@ -154,7 +177,9 @@ export class RoomLink {
     const match=/^4([0-4])(\d*)(.*)$/s.exec(raw);if(!match)return;
     const type=match[1],id=match[2]===''?-1:Number(match[2]);
     if(!Number.isSafeInteger(id)||id>1e9)throw new Error(tr('通信番号が不正です。'));
-    if(type==='0'){if(this.requested||!this.authSent)throw new Error(tr('接続の手順が不正です。'));this.requested=true;this.wire('420'+JSON.stringify(this.host?['sessionCreate',null]:['sessionJoin',this.room]));return;}
+    // Older pinned servers ignore the first create argument. Current servers
+    // require it, so requesting exactly two seats is compatible with all three.
+    if(type==='0'){if(this.requested||!this.authSent)throw new Error(tr('接続の手順が不正です。'));this.requested=true;this.wire('420'+JSON.stringify(this.host?['sessionCreate',2]:['sessionJoin',this.room]));return;}
     if(type==='1'||type==='4')throw new Error(tr('サーバーに接続できませんでした。'));
     const args=JSON.parse(match[3]);if(!Array.isArray(args))throw new Error(tr('通信イベントが不正です。'));
     if(type==='3'){
@@ -167,46 +192,65 @@ export class RoomLink {
       const reply=args[0];if(reply?.variant!=='Ok')throw new Error(reply?.error==='Session not found'?tr('その部屋はありません。'):reply?.error==='Session is full'?tr('その部屋は満員です。'):tr('部屋に入れませんでした。'));
       const room=reply.value?.id||reply.id;if(typeof room!=='string'||!/^\d{4}$/.test(room))throw new Error(tr('部屋番号を確認できませんでした。'));
       this.room=room;this.joined=true;this.onStatus(this.host?tr('相手に部屋番号を伝えてください。'):tr('接続しました。'));
+      if(this.earlyParty){const early=this.earlyParty;this.earlyParty=null;this.message(early);return;}
       if(!this.host)this.startDevice();return;
     }
     const [event,data]=args;
-    if(!this.joined)throw new Error(tr('部屋に入る前に通信を受信しました。'));
+    if(!this.joined){
+      // Session.enter emits partyReady synchronously before the join ACK.
+      // Hold that one validated event; never start the CPU on an unaccepted join.
+      if(type==='2'&&this.requested&&event==='partyReady'&&id>=0&&validUUID(data?.uuid)&&!this.earlyParty){this.earlyParty=raw;return;}
+      throw new Error(tr('部屋に入る前に通信を受信しました。'));
+    }
     if(event==='deviceData'){
       if(!this.connected)throw new Error(tr('接続前の通信です。'));
       const packets=Array.isArray(data)?data:[data];
       // Validate the whole batch before giving any of it to the emulated device.
-      if(!packets.length||packets.length>1024||!packets.every(validPacket))throw new Error(tr('通信データが不正です。'));
+      if(!packets.length||packets.length>1024||!packets.every(p=>validPacket(p,this.byteProtocol)))throw new Error(tr('通信データが不正です。'));
+      if(this.byteProtocol&&(this.playerIndex===null||packets.some(p=>[0,17,34].some(i=>p.data[i]!==1-this.playerIndex))))throw new Error(tr('通信データの形式が一致しません。'));
       if(!this.canWait&&(this.backgrounded||globalThis.document?.hidden)){this.acknowledge(id);this.close(tr('画面を離れたため接続を終了しました。'));return;}
       if(Array.isArray(data))this.batched=true;
       for(const packet of packets)this.deliver(packet);this.acknowledge(id);
     }
     else if(event==='deviceCommand'){
       if(!this.connected||!data||!commands.has(data.command)||!validUUID(data.uuid))throw new Error(tr('通信コマンドが不正です。'));
+      const settings=data.command===0x10&&data.args!==undefined;
+      if(settings&&(data.args?.playerCount!==2||!Number.isInteger(data.args?.playerIndex)||data.args.playerIndex<0||data.args.playerIndex>1))throw new Error(tr('通信データの形式が一致しません。'));
+      if(this.byteProtocol&&data.command===0x10&&!settings)throw new Error(tr('通信データの形式が一致しません。'));
       // Celio added batched data before ACK-bearing commands. Its mode command
       // arrives before the game can send data. Legacy RxJS handlers must NOT
       // receive an extra ACK callback (it changes their event payload shape).
       if(id>=0)this.batched=true;
       if(!this.seen.has(data.uuid)){
         if(this.seen.size>=4096)throw new Error(tr('通信コマンドが多すぎます。'));this.seen.add(data.uuid);
+        let command=data.command;
+        if(settings){
+          this.useByteProtocol();
+          if(this.playerIndex!==null&&this.playerIndex!==data.args.playerIndex)throw new Error(tr('通信データの形式が一致しません。'));
+          this.playerIndex=data.args.playerIndex;
+          // Seat 0 is the emulated GBA master, so its adapter is the slave.
+          command=this.playerIndex===0?0x11:0x10;
+        }
         // A mode reply may arrive while the lobby is backgrounded. It does not
         // advance the paused CPU. Handshake/connect commands do start gameplay.
         if(this.deferLobby){
           if(this.lobbyCommands.length>=32)throw new Error(tr('通信コマンドが多すぎます。'));
-          this.lobbyCommands.push(data.command);this.acknowledge(id);return;
+          this.lobbyCommands.push(command);this.acknowledge(id);return;
         }
         if(data.command===0x12||data.command===0x13){
           this.gameStarted=true;
           if(this.backgrounded||globalThis.document?.hidden){this.acknowledge(id);this.close(tr('画面を離れたため接続を終了しました。'));return;}
         }
-        this.device.command(data.command);
+        this.device.command(command);
       }
       this.acknowledge(id);
-    }else if(['partnerJoined','partnerLeft','sessionClose'].includes(event)){
+    }else if(['partnerJoined','partnerLeft','sessionClose','partyReady','partyNotReady'].includes(event)){
       if(id>=0&&!validUUID(data?.uuid))throw new Error(tr('通信イベントが不正です。'));
-      if(event==='partnerJoined')this.startDevice();
+      if(event==='partyReady'){if(id<0)throw new Error(tr('通信イベントが不正です。'));this.useByteProtocol();this.startDevice();}
+      if(event==='partnerJoined'){if(this.byteProtocol)throw new Error(tr('通信イベントが不正です。'));this.startDevice();}
       // Send before closing the WebSocket; duplicate joins cannot reset a device.
       this.acknowledge(id);
-      if(event==='partnerLeft')this.close(tr('相手が部屋を離れました。'));
+      if(event==='partnerLeft'||event==='partyNotReady')this.close(tr('相手が部屋を離れました。'));
       if(event==='sessionClose')this.close(this.gameClosed?tr('通信が完了しました。'):tr('通信が終了しました。'),{keep:!!this.gameClosed,notify:false});
     }
   }
@@ -214,7 +258,7 @@ export class RoomLink {
     if(this.closed)return this.completion;
     this.closed=true;clearInterval(this.heartbeat);clearTimeout(this.modeTimer);
     for(const request of this.inFlight.values())clearTimeout(request.timer);
-    this.inFlight.clear();this.outgoing=[];this.outgoingCount=0;this.pending.clear();this.seen.clear();this.lobbyCommands=[];this.lobbyData=[];
+    this.inFlight.clear();this.outgoing=[];this.outgoingCount=0;this.pending.clear();this.seen.clear();this.lobbyCommands=[];this.lobbyData=[];this.earlyParty=null;
     if(notify&&this.socket?.readyState===WebSocket.OPEN)try{this.socket.send('42["sessionLeft"]');}catch{}
     this.socket?.close();this.device.close();this.io.event=null;if(this.deviceStarted)this.io.enable(false);
     this.completion=Promise.resolve(this.onEnd(reason,{keep}));return this.completion;

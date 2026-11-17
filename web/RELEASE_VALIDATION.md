@@ -1,5 +1,72 @@
 # 公開前の検証記録
 
+## 2026-11-17 — 0.3.42 release candidate / PokemonStart 0.71.1 and Celio protocol
+
+Pulled main to 6cf8f6a9f8207325b92e2e57ede6ef396fd602d1 (0.3.41).
+The maintainer requested commit, push and publication after verification. The
+checks below are local evidence; publication requires all mandatory CI jobs on
+the same main commit. The previous release's CI does not validate these changes.
+
+- Statically decoded the supplied 0.71.1 migration HTML without running its
+  loader/UI. Retained source hashes and the existing permission/credit record.
+  Added the E format boundary at 0.67.0, 41 supplied keys, box/egg/relive bit
+  relocation and the narrow native auxiliary-footer rules. Ordinary checksums,
+  all keyed MACs, maps, counters and destination ownership remain checked.
+  Upstream's invalid-species deletion is deliberately rejected instead.
+- Authored `start-save-e` tests cover all earlier formats, 100 boxes in both
+  adventures, EXP high bits, record tails, both egg/relive generations, selected
+  adventure and RTC/raw-byte preservation, native E no-op, corrupt auxiliaries,
+  unknown keys, invalid species and downgrade refusal. Existing X/Z,
+  compatibility and component-contract regressions pass. A private source-tool
+  oracle matched all 6,000 box records plus main/page-zero data for each of
+  old/L/W/X/Y/Z to E, and normal W/Z/E egg/relive cases. Originals were unchanged.
+- Chromium and desktop WebKit pass `start-save-e-browser`: real update UI,
+  Worker and IndexedDB for 0.49.0 / 0.59.5 / 0.62.0 to 0.71.1; original and
+  recovery backup hashes retained, no unchecked-copy bypass, final data
+  reinspected. An initial failure was an arbitrary out-of-range species in the
+  old egg test fixture; the new E case now uses valid synthetic species. The
+  product's refusal was retained and separately tested.
+- Native ROM profile recognition follows the actual three-predicate menu gate,
+  old-layout flag and Z map loader, yielding minimum 0.67.0 and format E for the
+  attached 128MiB 0.71.1 ROM. Synthetic control-flow mutations and actual ROM-copy
+  mutations fail closed. No filename or release-number whitelist is used.
+- The supplied ROM boots through the installed core's real compatibility/clock
+  setup. Intro/title/adventure-selection images were visually inspected; native
+  battery export/reload and state restore/run pass, without changing the ROM.
+  WASM capacity is 187.125MiB, not total browser/device memory. The fresh game's
+  battery is still 128KiB before its first report: this does not establish an
+  actual 16MiB progress-save migration or full gameplay compatibility.
+- Chromium and desktop WebKit pass `room-link` against three pinned local real
+  server generations, including current 51-byte party packets, join-event/ACK
+  order, two seats, ACK retries, background lobby, normal completion and
+  interrupted CPU/save rollback. `direct-link` and `save-safety` also pass in
+  both browsers. No public relay was used. The current adapter remains two-player.
+  As in both older servers, `sessionClose` is ambiguous after a local completed
+  handshake: it is not proof of both remote FF07 reports. Before-local-close
+  departure rolls back; after-local-close departure retains the existing rule.
+- Core monitoring now reads the same branch as the build configuration (`rom128`)
+  and rejects missing/mismatching configuration. Promotion requires the explicit
+  `mgba-rom128` result. `upstream-watch` and `core-auto` pass; no workflow was
+  dispatched during these checks. The existing scheduled candidate to CI to
+  main to publication path remains intact; publication is now explicitly authorized.
+- Save-layout and allocation regressions pass. Read-only 16MiB modern-save
+  inspection retains the existing two 3MiB working buffers and no whole-input
+  copy; this allocation count is not a measurement of device peak memory.
+- The 0.3.42 release has two concise notes translated into all eight languages,
+  then independently proofread by agents. Chromium and desktop WebKit pass
+  nine-language completion-notice/history checks at 320/390/844px, exact text,
+  details links, acknowledgment/revisit suppression and no horizontal overflow.
+  Japanese and German screenshots were inspected. Both browsers display the
+  source credits and archive link in all nine languages at 320px. Existing
+  operational wording is unchanged (1,433 catalogue messages per language).
+
+Unverified: physical iPhone, existing user progress saves (none supplied), actual
+PokemonStart trades/battles, four-player communication and official desktop-client
+interoperability. ROMs, saves, original HTML, decoded source, private oracle and
+game screenshots remain outside tracked/distributed files. Version 0.3.42 and its
+release notes are now prepared under the maintainer's explicit publication request.
+Same-commit CI and deployed-artifact checks are required after this local record.
+
 ## 2026-10-29 — 0.3.41 release candidate / PokemonStart 0.62.0
 
 Baseline 4b6ce9f. The maintainer requests incorporation, commit/push, publication

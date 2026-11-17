@@ -79,6 +79,33 @@ module.exports=async page=>{
   let limited=false;try{message(overflow.link,41,'deviceData',[packet(512)]);}catch{limited=true;}check(limited&&overflow.link.lobbyData.length===512,'Background packet buffer is bounded');overflow.link.close();check(!overflow.link.lobbyData.length,'Close discards pending lobby packets');
   const cancelled=create();cancelled.link.connected=false;cancelled.link.deviceStarted=false;cancelled.link.setBackground(true);message(cancelled.link,32,'partnerJoined',{uuid:'cancel'});cancelled.link.close();cancelled.link.setBackground(false);check(!cancelled.link.deviceStarted,'Cancelled hidden lobby never restarts');
   const raced=create();raced.link.gameStarted=true;raced.link.backgrounded=true;message(raced.link,33,'deviceCommand',{uuid:'late-handshake',command:0x12});check(raced.link.closed&&!raced.commands.includes(0x12),'A late game-start command cannot run while backgrounded');
-  return 'PASS: batched/legacy protocol, command and data deduplication, ACK retry, validation, memory limits and cleanup.';
+  // Current server emits partyReady before the joining client's session ACK.
+  const early=create();early.link.joined=false;early.link.connected=false;early.link.deviceStarted=false;early.link.requested=true;early.link.host=false;
+  message(early.link,50,'partyReady',{uuid:'early-party'});
+  check(!early.link.deviceStarted&&!early.link.joined&&early.frames.length===0,'Pre-ACK ready cannot start a device');
+  early.link.message('430[{"variant":"Ok","value":{"id":"1234","full":true}}]');
+  check(early.link.byteProtocol&&early.link.device.packetWords===24&&early.link.deviceStarted&&early.frames.includes('4350[true]'),'Accepted join starts the byte protocol and ACKs the early party');
+  message(early.link,51,'deviceCommand',{uuid:'seat-0',command:0x10,args:{playerCount:2,playerIndex:0}});
+  check(early.link.playerIndex===0&&early.commands[0]===0x11,'Seat 0 uses the slave adapter');
+  message(early.link,52,'deviceCommand',{uuid:'seat-0',command:0x10,args:{playerCount:2,playerIndex:0}});
+  check(early.commands.length===1,'PlayerSettings retry does not reset the device');
+  const bytePacket=(sequence,word=0xABCD,seat=1)=>({sequence,data:Array.from({length:3},()=>[seat,...Array.from({length:8},()=>[word&255,word>>>8]).flat()]).flat()});
+  message(early.link,53,'deviceData',[bytePacket(1,0xFFFF),bytePacket(0),bytePacket(0)]);
+  check(JSON.stringify(early.words)==='[43981,65535]'&&early.link.received===102,'Byte packet little-endian decoding, sequence and duplicate suppression');
+  let invalidTail=false;try{message(early.link,54,'deviceData',[bytePacket(2),bytePacket(3,1,2)]);}catch{invalidTail=true;}
+  check(invalidTail&&early.words.length===2,'Invalid seat in tail rejects the entire byte batch');
+  let invalidByte=false;const wide=bytePacket(2);wide.data[1]=256;try{message(early.link,54,'deviceData',[wide]);}catch{invalidByte=true;}check(invalidByte,'Byte bound');
+  early.link.sendData(Array(24).fill(0xABCD));await tick();
+  const encoded=JSON.parse(early.frames.find(f=>/^42\d+\["deviceData"/.test(f)).replace(/^42\d+/,''))[1][0];
+  check(encoded.data.length===51&&encoded.data[0]===0&&encoded.data[1]===205&&encoded.data[2]===171,'Outbound 51-byte packet and sender seat');
+  let changedSeat=false;try{message(early.link,55,'deviceCommand',{uuid:'changed-seat',command:0x10,args:{playerCount:2,playerIndex:1}});}catch{changedSeat=true;}check(changedSeat,'Seat cannot change during a session');
+  early.link.close();
+  const seat1=create();message(seat1.link,60,'partyReady',{uuid:'party-seat1'});message(seat1.link,61,'deviceCommand',{uuid:'seat-1',command:0x10,args:{playerCount:2,playerIndex:1}});check(seat1.commands[0]===0x10,'Seat 1 uses the master adapter');
+  message(seat1.link,62,'partyNotReady',{uuid:'left-party'});check(seat1.link.closed&&seat1.ended[0].keep===false&&seat1.frames.includes('4362[true]'),'Not-ready ACKs then interrupts with rollback');
+  for(const args of [{playerCount:4,playerIndex:0},{playerCount:2,playerIndex:2},{playerCount:2,playerIndex:-1},null]){
+   const x=create();message(x.link,63,'partyReady',{uuid:'unsupported-party'});let failed=false;try{message(x.link,64,'deviceCommand',{uuid:'unsupported-settings',command:0x10,args});}catch{failed=true;}check(failed&&x.commands.length===0,'Unsupported player settings never reach device');x.link.close();
+  }
+  const width=create();check(width.link.device.packetWords===32,'Direct/legacy packet width stays default');width.link.useByteProtocol();const produced=[];width.link.device.emitData=data=>produced.push(data);width.link.device.transmit=Array.from({length:24},(_,i)=>i+1);width.link.device.flush();width.link.device.flush();width.link.device.reset(true);check(produced.length===1&&produced[0].length===24&&width.link.device.packetWords===24,'Current protocol flush is three commands, no empty extra packet, width survives reconnect');width.link.close();
+  return 'PASS: legacy/batched/party protocols, two-seat negotiation, byte encoding, deduplication, ACK retry, validation, limits and cleanup.';
  });console.log(result);
 };

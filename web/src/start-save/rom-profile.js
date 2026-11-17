@@ -114,7 +114,7 @@ export function readStartROMProfile(bytes){
   }
   return maps===1?cache:null;
  };
- let stamp=null,writerCount=0,minimum=null,gateCount=0,maximumAccepted=null,formatGate=null;
+ let stamp=null,writerCount=0,minimum=null,gateCount=0,maximumAccepted=null,formatGate=null,formatUpgrade=null;
  const formatLoaders=[];
  for(let p=0xc0;p+26<=bytes.length;p+=2){
   // Every supported entry starts with one of these Thumb instruction bytes.
@@ -167,6 +167,30 @@ export function readStartROMProfile(bytes){
     minimum=maximum.value+1;maximumAccepted=current.value;formatGate=cache;gateCount++;
    }
   }
+  // E retains the Z map/78-byte layout but repacks box experience. Its menu
+  // first rejects the uint16 interval [legacy minimum, E boundary), then the
+  // legacy lower/current upper limits. All three predicates and their disabled-
+  // Continue paths must agree; a newer version stamp alone cannot imply E.
+  if(bytes[p+1]===0x48&&literal(p,0)===versionVariable&&literal(p+2,5)===varGet&&u16(bl(p+4))===0x4728&&
+   words(p-104,[0x2800,null,0x2300,0x9306,0x3301,0x469b,0x9305,0x2600])&&
+   (u16(p-102)&0xff00)===0xd000&&conditional(p-102)===p&&
+   words(p+12,[0x9006,0x2800,null])&&(u16(p+16)&0xff00)===0xd100&&conditional(p+16)===p-100&&
+   literal(p+18,0)===versionVariable&&bl(p+20)===bl(p+4)&&
+   words(p+28,[0x2800,0xd100,null,0x2300,0x9305,0x3301,0x469b,0x469a,0x2600])&&tail(p-88)===tail(p+46)){
+   const upperGate=tail(p+32),success=tail(upperGate+16),rejoin=tail(p+46);
+   if(upperGate>=0&&success>=0&&rejoin>=0&&literal(upperGate,0)===versionVariable&&bl(upperGate+2)===bl(p+4)&&
+    words(upperGate+10,[0x4682,0x2800,0xd100,null,0x2301,0x469b,0x2300,0x9305,0x3301,0x9306,0x2300,0x2600,0x469a])&&
+    upperGate+36===rejoin&&words(success,[0x2301,0x9005,0x9006,0x469b])&&tail(success+8)===rejoin){
+    const interval=bl(p+8),lower=bl(p+24),upper=bl(upperGate+6),maximum=constant(lower+2,2),current=constant(upper,3),cache=oldFormatFlag(bl(p-108),true);
+    const subtraction=literal(interval,3),width=literal(interval+6,2),first=(-subtraction)>>>0,last=first+width;
+    if(cache!==null&&words(bl(p-108)+12,[0x2208,0x32ff])&&words(interval,[null,0x18c3,0x2000,null,0x041b,0x0c1b,0x429a,0x4140,0x4770])&&
+     subtraction>=0&&subtraction>0xffff&&validStamp(first)&&width>=0&&last<0xffff&&last+1===0x4300&&
+     u16(lower)===0x2300&&maximum&&words(maximum.next,[0x4282,0x415b,0x0018,0x4770])&&maximum.value+1===first&&
+     current&&words(current.next,[0x4283,0x4180,0x4240,0x4770])&&validStamp(current.value)&&last<current.value){
+     minimum=last+1;maximumAccepted=current.value;formatGate=cache;formatUpgrade='E';gateCount++;
+    }
+   }
+  }
   // X menu compiler variant uses a distant layout-guard block and a shared
   // upper-bound failure block. Follow both branches; never infer from a filename.
   if(bytes[p+1]===0x48&&literal(p,0)===versionVariable&&literal(p+2,5)===varGet&&u16(bl(p+4))===0x4728&&
@@ -183,6 +207,7 @@ export function readStartROMProfile(bytes){
  }
  if(writerCount!==1)return null;
  // A changed or ambiguous gate must not silently grant compatibility.
- const verified=gateCount===1&&minimum<=stamp&&(maximumAccepted===null||maximumAccepted===stamp)&&(formatGate===null||formatLoaders.filter(loader=>loader.cache===formatGate).length===1);
- return {version:stampVersion(stamp),minimumSaveVersion:verified?stampVersion(minimum):null,...(verified&&formatGate!==null?{saveFormat:formatLoaders.find(loader=>loader.cache===formatGate).format}:{})};
+ const verified=gateCount===1&&minimum<=stamp&&(maximumAccepted===null||maximumAccepted===stamp)&&(formatGate===null||formatLoaders.filter(loader=>loader.cache===formatGate).length===1)&&
+  (formatUpgrade===null||formatLoaders.some(loader=>loader.cache===formatGate&&loader.format==='Z'));
+ return {version:stampVersion(stamp),minimumSaveVersion:verified?stampVersion(minimum):null,...(verified&&formatGate!==null?{saveFormat:formatUpgrade||formatLoaders.find(loader=>loader.cache===formatGate).format}:{})};
 }

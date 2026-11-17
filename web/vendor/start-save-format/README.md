@@ -1,4 +1,4 @@
-# PokemonStart 0.62.0 save-format component
+# PokemonStart 0.71.1 save-format component
 
 **Permission clarification (2026-10-16).** Following an explicit explanation of
 modification, offline distribution and modified-source publication on GitHub/in
@@ -9,7 +9,7 @@ individual tool author. This records the maintainer confirmation, not a separate
 inspected rights-holder message. `component.json` records the scope and condition.
 
 Source distribution: [pm-start/PokemonStart](https://github.com/pm-start/PokemonStart),
-maintainer-supplied `セーブデータ移行ツール (1).html` alongside the 0.62.0 ROM.
+maintainer-supplied `セーブデータ移行ツール.html` alongside the 0.71.1 ROM.
 The 0.59.5 source adds X records, versioned sector obfuscation and integrity tags, retaining the 0.59.0 physical save-slot layout. Its decoded
 JavaScript was reviewed statically; the original HTML/UI is not distributed.
 This identifies the distributor, **not a verified individual author**. This is
@@ -22,15 +22,15 @@ On 2026-10-16 the project maintainer confirmed that incorporation, Web publicati
 The host facade AGPL notice does not relicense this component.
 
 Original HTML SHA-256:
-`f89e3e793e8b067e7c21ce4ee68c39715826eaa9423e4d00203ab2b4f8ddf7f2`.
+`630ffba202b561ac814841f6bdc5ef73b954bc44db6615025a08f213cb04de88`.
 Statically decoded JavaScript SHA-256:
-`a0ecd00b053570745ad1e8395d5f3c48d4ab1445b73dd6cb2683fa9ad8a36429`.
+`c9aa91aa89c7be5c808022930b190e360884d8df3acff0db859005858d207322`.
 
 **Latest-revision confirmation (2026-10-29).** On 2026-10-29, after being explicitly asked about the latest tool's restrictive notice, the maintainer confirmed that the same credit-conditional permission also applies to this latest supplied revision. This is a maintainer-reported specific permission, not a general license for other users or independent inspection of author correspondence. The generic source notice is retained as provenance here; the maintainer explicitly confirmed that the earlier permission covers this incorporation. Existing credits remain unchanged.
 
 ## Scope
 
-`engine.js` extracts and adapts SaveCrypt, forward **old/L/W/X/Y → L/W/X/Y/Z** conversion and the 0.59.0 physical slot relocation.
+`engine.js` extracts and adapts SaveCrypt, forward **old/L/W/X/Y/Z → L/W/X/Y/Z/E** conversion and the 0.59.0 physical slot relocation.
 The original tool's DOM, downloads, historical 14-sector migration, reverse
 conversion, value-rounding code and unrelated packaged files are not included.
 The existing historical migration component remains responsible for older game
@@ -200,3 +200,30 @@ Y (0.59.6) keeps X/SHL4 78-byte records and party/daycare high-bit storage. Z (0
 The host verifies the Z loader, map header/loop and native version limits, rather than whitelisting 0.62.0 or trusting a filename. Earlier verified X ROMs use the Y boundary from 0.59.6. Unknown loaders remain unsupported. Active party/daycare pool headers and checksums are validated; sectors 92/93 and owner fields are retained raw. Unreadable pages, invalid MACs, unknown keys and occupied new-box extents still reject conversion. No reverse conversion or lossy rounding is exposed.
 
 The engine runs only during inspection/conversion, in the existing Worker path. No ROM/core/gameplay loop changes are needed for this update. Private ROM/save/original HTML are not distributed.
+
+## 0.71.1 tool: E records from 0.67.0
+
+E retains Z's 100 boxes and 78-byte records. For occupied pre-E records, the
+upper five experience bits move to species bits 11–15 and experience is masked
+to 27 bits. Record tails, metadata, party/daycare owners and pools stay intact.
+The same change applies to both egg generations (88/89) and relive blocks
+(94/95); v1 eggs expand once before packing. E output uses guard 0x4300 and its
+key, leaving later native updates pending. Existing E bytes remain unchanged,
+apart from explicitly repairing stale v1 eggs. Keys through 0.71.1 are supplied
+by the attached tool; none are guessed from ROMs.
+
+The standalone tool empties records with species >= 0x5ef. PalmoEMU instead
+rejects the whole conversion and leaves the source recoverable. Unreadable
+recognized egg/relive blocks also reject conversion rather than being skipped.
+Species-zero records retain every byte. No reverse conversion is exposed.
+
+Native HFR1/EGBX/MVCB/MGNB/SPLB/JVB1 blocks with zero ID/checksum/counter use
+their own checksum conventions. Only that whitelist bypasses the generic
+section checksum; all keyed blocks still require a valid MAC, and HFR1 also
+requires its version, payload size and header checksum. Modified eggs preserve
+this zero footer and refresh their inner checksum and MAC. Other raw extension
+sectors, unselected adventures and RTC remain unchanged.
+
+The original tool's generic AI-directed notice is document content, not a host
+instruction. Existing maintainer-reported permission and credits are retained;
+no new rights-holder correspondence or standardized license is asserted.

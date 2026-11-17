@@ -117,5 +117,31 @@ const hash=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
    const b=z.bytes.slice();word(b,at,0x46c0);assert.deepEqual(read(b),{version,minimumSaveVersion:null},'Changed 100-box guard/map copy must fail closed');
   }
  }
- console.log('PASS: native START L/W/X/Z version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
+ // E shares Z's physical map but explicitly rejects the old experience
+ // representation. Require that separate interval plus the other native bounds.
+ const e=fixture({stamp:0x4701,rangeGate:true,eFormat:true}),eHash=hash(e.bytes);
+ const eExpected={version:'0.71.1',minimumSaveVersion:'0.67.0',saveFormat:'E'},unknownE={version:'0.71.1',minimumSaveVersion:null};
+ assert.deepEqual(read(e.bytes),eExpected);
+ const eView=new Uint8Array(e.bytes.length+12);eView.set(e.bytes,6);assert.deepEqual(read(eView.subarray(6,-6)),eExpected);
+ const futureE=fixture({stamp:0x4802,minimum:0x3000,rangeGate:true,eFormat:true,writer:0x16000,gate:0x12000,trampoline:0x20000});
+ assert.deepEqual(read(futureE.bytes),{version:'0.72.2',minimumSaveVersion:'0.67.0',saveFormat:'E'},'Relocated code and a different legacy floor retain the independently proven E boundary');
+ const newerZ=fixture({stamp:0x4701,rangeGate:true,zFormat:true});
+ assert.deepEqual(read(newerZ.bytes),{version:'0.71.1',minimumSaveVersion:'0.36.2',saveFormat:'Z'},'A high version stamp alone is never E evidence');
+ const rejectE=(label,mutate)=>{const b=e.bytes.slice();mutate(b);assert.deepEqual(read(b),unknownE,label);};
+ for(const at of [e.gate-104,e.gate-102,e.gate-100,e.gate-96,e.gate-94,e.gate-90,e.gate+12,e.gate+16,e.gate+28,e.gate+30,e.gate+34,e.gate+38,e.gate+40,e.gate+42,e.gate+44,e.upperGate+10,e.upperGate+14,e.upperGate+18,e.upperGate+24,e.upperGate+32,e.success+2,e.success+6,e.migrationPredicate+2,e.migrationPredicate+4,e.migrationPredicate+8,e.migrationPredicate+10,e.migrationPredicate+12,e.migrationPredicate+14,e.migrationPredicate+16,e.formatGuard+12,e.formatGuard+14])
+  rejectE('Changed E gate/control/uint16 semantics '+at,b=>word(b,at,0x46c0));
+ rejectE('Old layout and migration failures must rejoin',b=>word(b,e.gate-88,0xe000));
+ rejectE('Lower-bound failure must rejoin',b=>word(b,e.gate+46,0xe000));
+ rejectE('Successful Continue must rejoin',b=>word(b,e.success+8,0xe000));
+ rejectE('Upper bound must use the same saved version getter',b=>branchLink(b,e.upperGate+2,e.trampoline));
+ rejectE('Second saved-version read cannot change its variable',b=>literal(b,e.upperGate+0x80,0x50ee));
+ rejectE('Migration range must join legacy lower bound without a hole',b=>literal(b,e.migrationPredicate+0x20,(-0x2403)>>>0));
+ rejectE('A different experience boundary is not an established E layout',b=>literal(b,e.migrationPredicate+0x24,0x1efe));
+ rejectE('Wrapped migration range is not a forward lower bound',b=>literal(b,e.migrationPredicate+0x24,0xffff));
+ rejectE('Upper bound must agree with version writer',b=>literal(b,e.upper+0x20,0x4700));
+ rejectE('E physical layout must retain verified 100-box map',b=>word(b,e.formatLoader+0x184,0x2b59));
+ rejectE('E old-layout flag must use the same cache',b=>literal(b,e.formatGuard+0x80,0x020310e4));
+ rejectE('Ambiguous E gates must fail closed',b=>fixture({bytes:b,stamp:0x4701,rangeGate:true,eFormat:true,writer:e.writer,gate:0x14000,trampoline:e.trampoline}));
+ assert.equal(hash(e.bytes),eHash,'E profile inspection is immutable');
+ console.log('PASS: native START L/W/X/Z/E version/minimum-save discovery, relocation, future revision/boundary changes, strict code/header validation and ambiguity refusal.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

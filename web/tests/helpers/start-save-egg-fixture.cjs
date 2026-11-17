@@ -2,7 +2,7 @@
 // Synthetic native egg blocks, including alignment bytes and the active SB1 link.
 const f=require('./start-save-format-fixtures.cjs'),crypt=require('./start-save-keyed-fixture.cjs');
 function sum(b,aligned=true){const size=136+30*(f.u16(b,4)===1?63:78),end=aligned?Math.ceil(size/4)*4:size;let total=0x4547;for(let i=16;i<end;i++)total+=b[i]+((i-16)&255);return total&65535;}
-function eggs(bytes,{aligned=true,key=6,stamp}={}){
+function eggs(bytes,{aligned=true,key=6,stamp,validSpecies=false}={}){
  const plain=crypt.decode(bytes),stride=plain.length>=16777216?8388608:f.slotBytes;
  for(const slot of [0,1]){
   const base=slot*stride;if(base>=plain.length)continue;
@@ -10,6 +10,9 @@ function eggs(bytes,{aligned=true,key=6,stamp}={}){
    const b=plain.subarray(base+physical*4096,base+(physical+1)*4096);b.fill(0);
    f.put32(b,0,0x58424745);f.put16(b,4,1);f.put32(b,8,100+slot*2+physical);
    for(let i=16;i<2028;i++)b[i]=(i*13+physical+slot)&255;
+   // Older byte-preservation tests deliberately use arbitrary records. E's
+   // lossless-conversion gate needs actual in-range synthetic species values.
+   if(validSpecies)for(let i=0;i<30;i++)f.put16(b,136+i*63+28,i+1);
    f.put16(b,6,sum(b,aligned));
   }
   for(let physical=0;physical<10;physical++){

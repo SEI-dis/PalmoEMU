@@ -14,12 +14,9 @@ export function checkPublicationPermission(record){
  assert(permission&&publicationScopes.every(scope=>permission.scopes?.[scope]===true),'NOT READY FOR PUBLICATION: format converter modification/offline/modified-source permission is not fully confirmed');
  assert(/^\d{4}-\d{2}-\d{2}$/.test(permission.confirmedOn||'')&&typeof permission.evidence==='string'&&permission.evidence.trim(),'NOT READY FOR PUBLICATION: format permission confirmation evidence is required');
 }
-const expectedSources=[
- {name:'セーブデータ移行ツール (1).html',sha256:'f89e3e793e8b067e7c21ce4ee68c39715826eaa9423e4d00203ab2b4f8ddf7f2'},
- {name:'statically decoded embedded JavaScript',sha256:'a0ecd00b053570745ad1e8395d5f3c48d4ab1445b73dd6cb2683fa9ad8a36429'}
-];
+const expectedSources=[{"name": "セーブデータ移行ツール.html", "sha256": "630ffba202b561ac814841f6bdc5ef73b954bc44db6615025a08f213cb04de88"}, {"name": "statically decoded embedded JavaScript", "sha256": "c9aa91aa89c7be5c808022930b190e360884d8df3acff0db859005858d207322"}];
 const expectedPermission="On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author. On 2026-10-29, after being explicitly asked about the latest tool's restrictive notice, the maintainer confirmed that the same credit-conditional permission also applies to this latest supplied revision. This is a maintainer-reported specific permission, not a general license for other users or independent inspection of author correspondence.";
-const expectedDirection={"from":["old","L","W","X","Y","Z"],"to":["L","W","X","Y","Z"],"reverseConversion":false,"rounding":false,"versionGuards":{"L":12799,"W":13567,"X":15106,"Y":15110,"Z":15616}};
+const expectedDirection={"from":["old","L","W","X","Y","Z","E"],"to":["L","W","X","Y","Z","E"],"reverseConversion":false,"rounding":false,"versionGuards":{"L":12799,"W":13567,"X":15106,"Y":15110,"Z":15616,"E":17152}};
 const expectedExports=['containsFormatL','convertFormatSave','inspectFormatSave'];
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const digest=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
@@ -65,10 +62,12 @@ function engineContract(source){
  assert.equal(value(declarations.get('X_VERSION_GUARD')),0x3b02,'Unsupported X version contract');
  assert.equal(value(declarations.get('Y_VERSION_GUARD')),0x3b06,'Unsupported Y version contract');
  assert.equal(value(declarations.get('Z_VERSION_GUARD')),0x3d00,'Unsupported Z version contract');
+ assert.equal(value(declarations.get('E_VERSION_GUARD')),0x4300,'Unsupported E version contract');
+ assert.equal(value(declarations.get('NUM_SPECIES')),0x5ef,'Unsupported E species contract');
  assert.equal(value(declarations.get('NEW_META_BYTES')),500,'Unsupported Z metadata contract');
  assert.equal(value(declarations.get('X_TAIL_BYTES')),15,'Unsupported X record contract');
  assert.equal(value(declarations.get('MAC_SECRET')),0xe4ee25b3,'Unsupported integrity contract');
- assert.deepEqual(value(declarations.get('SAVE_KEYS')),[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f],[0x3b06,0x446b6578],[0x3b07,0xbd6ea138],[0x3b08,0xdd815660],[0x3b09,0x62359629],[0x3b0a,0x5c965f4f],[0x3b0b,0x728bba7e],[0x3c00,0xce5de03b],[0x3d00,0x6d8d2bc9],[0x3d01,0xeb4690aa],[0x3e00,0x4169cfe3]],'Unsupported keyed-sector contract');
+ assert.deepEqual(value(declarations.get('SAVE_KEYS')),[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f],[0x3b06,0x446b6578],[0x3b07,0xbd6ea138],[0x3b08,0xdd815660],[0x3b09,0x62359629],[0x3b0a,0x5c965f4f],[0x3b0b,0x728bba7e],[0x3c00,0xce5de03b],[0x3d00,0x6d8d2bc9],[0x3d01,0xeb4690aa],[0x3e00,0x4169cfe3],[0x3e01,0xd392b2a2],[0x3e02,0x4c47bd46],[0x3e03,0x6d117c67],[0x3e04,0x5192c6be],[0x3e05,0xf1032cb1],[0x3e06,0xcfc21d87],[0x3f00,0xf3c8262a],[0x3f01,0x6dae5ad3],[0x3f02,0xbab5fe4f],[0x4000,0xbe0b7757],[0x4100,0x3809fc27],[0x4101,0x38e4d94c],[0x4200,0x28943be2],[0x4201,0x67be6dad],[0x4300,0x31a50265],[0x4301,0x2b701a11],[0x4302,0x9b09e404],[0x4400,0xf86aa873],[0x4500,0x64c9dab9],[0x4501,0xeaace229],[0x4502,0x26e50d5b],[0x4503,0x7e50db92],[0x4600,0xbd9434ed],[0x4700,0x653d4c1e],[0x4701,0x2582d0d1]],'Unsupported keyed-sector contract');
  const layouts={};
  for(const [name,expected] of [['OLD',['old',0x4c454853,58,12,70,15,17,5,990,330,28]],['LARGE',['L',0x324c4853,60,11,68,16,18,8,1020,480,30]],['WIDE',['W',0x334c4853,63,11,64,16,18,9,960,540,30,26,18]],['XWIDE',['X',0x344c4853,78,8,52,16,18,14,780,720,30,156,28,128]],['ZWIDE',['Z',0x344c4853,78,8,52,16,18,14,780,720,30,156,28,128,29]]]){
   const node=declarations.get(name);assert(node?.type==='CallExpression'&&node.callee.type==='Identifier'&&node.callee.name==='format','Expected reviewed format descriptor');
@@ -89,9 +88,9 @@ export function checkComponent(directory=installedDirectory){
  };
  assert.deepEqual(fs.readdirSync(location).sort(),['README.md','component.json','engine.js'],'Unexpected component files');
  const record=JSON.parse(read('component.json'));
- assert(record.schema===1&&record.hostContract==='start-format-forward-v4','Unsupported component record');
- assert.equal(record.distribution,'maintainer-supplied PokemonStart 0.62.0 migration HTML','Source distribution changed');
- assert.equal(record.distributionVersion,'0.62.0','Source distribution version changed');
+ assert(record.schema===1&&record.hostContract==='start-format-forward-v5','Unsupported component record');
+ assert.equal(record.distribution,'maintainer-supplied PokemonStart 0.71.1 migration HTML','Source distribution changed');
+ assert.equal(record.distributionVersion,'0.71.1','Source distribution version changed');
  assert.equal(record.sourceDistributor,'pm-start/PokemonStart','Source distributor changed');
  assert.equal(record.sourceURL,'https://github.com/pm-start/PokemonStart','Source URL changed');
  assert.equal(record.individualAuthor,null,'Do not invent an individual author');
@@ -120,6 +119,6 @@ if(process.argv[1]&&path.resolve(process.argv[1])===fileURLToPath(import.meta.ur
   assert(directories.length<=1&&!directories.some(arg=>arg.startsWith('--')),'Usage: node web/scripts/start-save-format/check.mjs [candidate-directory] [--publication]');
   const checked=checkComponent(directories[0]||installedDirectory);
   if(publication)checkPublicationPermission(checked.record);
-  console.log(`PASS: PokemonStart ${checked.record.distributionVersion} format component, reviewed provenance, pinned files, forward L/W/X/Y/Z contract and exported API (source not executed).`);
+  console.log(`PASS: PokemonStart ${checked.record.distributionVersion} format component, reviewed provenance, pinned files, forward L/W/X/Y/Z/E contract and exported API (source not executed).`);
  }catch(error){console.error(error.message);process.exitCode=1;}
 }

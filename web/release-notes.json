@@ -1,6 +1,48 @@
 {
   "releases": [
     {
+      "version": "0.3.42",
+      "date": "2026-11-17",
+      "changes": [
+        "PokemonStart 0.71.1へのセーブ引き継ぎに対応しました。元のROMとセーブは残ります。",
+        "2人通信を新しいサーバーの方式に対応させました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "已支持向 PokemonStart 0.71.1 迁移存档。原始 ROM 和存档会保留。",
+          "双人联机现已支持服务器的新协议。"
+        ],
+        "zh-Hant": [
+          "已支援將存檔轉移至 PokemonStart 0.71.1。原始 ROM 與存檔會保留。",
+          "雙人連線現已支援伺服器的新協定。"
+        ],
+        "ko": [
+          "PokemonStart 0.71.1로 세이브를 이전할 수 있습니다. 원본 ROM과 세이브는 보관됩니다.",
+          "새 서버 프로토콜에 맞춰 2인 통신을 업데이트했습니다."
+        ],
+        "es": [
+          "Ya puedes transferir tu partida guardada a PokemonStart 0.71.1. Se conservan la ROM y la partida guardada originales.",
+          "El juego por conexión para dos jugadores ahora admite el nuevo protocolo del servidor."
+        ],
+        "fr": [
+          "Le transfert des sauvegardes vers PokemonStart 0.71.1 est désormais pris en charge. La ROM et la sauvegarde d’origine sont conservées.",
+          "Le jeu en connexion à deux joueurs prend désormais en charge le nouveau protocole du serveur."
+        ],
+        "de": [
+          "Spielstände können jetzt auf PokemonStart 0.71.1 übertragen werden. Die ursprüngliche ROM und der ursprüngliche Spielstand bleiben erhalten.",
+          "Das Link-Spiel für zwei Spieler unterstützt jetzt das neue Serverprotokoll."
+        ],
+        "pt": [
+          "Agora é possível transferir dados salvos para PokemonStart 0.71.1. A ROM e os dados salvos originais são mantidos.",
+          "O jogo por conexão para dois jogadores agora é compatível com o novo protocolo do servidor."
+        ]
+      },
+      "changesEn": [
+        "Added support for transferring saves to PokemonStart 0.71.1. The original ROM and save are kept.",
+        "Updated two-player link play to support the new server protocol."
+      ]
+    },
+    {
       "version": "0.3.41",
       "date": "2026-10-29",
       "changes": [

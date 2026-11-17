@@ -1,4 +1,4 @@
-/* PokemonStart v0.62.0 save-format migration, extracted and adapted for PalmoEMU.
+/* PokemonStart v0.71.1 save-format migration, extracted and adapted for PalmoEMU.
  * Source distributor: pm-start/PokemonStart. See README.md and component.json.
  * Project-specific permission; no standardized upstream license was supplied.
  * This component is separate from the earlier START Save Migrate component.
@@ -8,7 +8,8 @@ const SECTOR=0x1000,DATA=0xff0,SIGNATURE=0x08012025,SLOT_BYTES=3*1024*1024;
 const FULL_BYTES=2*SLOT_BYTES,SMALL_BYTES=32*SECTOR,VERSION_OFFSET=0xba,VERSION_GUARD=0x31ff,WIDE_VERSION_GUARD=0x34ff;
 const X_VERSION_GUARD=0x3b02,X_TAIL_BYTES=15,EMPTY_X=new Uint8Array(X_TAIL_BYTES);
 const Y_VERSION_GUARD=0x3b06,Z_VERSION_GUARD=0x3d00,NEW_META_BYTES=500;
-const SAVE_KEYS=[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f],[0x3b06,0x446b6578],[0x3b07,0xbd6ea138],[0x3b08,0xdd815660],[0x3b09,0x62359629],[0x3b0a,0x5c965f4f],[0x3b0b,0x728bba7e],[0x3c00,0xce5de03b],[0x3d00,0x6d8d2bc9],[0x3d01,0xeb4690aa],[0x3e00,0x4169cfe3]],MAC_SECRET=0xe4ee25b3;
+const E_VERSION_GUARD=0x4300,NUM_SPECIES=0x5ef;
+const SAVE_KEYS=[[0x3901,0xcf0a5e2e],[0x3b01,0x2b1db2eb],[0x3b02,0x35bf48d2],[0x3b03,0x557d0a65],[0x3b04,0xfaf25c60],[0x3b05,0xeea1554f],[0x3b06,0x446b6578],[0x3b07,0xbd6ea138],[0x3b08,0xdd815660],[0x3b09,0x62359629],[0x3b0a,0x5c965f4f],[0x3b0b,0x728bba7e],[0x3c00,0xce5de03b],[0x3d00,0x6d8d2bc9],[0x3d01,0xeb4690aa],[0x3e00,0x4169cfe3],[0x3e01,0xd392b2a2],[0x3e02,0x4c47bd46],[0x3e03,0x6d117c67],[0x3e04,0x5192c6be],[0x3e05,0xf1032cb1],[0x3e06,0xcfc21d87],[0x3f00,0xf3c8262a],[0x3f01,0x6dae5ad3],[0x3f02,0xbab5fe4f],[0x4000,0xbe0b7757],[0x4100,0x3809fc27],[0x4101,0x38e4d94c],[0x4200,0x28943be2],[0x4201,0x67be6dad],[0x4300,0x31a50265],[0x4301,0x2b701a11],[0x4302,0x9b09e404],[0x4400,0xf86aa873],[0x4500,0x64c9dab9],[0x4501,0xeaace229],[0x4502,0x26e50d5b],[0x4503,0x7e50db92],[0x4600,0xbd9434ed],[0x4700,0x653d4c1e],[0x4701,0x2582d0d1]],MAC_SECRET=0xe4ee25b3;
 const LARGE_SLOT_BYTES=8*1024*1024,LARGE_FULL_BYTES=2*LARGE_SLOT_BYTES,MARK_OFFSET=34*SECTOR;
 const SECTION_SIZES=[0xf24,DATA,DATA,DATA,0xd98],MAP_OFFSET=0x1400;
 const PAGE0_MON=4+0x98+0xef+0xba0,EXT_META_SIZE=110,REGION_BOX_OFFSET=0x0203cabc-0x0203bfac;
@@ -69,12 +70,26 @@ function decodeSector(bytes,offset){
  if(!entry||((tag>>>8)&255)!==keyCheck(entry[1],nonce,id,check))fail('KEY');
  transform(bytes,offset,entry[1],entry[0],-1);put32(bytes,offset+0xff0,0);
  // Never re-sign damaged input or clear evidence of a failed integrity check.
- if(checksum(bytes,offset,payloadWords(id)*4)!==check||(mac(bytes,offset,entry[1],index)>>>16)!==(tag>>>16))fail('AUTH');
+ const own=ownKind(bytes,offset);
+ if((own===0x31524648?!hfrValid(bytes,offset):!own&&checksum(bytes,offset,payloadWords(id)*4)!==check)||(mac(bytes,offset,entry[1],index)>>>16)!==(tag>>>16))fail('AUTH');
+}
+// Native auxiliary blocks use their own checksums and a zero sector footer.
+// Only this exact whitelist bypasses the generic section checksum; all keyed
+// blocks still require their MAC. Ordinary or malformed footers stay strict.
+function ownKind(bytes,offset=0){
+ if(u16(bytes,offset+0xff4)||u16(bytes,offset+0xff6)||u32(bytes,offset+0xffc))return 0;
+ const magic=u32(bytes,offset);return [0x31524648,0x58424745,0x4243564d,0x424e474d,0x424c5053,0x3142564a].includes(magic)?magic:0;
+}
+function hfrValid(bytes,offset){
+ const version=u16(bytes,offset+4),size=u16(bytes,offset+6);
+ if(!((version===3&&size===642)||(version===2&&size===554)))return false;
+ let sum=0x4852;for(let i=0;i<size/2;i++)sum+=u16(bytes,offset+16+i*2)+i;
+ return (sum&65535)===u16(bytes,offset+12);
 }
 function encodeSector(bytes,to){
  if(u32(bytes,0xff8)!==SIGNATURE)return bytes;
- if(!['X','Y','Z'].includes(to))return xor(bytes);
- const out=bytes.slice(),index=to==='Z'?14:to==='Y'?7:3,[version,seed]=SAVE_KEYS[index-1],nonce=u32(out,0xffc),id=u16(out,0xff4),check=u16(out,0xff6),digest=mac(out,0,seed,index);
+ if(!['X','Y','Z','E'].includes(to))return xor(bytes);
+ const out=bytes.slice(),index=to==='E'?31:to==='Z'?14:to==='Y'?7:3,[version,seed]=SAVE_KEYS[index-1],nonce=u32(out,0xffc),id=u16(out,0xff4),check=u16(out,0xff6),digest=mac(out,0,seed,index);
  transform(out,0,seed,version,1);put32(out,0xff0,(index|(keyCheck(seed,nonce,id,check)<<8)|((digest>>>16)<<16))>>>0);
  for(let i=0;i<SECTOR;i++)out[i]^=key[i];return out;
 }
@@ -98,7 +113,8 @@ const WIDE=format('W',0x334c4853,63,11,64,16,18,9,960,540,30,26,18);
 const XWIDE=format('X',0x344c4853,78,8,52,16,18,14,780,720,30,156,28,128);
 const YWIDE={...XWIDE,name:'Y'};
 const ZWIDE=format('Z',0x344c4853,78,8,52,16,18,14,780,720,30,156,28,128,29);
-const formats={old:OLD,L:LARGE,W:WIDE,X:XWIDE,Y:YWIDE,Z:ZWIDE},wideX=name=>['X','Y','Z'].includes(name);
+const EWIDE={...ZWIDE,name:'E'};
+const formats={old:OLD,L:LARGE,W:WIDE,X:XWIDE,Y:YWIDE,Z:ZWIDE,E:EWIDE},wideX=name=>['X','Y','Z','E'].includes(name);
 // Modular serial arithmetic. The half-range difference is intrinsically
 // ambiguous and must never be resolved by an arbitrary bank/page preference.
 function compareCounter(a,b){const delta=(a-b)>>>0;if(delta===0x80000000)fail('COUNTER_AMBIGUOUS');return delta===0?0:delta<0x80000000?1:-1;}
@@ -144,7 +160,7 @@ function readLogical(img){
  }
  const p0=pages.get(0);if(!p0)fail('PAGE_ZERO');
  const stamp=u16(p0,4+0x98+0xef+VERSION_OFFSET);
- if(fmt===XWIDE)fmt=stamp>=Z_VERSION_GUARD?ZWIDE:stamp>=Y_VERSION_GUARD?YWIDE:XWIDE;
+ if(fmt===XWIDE)fmt=stamp>=E_VERSION_GUARD?EWIDE:stamp>=Z_VERSION_GUARD?ZWIDE:stamp>=Y_VERSION_GUARD?YWIDE:XWIDE;
  const extension=p0[fmt.p0Ext];
  if(extension===0x58){
   for(let i=0;i<fmt.extPages;i++){
@@ -228,14 +244,21 @@ function convertedLogical(before,to){
    converted.ext=u16(converted.bytes,0x1c)===0?0:converted.ext&~0x1e00;converted.hi=hi;
   }
   if(wideX(to)&&!wideX(before.format))converted.x=EMPTY_X;
+  if(to==='E'&&before.format!=='E')repackE(converted.bytes);
   return converted;
  });
- if(to==='Z')while(boxes.length<3000)boxes.push({bytes:new Uint8Array(MON_BYTES),ext:0,hi:0,x:EMPTY_X});
+ if(formats[to].newPages)while(boxes.length<3000)boxes.push({bytes:new Uint8Array(MON_BYTES),ext:0,hi:0,x:EMPTY_X});
  const after={...before,format:to,sections:before.sections.map(bytes=>bytes.slice()),parasite:before.parasite.slice(),boxes};
  // Leave the destination game's first-run migration pending.
- const guard=to==='Z'?Z_VERSION_GUARD:to==='Y'?Y_VERSION_GUARD:to==='X'?X_VERSION_GUARD:to==='W'?WIDE_VERSION_GUARD:VERSION_GUARD,version=u16(after.parasite,VERSION_OFFSET);
- if((version||to==='Y'||to==='Z')&&version<guard)put16(after.parasite,VERSION_OFFSET,guard);
+ const guard=to==='E'?E_VERSION_GUARD:to==='Z'?Z_VERSION_GUARD:to==='Y'?Y_VERSION_GUARD:to==='X'?X_VERSION_GUARD:to==='W'?WIDE_VERSION_GUARD:VERSION_GUARD,version=u16(after.parasite,VERSION_OFFSET);
+ if((version||to==='Y'||formats[to].newPages)&&version<guard)put16(after.parasite,VERSION_OFFSET,guard);
  return after;
+}
+function repackE(bytes){
+ const species=u16(bytes,0x1c);if(!species)return;
+ // Upstream clears these records. Refuse lossy conversion in PalmoEMU.
+ if(species>=NUM_SPECIES)fail('SPECIES');
+ const experience=u32(bytes,0x20);put16(bytes,0x1c,species|((experience>>>27)<<11));put32(bytes,0x20,experience&0x07ffffff);
 }
 function seal(img,physical,payload,id,counter,size=DATA){
  const sector=new Uint8Array(SECTOR);sector.set(payload);put16(sector,0xff4,id);put16(sector,0xff6,checksum(sector,0,size));put32(sector,0xff8,SIGNATURE);put32(sector,0xffc,counter);img.set(sector,physical*SECTOR);
@@ -303,16 +326,36 @@ function oldEggSectors(img,logical){
  }
  return old;
 }
-function convertEggs(img,logical){
- const changed=oldEggSectors(img,logical);
+function convertEggs(img,logical,enterE=false){
+ const old=oldEggSectors(img,logical),changed=[...old];
+ if(enterE)for(const physical of [88,89])if(u32(img,physical*SECTOR)===EGG_MAGIC&&!changed.includes(physical))changed.push(physical);
  for(const physical of changed){
   const sector=img.subarray(physical*SECTOR,(physical+1)*SECTOR);
-  const original=sector.slice();sector.fill(0,EGG_MON_OFFSET,EGG_MON_OFFSET+30*78);
-  for(let i=0;i<30;i++)sector.set(original.subarray(EGG_MON_OFFSET+i*63,EGG_MON_OFFSET+(i+1)*63),EGG_MON_OFFSET+i*78);
+  const original=sector.slice(),wasOld=old.includes(physical);
+  if(wasOld){
+   sector.fill(0,EGG_MON_OFFSET,EGG_MON_OFFSET+30*78);
+   for(let i=0;i<30;i++)sector.set(original.subarray(EGG_MON_OFFSET+i*63,EGG_MON_OFFSET+(i+1)*63),EGG_MON_OFFSET+i*78);
+   for(let i=0;i<30;i++)if(!equal(original.subarray(EGG_MON_OFFSET+i*63,EGG_MON_OFFSET+(i+1)*63),sector.subarray(EGG_MON_OFFSET+i*78,EGG_MON_OFFSET+i*78+63))||nonzero(sector.subarray(EGG_MON_OFFSET+i*78+63,EGG_MON_OFFSET+(i+1)*78)))fail('OUTPUT');
+  }
+  // Existing E v2 eggs are already packed. Only crossing E or repairing an
+  // old v1 block applies this step, exactly once per record.
+  if(enterE||wasOld&&logical.format==='E')for(let i=0;i<30;i++)repackE(sector.subarray(EGG_MON_OFFSET+i*78,EGG_MON_OFFSET+i*78+58));
   put16(sector,4,2);put16(sector,6,eggChecksum(sector,EGG_MON_OFFSET+30*78));
-  for(let i=0;i<30;i++)if(!equal(original.subarray(EGG_MON_OFFSET+i*63,EGG_MON_OFFSET+(i+1)*63),sector.subarray(EGG_MON_OFFSET+i*78,EGG_MON_OFFSET+i*78+63))||nonzero(sector.subarray(EGG_MON_OFFSET+i*78+63,EGG_MON_OFFSET+(i+1)*78)))fail('OUTPUT');
   // Some native writers wrap this block in a normal save-sector footer.
-  if(u32(sector,0xff8)===SIGNATURE)put16(sector,0xff6,checksum(sector,0,payloadWords(u16(sector,0xff4))*4));
+  refreshFooter(sector);
+ }
+ return changed;
+}
+function refreshFooter(sector){if(u32(sector,0xff8)===SIGNATURE&&!ownKind(sector))put16(sector,0xff6,checksum(sector,0,payloadWords(u16(sector,0xff4))*4));}
+function reliveChecksum(sector){let sum=0x4c52;for(let i=16;i<16+30*78;i++)sum+=sector[i]+((i-16)&255);return sum&65535;}
+function convertRelive(img){
+ const changed=[];
+ for(const physical of [94,95]){
+  const sector=img.subarray(physical*SECTOR,(physical+1)*SECTOR);
+  if(u32(sector,0)!==0x58424c52){if(nonzero(sector.subarray(0,16))&&!erased(sector.subarray(0,16)))fail('RELIVE');continue;}
+  if(u16(sector,4)!==1||u16(sector,6)!==reliveChecksum(sector))fail('RELIVE');
+  for(let i=0;i<30;i++)repackE(sector.subarray(16+i*78,16+i*78+58));
+  put16(sector,6,reliveChecksum(sector));refreshFooter(sector);changed.push(physical);
  }
  return changed;
 }
@@ -392,7 +435,7 @@ function relocate(raw){
 }
 export async function convertFormatSave(value,{selection='all',to='L',storageLayout=1,onProgress,signal}={}){
  abort(signal);const {raw,bodyBytes,rtcBytes}=input(value);
- if(!['L','W','X','Y','Z'].includes(to))fail('TARGET');
+ if(!['L','W','X','Y','Z','E'].includes(to))fail('TARGET');
  if(![1,2].includes(storageLayout))fail('TARGET');
  const sourceLayout=layout(raw,bodyBytes);if(sourceLayout.version>storageLayout)fail('DOWNGRADE');
  if(selection!=='all'&&selection!==0&&selection!==1)fail('SELECTION');
@@ -400,22 +443,23 @@ export async function convertFormatSave(value,{selection='all',to='L',storageLay
  const chosen=slots.filter(slot=>selection==='all'?!slot.unused:slot.slot===selection);
  if(!chosen.length)fail('EMPTY');
  for(const slot of chosen)if(!slot.valid){const code=(slot.reason||'START_FORMAT_EMPTY').replace(/^START_FORMAT_/,'');fail(code,slot.slot);}
- const order=['old','L','W','X','Y','Z'];if(chosen.some(slot=>order.indexOf(slot.format)>order.indexOf(to)))fail('DOWNGRADE');
+ const order=['old','L','W','X','Y','Z','E'];if(chosen.some(slot=>order.indexOf(slot.format)>order.indexOf(to)))fail('DOWNGRADE');
  const outputs=new Map(),changed=chosen.filter(slot=>slot.format!==to||wideX(to)&&slot.eggStale);let done=0,grow=false;
  onProgress?.({stage:'inspect',done,total:changed.length});abort(signal);
  for(const slot of changed){
   const rewrite=slot.format!==to;
   if(rewrite&&wideX(to)&&!wideX(slot.format)&&!erased(slot.img.subarray(160*SECTOR,218*SECTOR)))fail('STORAGE_CONFLICT',slot.slot);
-  if(rewrite&&to==='Z'&&slot.format!=='Z'&&!erased(slot.img.subarray(218*SECTOR,276*SECTOR)))fail('STORAGE_CONFLICT',slot.slot);
+  if(rewrite&&formats[to].newPages&&!formats[slot.format].newPages&&!erased(slot.img.subarray(218*SECTOR,276*SECTOR)))fail('STORAGE_CONFLICT',slot.slot);
   const expected=rewrite?convertedLogical(slot.logical,to):slot.logical,out=slot.img.slice();if(rewrite)writeLogical(out,expected);
-  const eggs=wideX(to)?convertEggs(out,expected):[];
+  const enterE=to==='E'&&slot.format!=='E',eggs=wideX(to)?convertEggs(out,expected,enterE):[];
+  if(enterE)eggs.push(...convertRelive(out));
   verifyLogical(expected,readLogical(out));
   if(bodyBytes===SMALL_BYTES&&!erased(out.subarray(32*SECTOR)))grow=true;
   outputs.set(slot.slot,{img:out,eggs,rewrite});done++;onProgress?.({stage:'convert',slot:slot.slot,done,total:changed.length});abort(signal);
   await Promise.resolve();
  }
  abort(signal);const outputBody=grow?FULL_BYTES:bodyBytes,bytes=new Uint8Array(outputBody+rtcBytes).fill(255);bytes.set(raw.subarray(0,bodyBytes));bytes.set(raw.subarray(bodyBytes),outputBody);
- for(const [slot,{img,eggs,rewrite}] of outputs)for(const [first,last] of (!rewrite?eggs.map(p=>[p,p+1]):wideX(to)?[[0,32],[40,88],[160,to==='Z'?276:218],...eggs.map(p=>[p,p+1])]:[[0,32],[40,to==='W'?88:86]]))for(let physical=first;physical<last;physical++){
+ for(const [slot,{img,eggs,rewrite}] of outputs)for(const [first,last] of (!rewrite?eggs.map(p=>[p,p+1]):wideX(to)?[[0,32],[40,88],[160,formats[to].newPages?276:218],...eggs.map(p=>[p,p+1])]:[[0,32],[40,to==='W'?88:86]]))for(let physical=first;physical<last;physical++){
   const target=slot*sourceLayout.slotStride+physical*SECTOR;if(target+SECTOR>outputBody)continue;
   const sector=img.subarray(physical*SECTOR,(physical+1)*SECTOR);bytes.set(encodeSector(sector,to),target);
  }
@@ -425,5 +469,5 @@ export async function convertFormatSave(value,{selection='all',to='L',storageLay
  const versionStamp=after.slots[chosen[0].slot].versionStamp;
  return {bytes:relocated.bytes,report:{layoutMoved:relocated.moved,fromFormat:chosen.every(slot=>slot.format===chosen[0].format)?chosen[0].format:'mixed',toFormat:to,versionStamp:chosen.every(slot=>after.slots[slot.slot].versionStamp===versionStamp)?versionStamp:null,
   convertedSlots:changed.map(slot=>slot.slot),unchangedSlots:slots.filter(slot=>!outputs.has(slot.slot)).map(slot=>slot.slot),grew:grow,
-  slots:after.slots,recordsVerified:changed.length*(to==='Z'?3000:1500),fullGameplayTest:false}};
+  slots:after.slots,recordsVerified:changed.length*(formats[to].newPages?3000:1500),fullGameplayTest:false}};
 }

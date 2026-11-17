@@ -8,13 +8,13 @@ const relayURL='wss://celio-server.up.railway.app/socket.io/?EIO=4&transport=web
 const reference=process.env.CELIO_REFERENCE_ROOT,serverRoot=process.env.CELIO_SERVER_ROOT;
 assert.ok(reference&&serverRoot,'Specify the pinned local compatibility fixtures');
 if(!process.env.CELIO_TEST_PROTOCOL){
- for(const protocol of ['legacy','modern']){
-  const root=protocol==='legacy'?serverRoot:path.join(serverRoot,'../celio-server-modern/Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce');
+ for(const protocol of ['legacy','modern','party']){
+  const root=protocol==='legacy'?serverRoot:path.join(serverRoot,protocol==='party'?'../celio-server-party/Celio-Server-f4b92bc64a0064ac0c7f60b606c36b0886064ffb':'../celio-server-modern/Celio-Server-8f509bdcf2a8383b936e0f2f31b2f6553ae421ce');
   const result=spawnSync(process.execPath,[__filename],{env:{...process.env,CELIO_TEST_PROTOCOL:protocol,CELIO_SERVER_ROOT:root},stdio:'inherit',windowsHide:true,timeout:140000});
   if(result.error)throw result.error;if(result.status!==0)process.exit(result.status||1);
  }process.exit(0);
 }
-const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
+const party=process.env.CELIO_TEST_PROTOCOL==='party',modern=process.env.CELIO_TEST_PROTOCOL!=='legacy';
 (async()=>{
  const relay=fork(path.join(__dirname,'celio-server.cjs'),{stdio:['ignore','ignore','inherit','ipc']}),wire=[];
  relay.on('message',m=>{if(m.event)wire.push(m);});
@@ -28,7 +28,7 @@ const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
  });await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const base='http://127.0.0.1:'+server.address().port+'/',browserName=process.env.BROWSER_ENGINE||'chromium';
  const browser=await require('./browser-runtime.cjs')[browserName].launch({headless:true,...(browserName==='chromium'?{channel:process.env.BROWSER_CHANNEL||'msedge'}:{})}),errors=[];
- console.log('Browser ready.');const dropped=new Set();
+ console.log('Browser ready.');const dropped=new Set(),relayEvents=[];
  async function context(){
   const c=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});c.setDefaultTimeout(15000);c.on('page',p=>p.on('pageerror',e=>errors.push(e.message)));
   await c.route('**/*',route=>{assert.equal(new URL(route.request().url()).origin,new URL(base).origin,'External HTTP in local test');return route.continue();});
@@ -41,11 +41,11 @@ const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
    function drop(message,pending,direction){
     const ack=/^43(\d+)/.exec(message);if(!ack)return false;
     const name=pending.get(ack[1]),key=direction+':'+name;
-    if(modern&&['deviceData','deviceStatus','deviceCommand','partnerJoined'].includes(name)&&!dropped.has(key)){dropped.add(key);return true;}return false;
+    if(modern&&['deviceData','deviceStatus','deviceCommand',party?'partyReady':'partnerJoined'].includes(name)&&!dropped.has(key)){dropped.add(key);return true;}return false;
    }
    ws.onMessage(message=>{if(drop(message,receivedAcks,'client'))return;const e=/^42(\d+)\["([^"]+)"/.exec(message);if(e)sentAcks.set(e[1],e[2]);if(remote.readyState===WS.OPEN)remote.send(message);else queued.push(message);});
    remote.on('open',()=>{for(const m of queued)remote.send(m);queued.length=0;});
-   remote.on('message',(data,isBinary)=>{const message=data.toString();if(drop(message,sentAcks,'server'))return;const e=/^42(\d+)\["([^"]+)"/.exec(message);if(e)receivedAcks.set(e[1],e[2]);ws.send(isBinary?data:message);});
+   remote.on('message',(data,isBinary)=>{const message=data.toString();if(drop(message,sentAcks,'server'))return;const e=/^42(\d+)\["([^"]+)"/.exec(message);if(e){receivedAcks.set(e[1],e[2]);if(e[2]!=='deviceData')relayEvents.push(message);}ws.send(isBinary?data:message);});
    remote.on('close',()=>ws.close({code:1000}));remote.on('error',()=>ws.close({code:1011}));ws.onClose(()=>remote.close());
   });return c;
  }
@@ -91,6 +91,7 @@ const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
   await q.locator('#link-input').fill(await p.locator('#link-room-number').inputValue());await q.locator('#link-join').click();
   await p.waitForFunction(()=>document.querySelector('#link-status')?.textContent.includes('画面に戻るまで'));
   await q.waitForTimeout(8000);
+  if(await p.locator('#link-room-number').count()!==1)console.log('Lobby failure',await p.locator('#link-status').textContent(),await q.locator('#link-status').textContent(),JSON.stringify(wire.slice(-12)),relayEvents.slice(-12));
   assert.equal(await p.locator('#link-room-number').count(),1,'Room survives a peer joining while sharing: '+await p.locator('#link-status').textContent());
   assert.equal(await p.locator('#resume-game').isVisible(),true,'Background CPU remains paused');
   assert.equal(await q.evaluate(()=>document.querySelector('#screen canvas').getContext('2d').getImageData(0,0,1,1).data[0]>200),false,'Peer cannot complete a transfer until host returns');
@@ -116,15 +117,40 @@ const modern=process.env.CELIO_TEST_PROTOCOL==='modern';
   await x.waitForFunction(()=>test.link.received>0);await y.waitForFunction(()=>test.link.received>0);
   for(const page of [x,y])await page.evaluate(()=>{
    test.core.pause(true);const dev=test.link.device;dev.phase=1;dev.rx=[];dev.tx=[];dev.received=[];
-   dev.receive([0xCAFE,0x17,...Array(6).fill(0),0x5FFF,...Array(23).fill(0)]);
+   dev.receive([0xCAFE,0x17,...Array(6).fill(0),0x5FFF,...Array(dev.packetWords-9).fill(0)]);
    dev.transfer(0);for(let i=0;i<8;i++)dev.transfer(0);
    dev.transfer(0);for(let i=0;i<8;i++)dev.transfer(i===0?0x5FFF:0);dev.transfer(0);
   });
   for(const page of [x,y]){await page.waitForFunction(()=>test.end);assert.equal(await page.evaluate(()=>test.end.keep),true);await page.evaluate(()=>test.core.close());}
   await c.close();await d.close();console.log('PASS: Celio normal-close sequence commits only after game close and server sessionClose.');
+  if(party)for(const localClosed of [false,true]){
+   // All pinned relay generations use sessionClose for started-room eviction
+   // as well as normal completion. Preserve the established local handshake
+   // boundary; do not mistake sessionClose alone for both server-side FF07s.
+   const ca=await context(),cb=await context(),pa=await ca.newPage(),pb=await cb.newPage();await ours(pa,31,992);await ours(pb,992,31);
+   await pa.evaluate(()=>test.link.start());await pa.waitForFunction(()=>test.link.joined);await pb.evaluate(room=>test.link.start(room),await pa.evaluate(()=>test.link.room));
+   await pa.waitForFunction(()=>test.link.received>0);await pb.waitForFunction(()=>test.link.received>0);
+   await pa.evaluate(()=>test.core.pause(true));await pb.evaluate(()=>test.core.pause(true));const wireStart=wire.length;
+   if(localClosed){
+    await pa.evaluate(()=>{
+     const dev=test.link.device;dev.phase=1;dev.rx=[];dev.tx=[];dev.received=[];
+     dev.receive([0xCAFE,0x17,...Array(6).fill(0),0x5FFF,...Array(dev.packetWords-9).fill(0)]);
+     dev.transfer(0);for(let i=0;i<8;i++)dev.transfer(0);
+     dev.transfer(0);for(let i=0;i<8;i++)dev.transfer(i===0?0x5FFF:0);dev.transfer(0);
+    });
+    await pa.waitForFunction(()=>test.link.gameClosed&&test.link.inFlight.size===0);
+   }
+   assert.equal(await pb.evaluate(()=>!!test.link.gameClosed),false,'Peer has not reported FF07');
+   await pb.evaluate(()=>test.link.close());await pa.waitForFunction(()=>test.end);
+   assert.equal(await pa.evaluate(()=>test.end.keep),localClosed,'Started-room eviction follows the existing local completion boundary');
+   const statuses=wire.slice(wireStart).filter(m=>m.event==='deviceStatus'&&m.args[0]?.linkStatus===0xFF07);
+   assert.equal(new Set(statuses.map(m=>m.args[0].uuid)).size,localClosed?1:0,'Relay never received both players FF07 in this departure case');
+   for(const page of [pa,pb])await page.evaluate(()=>test.core.close());await ca.close();await cb.close();
+   console.log('PASS: peer departure '+(localClosed?'after local close handshake retains the existing result':'before local close rolls back')+'; sessionClose does not prove both FF07 notifications.');
+  }
   // Wire allow-list excludes ROM names, file blobs, saves, SDP, telemetry and HTTP upload.
-  assert.ok(wire.length>0);for(const {event,args} of wire){assert.ok(['sessionCreate','sessionJoin','sessionLeft','deviceStatus','deviceData'].includes(event));const s=JSON.stringify(args);assert.ok(!s.includes('LOCAL_PRIVATE_CANARY'));assert.ok(s.length<(modern?8192:512));if(event==='deviceData'){const packets=modern?args[0]:[args[0]];assert.ok(Array.isArray(packets)&&packets.length>0&&packets.length<=32);for(const packet of packets)assert.equal(packet.data.length,32);}}
-  if(modern)assert.deepEqual([...dropped].sort(),['client:deviceCommand','client:deviceData','client:partnerJoined','server:deviceData','server:deviceStatus'],'Lost ACKs are retried in both directions');
+  assert.ok(wire.length>0);for(const {event,args} of wire){assert.ok(['sessionCreate','sessionJoin','sessionLeft','deviceStatus','deviceData'].includes(event));const s=JSON.stringify(args);assert.ok(!s.includes('LOCAL_PRIVATE_CANARY'));assert.ok(s.length<(modern?8192:512));if(event==='sessionCreate'&&party)assert.equal(args[0],2);if(event==='deviceData'){const packets=modern?args[0]:[args[0]];assert.ok(Array.isArray(packets)&&packets.length>0&&packets.length<=32);for(const packet of packets){assert.equal(packet.data.length,party?51:32);if(party){assert.ok(packet.data.every(v=>Number.isInteger(v)&&v>=0&&v<=255));assert.ok([0,17,34].every(i=>packet.data[i]===packet.data[0]));assert.ok(packet.data[0]===0||packet.data[0]===1);}}}}
+  if(modern)assert.deepEqual([...dropped].sort(),['client:deviceCommand','client:deviceData',party?'client:partyReady':'client:partnerJoined','server:deviceData','server:deviceStatus'].sort(),'Lost ACKs are retried in both directions');
   assert.deepEqual(errors,[]);console.log('PASS: relay receives only bounded Celio protocol messages, with no user file metadata.');
  }finally{console.log('Closing test fixtures.');relay.send('stop');await Promise.race([browser.close(),new Promise(r=>setTimeout(r,2500))]);server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}
 })().then(()=>process.exit(0)).catch(e=>{console.error(e);process.exit(1);});

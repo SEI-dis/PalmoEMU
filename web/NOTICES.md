@@ -1,5 +1,28 @@
 # Copyright, credits and modification notices
 
+Version 0.3.42 changes (2026-11-17): update the separate
+PokemonStart format component from the maintainer-supplied 0.71.1 HTML. Add E
+records from 0.67.0, the supplied keys through 0.71.1, and forward conversion
+of box, egg and relive records. PalmoEMU refuses the standalone tool's
+invalid-species deletion and retains the source on failure. Existing developer
+credits, permission records and the distinction from the earlier くりーぱー tool
+remain. No new author correspondence or general third-party license is asserted.
+Publication of 0.3.42 was requested by the maintainer after validation. The
+previous 0.3.41 approval below remains historical. Original HTML, ROMs and
+private saves remain excluded.
+
+Modified for 0.3.42 on 2026-11-17: adapt the existing Celio browser transport to
+the 51-byte party protocol for two-player sessions, following the MPL-2.0
+[native CelioNet reference](https://github.com/pm-start/mGBA_celio_edition/blob/9850760732751080044d05c4846c67edd067791b/src/platform/qt/CelioNet.cpp).
+Keep the original room-link.js MPL-2.0 notice and secondary AGPL offer, and the
+celio-device.js GPL-3.0-only notice. Local/USB limits and interrupted-save rollback
+remain. The unmodified GPL-3.0 Celio-Server source at
+`f4b92bc64a0064ac0c7f60b606c36b0886064ffb`, including its LICENSE.txt, is retained
+in `sources/celio-server-party-source.tar.gz` for isolated protocol tests. The
+archive SHA-256 is `ce14f7210c7aec4c9dcfa46b898479f18217508f3f7e3270c14b77e5c6c89692`.
+No server deployment, new browser dependency, new relay endpoint or permission
+to operate another party's hosted service is asserted by this source inclusion.
+
 0.3.41 release candidate (2026-10-29): incorporate the maintainer-supplied
 PokemonStart 0.62.0 converter's Y/Z formats, 100-box mapping and current sector
 keys. Preserve existing PokemonStart, onikoro334274-cell and liru55 credits.

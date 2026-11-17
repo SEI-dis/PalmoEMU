@@ -3,11 +3,13 @@
  * with register integration following mGBA_celio_edition CelioNet.cpp (MPL2).
  * Original projects and revisions are recorded in SOURCES.json / NOTICES.md.
  * Modified 2026-10-08: bounded word queues; Celio relay commands; no logging.
+ * Modified 2026-11-17: opt-in three-command packets for the current relay;
+ * local and USB adapters retain the four-command default.
  */
 import {tr} from '../i18n/index.js';
 export const LinkStatus={handshake:0xFF03,connected:0xFF05,reconnecting:0xFF06,closed:0xFF07};
 export class CelioDevice {
-  constructor(io,emitStatus,emitData){this.io=io;this.emitStatus=emitStatus;this.emitData=emitData;this.master=false;this.reset();}
+  constructor(io,emitStatus,emitData){this.io=io;this.emitStatus=emitStatus;this.emitData=emitData;this.master=false;this.packetWords=32;this.reset();}
   reset(listening=false){this.handshake=listening?1:0;this.phase=0;this.emuReconnect=false;this.gbaReconnect=false;this.keepAlive=true;this.startResponse=false;this.startConnect=false;this.received=[];this.transmit=[];this.tx=[];this.rx=[];this.emptyStreak=0;this.checksum=0;this.timerEnabled=false;this.timerCount=0;}
   mode(master){this.master=master;this.handshake=1;this.io.mask(master?0x601F:0x600B);}
   command(command){
@@ -18,8 +20,8 @@ export class CelioDevice {
     else if(command===0x13)this.startConnect=true;
     // 0x01 (Cancel) is a no-op in the upstream emulator adapter too.
   }
-  receive(words){if(words.length!==32||words.some(v=>!Number.isInteger(v)||v<0||v>65535))throw new Error(tr('通信データの形式が一致しません。'));if(this.received.length+32>16384)throw new Error(tr('通信が遅れています。接続し直してください。'));this.received.push(...words);}
-  flush(){const words=this.transmit.splice(0,32);while(words.length<32)words.push(0);this.emitData(words);}
+  receive(words){if(words.length!==this.packetWords||words.some(v=>!Number.isInteger(v)||v<0||v>65535))throw new Error(tr('通信データの形式が一致しません。'));if(this.received.length+words.length>16384)throw new Error(tr('通信が遅れています。接続し直してください。'));this.received.push(...words);}
+  flush(){if(this.packetWords===24&&!this.transmit.length)return;const words=this.transmit.splice(0,this.packetWords);while(words.length<this.packetWords)words.push(0);this.emitData(words);}
   disableTimer(){this.timerEnabled=false;this.timerCount=0;this.io.write(0x10E,0);this.io.write(0x10C,0);}
   transfer(rx){let tx=0;
     if(this.phase===0){
@@ -43,7 +45,7 @@ export class CelioDevice {
       if(this.transmit.length||this.rx.some(Boolean))this.transmit.push(...this.rx);
       this.rx=[];this.phase=1;
     }
-    if(this.transmit.length>=32)this.flush();
+    if(this.transmit.length>=this.packetWords)this.flush();
     tx=this.tx.shift();this.checksum=(this.checksum+tx+rx)&65535;return tx;
   }
   event(kind){

@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 const web=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+const mgbaBuildConfig='sources/mgba-web-port/upstream.json';
 const sha=value=>typeof value==='string'&&/^[0-9a-f]{40}$/.test(value);
 const repository=value=>{
   const match=/^https:\/\/github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+?)(?:\.git)?\/?$/.exec(value||'');
@@ -24,7 +25,7 @@ export async function githubJSON(apiPath,{token=process.env.GITHUB_TOKEN,fetchIm
   for await(const chunk of response.body){size+=chunk.byteLength;if(size>2*1024*1024)throw Error('Upstream metadata is too large');chunks.push(chunk);}
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 }
-export function configuredSources(config,sources){
+export function configuredSources(config,sources,buildConfigs={}){
   if(config?.schema!==1||!Array.isArray(config.sources)||!config.sources.length)throw Error('Invalid upstream source configuration');
   const ids=new Set();
   return config.sources.map(entry=>{
@@ -32,12 +33,22 @@ export function configuredSources(config,sources){
     ids.add(entry.id);const source=entry.sourcePath.reduce((value,key)=>value?.[key],sources);
     const repo=repository(source?.repository),baseline=source?.[entry.commitKey||'commit'];
     if(!sha(baseline)||entry.branch!==undefined&&!string(entry.branch))throw Error('Missing pinned source revision: '+entry.id);
-    return {id:entry.id,label:entry.label,repository:repo,baseline,branch:entry.branch||null};
+    let branch=entry.branch||null;
+    if(entry.buildConfig!==undefined){
+      // The builder and watcher share one branch. Fail closed if that trusted
+      // config is missing or points at a different repository; never fall back
+      // to the default branch or an obsolete duplicated branch.
+      if(entry.buildConfig!==mgbaBuildConfig||entry.branch!==undefined)throw Error('Invalid build configuration reference: '+entry.id);
+      const build=buildConfigs[entry.buildConfig];
+      if(build?.schema!==1||!string(build.branch)||repository(build.repository)!==repo)throw Error('Mismatched build configuration: '+entry.id);
+      branch=build.branch;
+    }
+    return {id:entry.id,label:entry.label,repository:repo,baseline,branch};
   });
 }
-export async function inspectUpstreams(config,sources,component,{github=githubJSON,now=()=>new Date().toISOString()}={}){
+export async function inspectUpstreams(config,sources,component,{github=githubJSON,now=()=>new Date().toISOString(),buildConfigs={}}={}){
   const report={schema:1,checkedAt:now(),metadataOnly:true,automaticAdoption:false,items:[]};
-  for(const entry of configuredSources(config,sources)){
+  for(const entry of configuredSources(config,sources,buildConfigs)){
     const item={...entry};report.items.push(item);
     try{
       const root='/repos/'+entry.repository;
@@ -97,7 +108,8 @@ export async function main(){
   const config=JSON.parse(await fs.readFile(path.join(web,'scripts/upstream-sources.json'),'utf8'));
   if(config.converter.metadata!=='vendor/start-save-migrate/component.json')throw Error('Unexpected converter metadata path');
   const sources=JSON.parse(await fs.readFile(path.join(web,'SOURCES.json'),'utf8')),component=JSON.parse(await fs.readFile(path.join(web,config.converter.metadata),'utf8'));
-  const report=await inspectUpstreams(config,sources,component),markdown=reportMarkdown(report);
+  const buildConfigs={[mgbaBuildConfig]:JSON.parse(await fs.readFile(path.join(web,mgbaBuildConfig),'utf8'))};
+  const report=await inspectUpstreams(config,sources,component,{buildConfigs}),markdown=reportMarkdown(report);
   const output=path.join(web,'../work/upstream-review');await fs.mkdir(output,{recursive:true});
   await fs.writeFile(path.join(output,'report.json'),JSON.stringify(report,null,2)+'\n');await fs.writeFile(path.join(output,'report.md'),markdown);
   const mgba=report.items.find(item=>item.id==='mgba64');

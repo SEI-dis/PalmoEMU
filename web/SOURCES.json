@@ -166,7 +166,7 @@
       "license": "GPL-3.0",
       "localSource": "sources/celio-server-source.tar.gz"
     },
-    "changes": "JS device commands aligned with upstream Celio. Explicit-start room-based relay transport derived from liru55 link-session.js (MPL-2.0). Transport has no ROM/save/storage API. Pre-link durable snapshots and interrupted-session rollback remain in the AGPL app; device logic retains GPL-3.0-only. Legacy direct WebRTC module is not used by the UI. Modified 2026-10-12: new/legacy transport detection, batched packets, command/session ACKs, bounded duplicate-safe retries. No automatic reconnect; interrupted sessions roll back.",
+    "changes": "JS device commands aligned with upstream Celio. Explicit-start room-based relay transport derived from liru55 link-session.js (MPL-2.0). Transport has no ROM/save/storage API. Pre-link durable snapshots and interrupted-session rollback remain in the AGPL app; device logic retains GPL-3.0-only. Legacy direct WebRTC module is not used by the UI. Modified 2026-10-12: new/legacy transport detection, batched packets, command/session ACKs, bounded duplicate-safe retries. No automatic reconnect; interrupted sessions roll back. Modified 2026-11-17: negotiate the current 51-byte party protocol for two-player sessions, following the pinned native CelioNet reference. Local/USB packet defaults and interrupted-session rollback remain. No new browser dependency or relay endpoint; the new GPL server archive is used for isolated protocol tests only.",
     "webTransport": {
       "repository": "https://github.com/pm-start/mgba-celio-web",
       "commit": "58d463ebe2302e4fc70098760dcfc84ca69329db",
@@ -184,6 +184,15 @@
       "license": "GPL-3.0",
       "localSource": "sources/celio-server-modern-source.tar.gz",
       "use": "Unmodified test-only server source; backward-compatible browser protocol implementation in src/link/room-link.js. See UPSTREAM_REVIEW.md."
+    },
+    "partySessionReference": {
+      "repository": "https://github.com/Celio-Link/Celio-Server",
+      "commit": "f4b92bc64a0064ac0c7f60b606c36b0886064ffb",
+      "license": "GPL-3.0",
+      "localSource": "sources/celio-server-party-source.tar.gz",
+      "use": "Unmodified test-only server source, including upstream LICENSE.txt. The browser client retains MPL-2.0/AGPL notices and implements the party protocol for two-player sessions only; local/USB limits and interrupted-save rollback remain. See LINK_COMPATIBILITY.md.",
+      "nativeProtocolReference": "https://github.com/pm-start/mGBA_celio_edition/blob/9850760732751080044d05c4846c67edd067791b/src/platform/qt/CelioNet.cpp",
+      "publicationStatus": "Included in the authorized PalmoEMU 0.3.42 release, conditional on exact-commit CI. No server deployment or hosted-service permission is asserted."
     }
   },
   "toolchain": {
@@ -345,9 +354,10 @@
     "sources/mgba-web-port/logging.h": "c6e0252250b07ae5f898e8921dfd2b142f53dcc67f652b930868282d8ee88da3",
     "scripts/start-save-migrate/base/engine.template.txt": "e4342bda9be3f0f885550f6f6d11efae47642590e94c82fa384fc09966390d66",
     "scripts/start-save-migrate/patches.json": "4d094e131f2db9c0fce7ae438ec95b4410dca8500630986fc206044887b08b76",
-    "vendor/start-save-format/engine.js": "9d76f1515ac748627e047ed8dcdf7b64cfad5bf87bba6b8b312877afdc9fc703",
-    "vendor/start-save-format/README.md": "29ed4363423dce612aa53415e4bcaceb15fb1b80b9c2af9660f9a8edb109e024",
-    "vendor/start-save-format/component.json": "82d3edff2cdbb4c9e14d5586ae454f35db1398392f40663eb7918ec9c3870f0d"
+    "vendor/start-save-format/engine.js": "8b8bbeb16472b34aa4a8854ea380a86cb30461ea269613b150933515004dff40",
+    "vendor/start-save-format/README.md": "0c1821011f61bc342973a9e00d225cc3f18074bcf5ed23e1dd5ec94d8708f29d",
+    "vendor/start-save-format/component.json": "18a6d705cd5c40963d4148c7aae4855c18542069ed296c2498c21c6e2e4e9c9b",
+    "sources/celio-server-party-source.tar.gz": "ce14f7210c7aec4c9dcfa46b898479f18217508f3f7e3270c14b77e5c6c89692"
   },
   "nds": {
     "repository": "https://github.com/libretro/desmume2015",
@@ -762,14 +772,25 @@
   },
   "startSaveFormatL": {
     "sourceDistributor": "pm-start/PokemonStart",
-    "distribution": "maintainer-supplied PokemonStart 0.62.0 migration HTML",
-    "distributionSha256": "f89e3e793e8b067e7c21ce4ee68c39715826eaa9423e4d00203ab2b4f8ddf7f2",
+    "distribution": "maintainer-supplied PokemonStart 0.71.1 migration HTML",
+    "distributionSha256": "630ffba202b561ac814841f6bdc5ef73b954bc44db6615025a08f213cb04de88",
     "component": "vendor/start-save-format/component.json",
     "provenance": "vendor/start-save-format/README.md",
     "permissionBasis": "On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author. On 2026-10-29, after being explicitly asked about the latest tool's restrictive notice, the maintainer confirmed that the same credit-conditional permission also applies to this latest supplied revision. This is a maintainer-reported specific permission, not a general license for other users or independent inspection of author correspondence.",
     "integration": "Separate adapted forward-only module under vendor/start-save-format; host facade in src/start-save/format-l.js. Loaded with the migration task, cached initially for offline ROM updates. Worker use does not establish legal separation.",
-    "changes": "Official old-to-L SaveCrypt/LFormat rules, with strict structural validation, wrap-aware counters, owned-copy/raw-region preservation and output verification. No reverse conversion or rounding. Host applies existing reviewed pre-0.38.1 corrections before the format step, normalizes a 1MiB container, preserves 0x31ff for first-load game updates, and rejects mixed old/L or newer saves. No ROM, save, PKS, original HTML, patch or artwork is distributed. Updated from the separately supplied 0.50.1 HTML: older main-bank backup plus a conditional sector-16 page-zero backup avoid the converted-save flash alias false negative. Existing L bytes, 0x31ff and the independent runtime correction are retained. The supplied 0.53.1 HTML adds W (63-byte) forward rules and 0x34ff. Host verifies native loader/version bounds before selecting the format. Strict maps/counters/checksums, all-box output verification, raw unselected/RTC preservation and no downgrade/rounding remain. Older L conversions still use 0x31ff and their existing allocation extent. The separately supplied 0.59.0 tool adds physical slot migration from 3MiB to 8MiB stride (16MiB body). W records are unchanged; marker v2, full erased-range checks, unknown-region preservation, RTC relocation and both-slot validation are enforced. The separately supplied 0.59.5 tool adds X/SHL4 78-byte box records from 0.59.2, W egg-box conversion and six versioned key rows. Strict checksum/MAC and unknown-key rejection, existing tamper evidence, raw X no-op and both-slot/RTC preservation remain. Native X loader/menu evidence is required; no filename whitelist. Sector transforms use constant-size rolling key state. The 0.59.6 follow-up corrects aligned native egg checksums, accepts the earlier unaligned checksum, repairs stale W eggs within X saves without touching other raw sectors, rejects unreadable active egg blocks and adds the seventh supplied key. The host rechecks stale eggs even when source and target versions otherwise match. 0.62.0: add Y (0.59.6) and Z (0.61.0) guards, 16 versioned keys and 100-box maps/metadata. Preserve party/daycare EV/IV pool sectors, eggs and all non-layout bytes. Validate recognized pool integrity and reject unknown occupied new-box extents. Verify all 3000 logical records per converted adventure; no reverse conversion or rounding.",
-    "publicationStatus": "Reviewed for PalmoEMU 0.3.41; maintainer explicitly authorizes incorporation, commit, push and publication after exact-commit CI. On 2026-10-29 the maintainer confirmed that the earlier credit-conditioned permission also covers this latest supplied tool despite its general restrictive notice. Private ROM/save/original HTML excluded.",
-    "previousSourceCommit": "e06cb442232cc056d53853b6ccde826f1a745602"
+    "changes": "Official old-to-L SaveCrypt/LFormat rules, with strict structural validation, wrap-aware counters, owned-copy/raw-region preservation and output verification. No reverse conversion or rounding. Host applies existing reviewed pre-0.38.1 corrections before the format step, normalizes a 1MiB container, preserves 0x31ff for first-load game updates, and rejects mixed old/L or newer saves. No ROM, save, PKS, original HTML, patch or artwork is distributed. Updated from the separately supplied 0.50.1 HTML: older main-bank backup plus a conditional sector-16 page-zero backup avoid the converted-save flash alias false negative. Existing L bytes, 0x31ff and the independent runtime correction are retained. The supplied 0.53.1 HTML adds W (63-byte) forward rules and 0x34ff. Host verifies native loader/version bounds before selecting the format. Strict maps/counters/checksums, all-box output verification, raw unselected/RTC preservation and no downgrade/rounding remain. Older L conversions still use 0x31ff and their existing allocation extent. The separately supplied 0.59.0 tool adds physical slot migration from 3MiB to 8MiB stride (16MiB body). W records are unchanged; marker v2, full erased-range checks, unknown-region preservation, RTC relocation and both-slot validation are enforced. The separately supplied 0.59.5 tool adds X/SHL4 78-byte box records from 0.59.2, W egg-box conversion and six versioned key rows. Strict checksum/MAC and unknown-key rejection, existing tamper evidence, raw X no-op and both-slot/RTC preservation remain. Native X loader/menu evidence is required; no filename whitelist. Sector transforms use constant-size rolling key state. The 0.59.6 follow-up corrects aligned native egg checksums, accepts the earlier unaligned checksum, repairs stale W eggs within X saves without touching other raw sectors, rejects unreadable active egg blocks and adds the seventh supplied key. The host rechecks stale eggs even when source and target versions otherwise match. 0.62.0: add Y (0.59.6) and Z (0.61.0) guards, 16 versioned keys and 100-box maps/metadata. Preserve party/daycare EV/IV pool sectors, eggs and all non-layout bytes. Validate recognized pool integrity and reject unknown occupied new-box extents. Verify all 3000 logical records per converted adventure; no reverse conversion or rounding. 0.71.1 supplied tool: E format from 0.67.0, 41 supplied keys, species/experience bit relocation across all boxes, egg blocks and relive blocks; refuse the upstream invalid-species deletion. Preserve E bytes and native own-block zero footers, require MAC and HFR1 header validation, and reject unreadable auxiliary conversion instead of silently skipping it. No reverse conversion or data-loss rounding.",
+    "publicationStatus": {
+      "version": "0.3.42",
+      "state": "authorized-pending-exact-commit-ci",
+      "authorizedOn": "2026-11-17",
+      "scope": "Maintainer requested validation, commit, push and publication. This authorization does not add or expand third-party rights."
+    },
+    "previousSourceCommit": "e06cb442232cc056d53853b6ccde826f1a745602",
+    "publicationHistory": [
+      {
+        "distributionVersion": "0.62.0",
+        "status": "Reviewed for PalmoEMU 0.3.41; maintainer explicitly authorizes incorporation, commit, push and publication after exact-commit CI. On 2026-10-29 the maintainer confirmed that the earlier credit-conditioned permission also covers this latest supplied tool despite its general restrictive notice. Private ROM/save/original HTML excluded."
+      }
+    ]
   }
 }

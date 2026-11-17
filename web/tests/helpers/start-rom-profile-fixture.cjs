@@ -2,7 +2,8 @@
 // Authored Thumb instructions and cartridge markers, without game ROM data.
 const assert=require('node:assert/strict');
 const {word,literal,branchLink}=require('./mgba-save-probe-fixture.cjs');
-function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoline=0x2000,immediate=false,rangeGate=false,upperImmediate=false,lowerImmediate=false,lFormat=false,wFormat=false,xFormat=false,zFormat=false,bytes}={}){
+function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoline=0x2000,immediate=false,rangeGate=false,upperImmediate=false,lowerImmediate=false,lFormat=false,wFormat=false,xFormat=false,zFormat=false,eFormat=false,conversionMinimum=0x4300,bytes}={}){
+ if(eFormat)zFormat=true;
  if(zFormat)xFormat=true;
  bytes=bytes||new Uint8Array(0x2000008);
  const text=(at,value)=>bytes.set(Buffer.from(value),at);
@@ -90,6 +91,24 @@ function fixture({stamp=0x2a05,minimum=0x2402,writer=0x4000,gate=0x8000,trampoli
      ops(copy,[0x3b3a,null,0x189a,0x5ca9,null,0x189a,0x3301,0x7011,0x2b3d,0xd1f6]);
      load(copy+2,2,formatLoader+0x1e4,0xf8c);load(copy+8,2,formatLoader+0x1e8,cache+0x3d);branch(copy+20,check+10);
     }
+   }
+   if(eFormat){
+    // Three reviewed predicates: migration-required interval, legacy lower
+    // bound and current upper bound. Registers carry distinct menu notices.
+    const migrationPredicate=gate+0x180,upperGate=gate-0x700,rejoin=upperGate+36,success=gate+0x60;
+    bytes.fill(0,gate-128,gate+0x80);
+    load(gate,0,gate+0x80,0x50ef);load(gate+2,5,gate+0x84,0x0806dd5d);
+    branchLink(bytes,gate+4,getter);branchLink(bytes,gate+8,migrationPredicate);
+    ops(gate+12,[0x9006,0x2800,0xd1c4]);
+    load(gate+18,0,gate+0x80,0x50ef);branchLink(bytes,gate+20,getter);branchLink(bytes,gate+24,lower);
+    ops(gate+28,[0x2800,0xd100,null,0x2300,0x9305,0x3301,0x469b,0x469a,0x2600]);branch(gate+32,upperGate);branch(gate+46,rejoin);
+    branchLink(bytes,gate-108,formatGuard);ops(gate-104,[0x2800,0xd031,0x2300,0x9306,0x3301,0x469b,0x9305,0x2600]);branch(gate-88,rejoin);
+    load(upperGate,0,upperGate+0x80,0x50ef);branchLink(bytes,upperGate+2,getter);branchLink(bytes,upperGate+6,upper);
+    ops(upperGate+10,[0x4682,0x2800,0xd100,null,0x2301,0x469b,0x2300,0x9305,0x3301,0x9306,0x2300,0x2600,0x469a]);branch(upperGate+16,success);
+    ops(success,[0x2301,0x9005,0x9006,0x469b]);branch(success+8,rejoin);
+    load(migrationPredicate,3,migrationPredicate+0x20,(-minimum)>>>0);load(migrationPredicate+6,2,migrationPredicate+0x24,conversionMinimum-minimum-1);
+    ops(migrationPredicate+2,[0x18c3,0x2000,null,0x041b,0x0c1b,0x429a,0x4140,0x4770]);
+    return {bytes,writer,gate,trampoline,lower,upper,lowerBody,upperBody,formatGuard,formatLoader,formatInit,migrationPredicate,upperGate,success};
    }
    return {bytes,writer,gate,trampoline,lower,upper,lowerBody,upperBody,formatGuard,formatLoader,formatInit};
   }

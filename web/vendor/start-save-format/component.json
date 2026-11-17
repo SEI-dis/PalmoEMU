@@ -1,20 +1,20 @@
 {
   "schema": 1,
-  "hostContract": "start-format-forward-v4",
-  "distribution": "maintainer-supplied PokemonStart 0.62.0 migration HTML",
-  "distributionVersion": "0.62.0",
+  "hostContract": "start-format-forward-v5",
+  "distribution": "maintainer-supplied PokemonStart 0.71.1 migration HTML",
+  "distributionVersion": "0.71.1",
   "sourceDistributor": "pm-start/PokemonStart",
   "sourceURL": "https://github.com/pm-start/PokemonStart",
   "individualAuthor": null,
   "permission": "On 2026-10-16 the project maintainer confirmed that incorporation, Web publication, modification, offline distribution and redistribution of modified source on GitHub and in source ZIPs are permitted with credit attribution. The maintainer also confirmed the developer is already credited. This records the maintainer report, not an independently inspected rights-holder message. Retain the existing PokemonStart developer and project credits and this provenance. No standardized upstream or general third-party license is asserted; do not attribute this separate tool to the earlier START Save Migrate author. On 2026-10-29, after being explicitly asked about the latest tool's restrictive notice, the maintainer confirmed that the same credit-conditional permission also applies to this latest supplied revision. This is a maintainer-reported specific permission, not a general license for other users or independent inspection of author correspondence.",
   "sources": [
     {
-      "name": "セーブデータ移行ツール (1).html",
-      "sha256": "f89e3e793e8b067e7c21ce4ee68c39715826eaa9423e4d00203ab2b4f8ddf7f2"
+      "name": "セーブデータ移行ツール.html",
+      "sha256": "630ffba202b561ac814841f6bdc5ef73b954bc44db6615025a08f213cb04de88"
     },
     {
       "name": "statically decoded embedded JavaScript",
-      "sha256": "a0ecd00b053570745ad1e8395d5f3c48d4ab1445b73dd6cb2683fa9ad8a36429"
+      "sha256": "c9aa91aa89c7be5c808022930b190e360884d8df3acff0db859005858d207322"
     }
   ],
   "direction": {
@@ -24,14 +24,16 @@
       "W",
       "X",
       "Y",
-      "Z"
+      "Z",
+      "E"
     ],
     "to": [
       "L",
       "W",
       "X",
       "Y",
-      "Z"
+      "Z",
+      "E"
     ],
     "reverseConversion": false,
     "rounding": false,
@@ -40,7 +42,8 @@
       "W": 13567,
       "X": 15106,
       "Y": 15110,
-      "Z": 15616
+      "Z": 15616,
+      "E": 17152
     }
   },
   "saveBodyBytes": [
@@ -51,8 +54,8 @@
   "optionalRTCBytes": 16,
   "slotBytes": 3145728,
   "files": {
-    "engine.js": "9d76f1515ac748627e047ed8dcdf7b64cfad5bf87bba6b8b312877afdc9fc703",
-    "README.md": "29ed4363423dce612aa53415e4bcaceb15fb1b80b9c2af9660f9a8edb109e024"
+    "engine.js": "8b8bbeb16472b34aa4a8854ea380a86cb30461ea269613b150933515004dff40",
+    "README.md": "0c1821011f61bc342973a9e00d225cc3f18074bcf5ed23e1dd5ec94d8708f29d"
   },
   "localChanges": [
     "Migration-only ES module without UI, network or storage access",
@@ -68,7 +71,8 @@
     "Decode the private slot buffer in place instead of cloning it a second time; 16MiB inspection large-buffer allocations fall from 28MiB to 6MiB.",
     "Add X/SHL4 78-byte forward records from 0.59.2, W egg-block conversion, six supplied versioned keys and strict checksum/MAC rejection; preserve current X bytes and all existing tamper evidence. Unknown destination extents fail closed. Sector transforms use a rolling key pair.",
     "0.59.6: accept native aligned and earlier-tool egg checksums, repair stale W eggs in otherwise-X saves without rewriting other sectors, reject unreadable active egg storage, and recognize the seventh supplied sector key.",
-    "0.62.0: add Y (0.59.6) and Z (0.61.0) guards, 16 versioned keys and 100-box maps/metadata. Preserve party/daycare EV/IV pool sectors, eggs and all non-layout bytes. Validate recognized pool integrity and reject unknown occupied new-box extents. Verify all 3000 logical records per converted adventure; no reverse conversion or rounding."
+    "0.62.0: add Y (0.59.6) and Z (0.61.0) guards, 16 versioned keys and 100-box maps/metadata. Preserve party/daycare EV/IV pool sectors, eggs and all non-layout bytes. Validate recognized pool integrity and reject unknown occupied new-box extents. Verify all 3000 logical records per converted adventure; no reverse conversion or rounding.",
+    "0.71.1 supplied tool: E format from 0.67.0, 41 supplied keys, species/experience bit relocation across all boxes, egg blocks and relive blocks; refuse the upstream invalid-species deletion. Preserve E bytes and native own-block zero footers, require MAC and HFR1 header validation, and reject unreadable auxiliary conversion instead of silently skipping it. No reverse conversion or data-loss rounding."
   ],
   "publicationPermission": {
     "scopes": {
