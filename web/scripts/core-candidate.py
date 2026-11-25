@@ -154,7 +154,9 @@ def main():
         run(['git', '-C', repo, '-c', 'credential.helper=', 'fetch', '--depth=256', '--no-tags',
              config['repository'], current, commit], log=output / 'fetch.log')
         run(['git', '-C', repo, 'merge-base', '--is-ancestor', current, commit])
+        phase = 'build-input-policy'
         update.check_build_inputs(repo, current, commit)
+        phase = 'source'
         payload = subprocess.check_output(['git', '-C', str(repo), 'archive', commit])
         extract_git_archive(payload, source)
         previous_files = baseline_sources()

@@ -4,7 +4,7 @@
   "emscriptenReleasesCommit": "b412b6307e541b93dd93f01b61181e15c17302ec",
   "cmake": "3.31.6",
   "ninja": "1.11.1",
-  "sourceSelection": "Compiler dependency closure, CMake inputs, required auxiliary source, and license/readme notices. No ROM/test fixtures, native GUI art or fonts. Upstream contents remain unchanged except the documented FCEUmm mapper-176 backport (2026-10-12) and four MPL-2.0 mGBA optimization backports (2026-10-13). The archive version.cmake also rejects unrelated enclosing Git metadata (2026-10-13).",
+  "sourceSelection": "Compiler dependency closure, CMake inputs, required auxiliary source, and license/readme notices. No ROM/test fixtures, native GUI art or fonts. Upstream contents remain unchanged except the documented FCEUmm mapper-176 backport (2026-10-12) and four MPL-2.0 mGBA optimization backports (2026-10-13). The archive version.cmake also rejects unrelated enclosing Git metadata (2026-10-13). The 2026-11-25 ClownMDEmu update additionally backports three fixes in two C files; all other archive members and source paths are unchanged.",
   "cores": {
     "nes": {
       "js": {
@@ -32,7 +32,7 @@
         "rebuildMatches": true
       },
       "wasm": {
-        "sha256": "3877035cbe389b9738a3f617aaeda1e63010d5aff37e2a0e8dced5e24486f091",
+        "sha256": "d873c87d8143e1521a72eefddf21c2aeabb4647181cc4b26148333de74c4ce05",
         "rebuildMatches": true
       }
     },
@@ -48,7 +48,7 @@
     }
   },
   "archives": {
-    "libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
+    "libretro-cores-source.tar.gz": "42f488413c85ab95d84091a4c31e6bc69a200c19e0dedc441ebe26502b0cda13",
     "mgba-celio-rom64-source.tar.gz": "bb6422913a73a61b7fa8914634051f2edfd1f686c1298e1d218d8249abd528ee"
   },
   "mgbaUpdatedOn": "2026-10-23",
@@ -222,5 +222,49 @@
     "method": "Separate full-source and distributed compiler-closure CMake/Ninja builds; JS/WASM byte-identical. HGZ-only zlib inflate; unchanged native state encoding. 288 upstream HGX/HGZ assertions passed against this linked core.",
     "ownedRomHeapMiB": 187.125,
     "actualRomBytes": 134217728
+  },
+  "clownBuild": {
+    "updatedOn": "2026-11-25",
+    "baseCoreCommit": "88ef45a6585556e2247dd26b6c937d6b9fb4a12d",
+    "backports": [
+      {
+        "repository": "https://github.com/Clownacy/clownmdemu",
+        "commit": "e26b6d9623e070196fc7970e857d1571edf04994",
+        "sourceFile": "source/bus-main-m68k.c",
+        "change": "Exclude bank index 8 from cartridge bank register access.",
+        "beforeSha256": "365e5ebda48b85ae3b60d4c03744fd3db0113b71c06c6b51aca2de03f4e184fd",
+        "modifiedSha256": "b705bfab41430c1feb72fde0237385a9d7fedfb0bf6ed2c1bc774939fa4b0169",
+        "modifiedOn": "2026-11-25"
+      },
+      {
+        "repository": "https://github.com/Clownacy/clownmdemu",
+        "commit": "159d4440ecd9508e27e8a486b8c8f4b4f9e89e11",
+        "sourceFile": "source/bus-main-m68k.c",
+        "change": "Use SRAM enable bit 0 independently of the write-protect bit.",
+        "beforeSha256": "365e5ebda48b85ae3b60d4c03744fd3db0113b71c06c6b51aca2de03f4e184fd",
+        "modifiedSha256": "b705bfab41430c1feb72fde0237385a9d7fedfb0bf6ed2c1bc774939fa4b0169",
+        "modifiedOn": "2026-11-25"
+      },
+      {
+        "repository": "https://github.com/Clownacy/clownmdemu",
+        "commit": "5ed9e36d3bdcc0acbe464164dce7e861dbcd553c",
+        "sourceFile": "source/fm.c",
+        "change": "Reject invalid FM slot before forming channel pointers.",
+        "beforeSha256": "e1888c56b57c9295b26804f9cf796092359ef1dabc9944feed0ab96bea19e550",
+        "modifiedSha256": "a1d5d1a40053fc7e4ce6edcf3ef13859cd3d1323d10190c4d85584447bd158c5",
+        "modifiedOn": "2026-11-25"
+      }
+    ],
+    "method": "Two independent CMake/Ninja builds with Emscripten 4.0.15, CMake 3.31.6 and Ninja 1.11.1. Second build uses a fresh extraction of the distributed archive. Matching JS/WASM hashes; JS identical to prior distribution. Bridge, state structures and core ID unchanged.",
+    "archiveFileCount": 1065,
+    "otherArchiveFilesUnchanged": true,
+    "validation": {
+      "binaryBusRegression": "old fails SRAM bit and invalid bank cases; candidate passes",
+      "previousState": "old binary state imports and re-exports byte-identically",
+      "previousSave": "all 65536 bytes preserved on old-state import, resume, save import and bad-size rejection",
+      "fmSanitizer": "old exits 1 at fm.c:312 index 6 out of bounds; candidate exits 0",
+      "sanitizerToolchain": "Emscripten 4.0.15 -O1 -g -DCC_USE_C99_INTEGERS -fsanitize=undefined,bounds -fno-sanitize-recover=all -sENVIRONMENT=node",
+      "testInputs": "authored synthetic 68000 programs only; no user ROM/save"
+    }
   }
 }

@@ -1,7 +1,15 @@
 {
   "schema": 1,
   "sources": [
-    {"id":"mgba64","label":"mGBA celio edition","sourcePath":["mgba"],"commitKey":"sourceCommit","buildConfig":"sources/mgba-web-port/upstream.json"},
+    {"id":"mgba64","label":"mGBA celio edition","sourcePath":["mgba"],"commitKey":"sourceCommit","buildConfig":"sources/mgba-web-port/upstream.json","reviewedUnchanged":{
+      "repository":"pm-start/mGBA_celio_edition",
+      "branch":"rom128",
+      "baseline":"b3975350076fbd3d86e7dc6796cdadb0ccdb9a89",
+      "candidate":"9850760732751080044d05c4846c67edd067791b",
+      "reviewedOn":"2026-11-25",
+      "reason":"差分はQt版・文書・作者製テスト・版情報のみ。Webで使う実行ソースは変更なく、新しい通信方式は0.3.42で対応済み。コア差し替え不要と確認しました。",
+      "evidence":"UPSTREAM_REVIEW.md#review-2026-11-25"
+    }},
     {"id":"desmume2015","label":"DeSmuME 2015","sourcePath":["nds"]},
     {"id":"fceumm","label":"FCEUmm","sourcePath":["otherCores","sources","fceumm"]},
     {"id":"mesen-s","label":"Mesen-S","sourcePath":["otherCores","sources","mesen-s"]},

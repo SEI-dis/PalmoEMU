@@ -43,13 +43,15 @@ export function configuredSources(config,sources,buildConfigs={}){
       if(build?.schema!==1||!string(build.branch)||repository(build.repository)!==repo)throw Error('Mismatched build configuration: '+entry.id);
       branch=build.branch;
     }
-    return {id:entry.id,label:entry.label,repository:repo,baseline,branch};
+    const review=entry.reviewedUnchanged;
+    if(review!==undefined&&(!review||review.repository!==repo||!string(review.branch)||!sha(review.baseline)||!sha(review.candidate)||review.baseline===review.candidate||!/^\d{4}-\d{2}-\d{2}$/.test(review.reviewedOn)||!string(review.reason)||!/^UPSTREAM_REVIEW\.md#[a-z0-9-]+$/.test(review.evidence)))throw Error('Invalid reviewed upstream range: '+entry.id);
+    return {id:entry.id,label:entry.label,repository:repo,baseline,branch,...(review?{reviewedUnchanged:review}:{})};
   });
 }
 export async function inspectUpstreams(config,sources,component,{github=githubJSON,now=()=>new Date().toISOString(),buildConfigs={}}={}){
   const report={schema:1,checkedAt:now(),metadataOnly:true,automaticAdoption:false,items:[]};
   for(const entry of configuredSources(config,sources,buildConfigs)){
-    const item={...entry};report.items.push(item);
+    const {reviewedUnchanged:review,...item}=entry;report.items.push(item);
     try{
       const root='/repos/'+entry.repository;
       const branch=entry.branch||(await github(root)).default_branch;
@@ -63,6 +65,12 @@ export async function inspectUpstreams(config,sources,component,{github=githubJS
       item.relationship=comparison.status;
       item.status=comparison.status==='ahead'?'candidate':comparison.status==='identical'?'current':'review';
       item.aheadBy=Number.isSafeInteger(comparison.ahead_by)?comparison.ahead_by:null;
+      // A manual no-change review is valid only for this exact source/branch/
+      // baseline/head tuple. A new head, changed installed core, or diverged
+      // history must return to the normal candidate and policy checks.
+      if(comparison.status==='ahead'&&review?.branch===branch&&review.baseline===entry.baseline&&review.candidate===head.sha){
+        item.status='reviewed';item.note=review.reason;item.reviewedOn=review.reviewedOn;item.reviewEvidence=review.evidence;continue;
+      }
       // File names are review hints, not proof of a complete license review.
       item.noticeFiles=(comparison.files||[]).filter(file=>typeof file.filename==='string'&&/(^|\/)(licen[cs]e|copying|copyright|notice|authors)(\.|\/|$)/i.test(file.filename)).slice(0,100).map(file=>file.filename);
       item.requires=['ライセンス・依存関係の差分確認','セーブ・ステート互換性と端末動作の検証','対応ソースと配布レビューの更新'];
@@ -88,7 +96,7 @@ export async function inspectUpstreams(config,sources,component,{github=githubJS
   return report;
 }
 export function reportMarkdown(report){
-  const names={current:'採用版と一致',candidate:'更新候補あり',review:'履歴の分岐・巻き戻りを要確認',error:'取得失敗',manual:'提供ファイルを手動確認'};
+  const names={current:'採用版と一致',reviewed:'確認済み・Web版の変更不要',candidate:'更新候補あり',review:'履歴の分岐・巻き戻りを要確認',error:'取得失敗',manual:'提供ファイルを手動確認'};
   const lines=['# 上流更新の確認','',`確認日時: ${md(report.checkedAt)}`,'','これは更新候補の検出です。コア・変換ツールの実行、入れ替え、公開は行っていません。','','| 対象 | 結果 | 採用版 → 候補 |','| --- | --- | --- |'];
   for(const item of report.items){
     const label=md(item.label),url=item.compareURL||item.releaseURL;
@@ -97,6 +105,7 @@ export function reportMarkdown(report){
   for(const item of report.items.filter(item=>item.status!=='current')){
     lines.push('','## '+md(item.label),'');
     if(item.note||item.error)lines.push(md(item.note||item.error));
+    if(item.reviewEvidence)lines.push('確認記録: '+md(item.reviewEvidence)+' ('+md(item.reviewedOn)+')');
     if(item.noticeFiles?.length)lines.push('ライセンス関連の変更候補: '+item.noticeFiles.map(md).join(', '));
     if(item.requires)lines.push(...item.requires.map(value=>'- '+md(value)));
     if(item.candidateCommand)lines.push('','ソースの安全性を確認した後、次の手動ワークフローで別候補をビルドできます。','','```sh',item.candidateCommand,'```');

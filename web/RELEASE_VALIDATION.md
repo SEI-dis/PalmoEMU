@@ -1,5 +1,58 @@
 # 公開前の検証記録
 
+## 2026-11-25 — Daily upstream detection and selected core fixes (unpublished)
+
+Pulled main: already at 2fad295e4a5218e8004cce392e2da29c07546967 (0.3.42).
+The daily failure is a candidate policy rejection, not failure of the normal
+release validation. Reviewed the exact desktop-only mGBA range and recorded it
+without changing the installed core revision or weakening candidate checks.
+
+- `upstream-watch` passes model and isolated real CLI fixtures: an exact reviewed
+  range writes no candidate output; a new head writes its fixed SHA; changed
+  baseline/branch or divergent history is not suppressed; a failed comparison
+  remains a failed job. No candidate adoption or external request occurs in the
+  fixtures. `core-update.py` passes its three policy/patch tests.
+- ClownMDEmu's old WASM reproduces the SRAM-enable and bank-8 defects with
+  authored 68000 programs. The patched WASM passes both, plus invalid FM access.
+  An old-binary state imports and exports byte-identically; all 65,536 battery
+  bytes survive import, state restoration and resumed frames. Rejected save and
+  state sizes leave the battery unchanged. `clown-update` is added to normal CI.
+- An authored FM fixture under Emscripten 4.0.15 undefined/bounds sanitizers
+  reproduces index 6 access in the old source (exit 1) and passes the patched
+  source (exit 0). The normal release build is not sanitizer-instrumented.
+- The source archive retains all 1,065 member paths. Only bus-main-m68k.c and
+  fm.c differ, including dated change notices. An independent build from a fresh
+  extraction matches both distributed JS/WASM hashes; JS is unchanged from the
+  prior distribution. Native structures, core IDs and Web bridge are unchanged.
+- Chromium and desktop WebKit pass `browser`: six-system import, launch, input,
+  state, rotation, exit and persistence, with no uploads or outside requests.
+  Both also pass `multicore` alternate-core smoke/save regressions.
+- PokemonStart's fixed 0.77.0 README and changelog were checked against the
+  existing E-format gate and downgrade protection. Synthetic version-labelled
+  fixtures are not actual 0.77.0 gameplay or real-save migration evidence.
+  Source comparisons found no new Web relay protocol beyond 0.3.42.
+
+- PDF.js 6.5.438 uses the official two browser bundles, verified by npm SHA-512,
+  plus 344 fixed-commit source/build/license files checked by Git blob hashes.
+  Chromium and desktop WebKit pass new `pdf-skin-regression` and existing
+  `skins` tests. Normal PDF rendering, truncated CFF, malformed Type4 numeric
+  input/deep nesting and unreadable PDFs settle without altering existing skins.
+  No optional renderer, WASM, fonts or external requests are introduced.
+- Replacing only the PDF bundles with old HEAD 6.4.299 in an isolated Chromium
+  route reproduces the real `importSkin` timeout for the authored Type4 input
+  `{ . . . }`; the current bundles complete the same case. This is separate
+  from the bounded CFF method regression and not a physical-iPhone test.
+- Nine-language catalogue checks pass (1,433 messages each). No operational
+  wording or release-note translation changes; existing proofread text is kept.
+  PDF.js and mGBA source-link pins are corrected in the credits.
+
+No user ROM/save, provided HTML or private test output is staged for distribution.
+Physical iPhone, real PokemonStart 0.77.0 ROM/latest migration HTML and real trades
+remain unverified. The supplied inputs still date from 0.71.1. The user's current
+request is maintenance and CI repair; this record does not claim publication or
+same-commit CI success before push. App version and release notifications stay
+unchanged for this unpublished maintenance batch.
+
 ## 2026-11-17 — 0.3.42 release candidate / PokemonStart 0.71.1 and Celio protocol
 
 Pulled main to 6cf8f6a9f8207325b92e2e57ede6ef396fd602d1 (0.3.41).

@@ -1,32 +1,51 @@
 {
-  "version": "6.4.299",
-  "commit": "d0991a0d53f3bb3a7307e3b83f279c1d117aafb3",
+  "version": "6.5.438",
+  "commit": "0a4153349dc473ba950fc17941c5ca7eda43c1de",
   "distribution": {
-    "shasum": "4a46f5146ac6505564c1a5d472900be4df8bf628",
-    "tarball": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-6.4.299.tgz",
-    "fileCount": 554,
-    "integrity": "sha512-AVl138zALtfaAPvADulE0PZThbYzCBS79nL4pOSL/6Sm/4AH5A21BD9VHt97OlCuzJuCpmeZtAtkinisF4Vb1g==",
+    "shasum": "e7f8986ec4ea04057b5d9d2f0e5b63ea94d2303f",
+    "tarball": "https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-6.5.438.tgz",
+    "fileCount": 570,
+    "integrity": "sha512-vg8Pw1x+AFKy4AMDvhuWl5cOYV8d698UoEANoFFhc79hqXDnZQqnOXoxw3HG907WHOg1JYOvLhP756boddFxpA==",
     "signatures": [
       {
-        "sig": "MEUCIANFOtvvvNGmxlVa6Y9QCzq37pTxqJ158DtYT7YLMpwDAiEAoiTHdJrCono0hv72HNRa7TL6/cK0rLKKsStkjlNtWSQ=",
+        "sig": "MEYCIQCHpARAHxjhmQYrv76T3PzkM9FflAZUZOyhnmSiAeva3wIhAKNa1q++oA9OwGCdoJqR618RG7DqFWmYTuk34Mlze1JB",
         "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
       },
       {
-        "sig": "MEYCIQDh61X2sPdS5BlBMRK+soD+Xde+4PMDdwVWIB0xMy1W5QIhAMBAYDXPhYnoShHZTMrVgSn8t8R/YYIdNFnTyk6eYJ6Y",
+        "sig": "MEUCIQCnhrHziJt7WeagumZHQTRV/H+EbMUo1TGNMxeq3I09/QIgSN1S5hdEoPMghm1+QgwY9ae3lDFuqNfqvCbi6E9fNcg=",
         "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
       }
     ],
     "attestations": {
-      "url": "https://registry.npmjs.org/-/npm/v1/attestations/pdfjs-dist@6.4.299",
+      "url": "https://registry.npmjs.org/-/npm/v1/attestations/pdfjs-dist@6.5.438",
       "provenance": {
         "predicateType": "https://slsa.dev/provenance/v1"
       }
     },
-    "unpackedSize": 34913648
+    "unpackedSize": 37616588
   },
   "shipped": [
     "build/pdf.mjs",
     "build/pdf.worker.mjs"
   ],
-  "notes": "Unmodified upstream npm browser bundles. Library/build source is supplied; test PDFs/fonts, viewer assets, CMaps and WASM codecs are not shipped. useWasm=false. No native Node canvas package is included."
+  "notes": "Unmodified upstream npm browser bundles, verified against the package SHA-512 integrity. Library/build source and licenses are supplied from the pinned Git commit; each included raw file was verified against its Git blob SHA-1. Test PDFs/fonts, viewer assets, CMaps and WASM codecs are not shipped. useWasm=false. No native Node canvas package is included. Optional renderer workers are not enabled, so pdf.renderer.mjs is not required.",
+  "sourceSelection": {
+    "repository": "https://github.com/mozilla/pdf.js",
+    "commit": "0a4153349dc473ba950fc17941c5ca7eda43c1de",
+    "files": 344,
+    "include": [
+      "src (except src/images artwork)",
+      "external source, build inputs and licenses (without hidden files or .bcmap/.wasm/.icc/.pfb/.ttf assets)",
+      "LICENSE",
+      "README.md",
+      "AUTHORS",
+      "EXPORT",
+      "gulpfile.mjs",
+      "package.json",
+      "package-lock.json",
+      "pdfjs.config"
+    ],
+    "archiveRoot": "pdfjs-library",
+    "archiveMtime": 0
+  }
 }

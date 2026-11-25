@@ -1,5 +1,18 @@
 # Copyright, credits and modification notices
 
+Unpublished maintenance changes (2026-11-25): retain the pinned ClownMDEmu
+libretro base and backport three changes by Clownacy from Clownacy/clownmdemu:
+e26b6d9623e070196fc7970e857d1571edf04994 (bank register bounds),
+159d4440ecd9508e27e8a486b8c8f4b4f9e89e11 (SRAM enable bit), and
+5ed9e36d3bdcc0acbe464164dce7e861dbcd553c (FM pointer validation).
+Only common/core/source/bus-main-m68k.c and common/core/source/fm.c change.
+Existing Clownacy copyright, AGPL-3.0 and dependency notices remain; dated
+modification comments identify the backports. Full modified preferred-form
+source is in sources/libretro-cores-source.tar.gz, with the build recipe in
+sources/libretro-web/BUILD.md. Save/state structures and the Web bridge remain
+unchanged. SOURCES.json and sources/build-evidence.json identify exact hashes,
+upstream commits, independent rebuild and synthetic regression checks.
+
 Version 0.3.42 changes (2026-11-17): update the separate
 PokemonStart format component from the maintainer-supplied 0.71.1 HTML. Add E
 records from 0.67.0, the supplied keys through 0.71.1, and forward conversion
@@ -266,7 +279,7 @@ rollback on interrupted sessions. Core binaries have not changed for this featur
 The mGBA JS adapter displays the paired local screenshot while paused after a
 restore, because the unchanged core state format does not include a framebuffer.
 
-PDF.js 6.4.299: Copyright 2024 Mozilla Foundation; Apache-2.0. Two unmodified
+PDF.js 6.5.438: Copyright 2024 Mozilla Foundation; Apache-2.0. Two unmodified
 upstream browser bundles are used solely to render imported local skin PDFs.
 Full Apache license, package provenance and filtered library/build source accompany them.
 Upstream PDF test documents, fonts, viewer artwork and native Node canvas are excluded.

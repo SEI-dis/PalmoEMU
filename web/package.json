@@ -82,6 +82,8 @@
     "test:touch-recovery": "node tests/touch-recovery.cjs",
     "test:player-gestures": "node tests/player-gestures.cjs",
     "test:fceumm-update": "node tests/fceumm-update.cjs",
+    "test:clown-update": "node tests/clown-update.cjs",
+    "test:pdf-skin-regression": "node tests/pdf-skin-regression.cjs",
     "test:i18n": "node tests/i18n.cjs",
     "test:languages": "node tests/languages.cjs",
     "test:languages-offline": "node tests/languages-offline.cjs",

@@ -1,4 +1,48 @@
-# 上流更新の確認（2026-10-12）
+# 上流更新の確認
+
+<a id="review-2026-11-25"></a>
+## 2026-11-25 — 日次検出とPokemonStart 0.77.0の確認
+
+基準は main `2fad295e4a5218e8004cce392e2da29c07546967`（0.3.42）。通常の配布検証CIは成功しており、11月18日から25日の失敗は日次 `Detect upstream updates` の候補ビルドに限られる。[11月25日の実行](https://github.com/SEI-dis/PalmoEMU/actions/runs/45545631047)ではメタデータ取得は成功し、`version.cmake` の変更を未確認のビルド入力として拒否していた。取得エラーではないため、候補レポートの段階名も `source` から `build-input-policy` へ訂正した。
+
+### mGBAと通信
+
+[採用版b397535から9850760までの比較](https://github.com/pm-start/mGBA_celio_edition/compare/b3975350076fbd3d86e7dc6796cdadb0ccdb9a89...9850760732751080044d05c4846c67edd067791b)は6コミット・13ファイル。README等の文書、Qt版のCelioNetとWindow、作者製ROMテスト・配布補助、版情報の変更であり、Webで使用する実行ソースは変わっていない。`version.cmake` はCelioの版をrom128-2からrom128-6にし、その表示を短いコミット表記にも使う変更。版名だけのためのコア差し替えは行わない。
+
+監視設定へ、採用元・ブランチ・採用SHA・確認先SHA・確認日・この記録への参照を保存した。成功した比較がこの組み合わせに完全一致した場合のみ「確認済み・Web版の変更不要」とし、同じ候補を毎日再ビルドしない。次のコミット、別の採用SHAやブランチ、分岐、取得失敗はこの扱いにならない。`SOURCES.json` の採用SHAを先端に偽装せず、ビルド入力・ライセンスの安全検査も変更しない。手動で同じ候補を指定した場合には、従来どおりビルド入力の確認で止まる。
+
+[mgba-celio-webの23235bc](https://github.com/pm-start/mgba-celio-web/commit/23235bc6db1b67009808c0dc7e1f25131eb75e7a)と[Celio-Serverのf4b92bc](https://github.com/Celio-Link/Celio-Server/commit/f4b92bc64a0064ac0c7f60b606c36b0886064ffb)は0.3.42で確認した版から更新なし。通信実装の本文も照合した。pm-start/mgba-celio-webのfix-celio-batch枝はQt側の変更で、Webの追加移植対象はなかった。既存の2人通信を維持する。今回は公開中継サーバーで実ゲームの交換を再確認したものではない。
+
+### PokemonStartと移行ツール
+
+確認時点の最新版は[0.77.0のREADME](https://github.com/pm-start/PokemonStart/blob/aea68ec6d62f569088d325009efe0c396cb52915/README.md)。公式案内では0.67.xから0.76.0のセーブは変換せず引き継ぎ可能で、0.66.x以前は付属ツールでの移行が必要。0.77.0で保存したデータを古い版へ戻さない条件もある。既存の形式E判定と古いROMへの引き継ぎ拒否はこの境界と整合する。合成ROMの0.76/0.77表記でも、0.71.1からはコピー、0.66.1からは変換、逆方向は拒否し、実行条件を壊したROMは未確認とする。ファイル名の版だけでは互換性を承認しない。
+
+[公式変更履歴](https://github.com/pm-start/PokemonStart/blob/aea68ec6d62f569088d325009efe0c396cb52915/CHANGELOG.md)の0.71.2にはネット交換と2台通信の停止修正、0.73.0にはコピーした同一セーブ同士の交換防止がある。これらはROM側の修正・制約であり、エミュレーターからセーブの識別情報を書き換えて回避しない。
+
+公開ツリーは文書とPKS配布で、移行HTMLの単独配布・GitHub Releasesは見つからなかった。手元の提供ファイルは0.71.1のROMと11月17日のHTMLのまま。現在の変換器は提供済みの41鍵を持ち、未知の鍵を拒否する条件を維持する。今回の版番号付き合成入力は、実際の0.77.0のROM・新HTML・実セーブの検証を代替しない。最新ファイルが提供された時点で鍵・形式・補助情報の変更を照合する。PKSの展開処理やROMは組み込み・再配布していない。
+
+### ほかの採用コア・参考実装
+
+| 対象 | 今回の判断 |
+| --- | --- |
+| ClownMDEmu | [bank境界](https://github.com/Clownacy/clownmdemu/commit/e26b6d9623e070196fc7970e857d1571edf04994)、[SRAMの有効bit](https://github.com/Clownacy/clownmdemu/commit/159d4440ecd9508e27e8a486b8c8f4b4f9e89e11)、[不正FMチャンネル](https://github.com/Clownacy/clownmdemu/commit/5ed9e36d3bdcc0acbe464164dce7e861dbcd553c)の3修正を採用。現WASM／ソースで旧不具合を再現し、2ファイルだけ移植。元のセーブ・ステート形式を維持。Switch 2・Sega CD・内部再構成は一括移植しない。 |
+| FCEUmm | 先端e1630deは既確認範囲と同じ。必要なMapper 176修正は採用済み。 |
+| melonDS | 先端4081e83まで確認。[a194603](https://github.com/libretro/melonDS/commit/a1946037278d68527655706f866e29b727fba7fb)のパスだけのROM読み込み・cached_info寿命修正は、static game_infoと終了まで保持するROMバッファを使う現Webブリッジには該当しない。任意の不正ROMすべての安全性を保証する判断ではない。 |
+| jgenesis | [c00da91までの差分](https://github.com/jsgroth/jgenesis/compare/fc7374ebaac8ce6d8d13b93c75298e54f4ed9bba...c00da91eaf406d7bef8775a498646b2e2db51d6c)を確認。MDのScooby Doo Mystery表示タイミングとSNESのAPU test-register値は今後の個別互換性改善候補。GBのLCD再有効化はステート構造にフィールドを追加するため、既存ステート保全策なしの一括更新はしない。native録画・M3U・GUI等は現Web実行経路にない。 |
+| RomPatcher.js | [BPS整数処理の27cd192](https://github.com/marcrobledo/RomPatcher.js/commit/27cd192c3e5e5d138adf709d58c797c28c73936b)を確認。現Web側は64MiB上限、整数・各操作・位置の事前検査を持ち、この修正が必要な値はパーサーに渡らない。BPS作成や追加されたxdelta/LZMAは使用しない。上限や対応形式を変える場合は再確認する。 |
+| ManicEMU | [5840a80まで](https://github.com/Manic-EMU/ManicEMU/compare/fbaeab79c214d5920bb51afa6f2d786fb2b12a58...5840a80d333753c22038420da5c111a7fa9103a4)の10コミットを確認。比較APIの300ファイル制限を全tree比較（627変更blob）で補完。採用元のDSセーブ変換・Settings・入力監視・同期本体は不変。UIKitのscene・多窓・AirPlay・外部アプリ・3DS等の差分は現Web DOMの実行経路にない。 |
+| Celio-mGBA-Link | [81200bcまで](https://github.com/Celio-Link/Celio-mGBA-Link/compare/5f29daba2a331f721203f430b28750e72e68ac02...81200bc6f14c952d6bea4c6412e7f95485d732d8)の3コミットを確認。51byteとPlayerSettingsは0.3.42の2人範囲で対応済み。Luaの4席キューとSIOMULTI0..3監視は将来の4人対応時に必要。現WASMは32bit SIOMULTI0読み出しで一度処理し、未使用席をFFFFにする。直接USBの64byte契約とLua0.3のJSON WebSocketは異なるため差し替えない。 |
+| DeSmuME 2015・Mesen-S・VBA-Next | 日次比較で固定採用SHAと一致。更新なし。 |
+
+実行対象にないnative機能を移植せず、必要な境界修正を選んだ。すべてを上流最新版にそろえたという意味ではない。ClownMDEmuの対応ソース・変更通知・再ビルドの証跡はSOURCES.json、sources/build-evidence.json、NOTICES.mdへ記録した。
+
+### PDFスキンの読み込み
+
+[PDF.js安定版6.5.438](https://github.com/mozilla/pdf.js/releases/tag/v6.5.438)（0a4153349dc473ba950fc17941c5ca7eda43c1de）へ更新。新規の公開RCE advisoryへの緊急対応ではないが、[CFFフォントの繰り返し処理](https://github.com/mozilla/pdf.js/pull/22357)、[不正PostScript lexer](https://github.com/mozilla/pdf.js/pull/22365)、[Type4関数の計算量と再帰制限](https://github.com/mozilla/pdf.js/pull/22231)は、取り込むPDFスキンのJS処理でも関係する。現版でCFFの停止しない処理を隔離テストで確認したため、更新対象とした。
+
+公式npmの2ブラウザバンドルをSHA-512 integrityと照合し、未改変で使用する。対応する344ファイルのライブラリ・ビルド用ソースを固定Git SHAから収集し、各Git blob hashを照合した。Apache-2.0を維持し、Node canvas、テストPDF、フォント・画像資産、追加renderer workerのバンドルは含めない。既存のeval・WASM・外部取得制限を維持し、getDocumentの呼び出しAPIは変更しない。配布元・取得値・収録範囲はsources/pdfjs-build.jsonへ記録した。
+
+## 2026-10-12時点の確認記録（履歴）
 
 0.3.15の配布対象について、固定版と公開ブランチ／リリースの差分を確認しました。
 最新版への一括差し替えは行わず、互換性修正を取り込み、既存の保存データを検査しています。

@@ -17,7 +17,20 @@ Copy nes.js/nes.wasm to cores/nes/core.js/core.wasm, and likewise snes and md.
 This is the complete custom bridge and build configuration. Upstream C/C++ files
 are unchanged except the documented Mapper 176 backport in fceumm/src/boards/fk23c.c
 from b6870c3e146105b646e5d3505fcddf34ebaa9603 (modified 2026-10-12).
-The original GPL-2.0-or-later notice is retained; GPL-3.0 is selected for this build.
+The ClownMDEmu source also contains three minimal backports from
+[Clownacy/clownmdemu](https://github.com/Clownacy/clownmdemu) (modified 2026-11-25):
+
+- `e26b6d9623e070196fc7970e857d1571edf04994`: reject cartridge bank register 8
+  in `common/core/source/bus-main-m68k.c` before it can overwrite the next field.
+- `159d4440ecd9508e27e8a486b8c8f4b4f9e89e11`: use SRAM control bit 0, rather
+  than any nonzero byte, in the same file.
+- `5ed9e36d3bdcc0acbe464164dce7e861dbcd553c`: reject invalid FM channel slots
+  before forming channel pointers in `common/core/source/fm.c`.
+
+Other upstream files, pinned submodules, save/state structures and the Web bridge
+are unchanged. These are selected fixes, not an update to the upstream tip.
+To rebuild only this core, use `cmake --build /path/to/build --target md --parallel 6`.
+FCEUmm's original GPL-2.0-or-later notice is retained; GPL-3.0 is selected for this build.
 The serialized state fields and Web bridge are unchanged. Only Web-required source/build inputs and notices are distributed;
 unbuilt UI art, fonts and ROM fixtures are excluded. The selected subset rebuilt
 to identical JS/WASM SHA-256 values; ../build-evidence.json records these.
@@ -32,5 +45,14 @@ Full preferred-form sources and this recipe allow rebuilding with modified libra
 No noncommercial-only Snes9x/Genesis Plus GX core or unidentified prebuilt is used.
 
 Use node tests/core-container.cjs for original synthetic cartridge/state tests.
+Use `node tests/clown-update.cjs` for SRAM mapping, bankswitch bounds and invalid
+FM register checks. An optional second argument is the prior `core.js` path
+(after an explicit candidate path); keep its matching `core.wasm` alongside it
+to test previous save/state compatibility and reproduce the old bus defects.
+`tests/fixtures/clown-fm.c` additionally exercises invalid FM channel 6 under
+Emscripten `-fsanitize=undefined,bounds -fno-sanitize-recover=all`; link it with
+`fm.c`, `fm-channel.c`, `fm-lfo.c`, `fm-operator.c`, `fm-phase.c` and `log.c`,
+using the core's `source/` include directory and `-DCC_USE_C99_INTEGERS`.
+This source-level sanitizer check is separate from the normal Node/WASM test.
 Use tests/browser.cjs for browser input, rotation and state integration. Do not
 substitute user ROMs into the source/deployment directories.

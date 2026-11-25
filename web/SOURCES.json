@@ -141,6 +141,35 @@
           " aa4cae3127a5893ba7066bcc2d9e9ba8e88e1c3b common/core/libraries/clownz80 (heads/master)",
           " ddeff174c2121b40284883e0e1e3520f39d99227 common/core/libraries/clownz80/libraries/clowncommon (heads/master)",
           " e9a4ccc4a6b05f136ef5358218a5a94ebeccb7cb libretro-common (e9a4ccc)"
+        ],
+        "backports": [
+          {
+            "repository": "https://github.com/Clownacy/clownmdemu",
+            "commit": "e26b6d9623e070196fc7970e857d1571edf04994",
+            "sourceFile": "source/bus-main-m68k.c",
+            "change": "Exclude bank index 8 from cartridge bank register access.",
+            "beforeSha256": "365e5ebda48b85ae3b60d4c03744fd3db0113b71c06c6b51aca2de03f4e184fd",
+            "modifiedSha256": "b705bfab41430c1feb72fde0237385a9d7fedfb0bf6ed2c1bc774939fa4b0169",
+            "modifiedOn": "2026-11-25"
+          },
+          {
+            "repository": "https://github.com/Clownacy/clownmdemu",
+            "commit": "159d4440ecd9508e27e8a486b8c8f4b4f9e89e11",
+            "sourceFile": "source/bus-main-m68k.c",
+            "change": "Use SRAM enable bit 0 independently of the write-protect bit.",
+            "beforeSha256": "365e5ebda48b85ae3b60d4c03744fd3db0113b71c06c6b51aca2de03f4e184fd",
+            "modifiedSha256": "b705bfab41430c1feb72fde0237385a9d7fedfb0bf6ed2c1bc774939fa4b0169",
+            "modifiedOn": "2026-11-25"
+          },
+          {
+            "repository": "https://github.com/Clownacy/clownmdemu",
+            "commit": "5ed9e36d3bdcc0acbe464164dce7e861dbcd553c",
+            "sourceFile": "source/fm.c",
+            "change": "Reject invalid FM slot before forming channel pointers.",
+            "beforeSha256": "e1888c56b57c9295b26804f9cf796092359ef1dabc9944feed0ab96bea19e550",
+            "modifiedSha256": "a1d5d1a40053fc7e4ce6edcf3ef13859cd3d1323d10190c4d85584447bd158c5",
+            "modifiedOn": "2026-11-25"
+          }
         ]
       }
     },
@@ -148,8 +177,8 @@
   },
   "pdfjs": {
     "repository": "https://github.com/mozilla/pdf.js",
-    "version": "6.4.299",
-    "commit": "d0991a0d53f3bb3a7307e3b83f279c1d117aafb3",
+    "version": "6.5.438",
+    "commit": "0a4153349dc473ba950fc17941c5ca7eda43c1de",
     "license": "Apache-2.0",
     "source": "sources/pdfjs-library-source.tar.gz"
   },
@@ -208,7 +237,7 @@
     "cores/jgenesis/core.js": "8aabeec2af5b9caf258476df0f88b1e3607324925c7f152f83aaaf512c669008",
     "cores/jgenesis/core_bg.wasm": "f4de98ee17a437c1190ba1e13a0483a1c0b4c5ff467e20ff248f01a4f368af93",
     "cores/md/core.js": "bb2fab117a8029d064342e6cf8095768514bfe6a9b6f569a9c634faacbc0e300",
-    "cores/md/core.wasm": "3877035cbe389b9738a3f617aaeda1e63010d5aff37e2a0e8dced5e24486f091",
+    "cores/md/core.wasm": "d873c87d8143e1521a72eefddf21c2aeabb4647181cc4b26148333de74c4ce05",
     "cores/melonds/core.js": "25719a5678ec20664f81d8b2f10109a1f35db3db04dc79cbc8b25e56e961a3e4",
     "cores/melonds/core.wasm": "6a3ec8e00334c4474a9c2ce0f86ffe2e8ecb737e5cb11dfcf2a2348edcfdf6de",
     "cores/mgba/mgba.js": "fe8c6838117e05c709b74a34348d5816a840ea84f1ff0315ce852bd03836fccd",
@@ -259,7 +288,7 @@
     "sources/alternate-web/battery.cpp": "52f9f71d55b34510b9de832dc1c70ccdb471eb73c2077d3c435ef1ac3cdd5982",
     "sources/alternate-web/gba-bridge.c": "a848d45253a7125d6cb645951abde1bd3f91884ae2c8dc7a900182ab285ef785",
     "sources/alternate-web/nds-bridge.c": "5f7b33b7a5775748e821b9923d1e2c1c02ede6fe321bd04441324bf8ff446e17",
-    "sources/build-evidence.json": "bca477359a576911220c0d4bfd5ab62188e4a0900da3f8e24adfc9a21b7bb664",
+    "sources/build-evidence.json": "4e2e6f1dbe8cd5f47fb49a2428befafdc6c971eb6fdb2a6b3d5e4761d0e91a6f",
     "sources/celio-device-source.tar.gz": "0c0a5e7e2b2ae0626fd011571e73cf4084f01172889e28a17b2f031ff3ded907",
     "sources/celio-server-source.tar.gz": "3297aebba1cce33c696f6e472fb41b437ae0181c329c9fe7f1f44ef9837278e6",
     "sources/celio-web-transport/celio-serial.js": "2562ad97ccde5abbb7a9562d2b62b6e6560ab49084fbe7a4061c0855a119c8ac",
@@ -267,8 +296,8 @@
     "sources/celio-web-transport/link-session.js": "063e1a11aeee3ed43e5a3178f206920e8388c8c3c6a22f024daddc7980ad3d65",
     "sources/desmume2015-source.tar.gz": "966f3f2aee97124699cd385a35ec75f86c8ed95c49eb950b9bc09ff1359bb696",
     "sources/jgenesis-web-source.tar.gz": "e569f455e12476adaea71447b0c1ce85792c9b72d2510da2337e88b64f1da0c3",
-    "sources/libretro-cores-source.tar.gz": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
-    "sources/libretro-web/BUILD.md": "a57ca4ed82f51fbe00e4efd6e579f9992f09cafabb8c95d22207d0db9fcad7b8",
+    "sources/libretro-cores-source.tar.gz": "42f488413c85ab95d84091a4c31e6bc69a200c19e0dedc441ebe26502b0cda13",
+    "sources/libretro-web/BUILD.md": "5978250eeaeda520cdeb5efa3c753bee7ef453ad1b8f6c16f44a19fd2213d726",
     "sources/libretro-web/CMakeLists.txt": "709f75293f65d477cd19df9c633bb339167b34f6ed45f01b63cf3c2452f1e1e8",
     "sources/libretro-web/bridge.c": "d2e955c7affc20da6e14939dcd4fa2eb24771437f8ad5d6b625bc26bcbe8d554",
     "sources/manicemu-ui/ASListItemView.swift": "4f437f81c7dd421876ce8b583d6d6717c01146f720025b09e1e05f6a68ab5fc9",
@@ -313,10 +342,10 @@
     "sources/nds-web/CMakeLists.txt": "162601aeb6df05e4a4f1a52c87b266ea2f966894fc9c2547898a8ba9f1d4e472",
     "sources/nds-web/battery.cpp": "7c8d71adaa2405e908ee653c63463e66c32e90e46eb5c6743e28a30abf740c9d",
     "sources/nds-web/bridge.c": "f5511fc2aeccd50f840fcd6534d82f83e2828e988c8b2d5d0d410cc96cfbc547",
-    "sources/pdfjs-build.json": "5e1287b2b3024e8088bd83d083c79eb14abaeab0b1a1d33ce5a0526e4363fb08",
-    "sources/pdfjs-library-source.tar.gz": "36dd8bf703921388710997aa260b8fdae96696a6ae726864bab4631d0c2cb453",
-    "vendor/pdfjs/pdf.mjs": "dd13af821c9c3e1778653340d6539a1ba07bc56cba40073a4c727864cf0c232a",
-    "vendor/pdfjs/pdf.worker.mjs": "07ceb740d746e5d9012fcf9f27d5c7dea09f7d2f5e74f5c8109e5787551a2333",
+    "sources/pdfjs-build.json": "acf31f62f5da762ab9b5347ebe8653e37ffa7cad4d3208d35ca535a9736cd639",
+    "sources/pdfjs-library-source.tar.gz": "bec850e370a709164b0886da4396d7fd5766e25198065f0930a77535d5580cdd",
+    "vendor/pdfjs/pdf.mjs": "cbabeebf4df66f3fe736f2fa2792d332e019a878b0aa88d5e2be17d439079de4",
+    "vendor/pdfjs/pdf.worker.mjs": "43710009ea26bfbcb615524946e46e3aaf8ad927514f5e465e8ff6d18044ffe9",
     "BUNDLED_SKINS.json": "d7df7ff622187c11c438f7104f3dd2b1377a729faeda6176d1d61abc982ffb2d",
     "licenses/ManicEMUSkins-CC-BY-4.0.txt": "7e7170e3cebf88a9f60c7b8421418323c09304da1af4d5e90f4da1dc1c8a2661",
     "sources/manic-skins/UPSTREAM-README.md": "91d97f509a353eb9d7dcacded92f8cf15dccef5fbe8c28e9317525850bfdb12e",

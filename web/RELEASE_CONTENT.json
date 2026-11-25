@@ -29,8 +29,8 @@
     },
     {
       "path": "CORE_UPDATES.md",
-      "bytes": 8309,
-      "sha256": "ddb2084094e2d7e51935b8550c46e66c94df20755c5a8b22fcc0b7e4d215dc7f",
+      "bytes": 8836,
+      "sha256": "6c58633a21c4a1eaa2fe806d2cd8642203b4e49f2b6e4bbfb4b2f51f3f342d47",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -47,8 +47,8 @@
     },
     {
       "path": "LICENSE_AUDIT.md",
-      "bytes": 49077,
-      "sha256": "7178d6199d6c6667fc10b70e5c1108a4c4b7e923449f331e6c28d14e6fee31e1",
+      "bytes": 50797,
+      "sha256": "42fa8ddf54e00361b90e61d4943c55fc749f183dda4383894d9277d30f2f8a6c",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -59,8 +59,8 @@
     },
     {
       "path": "LOCALIZATION_REVIEW.md",
-      "bytes": 52463,
-      "sha256": "c2314fdb0e288531c4d5aa46c4767eb71124014e234faf3379fd64c20ea55bf4",
+      "bytes": 52953,
+      "sha256": "b582b5007e26830ab6a07bc90c7bdbdd368eb4cb511f3153c43c910a217347c4",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -77,8 +77,8 @@
     },
     {
       "path": "NOTICES.md",
-      "bytes": 73889,
-      "sha256": "779907e257ee972a663dd1e94fd3b8d2e4a5f0ba460432fda7a2bc0ac906961a",
+      "bytes": 74783,
+      "sha256": "af4032dde0a1b78c3a1048a496ba09b74cd3042afb3cfca7fcb964c2c88c83c8",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -95,8 +95,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 333539,
-      "sha256": "263a0de2c11e0e3e44db7c3a46e539a82511f32d1439b649f1fb7fd06c4a40ab",
+      "bytes": 337286,
+      "sha256": "37fc5aa27c24ac29925ed5678316c888c595980f782b60d0c13b30345692d28a",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -107,14 +107,14 @@
     },
     {
       "path": "SOURCES.json",
-      "bytes": 60071,
-      "sha256": "2bfbaf7b59b7d9d674f7aa527a2f1359cdbc6ee7fa556ba61d06211d5ad70bf4",
+      "bytes": 61705,
+      "sha256": "74ca7de3cf3b28fef019f41daab27e1e19eca9e7fc1cda7c4f4e94957056798f",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "UPSTREAM_REVIEW.md",
-      "bytes": 10364,
-      "sha256": "8f23938c9ca8c29774cf9a43a4a37d49983f4c1fd9433736dc96aeb1a5d6b8e5",
+      "bytes": 19183,
+      "sha256": "c8cc152eb97b35809e387a9aa9db87b666bae852bfc7a3c578c30dabc5c3cf87",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -798,7 +798,7 @@
     {
       "path": "cores/md/core.wasm",
       "bytes": 549706,
-      "sha256": "3877035cbe389b9738a3f617aaeda1e63010d5aff37e2a0e8dced5e24486f091",
+      "sha256": "d873c87d8143e1521a72eefddf21c2aeabb4647181cc4b26148333de74c4ce05",
       "component": "source-built-libretro-cores"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 7841,
-      "sha256": "496eec3c90a27361977fe9d845274ab79800cb499727e9611698d15afd6e1b8e",
+      "sha256": "062f11d9f30dd6713e925c71cbcc7f87aee86ed10fb2f17f77475ea71e83b984",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -923,8 +923,8 @@
     },
     {
       "path": "licenses.html",
-      "bytes": 20672,
-      "sha256": "0046186ff923697304ad8a1c238d8481df84a405378c6a0b2dfca0a6aad783a8",
+      "bytes": 20674,
+      "sha256": "a1d2272721e73bdd29befb29dd643d9264d19165c8224d23f938b6ad393e50fa",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1157,8 +1157,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 9942,
-      "sha256": "c2db216c1e9eb9982cc7df6c7921534d83af8fc9c673c0471cf495951477c2d4",
+      "bytes": 10070,
+      "sha256": "95221354d6c147b445d441644196c4520e24c007cc8766be42a03cd38c2462d0",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1253,8 +1253,8 @@
     },
     {
       "path": "scripts/core-candidate.py",
-      "bytes": 15480,
-      "sha256": "c9a86f58e96063d155470c0c59515ca920dbe89b9d229776e488fb1bba898761",
+      "bytes": 15542,
+      "sha256": "24dac2046cef50094e349dc824d20095817dc78b1ff3736fc4fa2ce1ee489830",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -1421,26 +1421,26 @@
     },
     {
       "path": "scripts/test-all.cjs",
-      "bytes": 6683,
-      "sha256": "945286eedfe9127be924d7bfe3613f611af10f2c912a44fd082fc4eb51622f31",
+      "bytes": 6705,
+      "sha256": "f225c24d8e1b08f356a44c2d3d8b796ddba9de7cf13829a4d3314af597117331",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "scripts/upstream-README.md",
-      "bytes": 3657,
-      "sha256": "5b8b295546cb20dff7ca309e924c5e7df19ad91c16bebdbf07c9a6f855a3695a",
+      "bytes": 4274,
+      "sha256": "8bf75b1572c2ee467e1162865474cf6137e4b9ba06ff18f7aa207d3ff3bc7788",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "scripts/upstream-sources.json",
-      "bytes": 1518,
-      "sha256": "f6394c7935efd2769249985e6e7fe2e13ff18403cc68867c5cb6d4f2f807a8d4",
+      "bytes": 2058,
+      "sha256": "bd72b8d0564e258c0f6d60efa6aa564a37b222051a24ff60cee4e70f9e919661",
       "component": "web-port-code-and-documentation"
     },
     {
       "path": "scripts/upstream-watch.mjs",
-      "bytes": 10480,
-      "sha256": "a150cfe9eca72777461b50d6217fa9d5a32c9d741569d2ddf33e825f8b7684d9",
+      "bytes": 11606,
+      "sha256": "6a9e14640562382bf99ae45b91838fd5c11ba2d887889d7f7093c72620883aea",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -3863,8 +3863,8 @@
     },
     {
       "path": "sources/build-evidence.json",
-      "bytes": 12765,
-      "sha256": "bca477359a576911220c0d4bfd5ab62188e4a0900da3f8e24adfc9a21b7bb664",
+      "bytes": 15546,
+      "sha256": "4e2e6f1dbe8cd5f47fb49a2428befafdc6c971eb6fdb2a6b3d5e4761d0e91a6f",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -28871,8 +28871,8 @@
     },
     {
       "path": "sources/libretro-cores-source.tar.gz",
-      "bytes": 1866509,
-      "sha256": "3a1f89e378bbc1593be42d1e7f8c2d42f1aa9358355cf6933ee32a11efa5aa8f",
+      "bytes": 1866890,
+      "sha256": "42f488413c85ab95d84091a4c31e6bc69a200c19e0dedc441ebe26502b0cda13",
       "component": "source-built-libretro-cores"
     },
     {
@@ -29591,8 +29591,8 @@
     },
     {
       "path": "sources/libretro-cores-source.tar.gz!libretro-cores/clownmdemu/common/core/source/bus-main-m68k.c",
-      "bytes": 49873,
-      "sha256": "365e5ebda48b85ae3b60d4c03744fd3db0113b71c06c6b51aca2de03f4e184fd",
+      "bytes": 50082,
+      "sha256": "b705bfab41430c1feb72fde0237385a9d7fedfb0bf6ed2c1bc774939fa4b0169",
       "component": "source-built-libretro-cores"
     },
     {
@@ -29759,8 +29759,8 @@
     },
     {
       "path": "sources/libretro-cores-source.tar.gz!libretro-cores/clownmdemu/common/core/source/fm.c",
-      "bytes": 18368,
-      "sha256": "e1888c56b57c9295b26804f9cf796092359ef1dabc9944feed0ab96bea19e550",
+      "bytes": 18551,
+      "sha256": "a1d5d1a40053fc7e4ce6edcf3ef13859cd3d1323d10190c4d85584447bd158c5",
       "component": "source-built-libretro-cores"
     },
     {
@@ -35267,8 +35267,8 @@
     },
     {
       "path": "sources/libretro-web/BUILD.md",
-      "bytes": 2329,
-      "sha256": "a57ca4ed82f51fbe00e4efd6e579f9992f09cafabb8c95d22207d0db9fcad7b8",
+      "bytes": 3881,
+      "sha256": "5978250eeaeda520cdeb5efa3c753bee7ef453ad1b8f6c16f44a19fd2213d726",
       "component": "source-built-libretro-cores"
     },
     {
@@ -38945,14 +38945,26 @@
     },
     {
       "path": "sources/pdfjs-build.json",
-      "bytes": 1361,
-      "sha256": "5e1287b2b3024e8088bd83d083c79eb14abaeab0b1a1d33ce5a0526e4363fb08",
+      "bytes": 2171,
+      "sha256": "acf31f62f5da762ab9b5347ebe8653e37ffa7cad4d3208d35ca535a9736cd639",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz",
-      "bytes": 1288218,
-      "sha256": "36dd8bf703921388710997aa260b8fdae96696a6ae726864bab4631d0c2cb453",
+      "bytes": 1313615,
+      "sha256": "bec850e370a709164b0886da4396d7fd5766e25198065f0930a77535d5580cdd",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/AUTHORS",
+      "bytes": 1195,
+      "sha256": "7335bc2a414d255077389e3b513a1230aed0a81b02ee506c2e9caf50887bef74",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/EXPORT",
+      "bytes": 342,
+      "sha256": "1fe7e66c5d272cdaa8de6581d9736e0e3c0b60e376d29371ccf1ee0466caa304",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -38963,8 +38975,20 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/README.md",
-      "bytes": 9398,
-      "sha256": "32ff2cfd67617845299910cff29ebd0dd191e1d0ab344518c9e840d772d6084c",
+      "bytes": 9834,
+      "sha256": "cf672f85411575de7e6996f11bf300f0c747749f0c6a288b0c931af0c324655c",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/bcmaps/LICENSE",
+      "bytes": 2080,
+      "sha256": "aa92ab5a472974865a96fd4a4e9c13bb41bf6fe1b309cb6b8da48bc9e19839a2",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/brotli/LICENSE_BROTLI",
+      "bytes": 1083,
+      "sha256": "2a57418d6b10947fe0dfbec3a600269e2745136c125cbf15b256e5ae18af23cb",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39437,8 +39461,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/color_utils.mjs",
-      "bytes": 1143,
-      "sha256": "208285f6d4d1f3ed0aeb6f136ed496882912bf7a236736195284fea11856de56",
+      "bytes": 1159,
+      "sha256": "fdb2b2e3c222fcfa163280b1a29ae64c014979788d2614dd7da591e459b4d28b",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39454,6 +39478,24 @@
       "component": "pdfjs-apache-2.0"
     },
     {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/dist/legacy/build/pdf.d.mts",
+      "bytes": 28,
+      "sha256": "dc11ac5030092409dd3183dbb24174beaf35739b9b5c90f268b3cf82b9453708",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/dist/legacy/web/pdf_viewer.d.mts",
+      "bytes": 57,
+      "sha256": "6f2878ba5118b5f3cc4f08d112ba64e3362921cda7bef7e23f1c64f811757e71",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/dist/web/pdf_viewer.d.mts",
+      "bytes": 54,
+      "sha256": "85ad88b315ef15eff4fa2311c4a1d29aa77e1db0355de822a14cb007c2b713b4",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/dist/webpack.mjs",
       "bytes": 924,
       "sha256": "eac3e389a6200bbfdd5006caaa71a59c26bb5df2a358f90eddbf5c63b67ea450",
@@ -39466,6 +39508,12 @@
       "component": "pdfjs-apache-2.0"
     },
     {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/iccs/LICENSE",
+      "bytes": 6553,
+      "sha256": "286e4fd7b447330b2c88e23890e3cd0a9d38cb398d4a59cb247f578ccbda3213",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/iccs/README.md",
       "bytes": 424,
       "sha256": "237d0ee8abf1d4997e4657f60f0ea56655847382dac154a79ba5b3a5474974ad",
@@ -39475,6 +39523,18 @@
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/importL10n/locales.mjs",
       "bytes": 3560,
       "sha256": "fc6053195d61a7c6e2d2c3758fe1efe34efcc69b20596f1228168f4dd5f228de",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/jbig2/LICENSE_JBIG2",
+      "bytes": 12862,
+      "sha256": "9e66b7f1b934a28b37f3bc4dac97915de1674271e79a0a88182a18ed9731b4d1",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/jbig2/LICENSE_PDFJS_JBIG2",
+      "bytes": 555,
+      "sha256": "aad3cce09842e00e9e11ad5e8fef8cc02fbc3a3768fe2f007443b9cee37aaee5",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39491,8 +39551,20 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/jbig2/jbig2_nowasm_fallback.js",
-      "bytes": 152009,
-      "sha256": "68686ced624a48c42f84cdaa482ec44b72b0de4dc84a0df903af1fb7b45b5d9a",
+      "bytes": 132439,
+      "sha256": "70150223396487e1ccfef7eac61fc780074ad7fcc9e843b702a8a3bc23107494",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/openjpeg/LICENSE_OPENJPEG",
+      "bytes": 2112,
+      "sha256": "a6af136f3e15038a666b61f376612a07d9a4e48cb7c01adbf3e33b3f14ab49b6",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/openjpeg/LICENSE_PDFJS_OPENJPEG",
+      "bytes": 1285,
+      "sha256": "717fc62da03292dbb4dd0c8280bd4ce7bb8550dcf31d772bc93455fb50313425",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39503,14 +39575,26 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/openjpeg/openjpeg.js",
-      "bytes": 13686,
-      "sha256": "4061971425be667cd3d594262d19cb5bb26ac39f42434972ab80f8018e52c171",
+      "bytes": 8453,
+      "sha256": "99e5441cd63a8cadf8e9f2e382e3ee3fe9440f3f4272c2dcc1f3f6727ac6af1b",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/openjpeg/openjpeg_nowasm_fallback.js",
-      "bytes": 445781,
-      "sha256": "9047b34b6bc142d85e4b0aa1b08b0b9baad4c6f8b7ac87641b9e8f90eb6fd23e",
+      "bytes": 338458,
+      "sha256": "2855f1590e7fd7abbbf204cd13a5c09d30c92fe2c9313fb72b64aa763fe8b4f3",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/qcms/LICENSE_PDFJS_QCMS",
+      "bytes": 1036,
+      "sha256": "508a77d2e7b51d98adeed32648ad124b7b30241a8e70b2e72c99f92d8e5874d1",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/qcms/LICENSE_QCMS",
+      "bytes": 1121,
+      "sha256": "36d847ae882f6574ebc72f56a4f354e4f104fde4a584373496482e97d52d31bc",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39532,6 +39616,18 @@
       "component": "pdfjs-apache-2.0"
     },
     {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/quickjs/LICENSE_PDFJS_QUICKJS",
+      "bytes": 1075,
+      "sha256": "7fdaed3d938f3dfce7189db07e74773c23789143a55db81a95d09dcbfda267b0",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/quickjs/LICENSE_QUICKJS",
+      "bytes": 1130,
+      "sha256": "598fd7fc928e4350abce36e337ba5a1346923c5c692f5be92c3d8e29ddd7c18d",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/quickjs/README.md",
       "bytes": 602,
       "sha256": "cb9cf523e87eec4839071856bb3c173f2f308426613ae0b55f9c9a9920cad002",
@@ -39544,6 +39640,18 @@
       "component": "pdfjs-apache-2.0"
     },
     {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/standard_fonts/LICENSE_FOXIT",
+      "bytes": 1553,
+      "sha256": "b578cdd2345840ada550bd12519533812320d5f1d21cf4c1c7e1b1b0a31c98b7",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/standard_fonts/LICENSE_LIBERATION",
+      "bytes": 22154,
+      "sha256": "d2c4d5b3e115a519cb58eb691aa64538397e2611f9ebe801392cf9667997e7dc",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/standard_fonts/README.md",
       "bytes": 1141,
       "sha256": "f21d2a0f65f7dd53bbe42ca51b40c4331f566fe91a71e689682c1b762889c47e",
@@ -39551,8 +39659,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/external/stylelint/mozcentral-tokens.css",
-      "bytes": 3385,
-      "sha256": "540c9e5e8f7da0c0b81350d361f31d3a28e07add6d0c8d4657755ef58d244343",
+      "bytes": 3464,
+      "sha256": "856a0805992ab1683673499433b728b7578cabcceb29c24ff926277947d9282c",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39563,26 +39671,32 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/gulpfile.mjs",
-      "bytes": 102283,
-      "sha256": "e67c1f1078843e0c638d76b64d4dba7cb024d70f97869b2a41e93ad262f56aaa",
+      "bytes": 108145,
+      "sha256": "00c4125b7769cafe42fb5f3112f4ef7a7d1dfeebcf8a8381b83338e7802b4102",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/package-lock.json",
-      "bytes": 487004,
-      "sha256": "28d48a16995bd9510c125f56c4dc49d4f130ceea25bbf020b863116f5920cd8e",
+      "bytes": 507442,
+      "sha256": "c5fd587a68a583172c7b63e900a8b3440b3923a79c7d8696f2765b7e24715c56",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/package.json",
-      "bytes": 2172,
-      "sha256": "20bdc631cc3d3af461ae6e7d2e05b708a05757e59a35193801ed5017c66953d2",
+      "bytes": 1965,
+      "sha256": "8ecfff47c38b74ee4c9a1b529cd680c1673f90ed2ca7254136318d2964f9cf21",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/pdfjs.config",
+      "bytes": 121,
+      "sha256": "c508b7f8835953a7e3eac0430253e5ad36ef3409bf6335a00a6ae8c2b7ee6514",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/annotation.js",
-      "bytes": 176909,
-      "sha256": "197818005b61b749855087fd088f610c95a6efeec22a9d308d055a126e68e33a",
+      "bytes": 179282,
+      "sha256": "472b0ea998d9a233a01ebd87e31e295e36a7d0041105aef94a859d4b0f5b53d1",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39605,8 +39719,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/bidi.js",
-      "bytes": 14297,
-      "sha256": "6821cddcb11529f4e81e5fa71308957297db41bbed50bfd533c9526178883386",
+      "bytes": 14263,
+      "sha256": "a5c9c892472352ff3369252fee021ea014109fbc9af45b28e93618227bfcbed6",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39623,20 +39737,20 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/calculate_md5.js",
-      "bytes": 3976,
-      "sha256": "7590847ea54f9a3337ecdaf094ee45b2df2ab4ba41495df8ea270c014c8a7b9a",
+      "bytes": 3812,
+      "sha256": "351aa1ff590e4c0f8d7fb37c4a1c9c72bd105c1693d13b5d73ac677a811b25a2",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/calculate_sha256.js",
-      "bytes": 4556,
-      "sha256": "ac2767c83be4256867f28a6ccfdbdc65a39005c19819d942e1970a4fd771b25d",
+      "bytes": 4275,
+      "sha256": "1a2290c318dd1a8cae71fbc8affff3f1fbffbe8d21d11c588fc7109143148702",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/calculate_sha_other.js",
-      "bytes": 10802,
-      "sha256": "0cfeba3475af581a3a2b6db17741c0091b61f9a6e9663a4b237d5e325bee85de",
+      "bytes": 10374,
+      "sha256": "0f67f7cd12b0923418b3e3254f2885c41289439d426a1935b9fc6a7fa14e773d",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39647,8 +39761,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/catalog.js",
-      "bytes": 59929,
-      "sha256": "0342e58782388b25b5f168d42e9ef24d06585ca0c4e2f9d579bd1344f44158f7",
+      "bytes": 60103,
+      "sha256": "70dc38a0b7826b827917fed19b4fa74c46372482eec4a5bf63e10d5317f9b2bc",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39659,14 +39773,20 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/cff_font.js",
-      "bytes": 4220,
-      "sha256": "a65d8cb890f188031b5bb495cc268bcf4d6a2b431afa480b0b2dc159ba6b5d50",
+      "bytes": 4618,
+      "sha256": "4806959656b3161a7604386ad8dadf422fb9924ee20f87497249fdd563d12e8c",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/cff_parser.js",
-      "bytes": 65621,
-      "sha256": "76ab62c090a87d34f4980662cf34aeb4285cf3748e3c7abb923287ad278a3b04",
+      "bytes": 69456,
+      "sha256": "fc36818021b16489ef500d917e8da5f5ae19aa7785ffa5cc328e2bbb1dd95710",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/char_code_map.js",
+      "bytes": 3081,
+      "sha256": "a8f816eb98f481ff8454108bca47cff17a09e07d5e107b1926260ec5ca4780da",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39677,8 +39797,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/chunked_stream.js",
-      "bytes": 15417,
-      "sha256": "31cc352d6a24aa991250486856f06d94d8894eb25045ad26f82f61bafcc2f91f",
+      "bytes": 15258,
+      "sha256": "bb20ccfc62c775e8beb436b0d12fe7027962fc6d618ad6a5ea6fe2e15fb508a7",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39689,14 +39809,14 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/cmap.js",
-      "bytes": 16755,
-      "sha256": "c94c77eaa8263bf56fff334a301cc26b6254b5973a5bc4238ac2403b48b98dd0",
+      "bytes": 16665,
+      "sha256": "ab3e85d9ff123e9a51b94c658b8babb0a2c4f71ed4db69a9ccaf52e1be655ed6",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/colorspace.js",
-      "bytes": 39330,
-      "sha256": "aa7644e127bf46cfe2d85650af9a540fab0498dee19ec76a453184167dab4d31",
+      "bytes": 39452,
+      "sha256": "8eacd9aaca2ab5710506211df12be410d71404afbeb8adb4e8d4a08b13230f72",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39713,8 +39833,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/crypto.js",
-      "bytes": 42313,
-      "sha256": "44cefafd8845bdb92750c5fe87157ce5ed48f1bc4f09062704a215e64633cdb9",
+      "bytes": 43064,
+      "sha256": "5f3a482480ab4f0a6d16dc5ffce02daf192dd6faa08af1148326dd59256a35fb",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39731,8 +39851,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/decode_stream.js",
-      "bytes": 6357,
-      "sha256": "209f116192c50b5e494e351bd2833dbc8f69b20ff89057f2f26c3e8dab6c483e",
+      "bytes": 6856,
+      "sha256": "4cca41cc39b02c6891771a03ed32bed88b60ed9e91adf41f7ea6595ae6d1da86",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39749,14 +39869,14 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/document.js",
-      "bytes": 69410,
-      "sha256": "f68eae7da826c2e0587757df3f5d16466d8fe1c2be2f3c8d3f0f5abcd17afe27",
+      "bytes": 69211,
+      "sha256": "3fa20306af7d1ecde5ef0c97cc25acb7aef085f70915fb4e1633c3b2c9afb65c",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/editor/pdf_editor.js",
-      "bytes": 96863,
-      "sha256": "6b7f24bf2da898b4fea1a1b22d3e5277544a2879d2759fb7ed16b4082e24215a",
+      "bytes": 98886,
+      "sha256": "a8c7493e2ea47bc93ecbaa38114d1f52cf2ec7d38d4daefad5b91baff55dccde",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39779,8 +39899,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/evaluator.js",
-      "bytes": 176826,
-      "sha256": "c6e73a0a30a71ad1ccc6cc73c92d2201b437a49151e19e6adb048301fcb51192",
+      "bytes": 178015,
+      "sha256": "1fd33fcf135b2ee225ec90ba0e4e6528a5b0d6ed856f95d7d316f16e6d1a754e",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39797,8 +39917,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/flate_stream.js",
-      "bytes": 15742,
-      "sha256": "9022e0d931b10e881b06100aeb36a06432984d521399c79b9ff0ce5c3a304bdd",
+      "bytes": 16870,
+      "sha256": "5d0ed4fc6ee1e6aa3cf28531b56adaecaa89f4a72549140c8181e64ba87e56c4",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39815,14 +39935,14 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/fonts.js",
-      "bytes": 123718,
-      "sha256": "21d30559a199fb5e9dd66c30c4d365db898a0c674ffd122468c664b2072b0be1",
+      "bytes": 126264,
+      "sha256": "ac097fbf0b046f8a5d743ce56f34e1df3e14b4f8a88efed65e185647f7ccca65",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/fonts_utils.js",
-      "bytes": 13856,
-      "sha256": "fb5998dc6631d93dd1a236a94db841b5b564e13ec0b052bdec133dc4d46ac73b",
+      "bytes": 14204,
+      "sha256": "02caab789b4ce1c6bee6834279fde954f16188a0414c6ccd52506ae66ce8b56c",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39857,20 +39977,20 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/image.js",
-      "bytes": 35288,
-      "sha256": "3efedbbe3138bd2ce239344dfd5ee45a9b9591f7fdf2aac60aec60034ccbdacd",
+      "bytes": 44079,
+      "sha256": "2b58ee797cb787306cf02cb0686587ca2007f21e124b35edf7128aea5cfc1c8e",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/image_resizer.js",
-      "bytes": 16225,
-      "sha256": "80ce15c3b7a32dba9aa886cdf0203c4f4b71580db216933c44d1dc4f7e71a97a",
+      "bytes": 16453,
+      "sha256": "3405882a7be943c3c521dfb4d1e0540bff3aba02c9798ea0027a700101186d3c",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/image_utils.js",
-      "bytes": 7440,
-      "sha256": "992ee1f5c20d1817327bcbbe2ae582135975128ee9e7ed608c5cb18306909fcf",
+      "bytes": 9303,
+      "sha256": "457497fc4d2fd1cc031e52c44348181dc8b61dc157ae4321f7340e4a7fa5d3ad",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39911,8 +40031,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/jpx.js",
-      "bytes": 3530,
-      "sha256": "32489cedb09f858114273b04e994331aff8071dd640b1eff8b5c251db5f2a416",
+      "bytes": 3629,
+      "sha256": "ca403c00ff1726a29e056d320498ee18252b8f4d0ea2f821e5c586218a71b9a3",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39929,8 +40049,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/lzw_stream.js",
-      "bytes": 4667,
-      "sha256": "5c095a546097c43431664360e80e43b27bd9052f2cae24eb63f8a7055e999042",
+      "bytes": 4689,
+      "sha256": "36996aa13c3bb5f3a030b2df6b5198555bb121fcfd4f84b9ec7f46747cf1b07e",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -39983,44 +40103,44 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/parser.js",
-      "bytes": 45131,
-      "sha256": "f861d0e2adc7151961a441fa4fde8872a5d0bc4212526eb49956e68d8b0c2717",
+      "bytes": 44354,
+      "sha256": "37ae52e3aee99d4c98bf4b21a3fb74cf3e9e07585dd81d0099c7daadea8a1eb4",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/pattern.js",
-      "bytes": 40110,
-      "sha256": "5096ef40f84070142251cdaa19a6aafcc3209b2e8d9fd3667c20db836e474d29",
+      "bytes": 39617,
+      "sha256": "bc6742705b644d3f6eaba5bb47832edc3fff880aaaafe410247cebf0172aff70",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/pdf_manager.js",
-      "bytes": 6479,
-      "sha256": "05413f682b8e79bb2cf43da79c17a64395321d7259bbc145bca9fea870ba895c",
+      "bytes": 6804,
+      "sha256": "01eb3fd870e75150518ab351e503f82ddfe8dd4837fa96f4528dffe8873a0b41",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/postscript/ast.js",
-      "bytes": 39694,
-      "sha256": "485ede6c650818e678a385e5df4d77b9f5917c067c1bb447d6cd11bb8405c5f6",
+      "bytes": 42056,
+      "sha256": "cbe968cee52038e16889acaf547c1a0b92f09b628acb71fedcf48abf72926b7f",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/postscript/js_evaluator.js",
-      "bytes": 21588,
-      "sha256": "c40472add443a76f7d3d1119252fc6fb508d60e026659b078ccc0ace8fcb0279",
+      "bytes": 22710,
+      "sha256": "cfda563c53b120dbc14f9d9a59f6f8f584c784cd2cc84cd0a7e7818c03058bd8",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/postscript/lexer.js",
-      "bytes": 5402,
-      "sha256": "5f286cd365ae5977624fb999ffc577e7959c1f342545b8e8608221a60fd2e59a",
+      "bytes": 5326,
+      "sha256": "0280d4a4176e3c444e51d5dd593be3d1d776a975ef2ad9ca77966369497dc471",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/postscript/wasm_compiler.js",
-      "bytes": 30681,
-      "sha256": "eae2664f96fb26e226836f3977780147cf1863d76c7cc4ed686df12e681d46c2",
+      "bytes": 30982,
+      "sha256": "6552146394c4e9f254f76c3c5a0fb81414a68de07693d93d29775e3c4cc1b117",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40031,8 +40151,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/primitives.js",
-      "bytes": 11275,
-      "sha256": "59a138c1353f25190775726274dadd2d92a934394ecf6ad177af7379ca96dd1d",
+      "bytes": 11334,
+      "sha256": "1bd5dd93cf41c62d848809a8b364dfd0b50da7ca4b268a76a49683b50446e82a",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40079,14 +40199,14 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/struct_tree.js",
-      "bytes": 30896,
-      "sha256": "de17152f19fb241d5fd0dba169ce443c7d008b1271a173d3332d74577fa402da",
+      "bytes": 33701,
+      "sha256": "79fd315dc44319443f92fba7ffe321020b96179a75488786f9f65643ba87173e",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/to_unicode_map.js",
-      "bytes": 2116,
-      "sha256": "297906966080558be4fff5e62d5b55b67338389e26d3b9a784b8837c14c1b64f",
+      "bytes": 2309,
+      "sha256": "a63130da26cba8fd9c0d3ff5a368401a71ccb2856116d4109c3cce6f087dcf4b",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40097,38 +40217,38 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/type1_parser.js",
-      "bytes": 33872,
-      "sha256": "ca11ccf0feb3cdd98f456879f9a60684eba88661166ba3f729562976ab3de3c9",
+      "bytes": 34579,
+      "sha256": "aa23c73048377cf3372a622b31176e2154481102b325e6ff26e8593863ab6ee4",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/unicode.js",
-      "bytes": 12025,
-      "sha256": "d96ec779e8ccbf87956d8a74bcf75d61c5ef999a5c73e4b5863c011919563ae9",
+      "bytes": 12032,
+      "sha256": "12d11ee5bb4ed957a1b946a2e5e7c7bcf7d398adb269e8b6b1ae1574b6a4b9f3",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/wasm_image.js",
-      "bytes": 3805,
-      "sha256": "1d7daa5b7c68d4c5a3917624d42d7b4c5abf14f7ff7d8c8db7c328b004b07997",
+      "bytes": 3788,
+      "sha256": "77da45d800fad84c3b52abe51952249f3bb7a77ced4ad02e191e7604adbb5e27",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/worker.js",
-      "bytes": 33021,
-      "sha256": "9036843a3b7072b6d357c6b98724e014115c653f0c21755dc425e66ee75d0690",
+      "bytes": 33771,
+      "sha256": "57d917d11b84691e89f4cac5c46d87c92c805b5843416c897915664f068b349c",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/worker_stream.js",
-      "bytes": 2448,
-      "sha256": "fadbf78b4dedff1a4ba03e7c21f27cdc60ddb1132c6b8e6d08ac442a19eb3d71",
+      "bytes": 2480,
+      "sha256": "37a501f04dd5322cd1b290df4e36f7e67c0dc62288cd01215d2301bebaebf2ff",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/writer.js",
-      "bytes": 15736,
-      "sha256": "b9032e054e8f1c9b44fed35b6c42eeeb141b8b4ff277fc3a4e5c4b8ab9b7dadb",
+      "bytes": 17040,
+      "sha256": "9a7fea43a1e162241cb7676de3cc07935471405677f8aeb6f8ce5c5e3dadb039",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40307,14 +40427,14 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/core/xref.js",
-      "bytes": 32839,
-      "sha256": "4c6607e3ede64f73d302ebcaab560397a2a6efc14251b4f77a57b838d5d4917b",
+      "bytes": 33185,
+      "sha256": "6ee8ae3f9b368561ad918db7b0db909d04459c4ecf344ff8b4047463339cba84",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/annotation_layer.js",
-      "bytes": 130398,
-      "sha256": "f4a3acfe602afbd0ded43abe2418507464ae8ef7ae1a3741bec61edaa40b412b",
+      "bytes": 130744,
+      "sha256": "dc3aa6ffebdb86d858969d258fed040c5e9134c0962fda4a46e5e9314653128c",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40325,38 +40445,38 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/api.js",
-      "bytes": 113330,
-      "sha256": "4d63f2ae76097f45caf149c4596b3de4ccdf9a1687b474fb9b649ed526e1779e",
+      "bytes": 115625,
+      "sha256": "073bffc379d27d396317849f465d4879a17753d5241c2c5303cc10a9ce9d1479",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/api_utils.js",
-      "bytes": 4511,
-      "sha256": "3d853a6e69fe1749f5474f208819cedeea78273d71af9a42abc413c5710e11c2",
+      "bytes": 6335,
+      "sha256": "ac80fb2851b4aa22c6c05ad125bc148c2e69b539e887dd82e83fb427ba23486f",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/binary_data_factory.js",
-      "bytes": 2326,
-      "sha256": "0dd49332ebc16436cce05a0f0d6afba435db072a595876c88b9e84adbd841653",
+      "bytes": 2322,
+      "sha256": "65a8f13186eb6580640893e52843ec3c2f8477c08b69dad485160d2f62babbcf",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/canvas.js",
-      "bytes": 142564,
-      "sha256": "2809c1d1938c6c656cecd120731740568953681f4d2090b6920da85e3ebab68f",
+      "bytes": 146161,
+      "sha256": "d3ee050b84a0924f168cc10ce5bedb96080de1ad0ae4ca61f62b4bbaa379d44d",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/canvas_dependency_tracker.js",
-      "bytes": 33030,
-      "sha256": "7d2c50af26a77370db8c7bcfd764d1b8a950766682a7ef7e5e42db1146df9c85",
+      "bytes": 33771,
+      "sha256": "0fcbc4341da8596f7acae15f33b6f265f826f259ffcec264169adfa1a566372f",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/canvas_factory.js",
-      "bytes": 2510,
-      "sha256": "55da798ec94aa81040b899a33fe8516ae3cc62f3ffc9c4525c54beae4313fc39",
+      "bytes": 2245,
+      "sha256": "c68b422053805c345ba1d9fa5d56314cafd9fb6245b52f9464bd313bf6376aa9",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40367,8 +40487,26 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/display_utils.js",
-      "bytes": 23345,
-      "sha256": "02e03a65721ab3dbf6af03e9b573b233f1e73a778fc971c156a22557ea76ff20",
+      "bytes": 10637,
+      "sha256": "7ec8dab26898cc15c8d66c1fb9749e12393c29cc799404c68da337a926a178c0",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/dom_canvas_factory.js",
+      "bytes": 1078,
+      "sha256": "277a6323c2af5ba4c33f48dc9619bd751de6bd33d873a073fa61dfe16cd2b8e1",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/dom_filter_factory.js",
+      "bytes": 17955,
+      "sha256": "dc9e9b77f5c9a420eaefb4927ce1d34b7b4aa3bbfb6de4be7273ce08b9da7136",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/dom_utils.js",
+      "bytes": 12744,
+      "sha256": "f60d632273c8e739040e35c3c11f8b820813f8302bbfd302f9ca3e9e73ac8120",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40379,32 +40517,32 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/alt_text.js",
-      "bytes": 8993,
-      "sha256": "ed2e406abb02749091ea97711869a1972349350d3f2a862ce26af5a74fd06535",
+      "bytes": 8989,
+      "sha256": "2be298ec97c6b8bf2a75b701a6d86ee2d2814e1bf3f65ab6d2212a118df7853b",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/annotation_editor_layer.js",
-      "bytes": 29391,
-      "sha256": "c75eaa6632424e998642f55ccbb7cf51a6d60abadefa07223ea090b9c23f2bcd",
+      "bytes": 29387,
+      "sha256": "393fdd3e25867d0de8203d135fbd44215698f4917177dbf540d77c854f43fa3a",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/color_picker.js",
-      "bytes": 11307,
-      "sha256": "066d3614c72937b0f37a4d1cfb11572b392b351fb1d0e515652e0d3e7dde378d",
+      "bytes": 11341,
+      "sha256": "a60032ad97cb46108cd887ada714ed31e5e60b7388fd30388edb11c85543ec34",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/comment.js",
-      "bytes": 8668,
-      "sha256": "3f8eec8d28a63d0970af027a00cb37ae846b5b4068a0e2023db82a2c9abab8c8",
+      "bytes": 8664,
+      "sha256": "92c196cb1c94606fc732f3d25145bba4fc48145f578e237c1dee48679a30a245",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/draw.js",
-      "bytes": 32826,
-      "sha256": "500795699a8dcc70b322c785cc361224eccbd359be10164d387e5e082666e5fd",
+      "bytes": 33208,
+      "sha256": "c0c67758a665804b5cefe98540900f73c08950025669e1a0918404ef25a42528",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40427,14 +40565,20 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/drawers/inkdraw.js",
-      "bytes": 25070,
-      "sha256": "2df851538136a6b6570820cfd91c1097c17be03ea94625fa8d9a213966a2f226",
+      "bytes": 24729,
+      "sha256": "ca9bd2e9c06e24d0121fe371a461b263b2883d995b5e8b3aaf5f442718828626",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/drawers/input_smoother.js",
+      "bytes": 5376,
+      "sha256": "ef3533dc228767bf759cbe51fd3ae4ee0fffeb63c6f312a5c113965fc0f64e11",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/drawers/outline.js",
-      "bytes": 5817,
-      "sha256": "970510243529de820e95bbbc103682029a3fbfe1315cea517a300a0fd7785efa",
+      "bytes": 6010,
+      "sha256": "ddce63a96cdf13f172d930da4d323f0212c062ffd8650ebabc922072469090a0",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40445,8 +40589,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/editor.js",
-      "bytes": 64596,
-      "sha256": "83621d3c321a5d0358e8a6ce46356e01e9f06ca20cb24c85b542903a2bd1487a",
+      "bytes": 65989,
+      "sha256": "6450704e19d95eb6fa7466f8fccc28fe693fc5dd2a46569eabb86cb36ca9ada7",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40457,50 +40601,50 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/highlight.js",
-      "bytes": 16648,
-      "sha256": "ee371e1c8e23074fcded9e73bdbd3554e5aa26b6cc1e29c91d14064a970d5f14",
+      "bytes": 16644,
+      "sha256": "28fafb1ebe358c91bd5218816c5783f0483b0c3d473dba871277c61f4b5d9416",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/ink.js",
-      "bytes": 8599,
-      "sha256": "4d456da367fee105e4cb775fa60d361b6d9772228e6d04401fbe8a38bf8abf30",
+      "bytes": 8650,
+      "sha256": "1fbed37164404ee8332fe67ee2f877a7788c7ccc3f84ee9364ddde14f1b63862",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/signature.js",
-      "bytes": 10922,
-      "sha256": "2499747af63b35146326a8eb40e01ec66b54ae832b32c221406db93b74ddb949",
+      "bytes": 11297,
+      "sha256": "d875b98cf94da38f8c1edab2b6b80da9cd44f301ae5ad9e922f66fe78c7e7d9b",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/stamp.js",
-      "bytes": 25332,
-      "sha256": "4780ecea32e4392579e9f706ff302ba2674a3a6636e91f75d8540029d75e0a20",
+      "bytes": 25665,
+      "sha256": "90a717d401463df6b94c986d53c57e37e634fee245b304caa48d002427ae2a04",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/toolbar.js",
-      "bytes": 9921,
-      "sha256": "a947a45899fdd56e6d498b1f35613ed63ad037bae2517c9d422d944b12c4f899",
+      "bytes": 9917,
+      "sha256": "9d5daf66d36b24d07700435886c2283ff53079be0935b953573f199455d450f9",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/editor/tools.js",
-      "bytes": 80475,
-      "sha256": "add5a38cb2f64529109eecceac1d5d3d185f29657ecafaaad2b0b7f43b650354",
+      "bytes": 80653,
+      "sha256": "5009e4b6e47e57996c8040b08e50125d018c9eda8840a12e1f68f63c8bcf3538",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/fetch_stream.js",
-      "bytes": 5262,
-      "sha256": "e33a599abf6f4fe4d0123ab230c2aff8718289d4886a45e32c778affa561195a",
+      "bytes": 5487,
+      "sha256": "a321f9234d2a24379352c80e5a3a2722e7b969138e3202000b7695fa3ba0c044",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/filter_factory.js",
-      "bytes": 19156,
-      "sha256": "4f5a1c4c0b84969ba50196f86eb7c3a9535261a08f019b0ead59a39fe8eb0e95",
+      "bytes": 1928,
+      "sha256": "7152bb5620578f679a4c34aaee4592ef3d7c5b0fe471fca0238818368f161a9b",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40523,20 +40667,20 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/network_stream.js",
-      "bytes": 1142,
-      "sha256": "1053f9dcf638bf2daa0f55e5d184f9d78547da25883c8fad445b304cbe7f6806",
+      "bytes": 1138,
+      "sha256": "fe82ba0952bbc5b855718a389a6c6d008d431e4b2b20b1bed4dd1263a05593fc",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/network_utils.js",
-      "bytes": 3802,
-      "sha256": "dcc7730add5ea5bd9f71c564a4d7717f7d47a386796397cc421dad046d4b9822",
+      "bytes": 3798,
+      "sha256": "cd76eedd74d4e7746814a7d1a8b8502c794705b6af1d9963b2ff03b25893a32d",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/node_stream.js",
-      "bytes": 4020,
-      "sha256": "92e2f508cb9999fee1b746ae129a1f80d3bb477dcd30d8fde4e3e0d08fbe66c3",
+      "bytes": 4245,
+      "sha256": "5fdae8585091b964624bf64122a6776a0272fb300cc60daae505b8a6c81bdcac",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40549,6 +40693,18 @@
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/obj_bin_transform_display.js",
       "bytes": 9625,
       "sha256": "211b9952cfa977d26ddced7c24b8f786c1bb4157994bde07c01dd7c2cbeaf5b0",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/object_handler.js",
+      "bytes": 5119,
+      "sha256": "2111b50a4fb00bd5c7bb254e7d401f6eba22b413fe32bda293df99d9491ffd9d",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/offscreen_canvas_factory.js",
+      "bytes": 862,
+      "sha256": "9a69fc841e73b092f8c890b3fe3f8bd82a2bc4379168b05f79a3d34dd2d0d0fe",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40565,20 +40721,32 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/pages_mapper.js",
-      "bytes": 14712,
-      "sha256": "dc7035f67efa16d415e0e26cf4b44751d55744681c586c778c3c22b1d873a5a6",
+      "bytes": 14997,
+      "sha256": "dced76edb90990e0a175276e8030dc74c945e9eab93ae8475a234176d2c25fd1",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/pattern_helper.js",
-      "bytes": 30646,
-      "sha256": "92519ae2bbc6dc2e733f28964c638f8e0fb3edce357ecc4dc353d0577c116caa",
+      "bytes": 30743,
+      "sha256": "c4ff59df8c078a72508658f6e1c987bb74b9afe152a3ef8321d24e6b14c7b7e7",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/pdf_objects.js",
-      "bytes": 3383,
-      "sha256": "572815573a107d600b49d9fdd177015b6c5e7c8f9e79ae7f22e9957549b9e90d",
+      "bytes": 4081,
+      "sha256": "7dcb55b6f0d3e72b270100ac172b527a716b489bc4cb1cb48b30cf232d3ef921",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/renderer_worker.js",
+      "bytes": 19106,
+      "sha256": "42a42def9e82d790724ec80b3109031cdf9b378163cb91c08a91452786744346",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/renderer_worker_proxy.js",
+      "bytes": 18806,
+      "sha256": "f7843180464edb37522be57e1c3f0a473b4927615346c566f85beb60586edeaf",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40595,8 +40763,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/text_layer.js",
-      "bytes": 17874,
-      "sha256": "d5469dfd5be2ab5254f5409d074d6b9d88b3bf2db91d21f06cf7d1f95121f55c",
+      "bytes": 17357,
+      "sha256": "15c6580acfe230ab2dc06edc00183f458ade8e86d254c2bc01fff55b8260dbc2",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40607,14 +40775,14 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/touch_manager.js",
-      "bytes": 14835,
-      "sha256": "a8a8db11294ba355bbab4e8cf2a0c6fd57d8a32b28cfda7c2332e82bfac7e60a",
+      "bytes": 14868,
+      "sha256": "eeaf1ad8b478a90eb4dccdd32be39856b32192a090c5762bebfa0477d98f7d93",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/transport_stream.js",
-      "bytes": 6512,
-      "sha256": "3796c6062dbce914658e30d5975f8549fbfb1f6a46b0edeed727ebe194c4e65c",
+      "bytes": 6508,
+      "sha256": "c25f7db1c0c438845efe98de0a4315df595b549c5da17a94ff54533bca3f51d7",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40624,9 +40792,15 @@
       "component": "pdfjs-apache-2.0"
     },
     {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/worker_filter_factory.js",
+      "bytes": 746,
+      "sha256": "e37e656633b5eebd34ab2f089b49c3fff38cb1bcf0f385b341eae18c877a754c",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/display/worker_options.js",
-      "bytes": 1630,
-      "sha256": "899b01249db9d74880d6bd4091aa1f9ef62736fd1f8329054dfb2607b2a84fbd",
+      "bytes": 2832,
+      "sha256": "0ea5e5c954e41e9258ddb75e9ad250ca743c54c4c239a2f3e34353d711e1d3aa",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40661,8 +40835,14 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/pdf.js",
-      "bytes": 5356,
-      "sha256": "6b282d62d89e01a1d565f178a7a3352f41c88c53ccbf4edfa660408086f0a7b0",
+      "bytes": 5398,
+      "sha256": "0c20595f48723de7d5abb85ef32ac7d79a223c06ccbbbaaf1113af8b095f699f",
+      "component": "pdfjs-apache-2.0"
+    },
+    {
+      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/pdf.renderer.js",
+      "bytes": 639,
+      "sha256": "8d4d906fce5f69d92c5ba9d72e019ebaa887a1965dd20c94c2d6f28d412ad74b",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40691,26 +40871,26 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/aform.js",
-      "bytes": 14622,
-      "sha256": "dd032e82b5311b25505568591f7855b7988e0dd53be57d402784c84c33365d85",
+      "bytes": 14588,
+      "sha256": "7c9600cd33f00b5d6ad87e4446183ce2c1203e40b93bf8dc3d6720ec985df07a",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/app.js",
-      "bytes": 13692,
-      "sha256": "896b02fc6963749a832647a1d5e7277399296b5b511e472609326fdd1d53e202",
+      "bytes": 14138,
+      "sha256": "0c75fb66498b8477b202c6523bfe658b35c97681489202a28019629107c20e62",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/app_utils.js",
-      "bytes": 1308,
-      "sha256": "2c460eb68a7f6d2a1bfcb61c2a81487edf45277e342fb480f57e74aa84a1ee8c",
+      "bytes": 4233,
+      "sha256": "2d6e9df4b1522bc5b99deb0f26f2ca867851b4fc5883d9a006017711229bdb8b",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/color.js",
-      "bytes": 3247,
-      "sha256": "09fd4c52e4c95b2412df523edafd0f8f649aaf39645caeae32ad51d2c804d71b",
+      "bytes": 2696,
+      "sha256": "3b5afefa486712453264c201f8901edf81afca7a0cd2dd1cb64a59c0ef046429",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40722,7 +40902,7 @@
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/console.js",
       "bytes": 1105,
-      "sha256": "29ead8b1ac1082e95599bf4ac367d7c35c357d4a9c34b07ad0794f7ec4bec4bb",
+      "sha256": "0e2ea69113bcecc8c6ce0b11f8025e4b669f984520fcd6ba1ed4303f9f19c679",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40733,44 +40913,32 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/doc.js",
-      "bytes": 26219,
-      "sha256": "678208d6c867e6be951b833595df41a2f840e3b11ac16e4d888c226864afdb18",
-      "component": "pdfjs-apache-2.0"
-    },
-    {
-      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/error.js",
-      "bytes": 784,
-      "sha256": "b5bafce846a31b2365934215afa92f53aa76742c3d860b2f82ce5575e462a2a3",
+      "bytes": 27104,
+      "sha256": "599bba3e264a6fed10b66420d6997c78255e41912ca549cd851b82a1435c1c22",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/event.js",
-      "bytes": 11149,
-      "sha256": "ee2778f29e28d468e0774b4c7a120abb27ca7356f2ce7dfb5062ee465493bc34",
+      "bytes": 10380,
+      "sha256": "bc6516e84d008e7d758fa7efb523fc99f3dc7176db5eac94f985c26442f3a954",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/field.js",
-      "bytes": 17787,
-      "sha256": "b64b3948d18265238a61654549f71d8dad13acf60b51b7cc715e0ed380b200e5",
+      "bytes": 21988,
+      "sha256": "1b25b17a9ca27d6d1bfae915a53890192af55a51b20982098eafde5d0eec4cd3",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/fullscreen.js",
-      "bytes": 2731,
-      "sha256": "309164ea880489aa24c685a35c12acd798c36d82edc1479400e0b6a80f20a192",
+      "bytes": 2668,
+      "sha256": "78d9c2f8640f6b72d4a413a66dce9b1efd9f697626eaf415e0393ea23fa9d796",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/initialization.js",
-      "bytes": 5792,
-      "sha256": "5f30c3fdb43ab39305804f15a0446916e3fbd93b279462975faa4f40e3794d3d",
-      "component": "pdfjs-apache-2.0"
-    },
-    {
-      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/pdf_object.js",
-      "bytes": 779,
-      "sha256": "aef78c9f548a2ea054362fadae2b0799acadd0e5ab4a416d9e775586bf2d3da4",
+      "bytes": 5890,
+      "sha256": "9d7e7246d26c98020e2a463588211246db4ada729d6553ceea86569431337914",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40780,21 +40948,15 @@
       "component": "pdfjs-apache-2.0"
     },
     {
-      "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/proxy.js",
-      "bytes": 3339,
-      "sha256": "1124c7d3b0b6816720cfa60f58d3da9dd3ee5c24ae06fe26c5b1f1c222c5154a",
-      "component": "pdfjs-apache-2.0"
-    },
-    {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/thermometer.js",
-      "bytes": 1267,
-      "sha256": "d7c0fb5b6772d5ce876f3e09ae4fcdff35a46706173618967cbbaeb1972ef594",
+      "bytes": 1203,
+      "sha256": "3d35094abc17fc8939bd3e8cf6f532a50cf3d09bec7d07afa8abd053c65a0330",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/scripting_api/util.js",
-      "bytes": 16973,
-      "sha256": "c05cc5300e47144cf53a5321a5d25c70358fb5fe4cde151bee48d25cb874a686",
+      "bytes": 16923,
+      "sha256": "6c9fe81e98ac837a99f75fce5fb260a1baf75babea1a88046164b7c2677d2152",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40811,8 +40973,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/shared/image_utils.js",
-      "bytes": 4500,
-      "sha256": "2431a3755371899bfa462c252878f4cecfacb03619983ea6d97d5532943d1315",
+      "bytes": 4811,
+      "sha256": "e2c77d5bf251e411a63b3f7674ad51916a0c981cfe448aee22758155f51a06b5",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40829,8 +40991,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/shared/message_handler.js",
-      "bytes": 16039,
-      "sha256": "34f8859e5ebd3ae097ebc51f298bbd9063d4acec3c51c89e4f3859a4ebba40ce",
+      "bytes": 15989,
+      "sha256": "039f8dd64035b3a454811c609545481550a3682435f9befca40f95307116b27a",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -40853,8 +41015,8 @@
     },
     {
       "path": "sources/pdfjs-library-source.tar.gz!pdfjs-library/src/shared/util.js",
-      "bytes": 30588,
-      "sha256": "813a0d2c45a22ebbdb499386a22eb48733155a7e292abbc7cb04e552f4ee9fdf",
+      "bytes": 31111,
+      "sha256": "60db7be8fd10d41f164019d73d15a5a1ff866a4c237342326edd4f1f25d4bef6",
       "component": "pdfjs-apache-2.0"
     },
     {
@@ -41850,7 +42012,7 @@
     {
       "path": "sw.js",
       "bytes": 17492,
-      "sha256": "8ac52189f0dbe75b2e618eef6bfd7743803cf440214ed9abbaa148a57ad59218",
+      "sha256": "54d3cc49f42185e1128b73f26b3fd5be4e84bf1e2dada15b59e073e0922ac6b8",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41956,6 +42118,12 @@
       "component": "web-port-code-and-documentation"
     },
     {
+      "path": "tests/clown-update.cjs",
+      "bytes": 4971,
+      "sha256": "41d12a71a1df87435e10d4ecab446a8011829ed56d751fb9b6619b4d385f12c2",
+      "component": "web-port-code-and-documentation"
+    },
+    {
       "path": "tests/control-editor.cjs",
       "bytes": 10725,
       "sha256": "34efca08b56f963d3e9db01240129762db09d258e0f5a4c4fdcf2dc390221e93",
@@ -42049,6 +42217,12 @@
       "path": "tests/file-export.cjs",
       "bytes": 7304,
       "sha256": "c33249972d0875429f71c6bf2810dbac10fc8216be2ed87ae342f499b1782d61",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/fixtures/clown-fm.c",
+      "bytes": 926,
+      "sha256": "88d7b78c62a912e6d63034a5f8c6c98f663ff2964f37df3f0f11fb957118eaf4",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42379,6 +42553,12 @@
       "path": "tests/pause-exit.cjs",
       "bytes": 8520,
       "sha256": "d0b8f7f01cfbcd8fc7333e028c2fe05a3e26bb02210b60b9388457a161bf6963",
+      "component": "web-port-code-and-documentation"
+    },
+    {
+      "path": "tests/pdf-skin-regression.cjs",
+      "bytes": 5621,
+      "sha256": "5023ac57ccadc5717bec51a7b7859bd7bbb30fc4302105fb9bef7f50fd4ccd55",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42869,8 +43049,8 @@
     },
     {
       "path": "tests/upstream-watch.cjs",
-      "bytes": 7261,
-      "sha256": "88a7a433c00844ebaa713aec55d38b6b19a73bfb9e7682512b3f0d68baa3be58",
+      "bytes": 13415,
+      "sha256": "5558d8cbd35fc35f951b01c79ee79a40d8f80ba23c4ada1e6520bdf78ca91e87",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42917,14 +43097,14 @@
     },
     {
       "path": "vendor/pdfjs/pdf.mjs",
-      "bytes": 860818,
-      "sha256": "dd13af821c9c3e1778653340d6539a1ba07bc56cba40073a4c727864cf0c232a",
+      "bytes": 891540,
+      "sha256": "cbabeebf4df66f3fe736f2fa2792d332e019a878b0aa88d5e2be17d439079de4",
       "component": "pdfjs-apache-2.0"
     },
     {
       "path": "vendor/pdfjs/pdf.worker.mjs",
-      "bytes": 2229713,
-      "sha256": "07ceb740d746e5d9012fcf9f27d5c7dea09f7d2f5e74f5c8109e5787551a2333",
+      "bytes": 2248830,
+      "sha256": "43710009ea26bfbcb615524946e46e3aaf8ad927514f5e465e8ff6d18044ffe9",
       "component": "pdfjs-apache-2.0"
     },
     {
