@@ -28,8 +28,8 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
   const play=async(label)=>{await details(label);await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});};
   const exit=async()=>{await p.locator('#player-menu').click();await p.locator('[data-action=exit]').click();await p.locator('#player').waitFor({state:'hidden'});};
   const expectEngine=async(speed,volume,filter)=>assert.deepEqual(await p.evaluate(()=>({speed:testEngine.speed,volume:testEngine.volume,filter:testEngine.video.mode})),{speed,volume,filter});
-  await details('A');assert.equal(await p.locator('#game-preferences-mode').textContent(),'共通設定を使用');assert.equal(await p.locator('[data-action=resetPreferences]').isDisabled(),true);
-  await settings(2,.25,'edge2x');assert.equal(await p.locator('#game-preferences-mode').textContent(),'このゲームの設定');await p.locator('#close-sheet').click();
+  await details('A');assert.equal(await p.locator('.game-preferences-summary').isVisible(),false);assert.equal(await p.locator('#game-preferences-mode').textContent(),'共通設定を使用');assert.equal(await p.locator('[data-action=resetPreferences]').isDisabled(),true);
+  await settings(2,.25,'edge2x');assert.equal(await p.locator('.game-preferences-summary').isVisible(),true);assert.equal(await p.locator('#game-preferences-mode').textContent(),'このゲームの設定');await p.locator('#close-sheet').click();
   await details('B');await expectSettings(1,.7,'pixel');await settings(3,.45,'scanlines');await p.locator('#close-sheet').click();
   assert.deepEqual(await read('A'),{speed:2,volume:.25,filter:'edge2x'});assert.deepEqual(await read('B'),{speed:3,volume:.45,filter:'scanlines'});
   assert.equal((await global()).speed,1);assert.equal((await global()).volume,.7);assert.equal((await global()).filter,'pixel');

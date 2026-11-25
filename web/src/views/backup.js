@@ -63,10 +63,13 @@ export function createBackupView({sheet,download,settings,onClose=()=>{},onResto
    button.onclick=()=>run(tr('バックアップを作成しています…'),()=>exportFiles());
    content.onchange=()=>{releaseBackupPlan(exportPlan);exportPlan=null;$('#backup-parts').replaceChildren();status('');};
   }else{
-   content.innerHTML=tr('<p class="sheet-note">ファイルを選ぶと、復元する内容を確認できます。</p><label class="primary wide-button" for="backup-import">ファイルを選ぶ</label><input type="file" id="backup-import" hidden><div id="backup-preview"></div><div id="backup-previous-slot" class="stack"></div>');
+   content.innerHTML=tr('<div class="backup-file"><strong id="backup-filename" hidden></strong><button class="primary wide-button" type="button" id="backup-choose">ファイルを選ぶ</button></div><input type="file" id="backup-import" hidden><div id="backup-preview"></div><div id="backup-previous-slot" class="stack"></div>');
    previousButton($('#backup-previous-slot'),current).catch(()=>{});
+   const choose=$('#backup-choose'),filename=$('#backup-filename');
+   function showFile(name){filename.textContent=name;filename.hidden=!name;choose.textContent=name?tr('選び直す'):tr('ファイルを選ぶ');choose.className=name?'text-button':'primary wide-button';}
+   choose.onclick=()=>$('#backup-import').click();
    $('#backup-import').onchange=event=>{const file=event.target.files[0];event.target.value='';if(file)run(tr('ファイルを検証しています…'),async()=>{
-    releaseBackupPlan(plan);plan=null;$('#backup-preview').replaceChildren();const inspected=await inspectBackup(file);if(!open||current!==epoch){releaseBackupPlan(inspected);return;}plan=inspected;preview();status(tr('復元する内容を確認してください。'));
+    releaseBackupPlan(plan);plan=null;showFile('');$('#backup-preview').replaceChildren();const inspected=await inspectBackup(file);if(!open||current!==epoch){releaseBackupPlan(inspected);return;}plan=inspected;showFile(file.name);preview();status('');
    });};
   }
  }
@@ -75,7 +78,7 @@ export function createBackupView({sheet,download,settings,onClose=()=>{},onResto
   preview.innerHTML=tr`<p class="sheet-note">${esc(new Date(plan.createdAt).toLocaleString(locale()))} · ${plan.matched}ゲーム · ${bytesLabel(plan.bytes)}</p>${plan.part?tr`<p class="sheet-note">分割ファイル ${plan.part.index} / ${plan.part.count}。すべて順に復元してください。</p>`:''}${plan.missing?tr`<p class="sheet-note">未登録の${plan.missing}ゲームは復元しません。</p>`:''}
    ${plan.games.length?tr('<button class="secondary" id="backup-select-all">選択を解除</button>'):''}<div class="settings-group">${plan.games.map(game=>row(`<span class="value">${esc(game.name)}<small>${tr`現在：${esc(date(game.currentAt))}`}<br>${tr`ファイル：${esc(date(game.backupAt))}`}${game.currentAt>game.backupAt?tr('<br>現在の保存のほうが新しくなっています。'):''}${game.romMissing?tr('<br>ROMを追加するとプレイできます。'):''}</small></span>`,`<input type="checkbox" data-backup-game="${game.id}" checked>`,'game')).join('')}</div>
    <details><summary>設定とトレーナーカード</summary><div class="settings-group">${row(tr('共通設定も復元する'),'<input type="checkbox" id="backup-settings">','settings')}${plan.hasProfile?row(tr('トレーナーカードも復元する'),'<input type="checkbox" id="backup-profile">','game'):''}</div></details>
-   <p class="sheet-note">${plan.merge?tr('ファイルにある項目だけを復元します。それ以外は残ります。'):tr('選んだゲームの保存データを置き換えます。')}</p><p class="sheet-note">復元前のデータを端末に残します。すべてのタブで対象のゲームを終了してください。</p><details><summary>復元について</summary><p class="sheet-note">共通設定やカードも復元する場合は、ほかのゲームも終了してください。プレイ時間を重複加算しません。復元前のデータは1世代分を保持します。スキンはこの端末の設定を使います。</p></details><button class="primary wide-button" id="backup-confirm">復元する</button>`;
+   <details><summary>復元について</summary><p class="sheet-note">復元前のデータを端末に残します。すべてのタブで対象のゲームを終了してください。</p><p class="sheet-note">共通設定やカードも復元する場合は、ほかのゲームも終了してください。プレイ時間を重複加算しません。復元前のデータは1世代分を保持します。スキンはこの端末の設定を使います。</p></details><p class="sheet-note">${plan.merge?tr('ファイルにある項目だけを復元します。それ以外は残ります。'):tr('選んだゲームの保存データを置き換えます。')}</p><button class="primary wide-button" id="backup-confirm">復元する</button>`;
   const boxes=()=>[...preview.querySelectorAll('[data-backup-game]')],selection=()=>boxes().filter(box=>box.checked).map(box=>box.dataset.backupGame);
   const update=()=>{const count=selection().length;$('#backup-confirm').disabled=!count&&!$('#backup-settings').checked&&!$('#backup-profile')?.checked;if($('#backup-select-all'))$('#backup-select-all').textContent=count===plan.games.length?tr('選択を解除'):tr('すべて選択');};
   boxes().forEach(box=>box.onchange=update);$('#backup-settings').onchange=update;if($('#backup-profile'))$('#backup-profile').onchange=update;

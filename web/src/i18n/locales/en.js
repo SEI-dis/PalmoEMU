@@ -903,7 +903,6 @@ export default {
  "コアやライブラリには、それぞれのライセンスが適用されます。著作権表示とライセンス原文を同梱しています。": "Cores and libraries retain their respective licenses. Copyright notices and original license texts are included.",
  "ライセンス・通知を開く": "Open licenses and notices",
  "ゲーム・スキン・商標": "Games, skins & trademarks",
- "ソフトウェアのライセンスは、ROM・ゲーム画像・第三者のスキン・商標の利用を許可するものではありません。このWeb版は、本家やゲーム機メーカーの公式製品ではありません。「標準」スキンとアイコンは、このWeb版用に作成したものです。ManicEMUの同梱スキンは上記の別ライセンスで提供します。商標権等の許諾を意味するものではありません。": "Software licenses do not grant rights to ROMs, game images, third-party skins or trademarks. This web app is not an official product of the upstream projects or console manufacturers. The Default skins and icons were created for this web app. Bundled ManicEMU skins are provided under the separate license above, which does not grant trademark rights.",
  "使い方・公開手順": "Usage and publishing guide",
  "変更内容 · PalmoEMU": "Changes · PalmoEMU",
  "← クレジット・ライセンス": "← Credits & licenses",
@@ -1433,5 +1432,17 @@ export default {
  "画面に戻るまで通信開始を待っています。": "Waiting for you to return before starting communication.",
  "mGBA celio edition · 128MiB対応": "mGBA celio edition · 128MiB support",
  "128KiB・6MiB・16MiBの通常セーブを選択してください。": "Select a 128KiB, 6MiB or 16MiB in-game save.",
- "128KiB・1MiB・6MiB・16MiBの通常セーブを選択してください。": "Select a 128KiB, 1MiB, 6MiB or 16MiB in-game save."
+ "128KiB・1MiB・6MiB・16MiBの通常セーブを選択してください。": "Select a 128KiB, 1MiB, 6MiB or 16MiB in-game save.",
+ "再確認は⟪0⟫から": "Check again at ⟪0⟫",
+ "ROMの更新に進む": "Continue to ROM update",
+ "選び直す": "Change file",
+ "検索条件をクリア": "Clear search and filters",
+ "ゲームを追加": "Add game",
+ "保存・共有": "Save or share",
+ "Lucide · 操作アイコン": "Lucide · Interface icons",
+ "ソフトウェアのライセンスは、ROM・ゲーム画像・第三者のスキン・商標の利用を許可するものではありません。このWeb版は、本家やゲーム機メーカーの公式製品ではありません。「標準」スキンとアプリアイコンは、このWeb版用に作成したものです。ManicEMUの同梱スキンは上記の別ライセンスで提供します。商標権等の許諾を意味するものではありません。": "Software licenses do not grant rights to ROMs, game images, third-party skins or trademarks. This web app is not an official product of the upstream projects or console manufacturers. The Default skins and the app icon were created for this web app. Bundled ManicEMU skins are provided under the separate license above, which does not grant trademark rights.",
+ "更新あり": "Update available",
+ "画像の表示範囲。矢印キーで画像を移動": "Crop area. Use the arrow keys to move the image.",
+ "最終プレイ：⟪0⟫": "Last played: ⟪0⟫",
+ "合計⟪0⟫": "Total: ⟪0⟫"
 };

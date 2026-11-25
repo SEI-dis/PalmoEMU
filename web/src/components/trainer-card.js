@@ -23,10 +23,9 @@ export function createTrainerCard(api){
  }
  function editNickname(){
   const profile=api.trainer().profile;
-  api.sheet(tr('ニックネーム'),tr`<form id="trainer-name-form"><label class="trainer-name-label" for="trainer-name">ニックネーム</label><input class="trainer-name-input" id="trainer-name" type="text" maxlength="30" autocomplete="nickname" value="${esc(profile?.nickname||defaultName())}" placeholder="${esc(defaultName())}"><div class="sheet-actions"><button type="button" class="secondary" id="trainer-name-cancel">キャンセル</button><button type="submit" class="primary">保存</button></div></form>`);
+  api.sheet(tr('ニックネーム'),tr`<form id="trainer-name-form"><input aria-labelledby="sheet-title" class="trainer-name-input" id="trainer-name" type="text" maxlength="30" autocomplete="nickname" value="${esc(profile?.nickname||defaultName())}" placeholder="${esc(defaultName())}"><div class="sheet-actions"><button type="submit" class="primary">保存</button></div></form>`);
   const form=document.querySelector('#trainer-name-form'),input=form.querySelector('input');
   api.onClose(fitInputDialog(form.closest('dialog')));
-  form.querySelector('#trainer-name-cancel').onclick=()=>api.closeSheet();
   form.onsubmit=event=>{event.preventDefault();void guardUpdateTask(async()=>{
    const controls=[...form.querySelectorAll('button,input'),document.querySelector('#close-sheet')];for(const control of controls)control.disabled=true;
    try{const value=input.value.trim();await api.saveNickname(value===defaultName()?'':value);for(const control of controls)control.disabled=false;api.closeSheet();api.render();document.querySelector('#trainer-nickname')?.focus({preventScroll:true});}

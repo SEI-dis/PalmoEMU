@@ -903,7 +903,6 @@ export default {
  "コアやライブラリには、それぞれのライセンスが適用されます。著作権表示とライセンス原文を同梱しています。": "Os núcleos e bibliotecas mantêm suas respectivas licenças. Os avisos de direitos autorais e os textos originais das licenças estão incluídos.",
  "ライセンス・通知を開く": "Abrir licenças e avisos",
  "ゲーム・スキン・商標": "Jogos, temas e marcas registradas",
- "ソフトウェアのライセンスは、ROM・ゲーム画像・第三者のスキン・商標の利用を許可するものではありません。このWeb版は、本家やゲーム機メーカーの公式製品ではありません。「標準」スキンとアイコンは、このWeb版用に作成したものです。ManicEMUの同梱スキンは上記の別ライセンスで提供します。商標権等の許諾を意味するものではありません。": "As licenças de software não concedem direitos sobre ROMs, imagens de jogos, temas de terceiros ou marcas registradas. Este aplicativo web não é um produto oficial dos projetos upstream ou fabricantes de consoles. Os temas e ícones padrão foram criados para este aplicativo web. Os temas ManicEMU incluídos são fornecidos sob a licença separada acima, que não concede direitos de marca registrada.",
  "使い方・公開手順": "Guia de uso e publicação",
  "変更内容 · PalmoEMU": "Novidades · PalmoEMU",
  "← クレジット・ライセンス": "← Créditos e licenças",
@@ -1433,5 +1432,17 @@ export default {
  "画面に戻るまで通信開始を待っています。": "Aguardando seu retorno para iniciar a comunicação.",
  "mGBA celio edition · 128MiB対応": "mGBA celio edition · Suporte a 128MiB",
  "128KiB・6MiB・16MiBの通常セーブを選択してください。": "Selecione dados salvos dentro do jogo de 128KiB, 6MiB ou 16MiB.",
- "128KiB・1MiB・6MiB・16MiBの通常セーブを選択してください。": "Selecione dados salvos dentro do jogo de 128KiB, 1MiB, 6MiB ou 16MiB."
+ "128KiB・1MiB・6MiB・16MiBの通常セーブを選択してください。": "Selecione dados salvos dentro do jogo de 128KiB, 1MiB, 6MiB ou 16MiB.",
+ "再確認は⟪0⟫から": "Você pode verificar de novo às ⟪0⟫",
+ "ROMの更新に進む": "Ir para a atualização da ROM",
+ "選び直す": "Trocar arquivo",
+ "検索条件をクリア": "Limpar busca e filtros",
+ "ゲームを追加": "Adicionar jogo",
+ "保存・共有": "Salvar ou compartilhar",
+ "Lucide · 操作アイコン": "Lucide · Ícones da interface",
+ "ソフトウェアのライセンスは、ROM・ゲーム画像・第三者のスキン・商標の利用を許可するものではありません。このWeb版は、本家やゲーム機メーカーの公式製品ではありません。「標準」スキンとアプリアイコンは、このWeb版用に作成したものです。ManicEMUの同梱スキンは上記の別ライセンスで提供します。商標権等の許諾を意味するものではありません。": "As licenças de software não concedem direitos sobre ROMs, imagens de jogos, temas de terceiros ou marcas registradas. Este aplicativo web não é um produto oficial dos projetos upstream ou fabricantes de consoles. Os temas padrão e o ícone do aplicativo foram criados para este aplicativo web. Os temas ManicEMU incluídos são fornecidos sob a licença separada acima, que não concede direitos de marca registrada.",
+ "更新あり": "Atualização disponível",
+ "画像の表示範囲。矢印キーで画像を移動": "Área de recorte. Use as setas do teclado para mover a imagem.",
+ "最終プレイ：⟪0⟫": "Última partida: ⟪0⟫",
+ "合計⟪0⟫": "Total: ⟪0⟫"
 };

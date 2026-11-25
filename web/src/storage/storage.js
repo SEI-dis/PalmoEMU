@@ -279,10 +279,12 @@ async function commitProtectionBatch(entries){
 
 async function stateEntries(id){const db=await database;return new Promise((resolve,reject)=>{const list=[],r=db.transaction('states').objectStore('states').openCursor(IDBKeyRange.bound(id+':',id+':\uffff'));r.onsuccess=()=>{const c=r.result;if(!c){resolve(list);return;}list.push({key:c.key,value:c.value});c.continue();};r.onerror=()=>reject(r.error);});}
 async function stateKeys(id){const db=await database;return new Promise((resolve,reject)=>{const r=db.transaction('states').objectStore('states').getAllKeys(IDBKeyRange.bound(id+':',id+':\uffff'));r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});}
-async function readStateCatalog(id,{mode=null}={}){
- const db=await database,names=[...(mode!=='auto'?['states']:[]),...(mode!=='manual'?['recoveries']:[]),'coverCatalogs'];
+async function readStateCatalog(id,{mode=null,includeSaveTime=false}={}){
+ const readSaveTime=includeSaveTime&&mode!=='manual';
+ const db=await database,names=[...(readSaveTime?['saves']:[]),...(mode!=='auto'?['states']:[]),...(mode!=='manual'?['recoveries']:[]),'coverCatalogs'];
  const read=readOnly=>new Promise((resolve,reject)=>{
   const tx=readOnly?db.transaction(names):write(db,names),result={manual:[],automatic:[]};
+  if(readSaveTime)readSaveCatalog(tx,'saves',id,row=>{result.saveAt=row.value.at;});
   if(mode!=='auto')readSaveCatalog(tx,'states',IDBKeyRange.bound(id+':',id+':\uffff'),row=>result.manual.push(row));
   if(mode!=='manual')readSaveCatalog(tx,'recoveries',id,row=>{result.automatic=(Array.isArray(row.value)?row.value:[]).map((value,index)=>({store:'recoveries',key:id,index,value}));});
   tx.oncomplete=()=>resolve(result);tx.onabort=()=>reject(tx.error||Error(tr('保存データを読めませんでした。')));tx.onerror=()=>{};

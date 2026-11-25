@@ -26,11 +26,10 @@ if(process.argv.includes('--check'))require('node:assert/strict').equal(original
 const nextWorker=originalWorker.replace(workerTag,`// App build: ${version}`);
 if(process.argv.includes('--check'))require('node:assert/strict').equal(originalWorker,nextWorker,'Worker build marker is stale');else fs.writeFileSync(workerPath,nextWorker);
 const integrity=Object.fromEntries(files.map(file=>[file,'sha256-'+crypto.createHash('sha256').update(file==='index.html'?nextIndex:fs.readFileSync(path.join(root,file))).digest('base64')]));
-// Keep the small import/settings dependencies and the lazily executed GBA
-// identification engine available for the first offline import.
-const shellVendors=new Set(['vendor/start-save-migrate/engine.js','vendor/start-save-migrate/manifest.js','vendor/start-save-format/engine.js']);
+// Include UI dependencies and their notices alongside the engines used by offline imports.
+const shellDependencies=new Set(['licenses/Lucide-ISC-Feather-MIT.txt','licenses/SortableJS-MIT.txt','vendor/lucide/icons.js','vendor/start-save-migrate/engine.js','vendor/start-save-migrate/manifest.js','vendor/start-save-format/engine.js']);
 const developerDocs=new Set(['ARCHITECTURE.md','LOCALIZATION_REVIEW.md','RELEASE_VALIDATION.md']);
-const shell=files.filter(f=>!developerDocs.has(f)&&(shellVendors.has(f)||(!f.startsWith('vendor/')&&!f.startsWith('assets/skins/')&&!f.startsWith('cores/')&&!f.startsWith('licenses/'))));
+const shell=files.filter(f=>!developerDocs.has(f)&&(shellDependencies.has(f)||f.startsWith('vendor/sortable/')||(!f.startsWith('vendor/')&&!f.startsWith('assets/skins/')&&!f.startsWith('cores/')&&!f.startsWith('licenses/'))));
 const sizes=Object.fromEntries(files.map(file=>[file,file==='index.html'?Buffer.byteLength(nextIndex):fs.statSync(path.join(root,file)).size]));
 const playback=files.filter(f=>!developerDocs.has(f)&&!f.startsWith('assets/skins/')&&!f.startsWith('cores/')&&!f.startsWith('vendor/pdfjs/'));
 playback.push('cores/mgba/mgba.js'); // Static script in index.html; runtime WASM is selected by core.

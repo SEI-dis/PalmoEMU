@@ -162,6 +162,17 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    assert.equal(await p.locator('#sheet').isVisible(),false,'Delayed '+mode+' picker cannot reopen an exited game');
    assert.equal(await p.locator('#player').isVisible(),false);assert.equal(await p.locator('#sheet-body').evaluate(node=>node.firstChild===null),true);
   }
+  const playedId=await p.locator('.game-launch').getAttribute('data-game');
+  await p.locator('#rom-input').setInputFiles({name:'Unplayed-test.gbc',mimeType:'application/octet-stream',buffer:Buffer.from(require('./cartridges.cjs').gbc())});
+  await p.getByRole('button',{name:'Unplayed-testの設定を開く',exact:true}).click();await p.locator('[data-action=states]').click();await p.locator('[data-state-mode=auto]').click();
+  assert.equal(await p.locator('#protection-status').textContent(),'まだ保存されていません');assert.equal(await p.locator('[data-recover]').count(),0);
+  await p.reload();await p.locator('[data-details="'+playedId+'"]').click();await p.locator('[data-action=states]').click();await p.locator('[data-state-mode=auto]').click();await p.locator('[data-recover]').first().waitFor();
+  const expected=await p.evaluate(async id=>{const db=await import('./src/storage/storage.js'),last=await db.get('saves',id),rows=await db.get('recoveries',id);return [Math.max(...rows.map(row=>row.at)),last.at].map(at=>new Date(at).toLocaleString('ja-JP'));},playedId);
+  assert.equal(await p.locator('#protection-status').textContent(),'再開用データ：'+expected[0]+' ／ ゲーム内セーブ：'+expected[1]);
+  await p.locator('#close-sheet').click();await p.locator('[data-action=detachROM]').click();await p.locator('#rom-detach-confirm').click();await p.locator('[data-action=restoreROM]').waitFor();
+  await p.locator('[data-action=states]').click();await p.locator('[data-state-mode=auto]').click();await p.locator('[data-recover]').first().waitFor();
+  assert.equal(await p.locator('[data-recover]').first().isDisabled(),true);await p.locator('#export-states').click();await p.locator('[data-state-select]').first().check();assert.equal(await p.locator('#export-selected-state').isEnabled(),true);
+  await p.locator('#close-sheet').click();await p.locator('#close-sheet').click();
   await p.locator('[data-tab=settings]').click();await p.locator('[data-theme-choice=auto]').click();await screenshot('settings-menu');assert.deepEqual(errors,[]);
   console.log('PASS: native menu groups/shortcuts, 240–1024px layouts, append-only states, save/delete/restart cancellation, selected atomic deletion, other-game and battery preservation, real close/reopen recovery, delayed picker ownership after exit.');
   await p.goto('about:blank');await c.close();

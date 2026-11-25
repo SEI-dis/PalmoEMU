@@ -5,7 +5,9 @@
 export function createUINavigation({active,capturing,release,back}){
  let previous=new Set(),repeats=new Map(),wasActive=false,frame,destroyed=false;
  const editable=el=>el?.matches('input:not([type=range]):not([type=checkbox]):not([type=radio]):not([type=button]),textarea')||el?.isContentEditable;
- const scope=()=>document.querySelector('dialog[open]')||document.body;
+ // Native modal focus belongs to the front dialog. A child export/preview
+ // is appended after its parent and can momentarily have no focused control.
+ const scope=()=>document.activeElement?.closest('dialog[open]')||Array.from(document.querySelectorAll('dialog[open]')).at(-1)||document.body;
  const targets=()=>[...scope().querySelectorAll('button,a[href],input,select,textarea,summary,[tabindex="0"]')].filter(el=>!el.disabled&&!el.closest('[hidden],[inert]')&&el.getClientRects().length&&getComputedStyle(el).visibility!=='hidden'&&el.type!=='hidden');
  function focus(el){el?.focus({preventScroll:true});el?.scrollIntoView({block:'nearest',inline:'nearest'});el?.classList.add('controller-focus');}
  function move(direction){
@@ -22,7 +24,12 @@ export function createUINavigation({active,capturing,release,back}){
  }
  function action(key){
   const el=document.activeElement;
-  if(key==='back'){back();return;}
+  if(key==='back'){
+   const dialog=scope();
+   if(dialog===document.body)back();
+   else if(dialog.dispatchEvent(new Event('cancel',{cancelable:true}))&&dialog.open)dialog.close();
+   return;
+  }
   if(key==='accept'){if(!targets().includes(el)){focus(targets()[0]);return;}if(el.matches('select'))adjust(el,1);else if(editable(el))el.focus();else el.click();return;}
   if((key==='left'||key==='right')&&adjust(el,key==='left'?-1:1))return;
   move(key);

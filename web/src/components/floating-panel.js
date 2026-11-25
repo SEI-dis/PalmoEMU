@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Non-modal panel: only its own rectangle receives input; the game stays usable.
-export function floatingPanel(element,{handle,trigger,close,onInteract=()=>{}}){
+export function floatingPanel(element,{handle,trigger,close,onInteract=()=>{},onHide=()=>{}}){
  let position=null,drag=null;
  const viewport=()=>{
   const v=window.visualViewport,style=getComputedStyle(element.parentElement);
@@ -18,7 +18,7 @@ export function floatingPanel(element,{handle,trigger,close,onInteract=()=>{}}){
   element.style.left=x+'px';element.style.top=y+'px';
   if(position)position={x,y};
  }
- function hide({focus=false}={}){element.hidden=true;trigger.setAttribute('aria-expanded','false');if(focus)trigger.focus({preventScroll:true});else if(element.contains(document.activeElement))document.activeElement.blur();}
+ function hide({focus=false}={}){if(element.hidden)return;element.hidden=true;onHide();trigger.setAttribute('aria-expanded','false');if(focus)trigger.focus({preventScroll:true});else if(element.contains(document.activeElement))document.activeElement.blur();}
  function show(){element.hidden=false;trigger.setAttribute('aria-expanded','true');place();}
  close.onclick=()=>hide({focus:true});
  element.addEventListener('pointerdown',onInteract);

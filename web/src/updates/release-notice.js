@@ -35,11 +35,9 @@ export function createReleaseNotice({sheet,closeSheet,onClose,canShow}){
    sheet(tr('更新しました'),'');
    const dialog=document.querySelector('#sheet'),body=document.querySelector('#sheet-body');
    dialog.classList.add('release-notice');body.replaceChildren(content);
-   const done=document.createElement('button');done.id='release-notice-done';done.className='primary wide-button';done.textContent=tr('閉じる');body.append(done);
    onClose(()=>{remember();stop();dialog.classList.remove('release-notice');resolve();});
-   done.onclick=()=>closeSheet({dismiss:true});
    body.querySelector('#release-notice-details').addEventListener('click',()=>closeSheet({dismiss:true}));
-   done.focus({preventScroll:true});
+   dialog.querySelector('#close-sheet').focus({preventScroll:true});
   });
  }
  async function attempt(){

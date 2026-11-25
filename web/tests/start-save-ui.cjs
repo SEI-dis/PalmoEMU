@@ -78,7 +78,7 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   assert.equal(await page.evaluate(async id=>[...(await (await import('./src/storage/storage.js')).get('saves',id)).bytes].join(','),ids.target),'91,92,93');
   // Reselecting the already-added target ROM rescues the original snapshot;
   // it must not run prepareROMUpdate against the intentionally invalid save.
-  await page.locator('#start-save-back').click();await page.locator('#rom-update-file').setInputFiles({name:'START-0.42.3.gba',mimeType:'application/octet-stream',buffer:Buffer.from(fakeROM(47924504))});
+  await page.locator('#close-sheet.sheet-back').click();await page.locator('#rom-update-file').setInputFiles({name:'START-0.42.3.gba',mimeType:'application/octet-stream',buffer:Buffer.from(fakeROM(47924504))});
   await page.locator('#start-save-apply').waitFor();assert.equal(await page.locator('#start-save-source').inputValue(),'previous');assert.equal(await page.locator('#start-save-version').inputValue(),'0.35.0');assert.equal(await page.locator('#start-save-version').isVisible(),false);assert.equal(await page.locator('#start-save-apply').textContent(),'セーブデータを変換して更新');assert.equal(await page.locator('#start-save-apply').isEnabled(),true);
   assert.equal(await page.evaluate(()=>coreAttempts),0,'Real application export never creates a core for synthetic CRC fixtures');
   // Exercise the real application, real workers and IndexedDB. Fresh-target
@@ -165,12 +165,12 @@ async function downloadedBytes(download){const chunks=[];for await(const chunk o
   assert.deepEqual(await detachedState(),{rom:false,missing:true,save:detached.save});
   await page.locator('#start-save-details > summary').click();await page.locator('#start-save-export').click();await page.locator('#start-save-download').waitFor();
   assert.deepEqual(await detachedState(),{rom:false,missing:true,save:detached.save},'Export does not attach the selected ROM');
-  await page.locator('#start-save-back').click();await page.locator('#start-save-apply').waitFor();
+  await page.locator('#close-sheet.sheet-back').click();await page.locator('#start-save-apply').waitFor();
   await page.evaluate(async id=>{const db=await import('./src/storage/storage.js'),save=await db.get('saves',id);await db.put('saves',id,{...save,at:save.at+1});},ids.source);
   await page.locator('#start-save-apply').click();await page.waitForFunction(()=>!document.querySelector('#close-sheet').disabled);
   assert.match(await page.locator('#start-save-status').textContent(),/元のセーブが変わりました/);
   assert.deepEqual(await detachedState(),{rom:false,missing:true,save:detached.save},'Stale conversion does not attach the selected ROM');
-  await page.locator('#start-save-back').click();await selectTarget();await page.locator('#start-save-apply').waitFor();
+  await page.locator('#close-sheet.sheet-back').click();await selectTarget();await page.locator('#start-save-apply').waitFor();
   await page.evaluate(()=>{startROMUpdateAPI.applySave=async(game,bytes)=>{
    const db=await import('./src/storage/storage.js'),{hash}=await import('./src/shared.js'),{inspectStartSave}=await import('./src/start-save/migration.js');
    globalThis.detachedApplication={id:game.id,missing:!!game.romMissing,rom:await hash(await db.get('roms',game.id)),slots:inspectStartSave(bytes,'0.42.3').slots.filter(slot=>slot.valid).length};

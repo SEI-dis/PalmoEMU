@@ -42,9 +42,10 @@ function fixtureIndex(source,version){
  const ready=page=>page.waitForFunction(()=>(document.documentElement.getAttribute('aria-busy')!=='true'||!!document.querySelector('#sheet.release-notice[open]'))&&!!document.querySelector('#content .page,#content .empty-library,#content .game-launch'));
  const absent=async(page,message)=>{await page.waitForTimeout(1100);assert.equal(await notice(page).count(),0,message);};
  const open=async(page,{version=current,hash=''}={})=>{await page.goto(base+'?fixtureVersion='+version+hash);await ready(page);};
- const closeNotice=async(page,method='done')=>{
+ const closeNotice=async(page,method='header')=>{
   if(method==='escape')await page.keyboard.press('Escape');
-  else await page.locator(method==='header'?'#close-sheet':'#release-notice-done').click();
+  else if(method==='keyboard'){await page.locator('#close-sheet').focus();await page.keyboard.press('Enter');}
+  else await page.locator('#close-sheet').click();
   await notice(page).waitFor({state:'hidden'});
   assert.equal(await seen(page),current,'Dismissal remembers the release version');
  };
@@ -119,7 +120,7 @@ function fixtureIndex(source,version){
 
   await withContext({existing:true},async({newPage})=>{
    const page=await newPage();await open(page,{version:'0.3.23'});await notice(page).waitFor();
-   await page.locator('#release-notice-done').click();assert.equal(await seen(page),'0.3.23','An existing 0.3.22 installation without the new key receives the migration notice');
+   await page.locator('#sheet.release-notice #close-sheet').click();assert.equal(await seen(page),'0.3.23','An existing 0.3.22 installation without the new key receives the migration notice');
   });
 
   const latest=JSON.parse(fs.readFileSync(path.join(root,'release-notes.json'),'utf8')).releases[0];
@@ -140,7 +141,7 @@ function fixtureIndex(source,version){
     assert.ok(geometry.inside&&!geometry.overflow&&geometry.dx<=3&&geometry.dy<=3,language+' '+width+'x'+height+' centered and contained: '+JSON.stringify(geometry));
     if(language==='ja'||language==='de')await page.screenshot({path:path.join(shots,language+'-'+(width<height?'portrait':'landscape')+'.png')});
    }
-   await closeNotice(page,language==='ja'?'escape':language==='en'?'header':'done');
+   await closeNotice(page,language==='ja'?'escape':language==='en'?'header':'keyboard');
   });
   console.log('PASS '+kind+': legacy migration, all nine languages, portrait/landscape and close/ESC/header controls');
 

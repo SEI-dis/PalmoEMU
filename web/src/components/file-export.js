@@ -20,7 +20,9 @@ export function createFileExport({host=document.body}={}){
   const find=s=>dialog.querySelector(s),save=find('[data-export-save]'),share=find('[data-export-share]'),close=find('[data-export-close]'),status=find('[data-export-status]');
   const label=find('[data-export-name]');label.textContent=name+' · '+bytesLabel(file.size);label.style.overflowWrap='anywhere';
   const canShare=()=>{try{return typeof navigator.share==='function'&&navigator.canShare?.({files:[file]})===true;}catch{return false;}};
-  share.hidden=!canShare();
+  const supportsShare=canShare(),saveWithShare=isIOS()&&supportsShare;
+  share.hidden=!supportsShare||saveWithShare;
+  if(saveWithShare)save.textContent=tr('保存・共有');
   function cleanup(){if(!closed||busy)return;if(url)URL.revokeObjectURL(url);url=null;file=null;dialog.remove();if(active?.dialog===dialog)active=null;resolve(outcome);}
   function finish(){if(closed)return;closed=true;if(dialog.open)dialog.close();cleanup();}
   active={dialog,close:finish};close.onclick=finish;
@@ -28,7 +30,7 @@ export function createFileExport({host=document.body}={}){
   function controls(value){busy=value;save.disabled=share.disabled=close.disabled=value;}
   async function nativeShare(){await navigator.share({files:[file]});return 'shared';}
   async function saveFile(){
-   if(isIOS()&&canShare())return nativeShare();
+   if(saveWithShare)return nativeShare();
    if(typeof window.showSaveFilePicker==='function'){
     const extension=/\.[a-z0-9]{1,15}$/i.exec(name)?.[0],options={suggestedName:name};if(extension)options.types=[{accept:{[file.type]:[extension]}}];
     const handle=await window.showSaveFilePicker(options);if(closed)return 'cancelled';

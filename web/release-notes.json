@@ -1,6 +1,66 @@
 {
   "releases": [
     {
+      "version": "0.3.43",
+      "date": "2026-11-25",
+      "changes": [
+        "操作アイコンを統一し、PokemonStartの「更新あり」をゲーム名の下に表示するようにしました。",
+        "トレーナーカードの画像を動かしたり拡大したりして、好きな位置で切り抜けます。",
+        "ゲームメニューの項目をドラッグで並べ替えられます。上下ボタンも使えます。",
+        "最後にプレイした時期を各言語で自然に表示し、セーブの書き出し・復元画面を整理しました。"
+      ],
+      "translations": {
+        "zh-Hans": [
+          "统一了操作图标的样式。PokemonStart 有新版时，游戏名称下方会显示“有更新”。",
+          "移动或缩放训练家卡上的图片，即可选择裁剪范围。",
+          "拖动游戏菜单项即可调整顺序，也可以使用上移和下移按钮。",
+          "上次游玩的时间现在按各语言的习惯显示。存档导出和恢复界面也已简化。"
+        ],
+        "zh-Hant": [
+          "操作圖示的樣式已統一。PokemonStart 有新版本時，遊戲名稱下方會顯示「有更新」。",
+          "移動或縮放訓練家卡上的圖片，即可選擇裁切範圍。",
+          "拖曳遊戲選單項目即可調整順序，也可以使用上移和下移按鈕。",
+          "上次遊玩的時間會依各語言的習慣顯示。存檔匯出與還原畫面也更簡潔了。"
+        ],
+        "ko": [
+          "조작 아이콘의 모양을 통일했습니다. PokemonStart 업데이트가 있으면 게임 이름 아래에 ‘업데이트 있음’이 표시됩니다.",
+          "트레이너 카드 이미지를 옮기거나 확대해 원하는 부분만 남길 수 있습니다.",
+          "게임 메뉴 항목을 드래그하거나 위아래 화살표 버튼을 눌러 순서를 바꿀 수 있습니다.",
+          "마지막 플레이 시점을 언어별로 자연스럽게 표시합니다. 세이브 내보내기와 복원 화면도 간소화했습니다."
+        ],
+        "es": [
+          "Los iconos de acción tienen un estilo uniforme. El aviso «Actualización disponible» de PokemonStart aparece bajo el nombre del juego.",
+          "Mueve y amplía la imagen de tu Tarjeta de entrenador para elegir el recorte.",
+          "Reordena las opciones del menú del juego arrastrándolas o usando los botones de subir y bajar.",
+          "El tiempo desde la última partida se muestra según el idioma. Hemos simplificado las pantallas para exportar y restaurar partidas guardadas."
+        ],
+        "fr": [
+          "Les icônes d’action ont été harmonisées. Pour PokemonStart, « Mise à jour disponible » s’affiche sous le nom du jeu.",
+          "Déplacez et agrandissez l’image de votre Carte de Dresseur pour choisir le cadrage.",
+          "Réorganisez le menu de jeu en faisant glisser les éléments ou en utilisant les boutons ↑ et ↓.",
+          "Le temps écoulé depuis la dernière partie s’affiche selon la langue choisie. Les écrans d’exportation et de restauration des sauvegardes sont plus simples."
+        ],
+        "de": [
+          "Die Aktionssymbole sind jetzt einheitlich. Bei PokemonStart steht „Update verfügbar“ nun unter dem Spielnamen.",
+          "Verschiebe oder vergrößere das Bild deiner Trainerkarte, um den gewünschten Ausschnitt zu wählen.",
+          "Sortiere die Einträge im Spielmenü durch Ziehen oder mit den Schaltflächen ↑ und ↓.",
+          "Die Angabe „Zuletzt gespielt“ richtet sich jetzt nach der gewählten Sprache. Die Ansichten zum Exportieren und Wiederherstellen von Spielständen sind übersichtlicher."
+        ],
+        "pt": [
+          "Os ícones de ação agora seguem o mesmo estilo. O aviso “Atualização disponível” do PokemonStart aparece abaixo do nome do jogo.",
+          "Mova e amplie a imagem do seu Cartão de Treinador para escolher o recorte.",
+          "Reordene os itens do menu do jogo arrastando-os ou usando os botões de subir e descer.",
+          "O tempo desde a última partida é exibido de acordo com o idioma. Simplificamos as telas de exportação e restauração de dados salvos."
+        ]
+      },
+      "changesEn": [
+        "Action icons now have a consistent look. The PokemonStart “Update available” notice appears below the game title.",
+        "Move and zoom your Trainer Card image to choose the crop.",
+        "Reorder game menu items by dragging them or using the up and down buttons.",
+        "The time since you last played is now formatted for your language. We’ve simplified the screens for exporting and restoring saves."
+      ]
+    },
+    {
       "version": "0.3.42",
       "date": "2026-11-17",
       "changes": [

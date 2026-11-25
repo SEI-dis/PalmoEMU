@@ -30,9 +30,17 @@ export const groupedOptions=(cells,order)=>orderedOptionGroups(order).map(group=
 export {nativeAction,nativeSelect,nativeToggle} from './rows.js';
 export function gamePlaySummary(game){
  if(!game.lastPlayed)return tr('まだプレイしていません');
- const elapsed=Math.max(0,Date.now()-game.lastPlayed),minutes=Math.floor((game.playDuration||0)/60000);
- const ago=elapsed<60000?tr('たった今'):elapsed<3600000?tr`${Math.floor(elapsed/60000)}分前`:elapsed<86400000?tr`${Math.floor(elapsed/3600000)}時間前`:elapsed<2592000000?tr`${Math.floor(elapsed/86400000)}日前`:tr`${Math.floor(elapsed/2592000000)}ヶ月前`;
- return tr`${ago}プレイ${game.playDuration==null?'':tr` · 合計${minutes>=60?tr`${Math.floor(minutes/60)}時間`:''}${minutes%60}分`}`;
+ const elapsed=Math.max(0,Date.now()-game.lastPlayed);
+ let ago=tr('たった今');
+ if(elapsed>=60000){
+  const [unit,interval]=elapsed<3600000?['minute',60000]:elapsed<86400000?['hour',3600000]:elapsed<2592000000?['day',86400000]:['month',2592000000];
+  ago=new Intl.RelativeTimeFormat(locale(),{numeric:'always'}).format(-Math.floor(elapsed/interval),unit);
+ }
+ const lastPlayed=tr`最終プレイ：${ago}`;
+ if(game.playDuration==null)return lastPlayed;
+ const minutes=Math.floor(Math.max(0,game.playDuration)/60000);
+ const duration=minutes>=60?tr`${Math.floor(minutes/60)}時間${minutes%60}分`:tr`${minutes}分`;
+ return lastPlayed+' · '+tr`合計${duration}`;
 }
 // GameInfoDetailView's pinned title/subtitle/play/safe-mode block.
 export function gameInfoHero(game){
@@ -43,7 +51,7 @@ export const stateDate=at=>{const date=new Date(at);return `<time datetime="${da
 
 // SaveStateListView.getSaveStatesSection: thumbnail, title, date, then either
 // a small Continue button or an edit-mode checkbox. No Save action in the list.
-export function stateRow(state,index,{editing=false,compatible=true,automatic=false}={}){
+export function stateRow(state,index,{editing=false,compatible=true,automatic=false,romMissing=false}={}){
  const title=tr`セーブ ${index+1}`;
- return `<article class="save-entry">${state.image?tr`<img class="save-thumb" src="${esc(state.image)}" alt="${title}の画面">`:`<div class="save-thumb save-empty">${icon('image')}</div>`}<div class="save-caption"><strong>${title}</strong>${stateDate(state.at)}${compatible?'':tr('<small class="danger">非対応のコア</small>')}</div>${editing?tr`<input type="checkbox" data-state-select="${index}" aria-label="${title}を選択">`:tr`<button class="state-continue" data-slot-load="${index}" ${automatic?`data-recover="${index}"`:''} aria-label="${title}から続ける" ${compatible?'':'disabled'}>${icon('play')}<span>続ける</span></button>`}</article>`;
+ return `<article class="save-entry">${state.image?tr`<img class="save-thumb" src="${esc(state.image)}" alt="${title}の画面">`:`<div class="save-thumb save-empty">${icon('image')}</div>`}<div class="save-caption"><strong>${title}</strong>${stateDate(state.at)}${compatible?'':tr('<small class="danger">非対応のコア</small>')}</div>${editing?tr`<input type="checkbox" data-state-select="${index}" aria-label="${title}を選択">`:tr`<button class="state-continue" data-slot-load="${index}" ${automatic?`data-recover="${index}"`:''} aria-label="${title}から続ける" ${compatible&&!romMissing?'':'disabled'}>${icon('play')}<span>続ける</span></button>`}</article>`;
 }

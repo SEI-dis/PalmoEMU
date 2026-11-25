@@ -26,7 +26,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await page.locator('#category-filter').selectOption('playing');assert.deepEqual(await ids(),['b']);
  await page.locator('#favorites').click();assert.equal((await ids()).length,0);await page.locator('#favorites').click();
  await page.locator('#category-filter').selectOption('all');await page.locator('#system-filter').selectOption('nds');assert.equal((await ids()).length,0);
- await page.locator('#system-filter').selectOption('all');await page.locator('#search').fill('');
+ await page.locator('#favorites').click();assert.equal(await page.locator('#add-first').count(),0);
+ await page.locator('#clear-library-filters').click();assert.deepEqual(await ids(),['c','b','a','d']);assert.equal(await page.locator('#search').inputValue(),'');assert.equal(await page.locator('#system-filter').inputValue(),'all');assert.equal(await page.locator('#favorites').getAttribute('aria-pressed'),'false');
  // Ordinary selection opens the owning ROM menu. Single-category changes and
  // X/cancel return to that menu, without starting a core or closing to library.
  await page.locator('[data-game=a]').click();await page.locator('#sheet.game-info').waitFor();await page.locator('[data-action=category]').click();assert.equal(await page.locator('#library-cancel').count(),0);await page.locator('#close-sheet').click();await page.locator('#sheet.game-info').waitFor();

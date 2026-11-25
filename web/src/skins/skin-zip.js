@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Original bounded ZIP reader using the browser's DEFLATE implementation.
 import {tr} from '../i18n/index.js';
+import {crc32} from '../crc32.js';
 const MAX=100*1024*1024;
 export async function readSkinZip(buffer){
  const bytes=new Uint8Array(buffer),v=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
@@ -40,4 +41,3 @@ export async function readSkinZip(buffer){
  }
  return files;
 }
-function crc32(bytes){let crc=0xffffffff;for(const b of bytes){crc^=b;for(let j=0;j<8;j++)crc=(crc>>>1)^((crc&1)?0xedb88320:0);}return (crc^0xffffffff)>>>0;}

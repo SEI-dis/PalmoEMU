@@ -26,7 +26,11 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',playwright=require('./b
   await p.locator('.game-launch').click();await p.locator('.game-info-play').click();await p.locator('#loading').waitFor({state:'hidden'});
   const panel=p.locator('#link-panel'),trigger=p.locator('#player-link');
   await trigger.tap();assert.equal(await p.locator('#sheet').evaluate(e=>e.open),false);assert.equal(await p.evaluate(()=>testEngine.paused),false);
-  assert.equal(await panel.getAttribute('aria-modal'),'false');assert.equal(connections,0,'Opening must not connect');
+  assert.equal(await panel.getAttribute('aria-modal'),'false');assert.equal(connections,0,'Opening must not connect');assert.equal(await panel.getAttribute('aria-labelledby'),'link-panel-title');assert.equal(await p.locator('#link-status').innerText(),'');assert.doesNotMatch(await panel.textContent(),/端末内通信の2Pには/);
+  await p.setViewportSize({width:320,height:812});await p.locator('[data-link-mode=local]').click();
+  await p.locator('#link-2p-source option').first().evaluate(async option=>{const en=(await import('./src/i18n/locales/en.js')).default;option.textContent=en['前回の2Pセーブ（初回は最初から）'];});
+  assert.equal(await p.locator('#link-panel-body').evaluate(body=>body.scrollWidth<=body.clientWidth+1),true,'Long local save choices fit the narrow panel without horizontal scrolling');
+  await p.locator('[data-link-mode=room]').click();await p.setViewportSize({width:390,height:844});
   const frames=await p.evaluate(()=>testEngine.frames);await p.waitForFunction(n=>testEngine.frames>n+3,frames);
   const a=await p.locator('.skin-button[aria-label=A]').boundingBox();
   await p.mouse.move(a.x+a.width/2,a.y+a.height/2);await p.mouse.down();assert.equal(await p.evaluate(()=>testEngine.keys&1),1);await p.mouse.up();assert.equal(await p.evaluate(()=>testEngine.keys),0);
@@ -40,7 +44,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',playwright=require('./b
   await p.keyboard.press('Escape');assert.equal(await panel.isVisible(),false);assert.equal(await trigger.getAttribute('aria-expanded'),'false');
   // Settings/menu entry uses the same Wi-Fi symbol and resumes gameplay.
   await p.locator('#player-menu').click();assert.equal(await p.evaluate(()=>testEngine.paused),true);
-  assert.equal(await p.locator('[data-action=link] svg path').first().getAttribute('d'),await trigger.locator('svg path').getAttribute('d'));
+  assert.equal(await p.locator('[data-action=link] svg').first().innerHTML(),await trigger.locator('svg').innerHTML(),'Menu and player shortcut use the same complete Wi-Fi glyph');
   await p.locator('[data-action=link]').click();assert.equal(await panel.isVisible(),true);assert.equal(await p.evaluate(()=>testEngine.paused),false);
   await p.locator('#link-create').click();await p.waitForFunction(()=>document.querySelector('#link-room-number')?.value==='8969');
   assert.equal(await trigger.getAttribute('data-state'),'waiting');assert.equal(await p.locator('#boost').isDisabled(),true);

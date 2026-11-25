@@ -1,5 +1,13 @@
 # Web版の公開に向けた確認記録 — 2026-10-13
 
+## 2026-11-25 — メニューの並べ替え
+
+SortableJS 1.15.7 の[公式タグのコミット](https://github.com/SortableJS/Sortable/tree/031649b8116565e02419e8aa2d252d7d8c82b9da)から、コアの ES モジュール 6 本と AutoScroll 1 本を取得し、上流の Git blob と照合した。ブラウザーで直接読み込むため、`src/Sortable.js` の package.json からのバージョン読み込みを同じ値の文字列に置換し、空行 1 行のタブを除いた。MIT の著作権・許諾・免責の原文は `licenses/SortableJS-MIT.txt` に収録し、クレジットからも確認できる。対応ソース ZIP には配信と同じモジュールと許諾原文が入る。
+
+## 2026-11-25 — Lucide の操作アイコン
+
+Lucide 1.80.0 のタグが示すコミット `164efbaf879fb29f55d88047efd49fc7725f53ab` の `icons/*.svg` から使用する図形を選び、`vendor/lucide/icons.js` に収録した。上流の LICENSE を Git blob `718bb3f0e44153809972abed31839375804bf652` と照合した。Lucide の ISC 通知、Feather 由来の対象一覧と Cole Bemis の MIT 通知、各免責条項を原文のまま `licenses/Lucide-ISC-Feather-MIT.txt` に収録する。Web 版のクレジットから読めるほか、操作アイコンと原文はいずれも対応ソース ZIP の対象である。
+
 ## 2026-11-25 — 日次検出とClownMDEmuの限定修正
 
 Clownacy/clownmdemuのAGPL-3.0実装から3件の修正だけを既存の固定版へ移植した。変更はCソース2件で、構造体・Webブリッジ・依存物・他のアーカイブ内容は変更なし。原著作権・ライセンス・依存物の通知を維持し、変更日と出典コミットを追加。配布する対応ソースからの独立再ビルドでJS/WASMが一致し、SOURCES.json・ビルド証跡・NOTICESへ記録した。作者製テスト入力のみを用い、ゲームROMや利用者のセーブは含まない。
@@ -63,7 +71,7 @@ UIKitをブラウザ用DOMへ、RealmをIndexedDBへ置き換え、Web版では�
 | --- | --- | --- |
 | 既成WASMと対応ソースが不明確 | FC/SFC/MDを固定バージョンのソースとWeb用のlibretro接続部からビルド。mGBAを含め同梱するソースだけで再ビルドし、JS/WASM全8ファイルのSHA-256一致を確認 | sources/build-evidence.json、各BUILD.md |
 | 非商用コアとGPLコードとの組み合わせ | Snes9xとGenesis Plus GXを配布から除外。SFCはMesen-S、MDはClownMDEmuに置換。EmulatorJS・RetroArchフロントエンドも除外 | SOURCES.json、licenses/、ソースアーカイブ |
-| 本家画像・ロゴ等の権利 | メニュー・設定のAGPLコードは保持し、アプリロゴ・ゲーム機ロゴを配布しない。ManicEMU標準スキンのみ、下記CC BY 4.0の個別確認に従って同梱。標準スキン4色と幾何学アイコンは新規作成。フォントはOS標準のみ | src/skins/skin-art.js、src/skins/skins.js、src/shared.js、assets/、NOTICES.md |
+| 本家画像・ロゴ等の権利 | メニュー・設定のAGPLコードは保持し、アプリロゴ・ゲーム機ロゴを配布しない。ManicEMU標準スキンのみ、下記CC BY 4.0の個別確認に従って同梱。標準スキンとアプリアイコンは新規作成。現在の操作アイコンは上記のLucideの帰属に従う。フォントはOS標準のみ | src/skins/skin-art.js、src/skins/skins.js、src/shared.js、assets/、NOTICES.md |
 | 元ソースに含まれる画像・フォント・テストROM | Webビルドの依存ファイルと必要なビルド定義、ライセンスだけを選別。アーカイブ内部までROM形式・署名・危険パス・未登録変更を検査 | scripts/audit-content.py、RELEASE_CONTENT.json |
 
 ## コア・依存物の扱い
@@ -161,7 +169,7 @@ Webラッパーが生成するMD構成は本体単体だけです。Sega CD・32
 
 | 確認範囲 | 移植元・結果 |
 | --- | --- |
-| ライブラリ・下部タブ | GameListView / GamesNavigationView / HomeTabBar。機種別の一覧、検索、選択したタブのラベル表示を保持。ゲーム機のロゴは文字、アイコンは独自ベクターに置換 |
+| ライブラリ・下部タブ | GameListView / GamesNavigationView / HomeTabBar。機種別の一覧、検索、選択したタブのラベル表示を保持。ゲーム機のロゴは文字、当時の操作アイコンは独自ベクターに置換（2026年11月25日にLucideへ変更） |
 | ゲーム詳細・プレイ中メニュー | GameInfoView / GameInfoNavigationView / GameInfoDetailView / GameOptionsView / GameOption。詳細から明示的にプレイ、固定ヘッダー、グループと順序、ショートカットを確認 |
 | ステート・復旧 | SaveStateListView。手動／自動、サムネイル、続ける、編集後の削除確認を確認。追記保存と自動復旧の保護はWeb版の安全策として維持 |
 | 設定 | SettingsListView / SettingItem。「このWeb版について」を本家と同じ「その他」へ移動。購入・iCloud・ネイティブ専用項目は省略 |

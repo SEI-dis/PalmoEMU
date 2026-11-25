@@ -80,8 +80,8 @@ export function createROMUpdateDialog(api){
   });
  }
  function complete(game){
-  api.sheet(tr('引き継ぎが完了しました'),tr`<p class="sheet-note">新版を起動し、ゲーム内の「つづきから」で確認してください。旧版はライブラリに残っています。</p><button id="rom-update-play" class="primary wide-button">新版をプレイ</button><button id="rom-update-back" class="text-button wide-button">ゲーム詳細へ</button>`);
-  bind('#rom-update-play',()=>{api.closeSheet({dismiss:true});return api.launch(game,{skipRecovery:true});});bind('#rom-update-back',()=>api.showGame(game));
+  api.sheet(tr('引き継ぎが完了しました'),tr`<p class="sheet-note">新版を起動し、ゲーム内の「つづきから」で確認してください。旧版はライブラリに残っています。</p><button id="rom-update-play" class="primary wide-button">新版をプレイ</button>`,false,{onBack:()=>api.showGame(game)});
+  bind('#rom-update-play',()=>{api.closeSheet({dismiss:true});return api.launch(game,{skipRecovery:true});});
  }
  function detach(game){
   api.sheet(tr('ROMだけ取り外す'),tr`<p class="sheet-note">「${esc(game.name)}」のROMだけを取り外します。セーブ・ステート・設定は残ります。同じROMを追加し直すと再開できます。</p><div class="sheet-actions"><button id="rom-update-back" class="secondary">キャンセル</button><button id="rom-detach-confirm" class="destructive">取り外す</button></div>`,false,{onBack:()=>api.showGame(game),confirmation:true});

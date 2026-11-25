@@ -2,10 +2,10 @@
 // Original bounded ZIP importer. Reads local Blob slices only, never paths or URLs.
 import {tr} from '../i18n/index.js';
 import {detectSystem} from '../shared.js';
+import {crc32} from '../crc32.js';
 import {maxROMZipSize,maxROMZipExpandedSize,supportsROMSize} from '../core/rom-capacity.js';
 export {maxROMZipSize};
 const maxEntries=256,maxDirectory=2*1048576;
-const crcTable=Uint32Array.from({length:256},(_,value)=>{for(let i=0;i<8;i++)value=(value>>>1)^((value&1)?0xedb88320:0);return value>>>0;});
 const broken=()=>new Error(tr('ZIPが壊れているか、対応していない形式です。'));
 const view=bytes=>new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
 const read=async(file,start,end)=>new Uint8Array(await file.slice(start,end).arrayBuffer());
@@ -55,17 +55,17 @@ export async function extractROMZip(file,entry,onProgress=()=>{}){
  if(!supportsROMSize(entry.system,entry.length)||entry.system==='3ds')throw broken();
  let stream=file.slice(entry.offset,entry.offset+entry.packed).stream();
  if(entry.method===8)try{stream=stream.pipeThrough(new DecompressionStream('deflate-raw'));}catch{throw new Error(tr('このブラウザではZIPを解凍できません。解凍してからゲームを追加してください。'));}
- const reader=stream.getReader(),bytes=new Uint8Array(entry.length);let offset=0,crc=0xffffffff,lastProgress=0;
+ const reader=stream.getReader(),bytes=new Uint8Array(entry.length);let offset=0,crc=0,lastProgress=0;
  try{
   for(;;){
    const {value,done}=await reader.read();if(done)break;
    if(offset+value.length>entry.length)throw broken();
    bytes.set(value,offset);offset+=value.length;
-   for(const byte of value)crc=(crc>>>8)^crcTable[(crc^byte)&255];
+   crc=crc32(value,crc);
    if(offset-lastProgress>=1048576){onProgress(offset,entry.length);lastProgress=offset;}
   }
  }catch(error){await reader.cancel().catch(()=>{});throw error;}finally{reader.releaseLock();}
- if(offset!==entry.length||((crc^0xffffffff)>>>0)!==entry.crc)throw broken();
+ if(offset!==entry.length||crc!==entry.crc)throw broken();
  onProgress(offset,entry.length);
  // Keep only one expanded byte buffer until its identity/duplicate check has
  // finished. The worker creates a Blob only if a new NDS ROM needs storing.

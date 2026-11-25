@@ -22,8 +22,9 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   const details=async()=>{await page.locator('.game-launch').click();await page.locator('.game-info-play').waitFor();};
   const shortcuts=['exit','restart','newState','quickLoad'];
   const assertShortcuts=async expected=>{
-   assert.deepEqual(await page.locator('#sheet-tools [data-shortcut]').evaluateAll(nodes=>nodes.map(node=>node.dataset.shortcut)),expected);
-   for(const id of shortcuts){assert.equal(await page.locator(`#sheet [data-action=${id}]`).count(),1,id+' has exactly one entry');assert.equal(await page.locator(`#sheet-body [data-action=${id}]`).count(),expected.includes(id)?0:1,id+' stays in the list only when its shortcut is hidden');}
+   assert.deepEqual(await page.locator('#sheet [data-shortcut]').evaluateAll(nodes=>nodes.map(node=>node.dataset.shortcut)),expected);
+   for(const id of expected.filter(id=>id==='newState'||id==='quickLoad'))assert.ok((await page.locator(`.state-shortcuts [data-shortcut=${id}]`).innerText()).trim(),id+' has a visible label');
+   for(const id of shortcuts){assert.equal(await page.locator(`#sheet [data-action=${id}]`).count(),1,id+' has exactly one entry');assert.equal(await page.locator(`#sheet-body [data-action=${id}]:not([data-shortcut])`).count(),expected.includes(id)?0:1,id+' stays in the list only when its shortcut is hidden');}
    assert.equal(await page.locator('#sheet-body [data-action=importSave],#sheet-body [data-action=export]').count(),0);assert.equal(await page.locator('#sheet-body [data-action=saveData]').count(),1);
   };
   const shot=async name=>{if(process.env.SCREENSHOT_DIR){fs.mkdirSync(process.env.SCREENSHOT_DIR,{recursive:true});await page.screenshot({path:path.join(process.env.SCREENSHOT_DIR,name+'.png')});}};
@@ -50,17 +51,57 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   await page.setViewportSize({width:390,height:844});
   await page.locator('[data-setting=speed]').selectOption('2');assert.equal(await page.locator('[data-setting=speed]').evaluate(el=>el.closest('.native-row').querySelector('.native-value').textContent),'2倍速');
   await page.locator('[data-setting=touchControls]').uncheck();assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('manic-settings')).touchControls),true,'A game override preserves global touch controls');assert.equal(await page.evaluate(async id=>(await (await import('./src/storage/storage.js')).get('library',id)).preferences.touchControls,gameId),false,'Screen buttons off is stored for this game');await page.locator('[data-setting=touchControls]').check();
-  await page.locator('[data-action=optionOrder]').click();assert.equal(await page.locator('[data-option=shareRom]').count(),0);await page.locator('[data-option=skins][data-move="-1"]').click();await page.locator('[data-action=back]').click();assert.equal(await page.locator('[data-menu-option]').first().getAttribute('data-menu-option'),'skins');
-  await page.locator('[data-action=optionOrder]').click();await page.locator('[data-action=reset]').click();await page.locator('[data-action=back]').click();
+  // A slow optional module must not bind drag handlers to the next sheet.
+  assert.equal(await page.evaluate(()=>performance.getEntriesByType('resource').some(entry=>entry.name.includes('/vendor/sortable/'))),false);
+  let releaseRequest;
+  const requested=page.waitForRequest('**/src/views/menu-drag.js'),release=new Promise(resolve=>{releaseRequest=resolve;});
+  await page.route('**/src/views/menu-drag.js',async route=>{await release;await route.continue();},{times:1});
+  await page.locator('[data-action=optionOrder]').click();await requested;
+  assert.equal(await page.locator('.order-grip').first().isVisible(),false);
+  await page.locator('#close-sheet').click();releaseRequest();
+  await page.waitForFunction(()=>performance.getEntriesByType('resource').some(entry=>entry.name.includes('/vendor/sortable/src/Animation.js')));
+  assert.equal(await page.locator('.drag-ready').count(),0);
+  await page.locator('[data-action=optionOrder]').click();await page.locator('.drag-ready .order-grip').first().waitFor();
+  const orderGroup=page.locator('[data-order-group="1"]');
+  const visibleOrder=()=>orderGroup.locator('[data-order-id]').evaluateAll(rows=>rows.map(row=>row.dataset.orderId));
+  const persistedOrder=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('manic-settings')).menuOrder.find(group=>group.includes('stateList')));
+  const original=await persistedOrder();
+  assert.deepEqual(await visibleOrder(),['stateList','saveData']);
+  const drag=async(from,to,touch=false)=>{
+   await to.scrollIntoViewIfNeeded();
+   const a=await from.boundingBox(),b=await to.boundingBox(),x=a.x+a.width/2,y=a.y+a.height/2;
+   const endX=b.x+b.width/2,endY=b.y+b.height*(y>b.y?0.22:0.78);
+   const cdp=touch?await context.newCDPSession(page):null;
+   const move=(tx,ty)=>cdp?cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:tx,y:ty}]}):page.mouse.move(tx,ty);
+   try{
+    if(cdp)await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});else{await page.mouse.move(x,y);await page.mouse.down();}
+    for(let i=1;i<=12;i++){await move(x+(endX-x)*i/12,y+(endY-y)*i/12);await page.waitForTimeout(20);}
+    // Sortable's fallback hit-testing is sampled while the pointer is still.
+    await page.waitForTimeout(80);
+    if(cdp)await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});else await page.mouse.up();
+   }finally{if(cdp)await cdp.detach();}
+  };
+  const saveGrip=page.locator('[data-order-id=saveData] .order-grip');
+  const stateGrip=page.locator('[data-order-id=stateList] .order-grip');
+  await drag(saveGrip,stateGrip);
+  assert.deepEqual(await visibleOrder(),['saveData','stateList'],'Dragging with a pointer swaps rows');
+  assert.deepEqual(await persistedOrder(),['saveData','importSave','shareSave','stateList'],'Unavailable actions keep their original slots');
+  await drag(saveGrip,page.locator('[data-order-id=category] .order-grip'));
+  assert.deepEqual(await visibleOrder(),['saveData','stateList'],'Dragging into a different group never transfers the option');
+  await drag(stateGrip,saveGrip,kind==='chromium');
+  assert.deepEqual(await persistedOrder(),original,'The touch or mouse handle can move the item back');
+  await shot('menu-order-drag');await page.locator('#close-sheet').click();
+  await page.locator('[data-action=optionOrder]').click();assert.match(await page.locator('[data-option=volumeLevel]').first().getAttribute('aria-label'),/音量レベル/);assert.equal(await page.locator('[data-option=shareRom]').count(),0);await page.locator('[data-option=skins][data-move="-1"]').press('Enter');assert.equal(await page.evaluate(()=>document.activeElement.dataset.option),'skins');await page.locator('#close-sheet').click();assert.equal(await page.locator('[data-menu-option]').first().getAttribute('data-menu-option'),'skins');
+  await page.locator('[data-action=optionOrder]').click();await page.locator('[data-action=reset]').click();await page.locator('#close-sheet').click();
   await page.locator('[data-action=states]').click();await page.getByText('セーブステートはありません。',{exact:true}).waitFor();assert.equal(await page.locator('#player').isVisible(),false,'State list does not start the game');await page.locator('#close-sheet').click();
   await page.locator('.game-info-play').waitFor();await page.locator('#close-sheet').click();await details();await page.locator('[data-action=rename]').click();await page.locator('#new-name').fill('Original <Test> Adventure');await page.locator('#save-name').click();await page.locator('.game-info-title h2').waitFor();assert.equal(await page.locator('.game-info-title h2').textContent(),'Original <Test> Adventure');
   await page.locator('[data-action=play]').click();await page.locator('#loading').waitFor({state:'hidden'});await page.locator('#player-menu').click();await assertShortcuts(shortcuts);assert.equal(await page.locator('[data-setting=speed]').inputValue(),'2');await shot('native-playing-menu');
   await page.locator('[data-action=newState]').click();await page.locator('[data-slot-load]').waitFor();await page.locator('#close-sheet').click();await page.locator('#player-menu').click();await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
   // Resume a real saved state from the pre-play details scene.
-  await details();await page.locator('[data-action=shortcuts]').click();await page.locator('[data-shortcut-choice=restart]').uncheck();await page.locator('[data-action=back]').click();await page.locator('[data-action=states]').click();await page.locator('[data-slot-load]').click();await page.locator('#sheet').waitFor({state:'hidden'});assert.equal(await page.locator('#player').isVisible(),true);
+  await details();await page.locator('[data-action=shortcuts]').click();await page.locator('[data-shortcut-choice=restart]').uncheck();await page.locator('#close-sheet').click();await page.locator('[data-action=states]').click();await page.locator('[data-slot-load]').click();await page.locator('#sheet').waitFor({state:'hidden'});assert.equal(await page.locator('#player').isVisible(),true);
   await page.locator('#player-menu').click();await assertShortcuts(shortcuts.filter(id=>id!=='restart'));await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
   // Hiding every shortcut retains all four list actions, including real save/exit.
-  await details();await page.locator('[data-action=shortcuts]').click();for(const id of shortcuts)await page.locator(`[data-shortcut-choice=${id}]`).uncheck();await page.locator('[data-action=back]').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});await page.locator('#player-menu').click();await assertShortcuts([]);
+  await details();await page.locator('[data-action=shortcuts]').click();for(const id of shortcuts)await page.locator(`[data-shortcut-choice=${id}]`).uncheck();await page.locator('#close-sheet').click();await page.locator('.game-info-play').click();await page.locator('#loading').waitFor({state:'hidden'});await page.locator('#player-menu').click();await assertShortcuts([]);
   await page.locator('#sheet-body [data-action=newState]').click();await page.locator('[data-slot-load]').first().waitFor();await page.locator('#close-sheet').click();await page.locator('#player-menu').click();await page.locator('#sheet-body [data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
   const beforeImport=await page.evaluate(async id=>{const db=await import('./src/storage/storage.js');return [...(await db.get('saves',id)).bytes];},gameId);
   assert.ok(beforeImport.length>0,'Battery save has data');const incoming=Buffer.from(beforeImport);incoming[0]^=255;
@@ -79,7 +120,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',browserType=require('./browser
   await page.locator('[data-tab=settings]').click();await page.locator('.settings-page').waitFor();
   assert.equal((await page.locator('.settings-page [data-action=skins]').innerText()).trim(),'スキン');
   for(const file of ['privacy.html','licenses.html','update.html']){
-   await page.locator(`.settings-page a[href="${file}"]`).click();await page.getByRole('link',{name:'← 戻る',exact:true}).click();
+   await page.locator(`.settings-page a[href="${file}"]`).click();await page.getByRole('link',{name:'戻る',exact:true}).click();
    await page.locator('.settings-page').waitFor();assert.equal(new URL(page.url()).hash,'#settings');
    await page.locator(`.settings-page a[href="${file}"]`).click();await page.waitForURL(new URL(file,base).href);await page.goBack();await page.locator('.settings-page').waitFor();
   }

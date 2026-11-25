@@ -24,6 +24,8 @@ def check_name(name):
 def component(path):
     if path.startswith('vendor/start-save-format/'): return 'pokemonstart-bundled-format-tool-separate-permission-review'
     if path.startswith('vendor/start-save-migrate/') or path.startswith('scripts/start-save-migrate/base/') or path == 'scripts/start-save-migrate/patches.json': return 'start-save-migrate-user-supplied-license-unspecified'
+    if path.startswith('vendor/sortable/'): return 'sortablejs-mit'
+    if path.startswith('vendor/lucide/'): return 'lucide-isc-feather-mit'
     if path.startswith('vendor/rom-patcher/'): return 'rompatcher-mit'
     if path.startswith('shaders/'): return 'xbrz-gpl-3.0-with-permissive-notices'
     if path == 'src/rendering/gpu-filter.js': return 'celio-screen-effects-mpl-2.0'

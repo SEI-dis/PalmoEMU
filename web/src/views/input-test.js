@@ -6,8 +6,8 @@ import {builtinDpadDirections} from '../input/dpad-input.js';
 import {configureBuiltinTouchTargets} from '../input/touch-targets.js';
 import {createSkinPointers} from '../skins/skin-pointers.js';
 const directions=['up','down','left','right'];
-export function inputTestMarkup(system){
- return tr`<p class="sheet-note">キーやゲームパッド、下の画面ボタンを押して確認できます。ゲームは動きません。</p><div class="input-test-preview">
+export function inputTestMarkup(system,{showHint=true}={}){
+ return tr`${showHint?tr('<p class="sheet-note">キーやゲームパッド、下の画面ボタンを押して確認できます。ゲームは動きません。</p>'):''}<div class="input-test-preview">
  <button class="skin-button input-test-dpad" aria-label="十字キー">${directions.map(action=>`<span data-test-action="${action}" class="input-test-direction input-test-${action}">${inputLabels[action]}</span>`).join('')}</button>
  <div class="input-test-buttons">${gameInputsFor(system).filter(action=>!directions.includes(action)).map(action=>`<button class="skin-button input-test-button" data-test-button="${action}" data-test-action="${action}">${inputLabels[action]}</button>`).join('')}</div></div>
  <p class="input-test-status" id="input-test-status" role="status" aria-live="polite">入力なし</p><p class="sheet-note input-test-devices" id="input-test-devices"></p>`;

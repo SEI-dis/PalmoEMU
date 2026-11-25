@@ -7,20 +7,21 @@ import {saveRecording} from './recording-file.js';
 export function createRecordingPreview({onInteract=()=>{},onChange=()=>{},error=()=>{}}={}){
  const panel=document.createElement('section');panel.id='recording-preview';panel.className='capture-panel recording-preview';panel.hidden=true;
  panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','false');panel.setAttribute('aria-label',tr('録画した動画'));
- panel.innerHTML=`<header><strong>${tr('録画した動画')}</strong><button class="circle" data-video-close aria-label="${tr('閉じる')}">${icon('close')}</button></header><video controls playsinline preload="metadata"></video><p class="sheet-note" data-video-info></p><div class="capture-actions"><button class="primary" data-video-save>${tr('動画を保存')}</button><button class="secondary" data-video-share hidden>${tr('共有')}</button></div><p class="sheet-note" data-video-status role="status"></p><div class="capture-actions" data-video-confirm hidden><button class="secondary" data-video-cancel>${tr('キャンセル')}</button><button class="secondary danger" data-video-discard>${tr('録画を閉じる')}</button></div>`;
+ panel.innerHTML=`<header><strong>${tr('録画した動画')}</strong><button class="circle" data-video-close aria-label="${tr('閉じる')}">${icon('close')}</button></header><video controls playsinline preload="metadata"></video><p class="sheet-note" data-video-info></p><div class="capture-actions"><button class="primary" data-video-save>${tr('動画を保存')}</button><button class="secondary" data-video-share hidden>${tr('共有')}</button></div><p class="sheet-note" data-video-status role="status"></p><div class="capture-actions" data-video-confirm hidden><button class="secondary" data-video-cancel>${tr('キャンセル')}</button><button class="destructive" data-video-discard>${tr('録画を閉じる')}</button></div>`;
  const video=panel.querySelector('video'),share=panel.querySelector('[data-video-share]'),status=panel.querySelector('[data-video-status]'),confirm=panel.querySelector('[data-video-confirm]');
  let file=null,url=null,sharing=false,saving=false,preparing=false;
  const save=panel.querySelector('[data-video-save]');
  const close=panel.querySelector('[data-video-close]'),info=panel.querySelector('[data-video-info]'),actions=panel.querySelector('.capture-actions');
- function preparation(value){preparing=value;panel.setAttribute('aria-busy',String(value));video.hidden=value;info.hidden=value;actions.hidden=value;close.disabled=value;}
+ function preparation(value){preparing=value;panel.setAttribute('aria-busy',String(value));video.hidden=value;info.hidden=value;actions.hidden=value;close.disabled=value;close.hidden=false;}
  const mount=()=>{(document.fullscreenElement||document.body).append(panel);};mount();
  function clear(){if(saving||sharing)return;video.pause();video.removeAttribute('src');video.load();if(url)URL.revokeObjectURL(url);url=null;file=null;panel.hidden=true;confirm.hidden=true;onChange();}
- function requestClose(){if(sharing||saving||preparing)return;video.pause();confirm.hidden=false;status.textContent=tr('保存してから閉じてください。閉じると、この録画は破棄されます。');panel.querySelector('[data-video-cancel]').focus({preventScroll:true});}
+ function requestClose(){if(sharing||saving||preparing)return;video.pause();confirm.hidden=false;actions.hidden=true;close.hidden=true;status.textContent=tr('保存してから閉じてください。閉じると、この録画は破棄されます。');panel.querySelector('[data-video-cancel]').focus({preventScroll:true});}
  panel.querySelector('[data-video-close]').onclick=requestClose;
  panel.querySelector('[data-video-discard]').onclick=clear;
- panel.querySelector('[data-video-cancel]').onclick=()=>{confirm.hidden=true;status.textContent='';};
+ function cancelClose(){confirm.hidden=true;actions.hidden=false;close.hidden=false;status.textContent='';close.focus({preventScroll:true});}
+ panel.querySelector('[data-video-cancel]').onclick=cancelClose;
  panel.addEventListener('pointerdown',onInteract);
- panel.addEventListener('keydown',event=>{event.stopPropagation();if(event.key==='Escape'){event.preventDefault();requestClose();}});
+ panel.addEventListener('keydown',event=>{event.stopPropagation();if(event.key==='Escape'){event.preventDefault();if(confirm.hidden)requestClose();else cancelClose();}});
  save.onclick=async()=>{
   if(!file||saving||sharing)return;video.pause();saving=true;confirm.hidden=true;save.disabled=share.disabled=close.disabled=true;status.textContent='';
   try{

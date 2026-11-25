@@ -18,6 +18,16 @@ const engine=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'
    const {default:catalogue}=await import(pathToFileURL(path.join(__dirname,`../src/i18n/locales/${code}.js`)));
    await page.goto(base+'index.html#settings');await page.locator('#app-language').waitFor();
    assert.equal(await page.locator('html').getAttribute('lang'),code);assert.equal(await page.locator('h1').textContent(),catalogue['設定']);
+   const relative=await page.evaluate(async()=>{
+    const {gamePlaySummary}=await import('./src/components/manic-ui.js');
+    const {locale}=await import('./src/i18n/index.js');
+    const month=30*86400000,formatter=new Intl.RelativeTimeFormat(locale(),{numeric:'always'});
+    return [1,2].map(count=>({
+     expected:formatter.format(-count,'month'),
+     summary:gamePlaySummary({lastPlayed:Date.now()-month*count})
+    }));
+   });
+   for(const {expected,summary} of relative)assert.ok(summary.includes(expected),code+' '+summary);
    assert.equal(await page.locator('body').getAttribute('data-drop-label'),catalogue['ROMをドロップして追加']);
    const dropText=await page.evaluate(()=>{document.body.classList.add('drop-active');const text=getComputedStyle(document.body,'::after').content;document.body.classList.remove('drop-active');return text;});
    assert.ok(dropText.includes(catalogue['ROMをドロップして追加']),code+' drag overlay is translated');

@@ -19,7 +19,8 @@ export function createLibraryView(api){
  function saveDisplay(){try{localStorage.setItem(displayKey,JSON.stringify(libraryDisplay(state)));}catch{api.toast(tr('表示設定はこのタブ内でのみ保持されます。'));}}
  function clearSelection(){selected.clear();}
  function leave(){selecting=false;clearSelection();}
- function reset(){leave();Object.assign(state,{system:'all',category:'all',query:'',favorites:false});}
+ function clearFilters(){Object.assign(state,{system:'all',category:'all',query:'',favorites:false});clearSelection();}
+ function reset(){selecting=false;clearFilters();}
  function changeFilter(key,value){state[key]=value;clearSelection();renderListing();}
  function render(){
   const hasGames=api.games().length>0;if(!hasGames)leave();
@@ -52,23 +53,32 @@ export function createLibraryView(api){
  function card(game){
   const system=systems[game.system],isSelected=selected.has(game.id),quick=!selecting&&quickStart(game);
   const label=quick?`${esc(tr('プレイ'))} · ${esc(game.name)}`:`${esc(game.name)}${selecting?tr('を選択'):tr('の設定を開く')}`;
-  return `<article class="game-card ${selecting?'is-selectable':''} ${isSelected?'is-selected':''}"><button class="game-launch" data-game="${esc(game.id)}" aria-label="${label}" ${selecting?`aria-pressed="${isSelected}"`:quick?'':'aria-haspopup="dialog"'}><div class="cover ${game.cover?'':'empty-cover'}" style="--system-color:${system.color}"><img src="${esc(game.cover||'assets/controller.svg')}" alt=""><span class="badge">${game.romMissing?tr('ROM未追加'):game.size===67108864&&game.system==='gba'?'64 MB':system.short}</span>${game.favorite?`<span class="heart-mark">${icon('heart')}</span>`:''}${selecting?`<span class="library-check" aria-hidden="true">${isSelected?icon('check'):''}</span>`:''}</div><h3 class="game-name">${esc(game.name)}</h3>${categoryOf(game)?`<span class="game-category">${categoryLabel(game)}</span>`:''}</button>${selecting?'':tr`<button class="game-options" data-details="${esc(game.id)}" aria-label="${esc(game.name)}のメニュー" aria-haspopup="dialog">${icon('more')}</button>`}</article>`;
+  return `<article class="game-card ${selecting?'is-selectable':''} ${isSelected?'is-selected':''}"><div class="game-card-main"><button class="game-launch" data-game="${esc(game.id)}" aria-label="${label}" ${selecting?`aria-pressed="${isSelected}"`:quick?'':'aria-haspopup="dialog"'}><div class="cover ${game.cover?'':'empty-cover'}" style="--system-color:${system.color}"><img src="${esc(game.cover||'assets/controller.svg')}" alt=""><span class="badge">${game.romMissing?tr('ROM未追加'):game.size===67108864&&game.system==='gba'?'64 MB':system.short}</span>${game.favorite?`<span class="heart-mark">${icon('heart')}</span>`:''}${selecting?`<span class="library-check" aria-hidden="true">${isSelected?icon('check'):''}</span>`:''}</div><h3 class="game-name">${esc(game.name)}</h3>${categoryOf(game)?`<span class="game-category">${categoryLabel(game)}</span>`:''}</button>${selecting?'':tr`<button class="game-options" data-details="${esc(game.id)}" aria-label="${esc(game.name)}のメニュー" aria-haspopup="dialog">${icon('more')}</button>`}</div></article>`;
  }
  function renderListing(){
   const games=shown();selectionSummary(games);
-  if(!games.length){const exists=api.games().length>0;$('#library').innerHTML=tr`<div class="empty-library"><img src="assets/${exists?'empty':'icon'}.svg" class="${exists?'':'app-icon'}" alt=""><h2>${exists?tr('ゲームが見つかりません'):tr('ゲームを追加しましょう')}</h2><p>${exists?tr('検索や絞り込み条件を変更してください。'):tr('端末内のROMを選んで追加できます。')}</p><button class="primary" id="add-first">${icon('plus')}ゲームを追加</button></div>`;$('#add-first').onclick=api.add;return;}
+  if(!games.length){
+   if(api.games().length){
+    $('#library').innerHTML=tr`<div class="empty-library"><img src="assets/empty.svg" alt=""><h2>ゲームが見つかりません</h2><button class="secondary" id="clear-library-filters">検索条件をクリア</button></div>`;
+    $('#clear-library-filters').onclick=()=>{clearFilters();render();$('#library [data-game]')?.focus({preventScroll:true});};
+   }else{
+    $('#library').innerHTML=tr`<div class="empty-library"><img src="assets/icon.svg" class="app-icon" alt=""><h2>ゲームを追加しましょう</h2><p>端末内のROMを選んで追加できます。</p><button class="primary" id="add-first">${icon('plus')}ゲームを追加</button></div>`;
+    $('#add-first').onclick=api.add;
+   }
+   return;
+  }
   $('#library').innerHTML=groupGames(games,state.group,systems).map(([label,items])=>`<section class="system-section"><h2 class="section-title"><span>${esc(label)}</span><span class="count">${items.length}</span>${icon('chevron')}</h2><div class="game-grid">${items.map(card).join('')}</div></section>`).join('');
   $('#library').querySelectorAll('[data-game],[data-details]').forEach(button=>button.onclick=()=>{
    const id=button.dataset.game||button.dataset.details;
    if(selecting){if(selected.has(id))selected.delete(id);else selected.add(id);renderListing();[...$('#library').querySelectorAll('[data-game]')].find(el=>el.dataset.game===id)?.focus({preventScroll:true});}
    else {const game=api.games().find(game=>game.id===id);if(game)return button.dataset.game&&quickStart(game)?api.startGame(game):api.showGame(game);}
   });
+  api.renderUpdates();
  }
  function showDisplay(){
-  api.sheet(tr('並べ替えと表示方法'),tr`<div class="settings-group"><label class="row"><span>並べ替え</span><select id="library-sort-choice">${options(librarySorts,state.sort)}</select></label><label class="row"><span>グループ</span><select id="library-group-choice">${options([['system',tr('機種ごと')],['category',tr('分類ごと')],['none',tr('まとめて表示')]],state.group)}</select></label></div><button class="primary wide-button" id="library-display-done">完了</button>`);
+  api.sheet(tr('並べ替えと表示方法'),tr`<div class="settings-group"><label class="row"><span>並べ替え</span><select id="library-sort-choice">${options(librarySorts,state.sort)}</select></label><label class="row"><span>グループ</span><select id="library-group-choice">${options([['system',tr('機種ごと')],['category',tr('分類ごと')],['none',tr('まとめて表示')]],state.group)}</select></label></div>`);
   const apply=()=>{state.sort=$('#library-sort-choice').value;state.group=$('#library-group-choice').value;saveDisplay();render();};
   $('#library-sort-choice').onchange=apply;$('#library-group-choice').onchange=apply;
-  $('#library-display-done').onclick=()=>api.closeSheet();
  }
  function bindCancel(){$('#library-cancel').onclick=()=>api.closeSheet();}
  // Keep the modal and its close button in place during a write; failed batch

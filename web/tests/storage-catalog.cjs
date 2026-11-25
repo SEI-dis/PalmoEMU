@@ -18,6 +18,8 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
   const binaryReads=()=>reads.filter(read=>['states','saves','backups','archives','recoveries','roms'].includes(read.store));
   const first=await db.stateCatalog(a.id),light=first.manual.length===1&&first.automatic.length===2&&!('bytes'in first.manual[0].value)&&!('save'in first.manual[0].value)&&first.manual[0].value.byteLength===1025&&binaryReads().length===0;
   reads.length=0;await db.stateCatalog(a.id,{mode:'manual'});const manualOnly=binaryReads().length===0;
+  const savedStatus=await db.stateCatalog(a.id,{mode:'auto',includeSaveTime:true}),emptyStatus=await db.stateCatalog(b.id,{mode:'auto',includeSaveTime:true});
+  if(savedStatus.saveAt!==1||emptyStatus.saveAt!==undefined||binaryReads().length)throw Error('Save status must be scoped to the game and read metadata only');
   reads.length=0;const chosen=await db.readStateSelection(a,first.manual[0]),oneSelected=chosen.hash===one.hash&&binaryReads().length===1&&binaryReads()[0].key===key;
   // Reordering an automatic array must keep the chosen generation, not its old index.
   await db.put('recoveries',a.id,[three,two,one]);const recovery=await db.readStateSelection(a,first.automatic[1]);

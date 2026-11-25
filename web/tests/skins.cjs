@@ -41,6 +41,11 @@ function pdf(){let s='%PDF-1.4\n',offset=[0];const stream='0.1 0.2 0.3 rg 0 0 39
   assert.equal(await p.locator('#skin-palette').isVisible(),system!=='nds',system+' palette follows actual body-color support');
  }
  const wrongGame=await p.evaluate(async bytes=>{const{importSkin}=await import('./src/skins/skins.js');try{await importSkin(new File([new Uint8Array(bytes)],'wrong-game.deltaskin'),'snes');return false;}catch(e){return e.message==='このゲーム用のスキンではありません。';}},[...payload]);assert.equal(wrongGame,true);
+ // Keep valid DEFLATE payloads and matching local/central metadata, but deliberately use the wrong checksum.
+ const corrupted=Buffer.from(payload),directory=corrupted.readUInt32LE(corrupted.length-22+16),wrongCRC=(corrupted.readUInt32LE(14)^1)>>>0;
+ corrupted.writeUInt32LE(wrongCRC,14);corrupted.writeUInt32LE(wrongCRC,directory+16);
+ const corruptError=await p.evaluate(async bytes=>{const {readSkinZip}=await import('./src/skins/skin-zip.js');try{await readSkinZip(new Uint8Array(bytes).buffer);}catch(error){return error.message;}},[...corrupted]);
+ assert.equal(corruptError,'スキンに破損が見つかりました。');
  const malicious=zip({'../info.json':'{}'});assert.equal(await p.evaluate(async bytes=>{const{readSkinZip}=await import('./src/skins/skin-zip.js');try{await readSkinZip(new Uint8Array(bytes).buffer);return false;}catch{return true;}},[...malicious]),true);
  for(const name of ['not-a-skin.txt','game.gba'])assert.equal(await p.evaluate(async({name,bytes})=>{const{importSkin}=await import('./src/skins/skins.js');try{await importSkin(new File([new Uint8Array(bytes)],name));return false;}catch(e){return e.message.includes('スキンを選択');}},{name,bytes:[...payload]}),true,'Reject non-skin extensions even if their contents look like a skin ZIP');
  const evil={...info,representations:{iphone:{standard:{portrait:{...rep,assets:{resizable:'https://example.com/a.png'}}}}}};const bad=zip({'info.json':JSON.stringify(evil),'controller.pdf':pdf()});assert.equal(await p.evaluate(async bytes=>{const{importSkin}=await import('./src/skins/skins.js');try{await importSkin(new File([new Uint8Array(bytes)],'bad.deltaskin'));return false;}catch{return true;}},[...bad]),true);

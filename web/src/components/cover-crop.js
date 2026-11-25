@@ -40,7 +40,7 @@ export function mountCoverCrop(canvas,slider,bitmap){
  listen(slider,'input',()=>{if(disabled)return;cancelPointers();crop=zoomCrop(crop,Number(slider.value)/100);update();});
  const observer=new ResizeObserver(()=>{cancelPointers();update();});observer.observe(canvas);render();
  return {
-  toDataURL(){if(closed)throw Error('Crop editor is closed');const output=document.createElement('canvas'),size=Math.max(1,Math.min(512,Math.floor(cropBounds(crop).size)));output.width=output.height=size;try{draw(output.getContext('2d'),size);return output.toDataURL('image/webp',.85);}finally{output.width=output.height=1;}},
+  toDataURL({size=Math.max(1,Math.min(512,Math.floor(cropBounds(crop).size))),type='image/webp'}={}){if(closed)throw Error('Crop editor is closed');const output=document.createElement('canvas');output.width=output.height=size;try{draw(output.getContext('2d'),size);return output.toDataURL(type,.85);}finally{output.width=output.height=1;}},
   setDisabled(value){disabled=!!value;slider.disabled=disabled;canvas.setAttribute('aria-disabled',String(disabled));if(disabled)cancelPointers();},
   dispose(){if(closed)return;closed=true;cancelPointers();if(frame!==null)cancelAnimationFrame(frame);frame=null;observer.disconnect();listeners.splice(0).forEach(remove=>remove());source=null;canvas.width=canvas.height=1;}
  };

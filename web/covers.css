@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: AGPL-3.0-or-later */
 .cover-preview{display:block;max-width:100%;width:auto;height:auto;max-height:280px;object-fit:contain;margin:12px auto 20px;border-radius:12px}
 .cover-crop-stage{display:block;width:min(100%,360px);height:auto;aspect-ratio:1;margin:12px auto;background:var(--bg);border:1px solid var(--line);border-radius:12px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.cover-crop-stage.round-crop{border-radius:50%}
 .cover-crop-stage.dragging{cursor:grabbing}
 .cover-crop-stage:focus-visible{outline:2px solid var(--accent,#ff355e);outline-offset:3px}
 .cover-crop-stage[aria-disabled=true]{cursor:default}

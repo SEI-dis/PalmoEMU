@@ -85,13 +85,13 @@ const viewports=[{name:'320-dark',width:320,height:844,theme:'dark'},
     await page.locator('[data-tab=settings]').click();
     assert.equal(await page.locator('#content').innerText().then(text=>text.includes('ゲームで変更した項目には、そのゲームの個別設定を使います。')),false);
     await page.locator('#content [data-action=saveHelp]').click();await check('save-help','#sheet',['#close-sheet']);assert.equal(await page.locator('#sheet-body').innerText().then(text=>text.includes('mGBA')),false);await page.locator('#close-sheet').click();
-    await page.locator('#content [data-action=diagnostics]').click();await check('diagnostics','#sheet',['#diagnostics-export','#performance-clear','#close-sheet']);assert.equal(await page.locator('#diagnostics-clear.destructive').count(),1);assert.equal(await page.locator('#performance-clear.destructive').count(),1);await page.locator('#close-sheet').click();
+    await page.locator('#content [data-action=diagnostics]').click();await check('diagnostics','#sheet',['#diagnostics-export','#performance-enabled','#close-sheet']);assert.equal(await page.locator('#diagnostics-clear.destructive').count(),1);assert.equal(await page.locator('#performance-clear').isVisible(),false);await page.locator('#close-sheet').click();
     await page.locator('#content [data-action=backup]').click();await page.waitForFunction(()=>!document.querySelector('#backup-export').disabled);
     await page.locator('#backup-export-options > summary').click();await check('backup-save','#sheet',['#backup-mode-save','#backup-mode-restore','#backup-latest','[data-backup-export-game]','#backup-export']);
     await page.locator('#backup-export').click();await page.locator('.file-export').waitFor();await check('file-export','.file-export',['[data-export-save]','[data-export-share]','[data-export-close]']);
     await page.locator('[data-export-save]').click();await page.waitForFunction(()=>fixtureExports.length>0&&!document.querySelector('[data-export-close]').disabled);await page.locator('[data-export-close]').click();await page.waitForFunction(()=>!document.querySelector('#backup-mode-restore').disabled);
     const archive=await page.evaluate(()=>fixtureExports.pop());assert.ok(JSON.parse(archive));
-    await page.locator('#backup-mode-restore').click();await check('backup-select','#sheet',['#backup-mode-save','label[for=backup-import]']);
+    await page.locator('#backup-mode-restore').click();await check('backup-select','#sheet',['#backup-mode-save','#backup-choose']);
     await page.locator('#backup-import').setInputFiles({name:'synthetic-layout-backup.json',mimeType:'application/json',buffer:Buffer.from(archive)});await page.locator('#backup-confirm').waitFor();
     await page.locator('#backup-preview details > summary').first().click();await check('backup-restore','#sheet',['#backup-select-all','[data-backup-game]','#backup-settings','#backup-confirm']);await page.locator('#close-sheet').click();
     await page.locator('#content [data-action=offline]').click();await page.waitForFunction(()=>!document.querySelector('#offline-download').disabled);

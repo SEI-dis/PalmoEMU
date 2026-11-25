@@ -4,6 +4,7 @@
 import {inspectInput,migrateSave,normalizeVersion,readSave,getVariable} from './provider.js';
 import {START_COMPONENT,START_SOURCE_VERSIONS} from './definition.js';
 import {tr} from '../i18n/index.js';
+import {crc32} from '../crc32.js';
 import {startSaveCompatibility,selectStartMigrationVersion,START_MIGRATION_VERSION} from './compatibility.js';
 import {startVersionNumber,startVersionFromStamp} from './version.js';
 import {readStartROMProfile,isStartROMFamily} from './rom-profile.js';
@@ -31,12 +32,11 @@ function copySave(value){return Uint8Array.from(checkedSave(value));}
 function inspectionSave(value){const bytes=checkedSave(value);return typeof SharedArrayBuffer!=='undefined'&&bytes.buffer instanceof SharedArrayBuffer?Uint8Array.from(bytes):bytes;}
 function sourceVersion(value){if(typeof value!=='string'||value.length>16)fail('version');const source=sources.get(normalizeVersion(value));if(!source)fail('version');return source;}
 function cancelled(signal){if(signal?.aborted){const error=new Error('Migration cancelled');error.name='AbortError';throw error;}}
-const crcTable=Uint32Array.from({length:256},(_,value)=>{for(let bit=0;bit<8;bit++)value=value&1?0xedb88320^(value>>>1):value>>>1;return value>>>0;});
 
 // Identification only: CRC32 is neither proof of origin nor authorization to use a ROM.
 export function identifyStartROM(value){
  const bytes=view(value);if(bytes.length<192||bytes.length>128*1048576)return null;
- let crc=0xffffffff;for(const byte of bytes)crc=crcTable[(crc^byte)&255]^(crc>>>8);crc=(crc^0xffffffff)>>>0;
+ const crc=crc32(bytes);
  const profile=readStartROMProfile(bytes);if(profile)return {...profile,crc32:crc};
  const matches=START_SOURCE_VERSIONS.filter(source=>source.crc32===crc);
  if(!matches.length)return isStartROMFamily(bytes)?{version:null,minimumSaveVersion:null,unverified:true,crc32:crc}:null;

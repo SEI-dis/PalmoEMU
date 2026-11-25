@@ -903,7 +903,6 @@ export default {
  "コアやライブラリには、それぞれのライセンスが適用されます。著作権表示とライセンス原文を同梱しています。": "Los núcleos y las bibliotecas están sujetos a sus respectivas licencias. Se incluyen los avisos de derechos de autor y los textos originales de las licencias.",
  "ライセンス・通知を開く": "Abrir licencias y avisos",
  "ゲーム・スキン・商標": "Juegos, diseños y marcas comerciales",
- "ソフトウェアのライセンスは、ROM・ゲーム画像・第三者のスキン・商標の利用を許可するものではありません。このWeb版は、本家やゲーム機メーカーの公式製品ではありません。「標準」スキンとアイコンは、このWeb版用に作成したものです。ManicEMUの同梱スキンは上記の別ライセンスで提供します。商標権等の許諾を意味するものではありません。": "Las licencias de software no autorizan el uso de ROM, imágenes de juegos, diseños de terceros ni marcas comerciales. Esta versión web no es un producto oficial de los proyectos originales ni de los fabricantes de consolas. Los diseños «Predeterminado» y los iconos se crearon para esta versión web. Los diseños incluidos de ManicEMU se ofrecen bajo la licencia independiente indicada arriba. Esto no implica la concesión de derechos sobre marcas comerciales u otros derechos similares.",
  "使い方・公開手順": "Guía de uso y publicación",
  "変更内容 · PalmoEMU": "Novedades · PalmoEMU",
  "← クレジット・ライセンス": "← Créditos y licencias",
@@ -1433,5 +1432,17 @@ export default {
  "画面に戻るまで通信開始を待っています。": "Esperando a que vuelvas para iniciar la comunicación.",
  "mGBA celio edition · 128MiB対応": "mGBA celio edition · Compatible con 128MiB",
  "128KiB・6MiB・16MiBの通常セーブを選択してください。": "Selecciona una partida guardada dentro del juego de 128KiB, 6MiB o 16MiB.",
- "128KiB・1MiB・6MiB・16MiBの通常セーブを選択してください。": "Selecciona una partida guardada dentro del juego de 128KiB, 1MiB, 6MiB o 16MiB."
+ "128KiB・1MiB・6MiB・16MiBの通常セーブを選択してください。": "Selecciona una partida guardada dentro del juego de 128KiB, 1MiB, 6MiB o 16MiB.",
+ "再確認は⟪0⟫から": "Puedes volver a comprobarlo a las ⟪0⟫",
+ "ROMの更新に進む": "Ir a la actualización de la ROM",
+ "選び直す": "Cambiar archivo",
+ "検索条件をクリア": "Borrar búsqueda y filtros",
+ "ゲームを追加": "Añadir juego",
+ "保存・共有": "Guardar o compartir",
+ "Lucide · 操作アイコン": "Lucide · Iconos de la interfaz",
+ "ソフトウェアのライセンスは、ROM・ゲーム画像・第三者のスキン・商標の利用を許可するものではありません。このWeb版は、本家やゲーム機メーカーの公式製品ではありません。「標準」スキンとアプリアイコンは、このWeb版用に作成したものです。ManicEMUの同梱スキンは上記の別ライセンスで提供します。商標権等の許諾を意味するものではありません。": "Las licencias de software no autorizan el uso de ROM, imágenes de juegos, diseños de terceros ni marcas comerciales. Esta versión web no es un producto oficial de los proyectos originales ni de los fabricantes de consolas. Los diseños «Predeterminado» y el icono de la aplicación se crearon para esta versión web. Los diseños incluidos de ManicEMU se ofrecen bajo la licencia independiente indicada arriba. Esto no implica la concesión de derechos sobre marcas comerciales u otros derechos similares.",
+ "更新あり": "Actualización disponible",
+ "画像の表示範囲。矢印キーで画像を移動": "Área de recorte. Usa las flechas del teclado para mover la imagen.",
+ "最終プレイ：⟪0⟫": "Última partida: ⟪0⟫",
+ "合計⟪0⟫": "Total: ⟪0⟫"
 };

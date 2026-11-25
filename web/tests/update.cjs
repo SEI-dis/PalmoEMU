@@ -103,7 +103,7 @@ const browserName=process.env.BROWSER_ENGINE||'chromium',browserType=require('./
    // one tab owns the release dialog before acknowledging it.
    await shown.waitForTimeout(700);
    assert.equal((await Promise.all(clients.map(client=>client.locator('#sheet.release-notice[open]').count()))).reduce((sum,count)=>sum+count,0),1,'Only one tab presents the release notice');
-   await shown.locator('#release-notice-done').click();await shown.locator('#sheet').waitFor({state:'hidden'});
+   await shown.locator('#sheet.release-notice #close-sheet').click();await shown.locator('#sheet').waitFor({state:'hidden'});
    await noReleaseNotice(clients,version,'Acknowledging the release prevents another tab from showing it again');
   }
   await page.evaluate(async()=>{await navigator.serviceWorker.ready;const db=await import('./src/storage/storage.js');await db.put('saves','keep',{bytes:new Uint8Array([7,9]),at:1});});

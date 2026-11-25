@@ -97,6 +97,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium';
   await chooseROM('From Imports.gba',Buffer.from([5,2,3,4]));
   await page.locator('#rom-update-confirm').waitFor();assert.equal(await page.locator('#rom-update-confirm').isDisabled(),true);
   await page.locator('#rom-update-compatible').check();await page.locator('#rom-update-confirm').click();await page.locator('#rom-update-play').waitFor();
+  assert.equal(await page.locator('#rom-update-back').count(),0);await page.locator('#close-sheet.sheet-back').click();await page.locator('.game-info-play').waitFor();assert.equal(await page.locator('#sheet-title').textContent(),'From Imports');
   const imported=await page.evaluate(async({sourceId,targetId})=>{const db=await import('./src/storage/storage.js'),games=await db.all('library'),game=games.find(g=>g.name==='From Imports');return {previous:game.romUpdate.previousId,copied:[...(await db.get('saves',game.id)).bytes],selected:[...(await db.get('saves',targetId)).bytes],other:[...(await db.get('saves',sourceId)).bytes],states:(await db.stateEntries(game.id)).length};},result);
   assert.deepEqual(imported,{previous:result.targetId,copied:[99],selected:[99],other:[7,8,9],states:0});
   assert.deepEqual(errors,[]);assert.ok(requests.filter(r=>/^https?:/.test(r.url())).every(r=>new URL(r.url()).origin===new URL(base).origin&&['GET','HEAD'].includes(r.method())&&!r.postData()));

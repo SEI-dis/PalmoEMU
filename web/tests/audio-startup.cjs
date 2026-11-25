@@ -20,8 +20,8 @@ const assert=require('node:assert/strict'),runtime=require('./browser-runtime.cj
     await route.fulfill({response,body});
    });
    await page.goto(process.env.TEST_URL||'http://127.0.0.1:4173/');await page.locator('#add-first').waitFor();
-   await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy')||document.querySelector('#release-notice-done'));
-   if(await page.locator('#release-notice-done').isVisible())await page.locator('#release-notice-done').click();
+   await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy')||document.querySelector('#sheet.release-notice[open] #close-sheet'));
+   if(await page.locator('#sheet.release-notice[open] #close-sheet').isVisible())await page.locator('#sheet.release-notice[open] #close-sheet').click();
    await page.waitForFunction(()=>!document.documentElement.hasAttribute('aria-busy'));
    await page.evaluate(async mode=>{
      window.audioStartup={mode,contexts:[],events:[],armed:false,inPlay:false,inEnable:false,inMenu:false};const f=audioStartup;

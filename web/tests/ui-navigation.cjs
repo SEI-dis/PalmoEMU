@@ -10,7 +10,7 @@ function deterministicNavigation(){
   getClientRects:()=>[{}],getBoundingClientRect:()=>({left:index*100,right:index*100+60,top:0,bottom:40}),
   focus(){document.activeElement=this;},scrollIntoView(){},click(){clicks++;this.onClick?.();}
  }));
- document.body={querySelectorAll:()=>buttons};document.querySelector=()=>null;document.querySelectorAll=()=>buttons;document.activeElement=buttons[0];
+ document.body={querySelectorAll:()=>buttons};document.querySelector=()=>null;document.querySelectorAll=selector=>selector==='dialog[open]'?[]:buttons;document.activeElement=buttons[0];
  const pad={connected:true,axes:[0,0],buttons:Array.from({length:16},()=>({pressed:false,value:0}))};
  const sandbox={document,navigator:{getGamepads:()=>{reads++;return [pad];}},getComputedStyle:()=>({visibility:'visible'}),requestAnimationFrame:callback=>{callbacks.set(++next,callback);return next;},cancelAnimationFrame:id=>callbacks.delete(id)};
  vm.runInNewContext(source.replace('export function ','function ')+'\nglobalThis.create=createUINavigation;',sandbox);
@@ -82,6 +82,20 @@ function deterministicNavigation(){
   await page.locator('#player-menu').click();await page.locator('#sheet[open]').waitFor();await page.evaluate(()=>{navPollStats={beforeFrames:0,inFrame:0,other:0};});
   await page.waitForFunction(()=>navPollStats.other>=3);assert.equal(await page.evaluate(()=>navPollStats.beforeFrames),0,'Paused gameplay yields input ownership back to the menu');
   await page.locator('[data-action=exit]').click();await page.locator('#player').waitFor({state:'hidden'});
+  await page.locator('[data-tab=settings]').click();await page.locator('[data-action=diagnostics]').click();await page.locator('#diagnostics-export').click();
+  await page.locator('[data-export-save]').focus();await page.keyboard.press('ArrowDown');
+  assert.equal(await page.evaluate(()=>!!document.activeElement?.closest('.file-export')&&!document.activeElement.hasAttribute('data-export-save')),true,'Arrow keys stay in the export dialog');
+  await page.locator('[data-export-save]').focus();await page.evaluate(()=>navPad.buttons[13].pressed=true);
+  await page.waitForFunction(()=>!!document.activeElement?.closest('.file-export')&&!document.activeElement.hasAttribute('data-export-save'));
+  await page.evaluate(()=>{navPad.buttons[13].pressed=false;navPad.buttons[1].pressed=true;});
+  await page.locator('.file-export').waitFor({state:'detached'});assert.equal(await page.locator('#diagnostics-export').isVisible(),true,'Back closes only the top dialog');
+  await page.evaluate(()=>navPad.buttons[1].pressed=false);await page.locator('#close-sheet').click();
+  await page.locator('[data-action=backup]').click();await page.locator('#backup-mode-restore').click();await page.locator('#backup-mode-restore').focus();
+  await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'backup-choose');
+  const keyboardPicker=page.waitForEvent('filechooser');await page.keyboard.press('Enter');await(await keyboardPicker).setFiles([]);
+  await page.locator('#backup-mode-restore').focus();await page.evaluate(()=>navPad.buttons[13].pressed=true);await page.waitForFunction(()=>document.activeElement.id==='backup-choose');
+  const padPicker=page.waitForEvent('filechooser');await page.evaluate(()=>{navPad.buttons[13].pressed=false;navPad.buttons[0].pressed=true;});await(await padPicker).setFiles([]);
+  assert.equal(await page.locator('#backup-view').isVisible(),true);
   await context.close();console.log('PASS: '+kind+' native focus/click/repeat, zero disabled UI polls, and unchanged actual core beforeFrame input during play.');
  }finally{await browser.close();}
 })().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

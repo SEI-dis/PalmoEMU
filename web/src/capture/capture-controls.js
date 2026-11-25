@@ -8,7 +8,7 @@ import {createRecordingPreview} from './recording-preview.js';
 export function createCaptureControls({button,host,getState,capture,onInteract=()=>{},onReview=()=>{},error=()=>{},onChange=()=>{}}){
  const menu=document.createElement('section');menu.id='capture-menu';menu.className='capture-panel capture-menu';menu.hidden=true;
  menu.setAttribute('role','dialog');menu.setAttribute('aria-modal','false');menu.setAttribute('aria-label',tr('撮影'));
- menu.innerHTML=`<header><strong>${tr('撮影')}</strong><button class="circle" data-capture-close aria-label="${tr('閉じる')}">${icon('close')}</button></header><button class="capture-choice" data-capture-photo>${icon('camera')}<span>${tr('スクリーンショット')}</span></button><button class="capture-choice" data-capture-record><span class="record-dot" aria-hidden="true"></span><span>${tr('録画を開始')}</span></button><p class="sheet-note" data-capture-note></p>`;
+ menu.innerHTML=`<header><strong>${tr('撮影')}</strong><button class="circle" data-capture-close aria-label="${tr('閉じる')}">${icon('close')}</button></header><button class="capture-choice" data-capture-photo>${icon('camera')}<span>${tr('スクリーンショット')}</span></button><button class="capture-choice" data-capture-record><span class="record-dot" aria-hidden="true">${icon('record')}</span><span>${tr('録画を開始')}</span></button><p class="sheet-note" data-capture-note></p>`;
  host.append(menu);
  const record=menu.querySelector('[data-capture-record]'),note=menu.querySelector('[data-capture-note]');
  const preview=createRecordingPreview({onInteract,onChange,error});
@@ -20,7 +20,7 @@ export function createCaptureControls({button,host,getState,capture,onInteract=(
   button.dataset.recording=String(active);button.disabled=stopping;
   const label=active?(stopping?tr('動画を準備しています…'):tr('録画を停止')):tr('撮影');
   button.setAttribute('aria-label',label);button.title=active?label:`${label} · ${tr('長押しで移動')}`;
-  button.innerHTML=active?`<span class="record-stop" aria-hidden="true"></span><span class="record-time" aria-hidden="true">${starting?'…':time(snapshot.duration||0)}</span>`:icon('camera');
+  button.innerHTML=active?`<span class="record-stop" aria-hidden="true">${icon('stop')}</span><span class="record-time" aria-hidden="true">${starting?'…':time(snapshot.duration||0)}</span>`:icon('camera');
   button.setAttribute('aria-busy',String(starting||stopping));onChange();
   if(stopping){preview.prepare();const at=performance.now();onReview();pauseMs=performance.now()-at;}
  }

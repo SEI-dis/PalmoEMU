@@ -22,7 +22,7 @@ const base=process.env.TEST_URL||'http://127.0.0.1:4173/';
    await page.goto(base);await page.locator('[data-tab=settings]').click();await page.locator('[data-action=storage]').click();
    await page.waitForFunction(()=>document.querySelector('#persistent-status')?.dataset.state);
    if(scenario==='already'){
-    assert.equal(await page.locator('#persistent-status').getAttribute('data-state'),'granted');assert.equal(await page.locator('#persistent').isDisabled(),true);assert.equal(await page.evaluate(()=>window.persistCalls),0);
+    assert.equal(await page.locator('#persistent-status').getAttribute('data-state'),'granted');assert.equal(await page.locator('#persistent').isVisible(),false);assert.equal(await page.locator('#persistent').isDisabled(),true);assert.equal(await page.evaluate(()=>window.persistCalls),0);
    }else if(scenario==='unsupported'){
     assert.equal(await page.locator('#persistent-status').getAttribute('data-state'),'unsupported');assert.equal(await page.locator('#persistent').isDisabled(),true);
    }else{

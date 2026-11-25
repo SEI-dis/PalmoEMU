@@ -903,7 +903,6 @@ export default {
  "コアやライブラリには、それぞれのライセンスが適用されます。著作権表示とライセンス原文を同梱しています。": "Cores und Bibliotheken behalten ihre jeweiligen Lizenzen. Copyright-Hinweise und Originallizenztexte sind enthalten.",
  "ライセンス・通知を開く": "Lizenzen und Hinweise öffnen",
  "ゲーム・スキン・商標": "Spiele, Skins & Marken",
- "ソフトウェアのライセンスは、ROM・ゲーム画像・第三者のスキン・商標の利用を許可するものではありません。このWeb版は、本家やゲーム機メーカーの公式製品ではありません。「標準」スキンとアイコンは、このWeb版用に作成したものです。ManicEMUの同梱スキンは上記の別ライセンスで提供します。商標権等の許諾を意味するものではありません。": "Softwarelizenzen gewähren keine Rechte an ROMs, Spielbildern, Drittanbieter-Skins oder Marken. Diese Web-App ist kein offizielles Produkt der Upstream-Projekte oder Konsolenhersteller. Die Standard-Skins und -Icons wurden für diese Web-App erstellt. Die enthaltenen ManicEMU Skins werden unter der separaten Lizenz oben bereitgestellt, welche keine Markenrechte gewährt.",
  "使い方・公開手順": "Nutzungs- und Veröffentlichungsleitfaden",
  "変更内容 · PalmoEMU": "Änderungen · PalmoEMU",
  "← クレジット・ライセンス": "← Mitwirkende und Lizenzen",
@@ -1433,5 +1432,17 @@ export default {
  "画面に戻るまで通信開始を待っています。": "Wartet auf Ihre Rückkehr, bevor die Kommunikation beginnt.",
  "mGBA celio edition · 128MiB対応": "mGBA celio edition · 128MiB-Unterstützung",
  "128KiB・6MiB・16MiBの通常セーブを選択してください。": "Wählen Sie einen spielinternen Spielstand mit 128KiB, 6MiB oder 16MiB aus.",
- "128KiB・1MiB・6MiB・16MiBの通常セーブを選択してください。": "Wählen Sie einen spielinternen Spielstand mit 128KiB, 1MiB, 6MiB oder 16MiB aus."
+ "128KiB・1MiB・6MiB・16MiBの通常セーブを選択してください。": "Wählen Sie einen spielinternen Spielstand mit 128KiB, 1MiB, 6MiB oder 16MiB aus.",
+ "再確認は⟪0⟫から": "Erneut prüfen ab ⟪0⟫",
+ "ROMの更新に進む": "Weiter zum ROM-Update",
+ "選び直す": "Datei wechseln",
+ "検索条件をクリア": "Suche und Filter zurücksetzen",
+ "ゲームを追加": "Spiel hinzufügen",
+ "保存・共有": "Speichern oder teilen",
+ "Lucide · 操作アイコン": "Lucide · Symbole der Benutzeroberfläche",
+ "ソフトウェアのライセンスは、ROM・ゲーム画像・第三者のスキン・商標の利用を許可するものではありません。このWeb版は、本家やゲーム機メーカーの公式製品ではありません。「標準」スキンとアプリアイコンは、このWeb版用に作成したものです。ManicEMUの同梱スキンは上記の別ライセンスで提供します。商標権等の許諾を意味するものではありません。": "Softwarelizenzen gewähren keine Rechte an ROMs, Spielbildern, Drittanbieter-Skins oder Marken. Diese Web-App ist kein offizielles Produkt der Upstream-Projekte oder Konsolenhersteller. Die Standard-Skins und das App-Symbol wurden für diese Web-App erstellt. Die enthaltenen ManicEMU Skins werden unter der separaten Lizenz oben bereitgestellt, welche keine Markenrechte gewährt.",
+ "更新あり": "Update verfügbar",
+ "画像の表示範囲。矢印キーで画像を移動": "Bildausschnitt. Das Bild mit den Pfeiltasten der Tastatur verschieben.",
+ "最終プレイ：⟪0⟫": "Zuletzt gespielt: ⟪0⟫",
+ "合計⟪0⟫": "Gesamt: ⟪0⟫"
 };

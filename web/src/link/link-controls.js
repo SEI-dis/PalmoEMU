@@ -91,20 +91,27 @@ export function createLinkControls({state,setPause,release,applySettings,updateL
       }
     }finally{state.starting=false;updateLinkButton();if(!state.link&&state.current&&coreFor(state.current).link)render();}
   }
+  function cancelFinish(){
+    if(!confirmFinish)return;
+    confirmFinish=false;
+    if(state.link?.connected&&!state.link.closed&&!backgrounded&&!document.hidden)setPause(finishWasPaused);
+  }
   function render(){
     const active=state.link,body=$('#link-panel-body'),busy=state.starting||active?.closed,disabled=busy?'disabled':'';
     const gb=isGB(),selected=active?.kind||(gb?'local':mode);
-    const message=state.message||(selected==='room'?tr('部屋を作るか、相手の部屋に参加します。'):selected==='local'?tr('同じゲームを2台起動し、1P・2Pを切り替えて操作します。'):tr('Celio対応USB変換器と実機の通信ケーブルを接続します。'));
+    const message=state.message||'';
     const tabs=!active&&!gb?tr`<div class="segmented" aria-label="通信方式">${[['room',tr('オンライン')],['local',tr('この端末で2台')],['usb',tr('USB実機')]].map(([id,label])=>`<button data-link-mode="${id}" aria-pressed="${selected===id}" class="${selected===id?'active':''}" ${disabled}>${label}</button>`).join('')}</div>`:'';
     let controls;
-    if(active){
+    if(active?.manualCompletion&&confirmFinish){
+      controls=tr`<p class="sheet-note">両方のゲームで通信を終え、ゲーム内でセーブしましたか？ 確定すると1Pと2Pのセーブを一緒に保存します。</p><button class="primary" id="link-confirm-complete" ${disabled}>両方のセーブを確定して終了</button><button class="secondary" id="link-cancel-complete" ${disabled}>キャンセル</button>`;
+    }else if(active){
       controls=selected==='room'?tr`<label for="link-room-number">部屋番号</label><div class="link-room-field"><input class="text-input" id="link-room-number" readonly inputmode="none" value="${esc(active.room||tr('準備中…'))}"><button class="link-copy" id="link-copy" aria-label="部屋番号をコピー" ${active.joined&&!active.closed?'':'disabled'}>${icon('copy')}<span>コピー</span></button></div>`:selected==='local'?tr`<div class="segmented" aria-label="操作するプレイヤー">${[0,1].map(i=>`<button data-link-player="${i}" class="${active.paired.view===i?'active':''}" aria-pressed="${active.paired.view===i}" ${disabled}>${i+1}P</button>`).join('')}</div><button class="secondary" id="link-export-2p" ${disabled}>2Pのセーブを書き出す</button>`:tr('<p class="sheet-note">USB実機に接続しています。</p>');
-      if(active.manualCompletion)controls+=confirmFinish?tr`<p class="sheet-note">両方のゲームで通信を終え、ゲーム内でセーブしましたか？ 確定すると1Pと2Pのセーブを一緒に保存します。</p><button class="primary" id="link-confirm-complete" ${disabled}>両方のセーブを確定して終了</button><button class="secondary" id="link-cancel-complete" ${disabled}>ゲームに戻る</button>`:tr`<button class="primary" id="link-complete" ${disabled}>両方のセーブを確定して終了</button>`;
+      if(active.manualCompletion)controls+=tr`<button class="primary" id="link-complete" ${disabled}>両方のセーブを確定して終了</button>`;
       controls+=tr`<button class="secondary danger" id="link-stop" ${disabled}>通信を中止</button>`;
     }else if(selected==='room')controls=tr`<button class="primary" id="link-create" ${disabled}>部屋を作る</button><label for="link-input">部屋番号で参加</label><div class="link-room-field"><input class="text-input" id="link-input" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4桁の番号" ${disabled}><button class="secondary" id="link-join" ${disabled}>参加</button></div><details class="sheet-note" id="link-server-settings"><summary>中継サーバー</summary><label for="link-server">接続先</label><input class="text-input" id="link-server" type="url" inputmode="url" maxlength="300" autocomplete="off" autocapitalize="none" spellcheck="false" value="${esc(readRelayOrigin())}" ${disabled}><p>変更する場合は、相手と同じCelio対応サーバーを指定してください。通信データと接続元IPアドレスが、そのサーバーに伝わります。</p><button class="secondary" id="link-server-reset" ${disabled}>標準に戻す</button></details>`;
     else if(selected==='local')controls=tr`<label for="link-2p-source">2Pのセーブ</label><select id="link-2p-source" ${disabled}><option value="saved">前回の2Pセーブ（初回は最初から）</option><option value="file">ファイルから読み込む</option><option value="blank">最初から</option></select><input id="link-2p-file" type="file" aria-label="2Pのセーブファイル" hidden ${disabled}><button class="primary" id="link-local-start" ${disabled}>2台で開始</button>`;
     else controls=tr`<p class="sheet-note">${navigator.serial?tr('PCのChrome / Edgeで、対応するUSB変換器を選んで接続します。'):tr('このブラウザはUSB接続に対応していません。PCのChrome / Edgeを使用してください。')}</p><button class="primary" id="link-usb-start" ${busy||!navigator.serial?'disabled':''}>USB機器を選んで接続</button>`;
-    body.innerHTML=tr`${tabs}<p id="link-status" role="status">${esc(message)}</p><div class="stack">${controls}</div><p class="sheet-note">${selected==='room'?tr('開始すると中継サーバーに接続します。ROM・セーブファイルは送信しません。'):selected==='local'?tr('端末内だけで通信します。1Pと2Pのセーブは別々です。'):tr('USB変換器へゲームの通信データを送ります。中継サーバーは使いません。')}</p><details class="sheet-note"><summary>通信について</summary><p>パネル上部をドラッグすると移動できます。閉じても通信は続きます。</p><p>${gb?tr('GB・GBCの通信ケーブルに対応するゲーム用です。この端末内で2台を動かします。'):tr('Celio方式に対応するGBAゲーム用です。オンラインの相手も同じ中継サーバーを使ってください。部屋番号はパスワードではありません。')}</p><p>開始前に端末内へバックアップします。切断や中止時は${selected==='usb'?tr('ブラウザ側だけ'):tr('この端末のゲームが')}通信前に戻ります。${selected==='usb'?tr('実機のセーブを戻すことはできません。'):''}${gb?tr('両方のゲームで通信とゲーム内セーブを終えたら、「両方のセーブを確定して終了」を押してください。'):tr('両方のゲーム内で通信を終えると結果を保存します。')}ゲーム内の通信開始後に別のタブやアプリへ移ると切断します。</p><p>${selected==='room'?tr('部屋番号の共有中は、画面に戻るまで開始を待ちます。端末やサーバーが接続を切った場合は、部屋を作り直してください。'):''}</p><p>端末内通信の2Pには、1Pと同じROMを使います。「最初から」やファイルを選んでも、以前の2Pセーブを置き換えるのは正常終了時だけです。</p><p><a href="privacy.html" target="_blank" rel="noopener">プライバシー</a></p></details>`;
+    body.innerHTML=tr`${tabs}<p id="link-status" role="status">${esc(message)}</p><div class="stack">${controls}</div><p class="sheet-note">${selected==='room'?tr('開始すると中継サーバーに接続します。ROM・セーブファイルは送信しません。'):selected==='local'?tr('端末内だけで通信します。1Pと2Pのセーブは別々です。'):tr('USB変換器へゲームの通信データを送ります。中継サーバーは使いません。')}</p><details class="sheet-note"><summary>通信について</summary><p>パネル上部をドラッグすると移動できます。閉じても通信は続きます。</p>${gb?tr('<p>GB・GBCの通信ケーブルに対応するゲーム用です。この端末内で2台を動かします。</p>'):selected==='room'?tr('<p>Celio方式に対応するGBAゲーム用です。オンラインの相手も同じ中継サーバーを使ってください。部屋番号はパスワードではありません。</p>'):''}<p>開始前に端末内へバックアップします。切断や中止時は${selected==='usb'?tr('ブラウザ側だけ'):tr('この端末のゲームが')}通信前に戻ります。${selected==='usb'?tr('実機のセーブを戻すことはできません。'):''}${gb?tr('両方のゲームで通信とゲーム内セーブを終えたら、「両方のセーブを確定して終了」を押してください。'):tr('両方のゲーム内で通信を終えると結果を保存します。')}ゲーム内の通信開始後に別のタブやアプリへ移ると切断します。</p>${selected==='room'?tr('<p>部屋番号の共有中は、画面に戻るまで開始を待ちます。端末やサーバーが接続を切った場合は、部屋を作り直してください。</p>'):selected==='local'?tr('<p>端末内通信の2Pには、1Pと同じROMを使います。「最初から」やファイルを選んでも、以前の2Pセーブを置き換えるのは正常終了時だけです。</p>'):''}<p><a href="privacy.html" target="_blank" rel="noopener">プライバシー</a></p></details>`;
     body.querySelectorAll('[data-link-mode]').forEach(b=>b.onclick=()=>{mode=b.dataset.linkMode;state.message='';render();});
     body.querySelectorAll('[data-link-player]').forEach(b=>b.onclick=()=>{release();active.paired.select(Number(b.dataset.linkPlayer));render();});
     if($('#link-create'))$('#link-create').onclick=()=>start('');
@@ -119,7 +126,7 @@ export function createLinkControls({state,setPause,release,applySettings,updateL
     if($('#link-copy'))$('#link-copy').onclick=async()=>{if(!state.link?.joined||state.link.closed)return;try{await navigator.clipboard.writeText(state.link.room);toast(tr('コピーしました。'));}catch{const input=$('#link-room-number');input?.focus();input?.select();toast(tr('部屋番号を選択してコピーしてください。'));}};
     if($('#link-stop'))$('#link-stop').onclick=async()=>{renderClosing();await state.link?.close();};
     if($('#link-complete'))$('#link-complete').onclick=()=>{if(!active.canComplete){toast(tr('まだ通信データを転送しています。両方のゲームで通信を終えてから保存してください。'));return;}finishWasPaused=active.paired.paused;setPause(true);confirmFinish=true;render();};
-    if($('#link-cancel-complete'))$('#link-cancel-complete').onclick=()=>{confirmFinish=false;setPause(finishWasPaused);render();};
+    if($('#link-cancel-complete'))$('#link-cancel-complete').onclick=()=>{cancelFinish();render();};
     if($('#link-confirm-complete'))$('#link-confirm-complete').onclick=async()=>{try{await active.close(tr('通信が完了しました。'),{keep:true});}catch(e){error(e);}};
     if($('#link-export-2p'))$('#link-export-2p').onclick=()=>{try{const bytes=active.paired.cores[1].save();if(!bytes?.length){toast(tr('2Pのゲーム内でセーブしてから書き出してください。'));return;}download(bytes,state.current.name+'-2P.sav');}catch(e){error(e);}};
     updateLinkButton();panel.place();
@@ -127,5 +134,5 @@ export function createLinkControls({state,setPause,release,applySettings,updateL
   function renderClosing(){const button=$('#link-stop');if(button)button.disabled=true;}
   function background(){backgrounded=true;state.link?.setBackground?.(true);}
   function foreground(){if(document.hidden)return;backgrounded=false;state.link?.setBackground?.(false);}
-  return {render,background,foreground};
+  return {render,background,foreground,cancelFinish};
 }

@@ -15,15 +15,15 @@ export function compareStartVersions(a,b){
  const x=parts(a),y=parts(b);if(!x||!y)return null;
  for(let i=0;i<3;i++)if(x[i]!==y[i])return Math.sign(x[i]-y[i]);return 0;
 }
-export function startUpdateGames(games){
- return games.filter(game=>game.system==='gba'&&!game.romMissing&&isStartName(game.filename,game.name)).map(game=>({game,version:startVersionFromName(game.filename,game.name)})).sort((a,b)=>(compareStartVersions(b.version,a.version)||0)||(b.game.lastPlayed||0)-(a.game.lastPlayed||0));
+export function startUpdateGames(games,selectedId=null){
+ return games.filter(game=>game.system==='gba'&&(!game.romMissing||game.id===selectedId)&&isStartName(game.filename,game.name)).map(game=>({game,version:startVersionFromName(game.filename,game.name)})).sort((a,b)=>(compareStartVersions(b.version,a.version)||0)||(b.game.lastPlayed||0)-(a.game.lastPlayed||0));
 }
-export function needsStartUpdate(games,release){
- if(!parts(release?.version))return false;
+export function startUpdateCandidates(games,release){
+ if(!parts(release?.version))return [];
  const known=startUpdateGames(games).filter(item=>parts(item.version));
  // Kept old ROMs must not keep notifying after the latest (or newer) version
  // has already been added. Unknown versions are never reported as current.
- return known.length>0&&known.every(item=>compareStartVersions(item.version,release.version)<0);
+ return known.every(item=>compareStartVersions(item.version,release.version)<0)?known.map(item=>item.game):[];
 }
 export function parseStartRelease(data){
  if(!data||data.truncated!==false||!sha(data.sha)||!Array.isArray(data.tree)||data.tree.length>512)throw Error('Invalid distribution metadata');

@@ -22,11 +22,14 @@ export function createGameInfo(api){
  const bind=handlers=>$('#sheet-body').querySelectorAll('[data-action]').forEach(b=>b.onclick=guardUpdateTask(()=>{try{return Promise.resolve(handlers[b.dataset.action]?.()).catch(api.error);}catch(error){api.error(error);}}));
  async function update(game,changes){const fresh=Object.hasOwn(changes,'favorite')?(await db.setGamesLibraryMetadata([game.id],changes))[0]:await db.setGameDetails(game.id,changes);for(const key of Object.keys(game))delete game[key];Object.assign(game,fresh);await api.refresh();}
  function info(game){
-  nativeSheet(tr('ゲーム情報'),tr`<div class="settings-group">${nativeAction(tr('ゲーム機'),'', 'game',systems[game.system].name)}${nativeAction(tr('コア'),'','core',coreFor(game).name)}${nativeAction(tr('ROM容量'),'','folder',bytesLabel(game.size))}</div><p class="sheet-note">ROM・セーブはこのブラウザ内に保存されます。速度・音量・映像・操作はゲームごとに保存します。未変更の項目には共通設定を使います。</p><p class="sheet-note"><a href="licenses.html">クレジット・ライセンス・対応ソース</a></p>`);
+  nativeSheet(tr('ゲーム情報'),tr`<div class="settings-group">${nativeAction(tr('ゲーム機'),'', 'game',systems[game.system].name)}${nativeAction(tr('コア'),'','core',coreFor(game).name)}${nativeAction(tr('ROM容量'),'','folder',bytesLabel(game.size))}</div><p class="sheet-note"><a href="licenses.html">クレジット・ライセンス・対応ソース</a></p>`);
  }
  function rename(game){
   nativeSheet(tr('名前を変更'),tr`<input class="text-input" id="new-name" value="${esc(game.name)}" maxlength="120" aria-label="ゲーム名"><div class="sheet-actions"><button class="secondary" data-action="back">キャンセル</button><button class="primary" id="save-name">保存</button></div>`,{confirmation:true});
-  bind({back:()=>show(game)});$('#save-name').onclick=async()=>{try{const name=$('#new-name').value.trim();if(!name)return;await update(game,{name});show(game);}catch(e){api.error(e);}};
+  bind({back:()=>show(game)});const input=$('#new-name'),save=$('#save-name');
+  const changed=()=>input.value.trim()!==''&&input.value.trim()!==game.name;
+  input.oninput=()=>{save.disabled=!changed();};input.oninput();
+  save.onclick=async()=>{if(!changed())return;save.disabled=true;try{await update(game,{name:input.value.trim()});show(game);}catch(e){save.disabled=!changed();api.error(e);}};
  }
  function remove(game){
   nativeSheet(tr('ゲームを削除'),tr`<p class="sheet-note">「${esc(game.name)}」と、このブラウザ内のセーブ・ステートを削除します。端末の元ファイルは残ります。</p><div class="sheet-actions"><button class="secondary" data-action="back">キャンセル</button><button class="destructive" id="confirm-delete">削除する</button></div>`,{confirmation:true});
@@ -45,15 +48,59 @@ export function createGameInfo(api){
  async function copyLink(game){const url=new URL(location.href);url.search='';url.hash='game='+game.id;await navigator.clipboard.writeText(url.href);api.toast(tr('このブラウザで開ける起動リンクをコピーしました。'));}
 
  function sortOptions(game,cells){
-  const groups=orderedOptionGroups(api.settings().menuOrder),label=id=>{const element=document.createElement('div');element.innerHTML=cells[id]||'';return element.querySelector('.native-label')?.textContent||id;};
-  nativeSheet(tr('機能順序設定'),tr`<p class="sheet-note">グループ内の表示順を変更します。プレイ中のメニューにも反映されます。</p>${groups.map((group,g)=>{const ids=group.filter(id=>cells[id]);return ids.length?`<div class="settings-group">${ids.map((id,i)=>tr`<div class="option-reorder"><span>${esc(label(id))}</span><button data-move="-1" data-group="${g}" data-option="${id}" aria-label="${esc(label(id))}を上へ" ${i===0?'disabled':''}>↑</button><button data-move="1" data-group="${g}" data-option="${id}" aria-label="${esc(label(id))}を下へ" ${i===ids.length-1?'disabled':''}>↓</button></div>`).join('')}</div>`:'';}).join('')}<div class="sheet-actions"><button class="secondary" data-action="reset">標準に戻す</button><button class="primary" data-action="back">完了</button></div>`);
-  $('#sheet-body').querySelectorAll('[data-move]').forEach(b=>b.onclick=()=>{const group=groups[Number(b.dataset.group)],ids=group.filter(id=>cells[id]),at=ids.indexOf(b.dataset.option),other=ids[at+Number(b.dataset.move)];if(!other)return;const a=group.indexOf(b.dataset.option),z=group.indexOf(other);[group[a],group[z]]=[group[z],group[a]];api.settings().menuOrder=groups;api.saveSettings();sortOptions(game,cells);});
-  bind({reset:()=>{delete api.settings().menuOrder;api.saveSettings();sortOptions(game,cells);},back:()=>show(game)});
+  const groups=orderedOptionGroups(api.settings().menuOrder);
+  const defaultOrder=JSON.stringify(orderedOptionGroups());
+  const label=id=>{
+   const element=document.createElement('div');
+   element.innerHTML=cells[id];
+   const title=element.querySelector('.native-label')||element.querySelector('.row > span');
+   return esc(title?.firstChild?.textContent||id);
+  };
+  const groupMarkup=groups.map((group,g)=>{
+   const ids=group.filter(id=>cells[id]);
+   if(!ids.length)return '';
+   const rows=ids.map((id,i)=>tr`<div class="option-reorder" data-order-id="${id}"><span class="order-grip" aria-hidden="true">${icon('grip')}</span><span class="order-label">${label(id)}</span><button data-move="-1" data-option="${id}" aria-label="${label(id)}を上へ" ${i===0?'disabled':''}>${icon('arrowUp')}</button><button data-move="1" data-option="${id}" aria-label="${label(id)}を下へ" ${i===ids.length-1?'disabled':''}>${icon('arrowDown')}</button></div>`).join('');
+   return `<div class="settings-group" data-order-group="${g}">${rows}</div>`;
+  }).join('');
+  nativeSheet(tr('機能順序設定'),tr`<p class="sheet-note">グループ内の表示順を変更します。プレイ中のメニューにも反映されます。</p>${groupMarkup}<button class="text-button wide-button" data-action="reset">標準に戻す</button>`);
+  const panel=$('#sheet-body'),reset=panel.querySelector('[data-action="reset"]');
+  reset.hidden=JSON.stringify(groups)===defaultOrder;
+  function saveGroup(container){
+   const rows=[...container.querySelectorAll(':scope > [data-order-id]')];
+   const visible=rows.map(row=>row.dataset.orderId);
+   const index=Number(container.dataset.orderGroup);
+   // Options unavailable for this game retain their slots in the shared order.
+   let next=0;
+   groups[index]=groups[index].map(id=>cells[id]?visible[next++]:id);
+   api.settings().menuOrder=groups;
+   api.saveSettings();
+   rows.forEach((row,i)=>{
+    row.querySelector('[data-move="-1"]').disabled=i===0;
+    row.querySelector('[data-move="1"]').disabled=i===rows.length-1;
+   });
+   reset.hidden=JSON.stringify(groups)===defaultOrder;
+  }
+  for(const button of panel.querySelectorAll('[data-move]'))button.onclick=()=>{
+   const row=button.closest('.option-reorder'),up=button.dataset.move==='-1';
+   const adjacent=up?row.previousElementSibling:row.nextElementSibling;
+   if(!adjacent)return;
+   const scroll=panel.scrollTop;
+   if(up)adjacent.before(row);else adjacent.after(row);
+   saveGroup(row.parentElement);
+   (button.disabled?row.querySelector('button:enabled'):button)?.focus({preventScroll:true});
+   panel.scrollTop=scroll;
+  };
+  let open=true,disposeDrag;
+  api.onClose(()=>{open=false;disposeDrag?.();});
+  import('./menu-drag.js').then(({enableMenuDrag})=>{
+   if(open)disposeDrag=enableMenuDrag(panel.querySelectorAll('[data-order-group]'),panel,saveGroup);
+  }).catch(()=>{/* The arrow controls remain available when drag cannot be loaded. */});
+  bind({reset:()=>{delete api.settings().menuOrder;api.saveSettings();sortOptions(game,cells);}});
  }
  function shortcuts(game){
   const selected=api.settings().gameShortcuts||gameShortcuts.map(([id])=>id);
-  nativeSheet(tr('ゲームショートカット'),tr`<p class="sheet-note">プレイ中のメニュー上部に表示する操作を選びます。</p><div class="settings-group">${gameShortcuts.map(([id,label,ic])=>`<label class="row native-row">${icon(ic)}<span class="native-label">${label}</span><input type="checkbox" data-shortcut-choice="${id}" ${selected.includes(id)?'checked':''}></label>`).join('')}</div><button class="primary wide-button" data-action="back">完了</button>`);
-  $('#sheet-body').querySelectorAll('[data-shortcut-choice]').forEach(b=>b.onchange=()=>{api.settings().gameShortcuts=[...$('#sheet-body').querySelectorAll('[data-shortcut-choice]:checked')].map(el=>el.dataset.shortcutChoice);api.saveSettings();});bind({back:()=>show(game)});
+  nativeSheet(tr('ゲームショートカット'),tr`<p class="sheet-note">プレイ中のメニュー上部に表示する操作を選びます。</p><div class="settings-group">${gameShortcuts.map(([id,label,ic])=>`<label class="row native-row">${icon(ic)}<span class="native-label">${label}</span><input type="checkbox" data-shortcut-choice="${id}" ${selected.includes(id)?'checked':''}></label>`).join('')}</div>`);
+  $('#sheet-body').querySelectorAll('[data-shortcut-choice]').forEach(b=>b.onchange=()=>{api.settings().gameShortcuts=[...$('#sheet-body').querySelectorAll('[data-shortcut-choice]:checked')].map(el=>el.dataset.shortcutChoice);api.saveSettings();});
  }
  function show(game){
   const scrollTop=api.beginGame?.(game)||0;
@@ -67,7 +114,7 @@ export function createGameInfo(api){
    copyLink:nativeAction(tr('起動リンクをコピー'),'copyLink','link')
   };
   const romActions=`<div class="settings-group">${nativeAction(tr('ROMを更新'),'updateROM','reload')}${game.romMissing?'':nativeAction(tr('ROMだけ取り外す'),'detachROM','folder')}${game.romUpdate?nativeAction(tr('前のバージョン'),'previousROM','history')+nativeAction(tr('更新前のセーブを書き出す'),'exportPrevious','saveExport'):''}</div>`;
-  api.sheet(game.name,gameInfoHero(game)+tr`<div class="native-options" aria-label="ゲームの設定">${api.preferenceSummary?.(game)||''}${romActions}${groupedOptions(cells,api.settings().menuOrder)}<div class="settings-group destructive-group"><div class="native-option" data-menu-option="delete">${nativeAction(tr('ゲームを削除'),'delete','trash','','danger')}</div></div></div>`,false,{root:true});
+  api.sheet(game.name,gameInfoHero(game)+tr`<div class="native-options" aria-label="ゲームの設定">${api.preferenceSummary?.(game,{hideDefaults:true})||''}${romActions}${groupedOptions(cells,api.settings().menuOrder)}<div class="settings-group destructive-group"><div class="native-option" data-menu-option="delete">${nativeAction(tr('ゲームを削除'),'delete','trash','','danger')}</div></div></div>`,false,{root:true});
   $('#sheet').classList.add('native-menu','game-info');$('#sheet-cover').src=game.cover||'assets/controller.svg';$('#sheet-cover').hidden=false;
   $('#sheet-tools').innerHTML=tr`<button class="sheet-tool" id="game-info-button" aria-label="ゲーム情報">${icon('info')}</button><button class="sheet-tool" id="game-favorite-button" aria-label="${game.favorite?tr('お気に入りから外す'):tr('お気に入りに追加')}" aria-pressed="${!!game.favorite}">${icon('starCircle')}</button>`;
   $('#game-info-button').onclick=()=>info(game);$('#game-favorite-button').onclick=guardUpdateTask(async()=>{try{await update(game,{favorite:!game.favorite});show(game);}catch(e){api.error(e);}});

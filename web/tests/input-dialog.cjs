@@ -36,13 +36,13 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  // Blurring for a button must not move it before the click finishes.
  await page.locator('#trainer-name').evaluate(input=>input.blur());const before=await page.locator('#sheet').boundingBox();await viewport({});assert.deepEqual(await page.locator('#sheet').boundingBox(),before);
  await page.locator('#trainer-name-form [type=submit]').tap();await page.locator('#sheet').waitFor({state:'hidden'});assert.match(await page.locator('#trainer-nickname').textContent(),/しめじトレーナー/);assert.equal(await count(),baseline);
- for(let n=0;n<3;n++){await open();await page.locator('#trainer-name').fill('cancel');await page.locator(n%2?'#close-sheet':'#trainer-name-cancel').tap();await page.locator('#sheet').waitFor({state:'hidden'});assert.equal(await count(),baseline);}
+ for(let n=0;n<3;n++){await open();await page.locator('#trainer-name').fill('cancel');if(n%2)await page.keyboard.press('Escape');else await page.locator('#close-sheet').tap();await page.locator('#sheet').waitFor({state:'hidden'});assert.equal(await count(),baseline);}
  await viewport({height:844,offsetTop:0});await page.setViewportSize({width:844,height:390});await viewport({height:390,width:844});await open();await viewport({height:184,offsetTop:0});await fitted(0,184,false);
  // Tiny landscape viewports can scroll the form to the save action.
  await page.locator('#trainer-name').fill('横画面');await page.locator('#trainer-name-form [type=submit]').tap();await page.locator('#sheet').waitFor({state:'hidden'});assert.match(await page.locator('#trainer-nickname').textContent(),/横画面/);
  await page.setViewportSize({width:390,height:844});await viewport({height:360,width:390,offsetTop:0});await open();await fitted(0,360);
  const output=path.join(__dirname,'../../work/input-dialog');fs.mkdirSync(output,{recursive:true});await page.locator('#sheet').screenshot({path:path.join(output,kind+'-keyboard-dialog.png')});
  await page.locator('#close-sheet').tap();await page.locator('[data-action=video]').tap();assert.equal(await page.locator('#sheet').getAttribute('data-input-viewport'),null,'No viewport styles leak into another sheet');await page.locator('#close-sheet').tap();
- await page.evaluate(()=>Object.defineProperty(window,'visualViewport',{configurable:true,value:null}));await open();assert.equal(await page.locator('#sheet').getAttribute('data-input-viewport'),null);await page.locator('#trainer-name-cancel').tap();
+ await page.evaluate(()=>Object.defineProperty(window,'visualViewport',{configurable:true,value:null}));await open();assert.equal(await page.locator('#sheet').getAttribute('data-input-viewport'),null);await page.locator('#close-sheet').tap();
  assert.deepEqual(errors,[]);console.log(`PASS ${kind}: keyboard resize/pan, toolbar height, selection, pinch, dismissal, save/cancel, landscape scroll, cleanup and missing API. iPhone/Simeji hardware not tested.`);
 }finally{await browser.close();}})().then(()=>process.exit(0)).catch(error=>{console.error(error);process.exit(1);});

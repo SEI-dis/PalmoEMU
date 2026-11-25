@@ -13,10 +13,11 @@ export function touchOptionsMarkup(settings){
  </div><button class="secondary" id="touch-options-reset">タッチの感度を初期設定に戻す</button>`;
 }
 export function mountTouchOptions({container,settings,applySettings,render}){
- const diagonal=container.querySelector('[data-touch-option=touchDpadDiagonal]');diagonal.disabled=settings.touchDpadMode==='four';
+ const diagonal=container.querySelector('[data-touch-option=touchDpadDiagonal]');diagonal.disabled=settings.touchDpadMode==='four';diagonal.closest('.row').hidden=diagonal.disabled;
  for(const select of container.querySelectorAll('[data-touch-option]')){
   select.setAttribute('aria-label',select.closest('.row')?.querySelector('span')?.textContent||'');
   select.onchange=()=>{const key=select.dataset.touchOption;settings[key]=key==='touchDpadMode'?select.value:Number(select.value);applySettings();render();};
  }
- container.querySelector('#touch-options-reset').onclick=()=>{Object.assign(settings,touchInputDefaults);applySettings();render();};
+ const reset=container.querySelector('#touch-options-reset');reset.hidden=Object.entries(touchInputDefaults).every(([key,value])=>(settings[key]??value)===value);
+ reset.onclick=()=>{Object.assign(settings,touchInputDefaults);applySettings();render();};
 }

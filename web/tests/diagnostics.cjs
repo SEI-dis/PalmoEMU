@@ -163,7 +163,7 @@ function privateFree(value){
   await page.reload();await page.evaluate(async()=>{window.diagnostics=(await import('./src/diagnostics.js')).diagnostics;});
   privateFree(await page.evaluate(()=>diagnostics.snapshot()));assert.ok((await page.evaluate(()=>diagnostics.list())).length<=5);
   await page.locator('[data-tab=settings]').click();await page.locator('[data-action=diagnostics]').click();
-  assert.equal(await page.locator('#sheet-title').textContent(),'診断レポート');
+  assert.equal(await page.locator('#sheet-title').textContent(),'診断と動作の計測');
   privateFree(JSON.parse(await page.locator('#diagnostics-preview').textContent()));
   const exported=await exportReport();assert.ok(exported.reports.length>0);
   await page.locator('#diagnostics-enabled').uncheck();assert.equal(await page.evaluate(()=>diagnostics.isEnabled()),false);

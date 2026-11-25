@@ -6,4 +6,5 @@
 .screenshot-preview img{display:block;width:100%;height:auto;max-height:35dvh;object-fit:contain;border-radius:8px;background:#000;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 .screenshot-actions{display:flex;gap:8px;margin-top:10px}
 .screenshot-actions button{flex:1;min-width:0;padding:11px 8px;font-size:13px;overflow-wrap:anywhere}
+.screenshot-preview .sheet-note:empty{margin:0}
 .screenshot-preview .sheet-note{font-size:11px;line-height:1.5;margin:10px 0 0}

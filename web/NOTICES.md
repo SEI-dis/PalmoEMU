@@ -1,5 +1,9 @@
 # Copyright, credits and modification notices
 
+Menu option reordering uses the source modules and AutoScroll plugin from [SortableJS 1.15.7](https://github.com/SortableJS/Sortable/tree/031649b8116565e02419e8aa2d252d7d8c82b9da). Copyright (c) 2019 All contributors to Sortable. PalmoEMU substitutes the upstream package version string for the JSON import in `src/Sortable.js` so browsers can load the sources directly, and removes indentation on one blank line. The [MIT license](licenses/SortableJS-MIT.txt) accompanies the distributed modules under `vendor/sortable/` and their corresponding Web source ZIP.
+
+PalmoEMU uses SVG action icons from [Lucide 1.80.0](https://github.com/lucide-icons/lucide/tree/164efbaf879fb29f55d88047efd49fc7725f53ab/icons). Copyright (c) 2026 Lucide Icons and Contributors (ISC). Icons derived from Feather are credited to Cole Bemis, copyright (c) 2013-present (MIT). On 2026-11-25 PalmoEMU selected SVG shapes from the upstream icons for its local UI module, `vendor/lucide/icons.js`. The [upstream license and Feather icon list](licenses/Lucide-ISC-Feather-MIT.txt) accompany the distribution and the Web source ZIP. PalmoEMU's app icon and original default skin artwork retain their existing attribution.
+
 Unpublished maintenance changes (2026-11-25): retain the pinned ClownMDEmu
 libretro base and backport three changes by Clownacy from Clownacy/clownmdemu:
 e26b6d9623e070196fc7970e857d1571edf04994 (bank register bounds),
@@ -380,8 +384,8 @@ src/components/manic-ui.js and native-menu.css. The four unmodified upstream ref
 are retained under sources/manicemu-ui at the existing pinned revision. Added
 pre-play state/save access, safe launch, recorded playtime, option order, shortcut
 selection and local game launch links. ROM file sharing and its download fallback
-were removed on 2026-10-09. New outline icons are original SVG;
-no Apple symbols or game artwork are bundled. Added Scale4x contour filtering
+were removed on 2026-10-09. The outline icons added in that version were drawn for the Web port.
+See the Lucide attribution above for the current action icons. Added Scale4x contour filtering
 and five-generation automatic state retention.
 
 Modified 2026-10-09: added source-built DeSmuME 2015 at libretro/desmume2015

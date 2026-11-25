@@ -2,7 +2,7 @@
 // Metadata fixtures only. No actual ROMs, patches, tokens or external requests.
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 (async()=>{
- const {parseStartRelease,parseStartAnnouncement,needsStartUpdate,compareStartVersions,createStartUpdateService,startUpdateURL,startUpdateReadmeURL,startUpdateInterval,startUpdateStorageKey}=await import('../src/library/start-updates.js');
+ const {parseStartRelease,parseStartAnnouncement,startUpdateCandidates,compareStartVersions,createStartUpdateService,startUpdateURL,startUpdateReadmeURL,startUpdateInterval,startUpdateStorageKey}=await import('../src/library/start-updates.js');
  const sha='a'.repeat(40),entry=(version='0.47.1')=>({path:`PokemonStart_v${version}.pks`,type:'blob',mode:'100644',size:21701997,sha});
  const tree=(entries=[entry()])=>({sha:'b'.repeat(40),truncated:false,tree:entries});
  const response=(data=tree())=>new Response(JSON.stringify(data));
@@ -14,12 +14,11 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
  const announcement='# PokemonStart v0.49.0\n\n配布ファイルは PokemonStart_v0.49.0.pks です。';
  assert.deepEqual(parseStartAnnouncement(announcement),{version:'0.49.0',sha:null,source:'readme'});
  for(const invalid of ['',announcement.replace('v0.49.0.pks','v0.48.0.pks'),announcement+'\n# PokemonStart v0.49.0\n',announcement.replace('0.49.0','0.049.0'),'<h1>PokemonStart v0.49.0</h1>'])assert.throws(()=>parseStartAnnouncement(invalid));
- assert(needsStartUpdate([game('0.46.0')],release));
- assert(!needsStartUpdate([game('0.46.0'),game('0.47.1')],release),'Retained old ROMs do not trigger repeat notices');
- assert(!needsStartUpdate([game('0.48.0')],release));
- assert(!needsStartUpdate([game('unknown')],release),'Unknown local version is not guessed');
- assert(!needsStartUpdate([game('0.46.0',{system:'nds'})],release));
- assert(!needsStartUpdate([game('0.46.0',{romMissing:true})],release));
+ const older=game('0.45.0'),newer=game('0.46.0'),unknown=game('unknown'),otherSystem=game('0.46.0',{system:'nds'}),detached=game('0.46.0',{romMissing:true});
+ assert.deepEqual(startUpdateCandidates([older,newer,unknown,otherSystem,detached],release),[newer,older],'Only installed, identifiable outdated games receive their own notice');
+ for(const current of ['0.47.1','0.48.0'])assert.deepEqual(startUpdateCandidates([older,newer,game(current)],release),[],'Retained old ROMs do not trigger repeat notices');
+ assert.deepEqual(startUpdateCandidates([unknown,otherSystem,detached],release),[]);
+ assert.deepEqual(startUpdateCandidates([older],null),[]);
  let time=100000000,online=true,calls=[],mode='ok';const store=new Map(),storage={getItem:key=>store.get(key),setItem:(key,value)=>store.set(key,value)};
  const fetcher=async(url,options)=>{calls.push({url,options});if(mode==='bad')return response(tree([]));if(mode==='rate')return new Response('',{status:429,headers:{'retry-after':'7200'}});if(mode==='large')return new Response('x'.repeat(131073));if(mode==='reject')throw new TypeError('Offline');return response();};
  const service=()=>createStartUpdateService({storage,fetcher,now:()=>time,online:()=>online,locks:null});let client=service();

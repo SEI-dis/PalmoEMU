@@ -4,7 +4,7 @@ import {tr} from '../i18n/index.js';
 import {icon} from '../shared.js';
 import {recordingName as captureName} from './recording-file.js';
 
-export function createScreenshotPreview({host,onInteract=()=>{},toast=()=>{},error=()=>{}}){
+export function createScreenshotPreview({host,onInteract=()=>{},error=()=>{}}){
  const panel=document.createElement('section');panel.id='screenshot-preview';panel.className='screenshot-preview';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','false');panel.setAttribute('aria-label',tr('スクリーンショット'));
  panel.innerHTML=`<header><strong>${tr('スクリーンショット')}</strong><button class="circle" data-photo-close aria-label="${tr('閉じる')}">${icon('close')}</button></header><img data-photo-image alt="${tr('スクリーンショット')}"><div class="screenshot-actions"><button class="primary" data-photo-save>${tr('画像を保存')}</button><button class="secondary" data-photo-share hidden>${tr('共有')}</button></div><p class="sheet-note" data-photo-status role="status"></p>`;
  host.append(panel);
@@ -17,7 +17,7 @@ export function createScreenshotPreview({host,onInteract=()=>{},toast=()=>{},err
  save.onclick=()=>{
   if(!file)return;
   const url=URL.createObjectURL(file),anchor=document.createElement('a');anchor.href=url;anchor.download=file.name;anchor.hidden=true;document.body.append(anchor);
-  try{anchor.click();status.textContent=tr('ダウンロードを開始しました。');toast(status.textContent);}catch(e){error(e);}finally{anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
+  try{anchor.click();status.textContent=tr('ダウンロードを開始しました。');}catch(e){error(e);}finally{anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
  };
  share.onclick=async()=>{
   if(!file||sharing)return;sharing=true;share.disabled=true;const current=file;
@@ -28,7 +28,7 @@ export function createScreenshotPreview({host,onInteract=()=>{},toast=()=>{},err
    // Use bytes and an explicit MIME type instead of navigating to a data URL.
    const prefix='data:image/png;base64,';if(typeof data!=='string'||!data.startsWith(prefix))throw new TypeError('Invalid screenshot PNG');
    const bytes=Uint8Array.from(atob(data.slice(prefix.length)),value=>value.charCodeAt(0));
-   file=new File([bytes],captureName(name)+'.png',{type:'image/png'});image.src=data;status.textContent=tr('画像を確認して、保存または共有できます。');
+   file=new File([bytes],captureName(name)+'.png',{type:'image/png'});image.src=data;status.textContent='';
    let supported=false;try{supported=typeof navigator.share==='function'&&navigator.canShare?.({files:[file]})===true;}catch{}
    share.hidden=!supported;panel.hidden=false;
   },

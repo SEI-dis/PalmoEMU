@@ -49,7 +49,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',pw=require('./browser-runtime.
   await page.reload();assert.equal(await page.locator('.game-launch img').getAttribute('src'),saved.g.cover);
   await page.locator('.game-launch').click();await page.locator('[data-action=cover]').click();
   await page.locator('[data-action=cover-adjust]').click();await crop.waitFor();await zoom.fill('300');await zoom.dispatchEvent('input');await page.locator('#cover-crop-cancel').click();
-  assert.equal(await readCover(),saved.g.cover,'Cancelling adjustment preserves the existing cover');
+  assert.equal(await readCover(),saved.g.cover,'Cancelling adjustment preserves the existing cover');assert.equal(await page.locator('[data-action=cover-adjust]').evaluate(el=>el===document.activeElement),true);
   // Failure to save keeps both the original and an editable preview for retry.
   await page.locator('[data-action=cover-adjust]').click();await crop.waitFor();
   await page.evaluate(()=>{const original=IDBDatabase.prototype.transaction;IDBDatabase.prototype.transaction=function(stores,mode,...rest){if(mode==='readwrite'&&[].concat(stores).includes('library')){IDBDatabase.prototype.transaction=original;throw new DOMException('Synthetic storage pressure','QuotaExceededError');}return original.call(this,stores,mode,...rest);};});
@@ -60,7 +60,7 @@ const kind=process.env.BROWSER_ENGINE||'chromium',pw=require('./browser-runtime.
   // Closing while image decoding is pending must not reopen an old editor.
   await page.evaluate(()=>{const original=createImageBitmap;window.createImageBitmap=(...args)=>new Promise((resolve,reject)=>{window.finishCoverDecode=()=>original(...args).then(value=>{resolve(value);window.coverDecodeResolved=true;},reject);});});
   const delayed=page.waitForEvent('filechooser');await page.locator('[data-action=cover-local]').click();await(await delayed).setFiles({name:'Delayed.png',mimeType:'image/png',buffer:png});
-  await page.waitForFunction(()=>!!window.finishCoverDecode);await page.locator('#close-sheet').click();
+  await page.waitForFunction(()=>!!window.finishCoverDecode);assert.equal(await page.locator('#close-sheet').isVisible(),false);await page.keyboard.press('Escape');await page.locator('[data-action=cover-local]').waitFor();
   await page.evaluate(async()=>{const finish=window.finishCoverDecode;delete window.finishCoverDecode;finish();});
   await page.waitForFunction(()=>window.coverDecodeResolved);assert.equal(await crop.count(),0,'Late decode cannot resurrect a closed sheet');
   await page.reload();await page.locator('.game-launch').click();await page.locator('[data-action=cover]').click();

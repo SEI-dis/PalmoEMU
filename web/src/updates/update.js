@@ -7,7 +7,10 @@ const status=document.querySelector('#update-status'),button=document.querySelec
 const watched=new WeakSet();let progressWorker,stopProgress,quotaFailed=false;
 function show(){
  const installing=registration?.installing?.state!=='redundant'&&registration?.installing,waiting=registration?.waiting?.state!=='redundant'&&registration?.waiting;
- button.disabled=applying||checking||!!installing||(!waiting&&!failed);if(applying)return;
+ button.disabled=applying||checking||!!installing||(!waiting&&!failed);
+ button.hidden=!applying&&(checking||!!installing||(!waiting&&!failed));
+ const guidance=document.querySelector('#update-guidance');if(guidance)guidance.hidden=!waiting&&!applying;
+ button.textContent=!waiting&&failed?tr('更新を確認'):tr('更新');if(applying)return;
  status.textContent=checking?tr('更新を確認中…'):installing?tr('ダウンロード中…'):waiting?tr('更新できます。'):failed?(quotaFailed?tr('容量が不足しているため保存できません。'):tr('更新できませんでした。接続を確認し、もう一度お試しください。')):registration?.active?tr('最新の状態です。'):tr('更新を確認中…');
 }
 function watch(){
@@ -27,4 +30,4 @@ async function check(retry=false){
 await check();
 let stopActivationWait;
 navigator.serviceWorker?.addEventListener('controllerchange',()=>{if(applying&&!stopActivationWait)stopActivationWait=afterControllerActivation(()=>location.replace(new URL('../../index.html',import.meta.url)));});
-button.onclick=()=>{if(applying||checking)return;if(!registration?.waiting){if(failed)void check(true);else show();return;}button.disabled=true;applying=true;const channel=new MessageChannel();const timeout=setTimeout(()=>{channel.port1.close();applying=false;button.disabled=!registration.waiting;status.textContent=tr('更新を確認できませんでした。もう一度お試しください。');},15000);channel.port1.onmessage=event=>{clearTimeout(timeout);channel.port1.close();if(event.data.error){applying=false;button.disabled=!registration.waiting;status.textContent=tr(event.data.error);}};registration.waiting.postMessage({type:'activate-update'},[channel.port2]);};
+button.onclick=()=>{if(applying||checking)return;if(!registration?.waiting){if(failed)void check(true);else show();return;}button.disabled=true;applying=true;status.textContent=tr('更新中…');const channel=new MessageChannel();const timeout=setTimeout(()=>{channel.port1.close();applying=false;button.disabled=!registration.waiting;status.textContent=tr('更新を確認できませんでした。もう一度お試しください。');},15000);channel.port1.onmessage=event=>{clearTimeout(timeout);channel.port1.close();if(event.data.error){applying=false;button.disabled=!registration.waiting;status.textContent=tr(event.data.error);}};registration.waiting.postMessage({type:'activate-update'},[channel.port2]);};

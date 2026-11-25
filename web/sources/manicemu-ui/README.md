@@ -18,7 +18,7 @@ Upstream: https://github.com/Manic-EMU/ManicEMU/tree/fbaeab79c214d5920bb51afa6f2
 | ASListPage / ASListItemView / ASNavigationView | Shared grouped rows, leading icons, trailing value/switch/chevron, compact navigation tools and close button in native-menu.css, style.css, index.html and src/app.js. |
 | SaveStateListView.getSaveStatesSection / segmented control / editing actions | src/manic-ui.js: stateRow. src/app.js: showStates. Manual/automatic tabs, thumbnail, number, date, Continue button; editing replaces Continue with selection checkboxes. Select-all and confirmed deletion. Automatic tab opens first when no manual state exists. |
 | GameOptionPerform | Browser equivalents for save, quick load, volume, speed, screenshot, skin, cheat, restart and exit actions. |
-| ImportServiceListView / ImportMottoCollectionViewCell / ImportFileCollectionViewCell / ImportServiceListCollectionViewCell / ImportFooterCollectionReusableView | src/app.js and style.css: the top artwork, full-width Files card, two-column local-service cards and dashed drop hint. Skin settings and per-game save import reuse existing local flows. Cloud/LAN/download, clipboard and multi-disc services are omitted. Local IPS/BPS/UPS patching was added on 2026-10-13. Artwork and vector icons are original Web replacements. Original references and credits are retained. |
+| ImportServiceListView / ImportMottoCollectionViewCell / ImportFileCollectionViewCell / ImportServiceListCollectionViewCell / ImportFooterCollectionReusableView | src/app.js and style.css: the top artwork, full-width Files card, two-column local-service cards and dashed drop hint. Skin settings and per-game save import reuse existing local flows. Cloud/LAN/download, clipboard and multi-disc services are omitted. Local IPS/BPS/UPS patching was added on 2026-10-13. The import artwork was created for the Web port. The current action icons come from Lucide (see [notices](../../NOTICES.md)). Original references and credits are retained. |
 | SettingsListView / SettingItem | General, advanced, support and other groups; appearance controls, automatic states, controller skins and grouped settings rows in src/app.js and style.css. |
 
 UIKit layout and Realm persistence are replaced with HTML/CSS/JavaScript and
@@ -45,8 +45,8 @@ the editable implementation, modification notices and the license.
   controls below labels instead of squeezing text into vertical columns.
 - Browser-only full-screen and FPS controls use the same row component. The
   local save-data page uses the same grouping, without a separate tile layout.
-- Native images and Apple system symbols are not copied. Replacement vector
-  icons and standard-skin source artwork are authored for this AGPL Web port.
+- Native images and Apple system symbols are not copied. The default skin artwork is original to this Web port.
+  Current action icons use Lucide with its retained ISC and Feather MIT notices.
   No third-party skin, game ROM, dumped proprietary BIOS, game image or downloaded
   font is bundled. Open-source replacement BIOS implementations keep their licenses.
 

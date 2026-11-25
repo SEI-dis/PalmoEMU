@@ -8,6 +8,14 @@ import {saveKey,coreFor,compatibleState} from '../core/core-registry.js';
 import {stateRow} from '../components/manic-ui.js';
 import {exportState,inspectState,importState} from '../storage/state-transfer.js';
 import {guardUpdateTask} from '../updates/update-activity.js';
+export function saveStatusText({at,stateAt,busy,error}){
+ if(error)return tr('保存失敗：')+error;
+ if(busy)return tr('保存中…');
+ const parts=[];
+ if(stateAt)parts.push(tr('再開用データ：')+new Date(stateAt).toLocaleString(locale()));
+ if(at)parts.push(tr('ゲーム内セーブ：')+new Date(at).toLocaleString(locale()));
+ return parts.join(' ／ ')||tr('まだ保存されていません');
+}
 export function createStateDialogs(api){
  const {runtime,sheet,closeSheet,setPause,persist,launch,toast,error,download,onClose}=api;
  const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -24,18 +32,20 @@ export function createStateDialogs(api){
 async function showStates(mode=null,editing=false,{interrupted=false,game=runtime.current}={}){
  if(!game||runtime.link||runtime.busy||transferBusy)return;
  const request=++viewGeneration,origin=$('#sheet-body').firstChild,ownerEngine=runtime.engine,ownerGame=runtime.current;
- const {manual,automatic}=await db.stateCatalog(saveKey(game),{mode});
+ const key=saveKey(game),live=!!ownerEngine&&runtime.protection.storageKey===key;
+ const {manual,automatic,saveAt}=await db.stateCatalog(key,{mode,includeSaveTime:!live});
  if(request!==viewGeneration||origin!==$('#sheet-body').firstChild||ownerEngine!==runtime.engine||ownerGame!==runtime.current)return;
  mode??=manual.length||!automatic.length?'manual':'auto';editing=editing&&(mode==='auto'?automatic:manual).length>0;
  const entries=mode==='auto'?automatic:manual;entries.sort((a,b)=>b.value.at-a.value.at);const selected=new Set();
+ const detail=mode==='auto'?(live?$('#save-status').dataset.detail:saveStatusText({at:saveAt,stateAt:entries[0]?.value.at})):null;
  const note=interrupted?tr('<p class="sheet-note">自動保存した状態から再開できます。</p>'):'';
  const footer=interrupted?tr('<div class="state-footer"><button class="secondary wide-button" id="continue-save">通常どおり起動</button></div>'):'';
- sheet(interrupted?tr('前回のプレイを復旧'):tr('セーブステート'),tr`${note}<div class="segmented" role="group" aria-label="保存の種類"><button data-state-mode="manual" aria-pressed="${mode==='manual'}">手動</button><button data-state-mode="auto" aria-pressed="${mode==='auto'}">自動</button></div><div class="state-scroll"><div class="settings-group save-entries">${entries.map(({value},i)=>stateRow(value,i,{editing,automatic:mode==='auto',compatible:compatibleState(coreFor(game).id,value)})).join('')||tr('<p class="empty-states">セーブステートはありません。</p>')}</div>${editing&&mode==='manual'?tr('<div class="state-edit-tools"><button id="select-all-states">すべて選択</button><button class="danger" id="delete-selected-states" disabled>削除</button></div>'):''}${mode==='auto'?tr`<details class="save-details"><summary>保存状況</summary><p id="protection-status">${esc($('#save-status').dataset.detail||tr('未保存'))}</p></details>`:''}</div>${footer}`,true);$('#sheet').classList.add('states-view');
+ sheet(interrupted?tr('前回のプレイを復旧'):tr('セーブステート'),tr`${note}${game.romMissing?tr('<p class="sheet-note">ROMが取り外されています。同じROMを追加してください。</p>'):''}<div class="segmented" role="group" aria-label="保存の種類"><button data-state-mode="manual" aria-pressed="${mode==='manual'}">手動</button><button data-state-mode="auto" aria-pressed="${mode==='auto'}">自動</button></div><div class="state-scroll"><div class="settings-group save-entries">${entries.map(({value},i)=>stateRow(value,i,{editing,automatic:mode==='auto',romMissing:game.romMissing,compatible:compatibleState(coreFor(game).id,value)})).join('')||tr('<p class="empty-states">セーブステートはありません。</p>')}</div>${editing&&mode==='manual'?tr('<div class="state-edit-tools"><button id="select-all-states">すべて選択</button><button class="danger" id="delete-selected-states" disabled>削除</button></div>'):''}${mode==='auto'?tr`<details class="save-details"><summary>保存状況</summary><p id="protection-status" data-save-key="${esc(key)}">${esc(detail)}</p></details>`:''}</div>${footer}`,true);$('#sheet').classList.add('states-view');
  const generation=++viewGeneration;onClose?.(()=>{if(generation===viewGeneration)viewGeneration++;manual.length=automatic.length=0;selected.clear();});
  if(mode==='manual'&&entries.length){$('#sheet-tools').innerHTML=`<button class="nav-text" id="edit-states">${editing?tr('完了'):tr('編集')}</button>`;$('#edit-states').onclick=()=>showStates(mode,!editing,{interrupted,game});}
  if(mode==='auto'&&entries.length){$('#sheet-tools').innerHTML=`<button class="nav-text" id="export-states">${editing?tr('完了'):tr('書き出す')}</button>`;$('#export-states').onclick=()=>showStates(mode,!editing,{interrupted,game});}
  if(mode==='manual'){
-  const tools=document.createElement('div');tools.className='stack';tools.innerHTML=tr`<div><button class="text-button text-action" id="state-import-open" ${game.romMissing?'disabled':''}>${icon('import')}<span>ステートを取り込む</span></button></div><input type="file" id="state-import-file" hidden><p class="sheet-note">PalmoEMUのステートを追加します。保存の上書きや再開は行いません。</p>${game.romMissing?tr('<p class="sheet-note">ステートを取り込むには、先に同じROMを追加してください。</p>'):''}`;$('.state-scroll').append(tools);
+  const tools=document.createElement('div');tools.className='stack';tools.innerHTML=tr`<div><button class="text-button text-action" id="state-import-open" ${game.romMissing?'disabled':''}>${icon('import')}<span>ステートを取り込む</span></button></div><input type="file" id="state-import-file" hidden><p class="sheet-note">PalmoEMUのステートを追加します。保存の上書きや再開は行いません。</p>`;$('.state-scroll').append(tools);
   $('#state-import-open').onclick=()=>$('#state-import-file').click();
   $('#state-import-file').onchange=async event=>{
    const file=event.target.files[0];event.target.value='';if(!file)return;
