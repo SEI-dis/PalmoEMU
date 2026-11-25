@@ -90,11 +90,20 @@ function deterministicNavigation(){
   await page.evaluate(()=>{navPad.buttons[13].pressed=false;navPad.buttons[1].pressed=true;});
   await page.locator('.file-export').waitFor({state:'detached'});assert.equal(await page.locator('#diagnostics-export').isVisible(),true,'Back closes only the top dialog');
   await page.evaluate(()=>navPad.buttons[1].pressed=false);await page.locator('#close-sheet').click();
+  // Subscribe before navigating to the form so the browser is intercepting native pickers by the time Enter is pressed.
+  const keyboardPicker=page.waitForEvent('filechooser');
   await page.locator('[data-action=backup]').click();await page.locator('#backup-mode-restore').click();await page.locator('#backup-mode-restore').focus();
   await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.activeElement.id),'backup-choose');
-  const keyboardPicker=page.waitForEvent('filechooser');await page.keyboard.press('Enter');await(await keyboardPicker).setFiles([]);
+  await page.keyboard.press('Enter');const chooser=await keyboardPicker;
+  assert.equal(await chooser.element().getAttribute('id'),'backup-import');await chooser.setFiles([]);
   await page.locator('#backup-mode-restore').focus();await page.evaluate(()=>navPad.buttons[13].pressed=true);await page.waitForFunction(()=>document.activeElement.id==='backup-choose');
-  const padPicker=page.waitForEvent('filechooser');await page.evaluate(()=>{navPad.buttons[13].pressed=false;navPad.buttons[0].pressed=true;});await(await padPicker).setFiles([]);
+  // Mocking getGamepads() routes the button through the app but cannot grant an OS picker user activation.
+  await page.evaluate(()=>{
+   const input=document.getElementById('backup-import');
+   input.addEventListener('click',event=>{event.preventDefault();input.dataset.padActivated='true';},{once:true});
+   navPad.buttons[13].pressed=false;navPad.buttons[0].pressed=true;
+  });
+  await page.locator('#backup-import[data-pad-activated="true"]').waitFor({state:'attached'});
   assert.equal(await page.locator('#backup-view').isVisible(),true);
   await context.close();console.log('PASS: '+kind+' native focus/click/repeat, zero disabled UI polls, and unchanged actual core beforeFrame input during play.');
  }finally{await browser.close();}
