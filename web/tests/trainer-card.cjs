@@ -55,6 +55,32 @@ const kind=process.env.BROWSER_ENGINE||'chromium',base=process.env.TEST_URL||'ht
  await openAvatar();assert.equal(await page.locator('#trainer-avatar-reset').isVisible(),false);assert.equal(await page.locator('#trainer-avatar-adjust').isVisible(),false);
  await pickAvatar();assert.equal(await readAvatar(),'');assert.equal(await pending(),true);assert.equal(await crop.evaluate(el=>el===document.activeElement),true);
  await page.keyboard.press('Escape');await page.locator('#trainer-avatar-pick').waitFor();assert.equal(await page.locator('#trainer-avatar-pick').evaluate(el=>el===document.activeElement),true);assert.equal(await pending(),false);
+ // A native file picker can restore focus after the new dialog opens. Control
+ // exactly when decoding finishes so keyboard and pointer input can interleave.
+ const cancelCrop=page.locator('#cover-crop-cancel');
+ async function beginSlowPick(){
+  await page.evaluate(()=>{
+   const decode=window.createImageBitmap;
+   window.createImageBitmap=async(...args)=>{
+    window.createImageBitmap=decode;
+    await new Promise(resolve=>{window.finishAvatarDecode=resolve;});
+    return decode.apply(window,args);
+   };
+  });
+  const chooser=page.waitForEvent('filechooser');await page.locator('#trainer-avatar-pick').click();await(await chooser).setFiles(avatarFile);
+  await page.waitForFunction(()=>typeof window.finishAvatarDecode==='function');
+ }
+ const finishSlowPick=()=>page.evaluate(()=>{window.finishAvatarDecode();delete window.finishAvatarDecode;});
+ await beginSlowPick();
+ // Model a browser's automatic blur/focus restoration without keyboard or pointer input.
+ await page.evaluate(()=>{const dialog=document.querySelector('#sheet');if(document.activeElement===dialog)document.querySelector('#cover-crop-cancel').focus();else dialog.focus();});
+ await finishSlowPick();await crop.waitFor();assert.equal(await crop.evaluate(el=>el===document.activeElement),true,'Ready image receives initial focus after native focus restoration');
+ await cancelCrop.click();await beginSlowPick();
+ await page.evaluate(()=>document.querySelector('#sheet').focus());await page.keyboard.press('Tab');
+ const tabFocus=await page.evaluate(()=>document.activeElement.id);assert.equal(tabFocus,'cover-crop-cancel','Tab can reach Cancel while the image is loading');
+ await finishSlowPick();await crop.waitFor();assert.equal(await cancelCrop.evaluate(el=>el===document.activeElement),true,'Finishing decode keeps the keyboard selection');
+ await cancelCrop.click();await beginSlowPick();
+ await cancelCrop.click();await finishSlowPick();await page.locator('#trainer-avatar-pick').waitFor();assert.equal(await page.locator('#trainer-avatar-pick').evaluate(el=>el===document.activeElement),true,'A cancelled decode leaves focus on the picker');
  await pickAvatar();await zoom.fill('200');await zoom.dispatchEvent('input');await crop.focus();for(let i=0;i<17;i++)await page.keyboard.press('Shift+ArrowRight');
  await page.waitForFunction(()=>{const c=document.querySelector('#cover-crop-canvas');return c.getContext('2d').getImageData(c.width/2,c.height/2,1,1).data[0]===255;});
  assert.equal(await readAvatar(),'');await commit.click();await page.locator('#sheet').waitFor({state:'hidden'});assert.equal(await page.locator('#trainer-avatar-change').evaluate(el=>el===document.activeElement),true);

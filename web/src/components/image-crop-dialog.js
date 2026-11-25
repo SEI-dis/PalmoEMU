@@ -24,7 +24,11 @@ export async function openImageCrop(api,source,{title,avatar=false,onCancel,pers
   canvas.classList.toggle('round-crop',avatar);
   let alive=true,busy=false,bitmap=null,editor=null,releaseUpdate,unlock=null;
   void guardUpdateTask(()=>new Promise(resolve=>{releaseUpdate=resolve;}))();
-  api.onClose?.(()=>{if(!alive)return;alive=false;editor?.dispose();editor=null;bitmap?.close();bitmap=null;source=null;unlock?.();unlock=null;releaseUpdate();});
+  // Returning from a native picker can move focus while the bitmap decodes.
+  // Give the image initial focus unless the user has navigated in the meantime.
+  const initialFocus=new AbortController(),keepFocus=()=>initialFocus.abort();
+  for(const type of ['keydown','pointerdown'])dialog.addEventListener(type,keepFocus,{capture:true,signal:initialFocus.signal});
+  api.onClose?.(()=>{if(!alive)return;alive=false;keepFocus();editor?.dispose();editor=null;bitmap?.close();bitmap=null;source=null;unlock?.();unlock=null;releaseUpdate();});
   cancel.onclick=()=>{if(!busy)onCancel();};
   save.onclick=guardUpdateTask(async()=>{
    if(!alive||busy||!editor)return;busy=true;editor.setDisabled(true);save.disabled=cancel.disabled=true;
@@ -42,7 +46,6 @@ export async function openImageCrop(api,source,{title,avatar=false,onCancel,pers
    // The write committed. Report any later redraw error separately.
    try{await onSaved(updated,alive);}catch(error){api.error(error);}
   });
-  const initialFocus=document.activeElement;
   try{
    if(typeof source==='string')source=storedImage(source);
    if(!(source instanceof Blob)||source.size>maxImageBytes||!/^image\/(png|jpeg|webp)$/.test(source.type))throw invalidImage(tr('16MB以下のPNG・JPEG・WebP画像を選んでください。'));
@@ -51,8 +54,9 @@ export async function openImageCrop(api,source,{title,avatar=false,onCancel,pers
    bitmap=decoded;
    if(!bitmap.width||!bitmap.height||bitmap.width>8192||bitmap.height>8192)throw invalidImage(tr('画像のサイズが大きすぎます。'));
    canvas.hidden=false;slider.parentElement.hidden=false;editor=mountCoverCrop(canvas,slider,bitmap);status.textContent='';save.disabled=false;
-   if(document.activeElement===initialFocus)canvas.focus({preventScroll:true});
+   const focused=document.activeElement,focusedDialog=focused?.closest('dialog[open]');
+   if(!initialFocus.signal.aborted&&!focused?.classList.contains('controller-focus')&&(!focusedDialog||focusedDialog===dialog))canvas.focus({preventScroll:true});
   }catch(error){
    if(alive){editor?.dispose();editor=null;bitmap?.close();bitmap=null;canvas.hidden=true;slider.parentElement.hidden=true;status.textContent=error.cropImageError?error.message:tr('画像を読み込めませんでした。別の画像を選んでください。');status.setAttribute('role','alert');}
-  }finally{source=null;}
+  }finally{keepFocus();source=null;}
  }

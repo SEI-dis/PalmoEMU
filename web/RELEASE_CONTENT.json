@@ -95,8 +95,8 @@
     },
     {
       "path": "RELEASE_VALIDATION.md",
-      "bytes": 343519,
-      "sha256": "d8654380a4f297a16da327d9a13aba12b490c019543159c8da38d5f57b5055f6",
+      "bytes": 343861,
+      "sha256": "89d451946113c9b03839e9c9b4a7e3a32ea994f3f8232beea94a50ca38e4854b",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -906,7 +906,7 @@
     {
       "path": "index.html",
       "bytes": 9270,
-      "sha256": "44250272e4d1e82f4eae8325f38619fe105f66eb76b73b671bd6cb7ffc066b10",
+      "sha256": "07adb2d01ffcd0bd44b1b8dcbe6e3edb5e5bfcead2bf950a5ca2006935f5c127",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -41105,8 +41105,8 @@
     },
     {
       "path": "src/components/image-crop-dialog.js",
-      "bytes": 5172,
-      "sha256": "54f28f2e988f81fe11e2da4939a48634990a2477e1d862678ca4a19bde795b31",
+      "bytes": 5688,
+      "sha256": "60bafd4fbc213bb8c34f271881b6f7333d680e10f805affed1500e06cb6c1152",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -42042,7 +42042,7 @@
     {
       "path": "sw.js",
       "bytes": 17492,
-      "sha256": "c1a632e7ec9763ff537971cb2133430eba3ad04912847e0ea756c3b01f561d7d",
+      "sha256": "4e21d37d6c666236aa7e416160ca2acb7cf12b2821ef53ba7d03b04571fa2ee0",
       "component": "web-port-code-and-documentation"
     },
     {
@@ -43019,8 +43019,8 @@
     },
     {
       "path": "tests/trainer-card.cjs",
-      "bytes": 14076,
-      "sha256": "b57697b380755fda91275d9c9dd11a71374415c7d7287a34ec9f55d484f33a45",
+      "bytes": 16204,
+      "sha256": "2d34f1eb2238af510c61e4924ade186629965585fb17bbedd8a90355405e2d55",
       "component": "web-port-code-and-documentation"
     },
     {
